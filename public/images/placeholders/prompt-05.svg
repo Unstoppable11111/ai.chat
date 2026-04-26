@@ -1,0 +1,9 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#07090D"/>
+  <rect x="60" y="60" width="1080" height="780" rx="44" fill="#0F141D"/>
+  <circle cx="416" cy="316" r="150" fill="#38BDF8" fill-opacity="0.18"/>
+  <circle cx="764" cy="474" r="170" fill="#A3E635" fill-opacity="0.12"/>
+  <rect x="172" y="154" width="856" height="592" rx="30" stroke="white" stroke-opacity="0.11" stroke-width="2"/>
+  <text x="172" y="682" fill="#F4F7FB" font-family="Arial" font-size="72" font-weight="700">Prompt Study</text>
+  <text x="172" y="744" fill="#9CA3AF" font-family="Arial" font-size="28">Depth · light control · repeatable framing</text>
+</svg>

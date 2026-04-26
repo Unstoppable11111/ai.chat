@@ -1,0 +1,14 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#07090D"/>
+  <rect x="74" y="74" width="1052" height="752" rx="44" fill="#121722"/>
+  <rect x="460" y="186" width="280" height="352" rx="42" fill="url(#paint0_linear)"/>
+  <rect x="498" y="548" width="206" height="36" rx="18" fill="white" fill-opacity="0.08"/>
+  <text x="154" y="682" fill="#F4F7FB" font-family="Arial" font-size="72" font-weight="700">Industrial Concept</text>
+  <text x="154" y="744" fill="#9CA3AF" font-family="Arial" font-size="28">Material study · prototype render · controlled shadows</text>
+  <defs>
+    <linearGradient id="paint0_linear" x1="460" y1="186" x2="740" y2="538" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CAD4DD"/>
+      <stop offset="1" stop-color="#49505C"/>
+    </linearGradient>
+  </defs>
+</svg>

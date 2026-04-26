@@ -1,0 +1,33 @@
+---
+title: 做一个可复用的 MDX 内容系统
+excerpt: 目标不是单纯把文章渲染出来，而是搭一个同时支持日志、AI 实验和项目案例的统一内容管道。
+date: 2026-04-05
+tags:
+  - MDX
+  - 内容架构
+  - 文档系统
+cover: /images/placeholders/prompt-03.svg
+featured: true
+---
+
+## 一套管道，三种内容
+
+AI Lab、Build Log 和 Projects 都需要元信息、可读布局和结构化章节。MDX 是现在这个阶段最轻、最够用的方案。
+
+## 目录的意义
+
+目录不只是为了跳转，它会让详情页看起来更像工作文档，而不是普通博文。
+
+## 代码高亮
+
+虽然代码主要出现在 Build Log，但统一的高亮风格能让整个网站更稳定。
+
+```ts
+const toc = source
+  .split("\n")
+  .filter((line) => line.startsWith("##"));
+```
+
+## 为什么它能扩展
+
+现在新增内容基本只需要加一个文件和 frontmatter。这种低摩擦，正是这个网站需要的。

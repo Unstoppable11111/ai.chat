@@ -1,0 +1,39 @@
+---
+title: 把网站搭成真正的 Studio Shell
+excerpt: 第一个关键决定不是把页面做满，而是先搭出一个能承载实验、日志、项目和提示词的工作室骨架。
+date: 2026-04-18
+tags:
+  - Next.js
+  - 工作室系统
+  - 布局设计
+cover: /images/placeholders/prompt-06.svg
+featured: true
+---
+
+## 为什么先做壳子
+
+我希望这个网站从第一天起就不是“内容列表”，而是一个真的能承载工作流的系统。首页应该像控制台，而不是文章流。
+
+## 第一原则
+
+它需要有创业者的工作感，但不能吵。暗色面板、克制对比、明确结构，比炫技更重要。
+
+## 实现选择
+
+我选择 App Router + 内容驱动页面结构，因为 AI Lab、Build Log 和 Projects 本质上是三种内容系统，只是共享同一个视觉框架。
+
+```tsx
+export const metadata = {
+  title: "Chen AI Studio",
+  description: "An AI Native Personal Studio",
+};
+```
+
+## 这一步学到什么
+
+当我不再把首页当 landing page，而把它当作工作室仪表盘来设计时，整个站点的方向就清晰了。
+
+<PromptBlock
+  title="AI Core 视觉所用提示词"
+  prompt="A next-gen AI website hero scene, dark workspace environment, floating transparent interface cards, glowing central orb, cinematic depth, layered grids, black and graphite palette, cyan and lime highlights, venture-backed product feel, ultra modern web visual."
+/>
