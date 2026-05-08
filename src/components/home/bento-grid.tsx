@@ -39,6 +39,8 @@ const items = [
 ];
 
 export function BentoGrid() {
+  const [featured, ...secondaryItems] = items;
+
   return (
     <section className="studio-section">
       <SectionHeading
@@ -46,28 +48,48 @@ export function BentoGrid() {
         title="核心入口"
         description="这不是传统博客目录，更像是我如何真正展开工作的控制面板。"
       />
-      <div className="grid gap-4 md:grid-cols-4">
-        {items.map((item, index) => (
-          <Reveal key={item.href} delay={index * 0.04} once>
+      <div className="grid gap-5 lg:grid-cols-[1.05fr_1fr]">
+        <Reveal delay={0} once>
+          <Link
+            href={featured.href}
+            className="group flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[28px] border border-slate-900/8 bg-slate-950 p-7 text-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] hover:-translate-y-1"
+          >
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-white/54">主入口</p>
+              <h3 className="mt-8 max-w-[12ch] text-4xl font-semibold tracking-tight md:text-5xl">
+                {featured.title}
+              </h3>
+              <p className="mt-5 max-w-md text-sm leading-7 text-white/68">
+                {featured.description}
+              </p>
+            </div>
+            <span className="mt-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/14 bg-white/10 text-white/80 group-hover:bg-white group-hover:text-slate-950">
+              <ArrowRight className="h-4 w-4" />
+            </span>
+          </Link>
+        </Reveal>
+
+        <div className="grid gap-3">
+          {secondaryItems.map((item, index) => (
+            <Reveal key={item.href} delay={(index + 1) * 0.04} once>
             <Link
               href={item.href}
-              className={`glass-panel group flex h-full flex-col rounded-[28px] p-6 hover:-translate-y-1 ${item.span ?? ""}`}
+              className="group grid gap-4 border-b border-slate-900/8 bg-white/36 px-1 py-4 transition hover:bg-white/66 md:grid-cols-[140px_1fr_auto] md:items-center md:px-5"
             >
               <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">入口</p>
-              <div className="mt-6 flex flex-1 items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-2xl font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                    {item.description}
-                  </p>
-                </div>
-                <span className="rounded-full border border-slate-900/8 bg-white/70 p-2 text-muted-foreground group-hover:text-foreground">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
+              <div>
+                <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
+                <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
+                  {item.description}
+                </p>
               </div>
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 text-muted-foreground group-hover:text-foreground">
+                <ArrowRight className="h-4 w-4" />
+              </span>
             </Link>
-          </Reveal>
-        ))}
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );

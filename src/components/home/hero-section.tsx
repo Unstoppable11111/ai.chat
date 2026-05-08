@@ -7,9 +7,14 @@ import { siteConfig } from "@/data/site";
 
 export function HeroSection() {
   const reduceMotion = useReducedMotion();
+  const floatTransition = {
+    duration: 10,
+    repeat: Number.POSITIVE_INFINITY,
+    ease: [0.45, 0, 0.55, 1],
+  } as const;
 
   return (
-    <section className="studio-section grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+    <section className="studio-section grid gap-10 lg:grid-cols-2 lg:items-center">
       <div>
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-900/8 bg-white/70 px-4 py-2 text-xs uppercase tracking-[0.24em] text-muted-foreground shadow-sm">
           <Sparkles className="h-3.5 w-3.5 text-brand-cyan" />
@@ -54,27 +59,27 @@ export function HeroSection() {
       </div>
 
       <motion.div
-        className="glass-panel noise-overlay relative min-h-[460px] overflow-hidden rounded-[30px] p-6"
+        className="glass-panel noise-overlay relative min-h-[430px] overflow-hidden rounded-[30px] p-6"
         initial={false}
         animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
       >
         <motion.div
-          className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(14,165,233,0.38),rgba(14,165,233,0.16)_35%,rgba(139,92,246,0.14)_62%,transparent_72%)] blur-sm"
+          className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(14,165,233,0.32),rgba(14,165,233,0.14)_36%,rgba(139,92,246,0.12)_64%,transparent_74%)] blur-sm will-change-transform"
           animate={
             reduceMotion
               ? undefined
-              : { y: [-12, 10, -12], x: [-6, 4, -6], scale: [1, 1.05, 1] }
+              : { y: [-8, 7, -8], x: [-5, 5, -5], scale: [1, 1.035, 1] }
           }
-          transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+          transition={{ ...floatTransition, duration: 12 }}
         />
 
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(255,255,255,0.58))]" />
 
         <motion.div
-          className="absolute left-6 top-6 rounded-[24px] border border-slate-900/8 bg-white/80 p-4 shadow-sm"
-          animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
-          transition={{ duration: 7, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+          className="absolute left-6 top-6 max-w-[280px] rounded-[22px] border border-slate-900/8 bg-white/80 p-4 shadow-sm will-change-transform"
+          animate={reduceMotion ? undefined : { y: [0, -5, 0], rotate: [0, -0.35, 0] }}
+          transition={{ ...floatTransition, duration: 9 }}
         >
           <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">AI Core</p>
           <p className="mt-2 text-sm text-foreground/90">
@@ -83,24 +88,24 @@ export function HeroSection() {
         </motion.div>
 
         <motion.div
-          className="absolute bottom-8 left-8 right-20 rounded-[24px] border border-slate-900/8 bg-white/84 p-4 shadow-sm"
-          animate={reduceMotion ? undefined : { y: [0, 10, 0] }}
-          transition={{ duration: 9, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+          className="absolute bottom-6 left-6 right-6 rounded-[22px] border border-slate-900/8 bg-white/84 p-4 shadow-sm will-change-transform"
+          animate={reduceMotion ? undefined : { y: [0, 6, 0], rotate: [0, 0.25, 0] }}
+          transition={{ ...floatTransition, duration: 11 }}
         >
           <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.24em] text-muted-foreground">
             <span>当前工作循环</span>
             <span className="text-brand-lime">进行中</span>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3">
+            <div className="rounded-[18px] border border-slate-900/8 bg-slate-900/[0.025] p-3">
               <p className="text-xs text-muted-foreground">生成</p>
               <p className="mt-1 text-sm">提示词到图像的实验</p>
             </div>
-            <div className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3">
+            <div className="rounded-[18px] border border-slate-900/8 bg-slate-900/[0.025] p-3">
               <p className="text-xs text-muted-foreground">塑形</p>
               <p className="mt-1 text-sm">界面、系统与发布页</p>
             </div>
-            <div className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3">
+            <div className="rounded-[18px] border border-slate-900/8 bg-slate-900/[0.025] p-3">
               <p className="text-xs text-muted-foreground">沉淀</p>
               <p className="mt-1 text-sm">日志、提示词与复用模式</p>
             </div>

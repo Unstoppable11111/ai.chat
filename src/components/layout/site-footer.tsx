@@ -10,7 +10,7 @@ export function SiteFooter() {
             CHEN AI STUDIO
           </p>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            一个持续生长的个人工作室，用来展示 AI 图像实验、界面系统、提示词资产，以及这些东西背后的构建过程。
+            一个持续生长的个人工作室,用来展示 AI 图像实验、界面系统、提示词资产,以及这些东西背后的构建过程。
           </p>
           <a
             href="mailto:chenyc0507@gmail.com"
@@ -26,6 +26,16 @@ export function SiteFooter() {
             </Link>
           ))}
         </div>
+      </div>
+      <div className="container-shell pb-6 text-center text-xs text-muted-foreground">
+        <a
+          href="https://beian.miit.gov.cn/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-foreground"
+        >
+          粤ICP备2026053642号
+        </a>
       </div>
     </footer>
   );

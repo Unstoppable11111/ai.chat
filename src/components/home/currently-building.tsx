@@ -10,15 +10,15 @@ export function CurrentlyBuilding() {
         title="当前在构建"
         description="快速查看这个工作室现在正在推进的几件事情。"
       />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="border-y border-slate-900/8 bg-white/42">
         {currentlyBuilding.map((item, index) => (
           <Reveal key={item} delay={index * 0.05} once>
-            <div className="glass-panel flex h-full rounded-[24px] p-5">
-              <div className="mb-4 flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+            <div className="grid gap-3 border-b border-slate-900/8 px-1 py-5 last:border-b-0 md:grid-cols-[180px_1fr] md:items-center md:px-5">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">
                 <span className="h-2.5 w-2.5 rounded-full bg-brand-lime shadow-[0_0_18px_rgba(101,163,13,0.35)]" />
                 进行中
               </div>
-              <p className="text-sm leading-7 text-foreground/90">{item}</p>
+              <p className="text-sm leading-7 text-foreground/90 md:text-base">{item}</p>
             </div>
           </Reveal>
         ))}
