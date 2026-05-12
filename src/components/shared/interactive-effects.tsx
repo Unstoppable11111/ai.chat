@@ -27,6 +27,7 @@ export function InteractiveEffects() {
   const { scrollYProgress } = useScroll();
   const [hovering, setHovering] = useState(false);
   const [ready, setReady] = useState(false);
+  const [finePointer, setFinePointer] = useState(false);
   const markRef = useRef<HTMLDivElement | null>(null);
   const ringRef = useRef<HTMLDivElement | null>(null);
   const readyRef = useRef(false);
@@ -37,7 +38,19 @@ export function InteractiveEffects() {
   });
 
   useEffect(() => {
-    if (reduceMotion || window.matchMedia("(pointer: coarse)").matches) return;
+    const pointerQuery = window.matchMedia("(pointer: fine)");
+    const updatePointer = () => setFinePointer(pointerQuery.matches);
+
+    updatePointer();
+    pointerQuery.addEventListener("change", updatePointer);
+
+    return () => {
+      pointerQuery.removeEventListener("change", updatePointer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion || !finePointer) return;
 
     document.documentElement.classList.add("has-custom-cursor");
     let frame = 0;
@@ -87,12 +100,12 @@ export function InteractiveEffects() {
       window.removeEventListener("pointerover", updateHoverState);
       window.cancelAnimationFrame(frame);
     };
-  }, [reduceMotion]);
+  }, [finePointer, reduceMotion]);
 
   return (
     <>
       <motion.div className="scroll-progress" style={{ scaleX }} />
-      {!reduceMotion ? (
+      {!reduceMotion && finePointer ? (
         <>
           <div
             ref={markRef}

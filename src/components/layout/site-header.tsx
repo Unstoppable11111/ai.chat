@@ -10,18 +10,18 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
+    <header className="fixed inset-x-0 top-0 z-50 max-w-full overflow-x-clip">
       <div className="container-shell pt-4">
-        <div className="glass-panel flex items-center justify-between rounded-[24px] px-4 py-3">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 shadow-sm">
+        <div className="glass-panel flex min-w-0 items-center justify-between gap-3 rounded-[22px] px-3 py-3 md:rounded-[24px] md:px-4">
+          <Link href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 shadow-sm md:h-10 md:w-10">
               <Sparkles className="h-4 w-4 text-brand-cyan" />
             </span>
-            <div>
-              <p className="text-sm font-semibold tracking-[0.2em] text-foreground/90">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold tracking-[0.16em] text-foreground/90 sm:text-sm sm:tracking-[0.2em]">
                 {siteConfig.title}
               </p>
-              <p className="text-xs text-muted-foreground">AI 原生个人工作室</p>
+              <p className="hidden text-xs text-muted-foreground sm:block">AI 原生个人工作室</p>
             </div>
           </Link>
 
@@ -46,12 +46,13 @@ export function SiteHeader() {
 
           <button
             type="button"
-            className="flex items-center gap-2 rounded-full border border-slate-900/8 bg-white/70 px-3 py-2 text-sm text-muted-foreground shadow-sm"
+            className="flex shrink-0 items-center gap-2 rounded-full border border-slate-900/8 bg-white/70 px-3 py-2 text-sm text-muted-foreground shadow-sm"
             onClick={() => window.dispatchEvent(new CustomEvent("open-command-menu"))}
+            aria-label="打开菜单"
           >
             <Command className="h-4 w-4" />
             <span className="hidden sm:inline">菜单</span>
-            <span className="rounded-full border border-slate-900/8 px-2 py-0.5 text-xs text-foreground/70">
+            <span className="hidden rounded-full border border-slate-900/8 px-2 py-0.5 text-xs text-foreground/70 sm:inline">
               Ctrl K
             </span>
           </button>

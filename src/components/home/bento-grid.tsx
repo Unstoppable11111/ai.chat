@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { Reveal } from "@/components/shared/reveal";
 import { SectionHeading } from "@/components/shared/section-heading";
 
@@ -39,6 +42,7 @@ const items = [
 ];
 
 export function BentoGrid() {
+  const reduceMotion = useReducedMotion();
   const [featured, ...secondaryItems] = items;
 
   return (
@@ -48,45 +52,61 @@ export function BentoGrid() {
         title="核心入口"
         description="这不是传统博客目录，更像是我如何真正展开工作的控制面板。"
       />
-      <div className="grid gap-5 lg:grid-cols-[1.05fr_1fr]">
+      <div className="grid gap-4">
         <Reveal delay={0} once>
-          <Link
-            href={featured.href}
-            className="group flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[28px] border border-slate-900/8 bg-slate-950 p-7 text-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] hover:-translate-y-1"
+          <motion.div
+            className="group"
+            whileHover={reduceMotion ? undefined : { y: -6 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
           >
-            <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-white/54">主入口</p>
-              <h3 className="mt-8 max-w-[12ch] text-4xl font-semibold tracking-tight md:text-5xl">
-                {featured.title}
-              </h3>
-              <p className="mt-5 max-w-md text-sm leading-7 text-white/68">
-                {featured.description}
-              </p>
-            </div>
-            <span className="mt-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/14 bg-white/10 text-white/80 group-hover:bg-white group-hover:text-slate-950">
-              <ArrowRight className="h-4 w-4" />
-            </span>
-          </Link>
-        </Reveal>
-
-        <div className="grid gap-3">
-          {secondaryItems.map((item, index) => (
-            <Reveal key={item.href} delay={(index + 1) * 0.04} once>
             <Link
-              href={item.href}
-              className="group grid gap-4 border-b border-slate-900/8 bg-white/36 px-1 py-4 transition hover:bg-white/66 md:grid-cols-[140px_1fr_auto] md:items-center md:px-5"
+              href={featured.href}
+              className="flex min-h-[240px] flex-col justify-between overflow-hidden rounded-[28px] border border-slate-900/8 bg-slate-950 p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] transition-shadow duration-300 md:min-h-[280px] md:p-7"
             >
-              <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">入口</p>
               <div>
-                <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
-                <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
-                  {item.description}
+                <p className="text-xs uppercase tracking-[0.16em] text-white/54 sm:tracking-[0.24em]">主入口</p>
+                <h3 className="mt-7 max-w-[12ch] text-4xl font-semibold tracking-tight md:mt-8 md:text-5xl">
+                  {featured.title}
+                </h3>
+                <p className="mt-5 max-w-md text-sm leading-7 text-white/68">
+                  {featured.description}
                 </p>
               </div>
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 text-muted-foreground group-hover:text-foreground">
+              <span className="mt-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/14 bg-white/10 text-white/80 transition duration-300 group-hover:bg-white group-hover:text-slate-950">
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Link>
+          </motion.div>
+        </Reveal>
+
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {secondaryItems.map((item, index) => (
+            <Reveal
+              key={item.href}
+              delay={(index + 1) * 0.04}
+              once
+            >
+              <motion.div
+                className="group h-full"
+                whileHover={reduceMotion ? undefined : { y: -6 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+              >
+                <Link
+                  href={item.href}
+                  className="grid h-full gap-4 rounded-[22px] border border-slate-900/8 bg-white/52 p-5 transition-colors duration-300 group-hover:bg-white/78"
+                >
+                  <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground sm:tracking-[0.24em]">入口</p>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
+                    <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+                  <span className="mt-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 text-muted-foreground transition duration-300 group-hover:border-brand-cyan/24 group-hover:text-foreground">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </Link>
+              </motion.div>
             </Reveal>
           ))}
         </div>
