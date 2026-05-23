@@ -13,12 +13,18 @@ export function CurrentlyBuilding() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {currentlyBuilding.map((item, index) => (
           <Reveal key={item} delay={index * 0.05} once>
-            <div className="glass-panel flex h-full rounded-[24px] p-5">
-              <div className="mb-4 flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-2.5 w-2.5 rounded-full bg-brand-lime shadow-[0_0_18px_rgba(101,163,13,0.35)]" />
-                进行中
+            <div className="glass-panel flex h-full flex-col rounded-[24px] p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-900/8 bg-slate-900/[0.03] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  <span className="h-2.5 w-2.5 rounded-full bg-brand-lime shadow-[0_0_18px_rgba(101,163,13,0.35)]" />
+                  进行中
+                </div>
+                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70">
+                  0{index + 1}
+                </span>
               </div>
-              <p className="text-sm leading-7 text-foreground/90">{item}</p>
+
+              <p className="text-[15px] leading-8 text-foreground/88">{item}</p>
             </div>
           </Reveal>
         ))}

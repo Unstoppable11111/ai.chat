@@ -5,6 +5,12 @@ import { ArrowRight, Dot, Sparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { siteConfig } from "@/data/site";
 
+const floatTransition = {
+  duration: 10,
+  repeat: Number.POSITIVE_INFINITY,
+  ease: [0.42, 0, 0.58, 1] as const,
+};
+
 export function HeroSection() {
   const reduceMotion = useReducedMotion();
 
@@ -57,53 +63,85 @@ export function HeroSection() {
         className="glass-panel noise-overlay relative min-h-[460px] overflow-hidden rounded-[30px] p-6"
         initial={false}
         animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
+        transition={{ duration: 0.68, ease: [0.22, 1, 0.36, 1] }}
       >
         <motion.div
-          className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(14,165,233,0.38),rgba(14,165,233,0.16)_35%,rgba(139,92,246,0.14)_62%,transparent_72%)] blur-sm"
+          className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(14,165,233,0.34),rgba(14,165,233,0.12)_34%,rgba(139,92,246,0.12)_60%,transparent_72%)] blur-sm will-change-transform"
           animate={
             reduceMotion
               ? undefined
-              : { y: [-12, 10, -12], x: [-6, 4, -6], scale: [1, 1.05, 1] }
+              : {
+                  x: [-4, 6, -4],
+                  y: [-8, 10, -8],
+                  scale: [1, 1.035, 1],
+                }
           }
-          transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+          transition={{ ...floatTransition, duration: 11 }}
         />
 
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(255,255,255,0.58))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(255,255,255,0.48))]" />
 
         <motion.div
-          className="absolute left-6 top-6 rounded-[24px] border border-slate-900/8 bg-white/80 p-4 shadow-sm"
-          animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
-          transition={{ duration: 7, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+          className="absolute left-6 top-6 rounded-[24px] border border-slate-900/8 bg-white/82 p-4 shadow-sm will-change-transform"
+          animate={
+            reduceMotion
+              ? undefined
+              : {
+                  x: [0, 3, 0, -2, 0],
+                  y: [0, -4, -6, -3, 0],
+                  rotate: [0, 0.2, 0, -0.2, 0],
+                }
+          }
+          transition={{ ...floatTransition, duration: 9.5 }}
         >
           <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">AI Core</p>
-          <p className="mt-2 text-sm text-foreground/90">
+          <p className="mt-2 text-sm leading-7 text-foreground/90">
             提示词逻辑、视觉方向、产品表达。
           </p>
         </motion.div>
 
         <motion.div
-          className="absolute bottom-8 left-8 right-20 rounded-[24px] border border-slate-900/8 bg-white/84 p-4 shadow-sm"
-          animate={reduceMotion ? undefined : { y: [0, 10, 0] }}
-          transition={{ duration: 9, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+          className="absolute bottom-8 left-8 right-20 rounded-[24px] border border-slate-900/8 bg-white/86 p-4 shadow-sm will-change-transform"
+          animate={
+            reduceMotion
+              ? undefined
+              : {
+                  x: [0, -2, 0, 2, 0],
+                  y: [0, 5, 7, 3, 0],
+                  rotate: [0, -0.12, 0, 0.12, 0],
+                }
+          }
+          transition={{ ...floatTransition, duration: 12.5 }}
         >
           <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.24em] text-muted-foreground">
             <span>当前工作循环</span>
             <span className="text-brand-lime">进行中</span>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3">
+            <motion.div
+              className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3"
+              animate={reduceMotion ? undefined : { y: [0, -2, 0] }}
+              transition={{ ...floatTransition, duration: 7.5 }}
+            >
               <p className="text-xs text-muted-foreground">生成</p>
-              <p className="mt-1 text-sm">提示词到图像的实验</p>
-            </div>
-            <div className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3">
+              <p className="mt-1 text-sm leading-7">提示词到图像的实验</p>
+            </motion.div>
+            <motion.div
+              className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3"
+              animate={reduceMotion ? undefined : { y: [0, 1, 0, -2, 0] }}
+              transition={{ ...floatTransition, duration: 8.2 }}
+            >
               <p className="text-xs text-muted-foreground">塑形</p>
-              <p className="mt-1 text-sm">界面、系统与发布页</p>
-            </div>
-            <div className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3">
+              <p className="mt-1 text-sm leading-7">界面、系统与发布页</p>
+            </motion.div>
+            <motion.div
+              className="rounded-2xl border border-slate-900/8 bg-slate-900/[0.03] p-3"
+              animate={reduceMotion ? undefined : { y: [0, -1, 0, 2, 0] }}
+              transition={{ ...floatTransition, duration: 8.8 }}
+            >
               <p className="text-xs text-muted-foreground">沉淀</p>
-              <p className="mt-1 text-sm">日志、提示词与复用模式</p>
-            </div>
+              <p className="mt-1 text-sm leading-7">日志、提示词与复用模式</p>
+            </motion.div>
           </div>
         </motion.div>
       </motion.div>

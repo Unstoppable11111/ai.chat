@@ -19,12 +19,22 @@ export function SiteFooter() {
             chenyc0507@gmail.com
           </a>
         </div>
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {navigation.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:text-foreground">
-              {item.label}
-            </Link>
-          ))}
+        <div className="flex flex-col items-start gap-4 md:items-end">
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            {navigation.map((item) => (
+              <Link key={item.href} href={item.href} className="hover:text-foreground">
+                {item.label}
+              </Link>
+            ))}
+          </div>
+          <a
+            href="https://beian.mps.gov.cn/#/query/webSearch?code=44030002012696"
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            粤公网安备 44030002012696号
+          </a>
         </div>
       </div>
     </footer>
