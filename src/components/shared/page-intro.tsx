@@ -17,7 +17,7 @@ export function PageIntro({ children, className }: PageIntroProps) {
     <motion.div
       key={pathname}
       className={cn(className)}
-      initial={reduceMotion ? false : { opacity: 0, y: 18, filter: "blur(8px)" }}
+      initial={false}
       animate={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
     >

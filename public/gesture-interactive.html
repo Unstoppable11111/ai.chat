@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>手势互动 · Gesture Interactive</title>
+
+    <!-- MediaPipe Hands via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+      /* ─── Reset & Base ──────────────────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0b0f19;
+        --surface: rgba(255, 255, 255, 0.03);
+        --border: rgba(255, 255, 255, 0.08);
+        --text-primary: rgba(245, 247, 251, 0.95);
+        --text-muted: rgba(245, 247, 251, 0.45);
+        --accent: #8b5cf6; /* brand-violet */
+        --accent-cyan: #0ea5e9; /* brand-cyan */
+        --accent-dim: rgba(139, 92, 246, 0.12);
+        --radius: 20px;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text-primary);
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        overflow: hidden;
+        user-select: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        background-size: 36px 36px;
+        background-position: center center;
+      }
+
+      /* ─── Back Button ───────────────────────────────────────── */
+      #btn-back {
+        position: fixed;
+        top: 24px;
+        left: 24px;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: rgba(11, 15, 25, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 100px;
+        color: var(--text-primary);
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      #btn-back:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--accent-cyan);
+        color: #fff;
+        transform: translateX(-2px);
+        box-shadow: 0 6px 24px rgba(14, 165, 233, 0.15);
+      }
+
+      #btn-back svg {
+        width: 14px;
+        height: 14px;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        fill: none;
+        transition: transform 0.3s ease;
+      }
+
+      #btn-back:hover svg {
+        transform: translateX(-2px);
+      }
+
+      /* ─── Main Canvas ───────────────────────────────────────── */
+      #canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        pointer-events: none;
+      }
+
+      /* ─── Start Screen ──────────────────────────────────────── */
+      #start-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        z-index: 100;
+        transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      #start-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .logo-ring {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: 1.5px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .logo-ring::before {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+      }
+
+      .logo-ring svg {
+        width: 28px;
+        height: 28px;
+        stroke: var(--accent);
+        stroke-width: 1.5;
+        fill: none;
+      }
+
+      .start-heading {
+        text-align: center;
+        line-height: 1.3;
+      }
+
+      .start-heading h1 {
+        font-size: clamp(1.6rem, 4vw, 2.4rem);
+        font-weight: 300;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+      }
+
+      .start-heading p {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        letter-spacing: 0.04em;
+      }
+
+      #btn-start {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 2rem;
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+        border: 1px solid rgba(14, 165, 233, 0.25);
+        border-radius: 100px;
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+        outline: none;
+      }
+
+      #btn-start:hover {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(139, 92, 246, 0.25) 100%);
+        border-color: rgba(139, 92, 246, 0.45);
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+        transform: translateY(-2px);
+      }
+
+      #btn-start:active {
+        transform: translateY(0);
+      }
+
+      #btn-start svg {
+        width: 15px;
+        height: 15px;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+        flex-shrink: 0;
+      }
+
+      .hint-row {
+        display: flex;
+        gap: 1.5rem;
+      }
+
+      .hint-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        letter-spacing: 0.03em;
+      }
+
+      .hint-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        opacity: 0.5;
+      }
+
+      /* ─── Webcam Preview ────────────────────────────────────── */
+      #cam-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 50;
+        transition:
+          opacity 0.4s,
+          transform 0.4s;
+      }
+
+      #cam-container.hidden-cam {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+        pointer-events: none;
+      }
+
+      #cam-video {
+        width: 160px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        transform: scaleX(-1); /* mirror */
+        display: block;
+        background: #111;
+      }
+
+      #cam-label {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.4);
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        padding: 2px 8px;
+        border-radius: 100px;
+        white-space: nowrap;
+      }
+
+      /* ─── Toggle Camera Button ──────────────────────────────── */
+      #btn-toggle-cam {
+        position: fixed;
+        bottom: 152px;
+        right: 24px;
+        z-index: 51;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.2s,
+          color 0.2s,
+          opacity 0.4s;
+        outline: none;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #btn-toggle-cam.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #btn-toggle-cam:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-primary);
+      }
+
+      #btn-toggle-cam svg {
+        width: 15px;
+        height: 15px;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        fill: none;
+      }
+
+      /* ─── Status Indicator ──────────────────────────────────── */
+      #status-bar {
+        position: fixed;
+        top: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 6px 14px;
+        border-radius: 100px;
+        z-index: 50;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+
+      #status-bar.visible {
+        opacity: 1;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        transition: background 0.4s;
+        flex-shrink: 0;
+      }
+
+      .status-dot.active {
+        background: #34d399;
+        box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+      }
+
+      /* ─── Crosshair cursor ──────────────────────────────────── */
+      #cursor {
+        position: fixed;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(14, 165, 233, 0.65);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 60;
+        transition: opacity 0.3s;
+        opacity: 0;
+      }
+
+      #cursor.active {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Floating Back Button -->
+    <a href="/" id="btn-back" aria-label="返回主站">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12,19 5,12 12,5"></polyline>
+      </svg>
+      返回主站
+    </a>
+
+    <!-- Particle canvas -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Gesture cursor indicator -->
+    <div id="cursor"></div>
+
+    <!-- ── Start Screen ─────────────────────────────────────── -->
+    <div id="start-screen" role="main">
+      <div class="logo-ring" aria-hidden="true">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 11V6a2 2 0 0 1 4 0v5" />
+          <path d="M13 11V8a2 2 0 0 1 4 0v3" />
+          <path d="M5 11V9a2 2 0 0 1 4 0v2" />
+          <path d="M5 11v4a7 7 0 0 0 14 0v-4" />
+        </svg>
+      </div>
+
+      <div class="start-heading">
+        <h1>手势互动</h1>
+        <p>GESTURE INTERACTION</p>
+      </div>
+
+      <button id="btn-start" aria-label="开启手势互动">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <polygon points="10,8 16,12 10,16" />
+        </svg>
+        开启手势互动
+      </button>
+
+      <div class="hint-row" aria-label="使用提示">
+        <span class="hint-item"><span class="hint-dot"></span>需要摄像头权限</span>
+        <span class="hint-item"><span class="hint-dot"></span>伸出食指移动</span>
+        <span class="hint-item"><span class="hint-dot"></span>仅在本地处理</span>
+      </div>
+    </div>
+
+    <!-- ── Webcam Preview ──────────────────────────────────── -->
+    <div id="cam-container" class="hidden-cam" aria-hidden="true">
+      <video id="cam-video" playsinline muted></video>
+      <span id="cam-label">LIVE</span>
+    </div>
+
+    <!-- ── Toggle Camera Button ───────────────────────────── -->
+    <button id="btn-toggle-cam" aria-label="切换摄像头显示">
+      <svg id="icon-cam-on" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="6" width="15" height="12" rx="2" />
+        <polyline points="17,10 22,7 22,17 17,14" />
+      </svg>
+    </button>
+
+    <!-- ── Status Bar ─────────────────────────────────────── -->
+    <div id="status-bar" role="status" aria-live="polite">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">初始化中…</span>
+    </div>
+
+    <script>
+      // ═══════════════════════════════════════════════════════════════
+      //  CONFIG
+      // ═══════════════════════════════════════════════════════════════
+      const LERP_FACTOR = 0.18 // smoothing: lower = smoother / more lag
+      const MAX_PARTICLES = 220 // max simultaneous particles
+      const TRAIL_INTERVAL = 18 // ms between spawning trail particles
+
+      // ═══════════════════════════════════════════════════════════════
+      //  DOM REFS
+      // ═══════════════════════════════════════════════════════════════
+      const canvas = document.getElementById("canvas")
+      const ctx = canvas.getContext("2d")
+      const videoEl = document.getElementById("cam-video")
+      const startScreen = document.getElementById("start-screen")
+      const btnStart = document.getElementById("btn-start")
+      const camContainer = document.getElementById("cam-container")
+      const btnToggleCam = document.getElementById("btn-toggle-cam")
+      const statusBar = document.getElementById("status-bar")
+      const statusDot = document.getElementById("status-dot")
+      const statusText = document.getElementById("status-text")
+      const cursorEl = document.getElementById("cursor")
+
+      // ═══════════════════════════════════════════════════════════════
+      //  STATE
+      // ═══════════════════════════════════════════════════════════════
+      let particles = []
+      let lastTrailMs = 0
+      let camVisible = true
+      let handDetected = false
+
+      // Smoothed finger position (screen pixels)
+      let smoothX = 0,
+        smoothY = 0
+
+      // Raw mapped position from MediaPipe
+      let targetX = 0,
+        targetY = 0
+
+      // Whether we've received at least one landmark
+      let hasTarget = false
+
+      // ═══════════════════════════════════════════════════════════════
+      //  CANVAS RESIZE
+      // ═══════════════════════════════════════════════════════════════
+      function resizeCanvas() {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+      }
+      window.addEventListener("resize", resizeCanvas)
+      resizeCanvas()
+
+      // ═══════════════════════════════════════════════════════════════
+      //  MEDIAPIPE SETUP
+      // ═══════════════════════════════════════════════════════════════
+      function initMediaPipe() {
+        // Hands instance — wasm & model loaded from CDN
+        const hands = new Hands({
+          locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+        })
+
+        hands.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.7,
+          minTrackingConfidence: 0.6,
+        })
+
+        // ── Result callback ──────────────────────────────────────────
+        hands.onResults(results => {
+          if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            // Landmark 8 = INDEX_FINGER_TIP
+            // MediaPipe returns normalized coords [0,1] with X mirrored (selfie view)
+            const lm = results.multiHandLandmarks[0][8]
+
+            // Map normalized → screen pixels
+            // lm.x is already mirrored by MediaPipe for front-camera; flip so gesture
+            // matches natural left-right movement on screen.
+            targetX = (1 - lm.x) * window.innerWidth
+            targetY = lm.y * window.innerHeight
+
+            if (!hasTarget) {
+              // Teleport on first detection instead of trailing from (0,0)
+              smoothX = targetX
+              smoothY = targetY
+              hasTarget = true
+            }
+
+            handDetected = true
+          } else {
+            handDetected = false
+          }
+
+          // Update status dot
+          statusDot.classList.toggle("active", handDetected)
+          statusText.textContent = handDetected ? "检测到手势" : "等待手势…"
+          cursorEl.classList.toggle("active", handDetected)
+        })
+
+        // ── Camera feed via MediaPipe Camera util ───────────────────
+        const camera = new Camera(videoEl, {
+          onFrame: async () => {
+            await hands.send({ image: videoEl })
+          },
+          width: 640,
+          height: 480,
+        })
+
+        camera
+          .start()
+          .then(() => {
+            setStatus("等待手势…", false)
+            statusBar.classList.add("visible")
+            camContainer.classList.remove("hidden-cam")
+            btnToggleCam.classList.add("visible")
+          })
+          .catch(err => {
+            setStatus("摄像头访问失败", false)
+            console.error("[GestureInteractive] Camera error:", err)
+          })
+      }
+
+      function setStatus(msg, active) {
+        statusText.textContent = msg
+        statusDot.classList.toggle("active", active)
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      //  PARTICLE SYSTEM
+      // ═══════════════════════════════════════════════════════════════
+      function createParticle(x, y) {
+        const angle = Math.random() * Math.PI * 2
+        const speed = 0.4 + Math.random() * 1.2
+        const size = 2.5 + Math.random() * 4
+        const life = 0.85 + Math.random() * 0.6 // seconds
+
+        // Brand Cyan (199) to Brand Violet (258) palette
+        const hue = 195 + Math.random() * 70 // 195 to 265
+        const sat = 85 + Math.random() * 15
+        const lgt = 55 + Math.random() * 25
+
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 0.6, // slight upward drift
+          size,
+          maxLife: life,
+          life,
+          color: `hsl(${hue},${sat}%,${lgt}%)`,
+        })
+      }
+
+      function spawnTrail(x, y) {
+        // Core bright particle
+        createParticle(x + (Math.random() - 0.5) * 6, y + (Math.random() - 0.5) * 6)
+        // Extra scatter
+        if (Math.random() < 0.5) createParticle(x + (Math.random() - 0.5) * 18, y + (Math.random() - 0.5) * 18)
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      //  ANIMATION LOOP
+      // ═══════════════════════════════════════════════════════════════
+      function loop(ts) {
+        requestAnimationFrame(loop)
+
+        // ── LERP smooth position toward MediaPipe target ────────────
+        if (hasTarget) {
+          smoothX += (targetX - smoothX) * LERP_FACTOR
+          smoothY += (targetY - smoothY) * LERP_FACTOR
+        }
+
+        // ── Spawn trail particles at timed intervals ─────────────────
+        if (handDetected && hasTarget && ts - lastTrailMs > TRAIL_INTERVAL) {
+          if (particles.length < MAX_PARTICLES) spawnTrail(smoothX, smoothY)
+          lastTrailMs = ts
+        }
+
+        // ── Update cursor element position ──────────────────────────
+        if (hasTarget) {
+          cursorEl.style.left = smoothX + "px"
+          cursorEl.style.top = smoothY + "px"
+        }
+
+        // ── Clear canvas with subtle fade trail ─────────────────────
+        ctx.fillStyle = "rgba(11,15,25,0.18)"
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+        // ── Draw glow halo at fingertip ──────────────────────────────
+        if (handDetected && hasTarget) {
+          const grad = ctx.createRadialGradient(smoothX, smoothY, 0, smoothX, smoothY, 42)
+          grad.addColorStop(0, "rgba(139, 92, 246, 0.16)") // brand-violet
+          grad.addColorStop(0.5, "rgba(14, 165, 233, 0.06)") // brand-cyan
+          grad.addColorStop(1, "rgba(14, 165, 233, 0)")
+          ctx.fillStyle = grad
+          ctx.beginPath()
+          ctx.arc(smoothX, smoothY, 42, 0, Math.PI * 2)
+          ctx.fill()
+        }
+
+        // ── Update & draw particles ──────────────────────────────────
+        const dt = 0.016 // fixed ~60fps step
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i]
+
+          p.life -= dt
+          if (p.life <= 0) {
+            particles.splice(i, 1)
+            continue
+          }
+
+          // Physics
+          p.vy += 0.018 // gentle gravity
+          p.x += p.vx
+          p.y += p.vy
+          p.vx *= 0.97 // air drag
+          p.vy *= 0.97
+
+          // Fade by remaining life ratio
+          const alpha = Math.max(0, p.life / p.maxLife)
+          const radius = p.size * (0.5 + 0.5 * alpha)
+
+          ctx.globalAlpha = alpha * 0.9
+          ctx.fillStyle = p.color
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
+          ctx.fill()
+        }
+        ctx.globalAlpha = 1
+      }
+
+      requestAnimationFrame(loop)
+
+      // ═══════════════════════════════════════════════════════════════
+      //  UI EVENTS
+      // ═══════════════════════════════════════════════════════════════
+
+      // ── Start button: fade out screen, request camera ────────────
+      btnStart.addEventListener("click", () => {
+        startScreen.classList.add("hidden")
+        initMediaPipe()
+      })
+
+      // ── Toggle camera visibility ─────────────────────────────────
+      btnToggleCam.addEventListener("click", () => {
+        camVisible = !camVisible
+        camContainer.classList.toggle("hidden-cam", !camVisible)
+        btnToggleCam.title = camVisible ? "隐藏摄像头" : "显示摄像头"
+        btnToggleCam.setAttribute("aria-label", camVisible ? "隐藏摄像头" : "显示摄像头")
+      })
+    </script>
+  </body>
+</html>

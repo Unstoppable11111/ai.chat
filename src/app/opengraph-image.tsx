@@ -31,12 +31,12 @@ export default function OpenGraphImage() {
             color: "#9ca3af",
           }}
         >
-          AI Native Personal Studio
+          Personal Tech Portfolio
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-          <div style={{ fontSize: 84, fontWeight: 700 }}>CHEN AI STUDIO</div>
+          <div style={{ fontSize: 84, fontWeight: 700 }}>CHEN TECH STUDIO</div>
           <div style={{ fontSize: 32, color: "#93ddff" }}>
-            用 AI、代码与视觉持续构建
+            个人技术展示与项目记录
           </div>
         </div>
         <div
@@ -47,8 +47,8 @@ export default function OpenGraphImage() {
             fontSize: 24,
           }}
         >
-          <span>AI Lab · Build Log · Prompt Library · Projects</span>
-          <span>chen-ai-studio.local</span>
+          <span>Projects · Build Log · Notes · Web Experiments</span>
+          <span>chenyc.chat</span>
         </div>
       </div>
     ),

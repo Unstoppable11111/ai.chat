@@ -4,7 +4,7 @@ export type NavItem = {
   shortLabel?: string;
 };
 
-export type AiLabCategory =
+export type ExperimentCategory =
   | "产品海报"
   | "角色人物"
   | "工业设计"
@@ -12,11 +12,11 @@ export type AiLabCategory =
   | "品牌战役"
   | "提示词研究";
 
-export type AiLabEntry = {
+export type ExperimentEntry = {
   slug: string;
   title: string;
   excerpt: string;
-  category: AiLabCategory;
+  category: ExperimentCategory;
   cover: string;
   tools: string[];
   tags: string[];

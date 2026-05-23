@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
 
-const particles = Array.from({ length: 34 }, (_, index) => {
+const particles = Array.from({ length: 18 }, (_, index) => {
   const colors = [
     "rgba(14, 165, 233, 0.62)",
     "rgba(139, 92, 246, 0.52)",
@@ -27,6 +27,8 @@ export function InteractiveEffects() {
   const { scrollYProgress } = useScroll();
   const [hovering, setHovering] = useState(false);
   const [ready, setReady] = useState(false);
+  const [finePointer, setFinePointer] = useState(false);
+  const markRef = useRef<HTMLDivElement | null>(null);
   const ringRef = useRef<HTMLDivElement | null>(null);
   const readyRef = useRef(false);
   const scaleX = useSpring(scrollYProgress, {
@@ -36,19 +38,49 @@ export function InteractiveEffects() {
   });
 
   useEffect(() => {
-    if (reduceMotion || window.matchMedia("(pointer: coarse)").matches) return;
+    const pointerQuery = window.matchMedia("(pointer: fine)");
+    const updatePointer = () => setFinePointer(pointerQuery.matches);
+
+    updatePointer();
+    pointerQuery.addEventListener("change", updatePointer);
+
+    return () => {
+      pointerQuery.removeEventListener("change", updatePointer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion || !finePointer) return;
 
     document.documentElement.classList.add("has-custom-cursor");
+    let frame = 0;
+    let pointerX = window.innerWidth / 2;
+    let pointerY = window.innerHeight / 2;
+    let ringX = pointerX;
+    let ringY = pointerY;
+
+    const renderCursor = () => {
+      ringX += (pointerX - ringX) * 0.24;
+      ringY += (pointerY - ringY) * 0.24;
+      markRef.current?.style.setProperty(
+        "transform",
+        `translate3d(${pointerX}px, ${pointerY}px, 0) translate(-50%, -50%)`,
+      );
+      ringRef.current?.style.setProperty(
+        "transform",
+        `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`,
+      );
+      frame = window.requestAnimationFrame(renderCursor);
+    };
 
     const updateCursor = (event: PointerEvent) => {
       if (!readyRef.current) {
         readyRef.current = true;
         setReady(true);
+        frame = window.requestAnimationFrame(renderCursor);
       }
-      document.documentElement.style.setProperty("--cursor-x", `${event.clientX}px`);
-      document.documentElement.style.setProperty("--cursor-y", `${event.clientY}px`);
-      ringRef.current?.style.setProperty("--cursor-x", `${event.clientX}px`);
-      ringRef.current?.style.setProperty("--cursor-y", `${event.clientY}px`);
+      pointerX = event.clientX;
+      pointerY = event.clientY;
     };
 
     const updateHoverState = (event: Event) => {
@@ -66,16 +98,18 @@ export function InteractiveEffects() {
       document.documentElement.classList.remove("has-custom-cursor");
       window.removeEventListener("pointermove", updateCursor);
       window.removeEventListener("pointerover", updateHoverState);
+      window.cancelAnimationFrame(frame);
     };
-  }, [reduceMotion]);
+  }, [finePointer, reduceMotion]);
 
   return (
     <>
       <motion.div className="scroll-progress" style={{ scaleX }} />
-      {!reduceMotion ? (
+      {!reduceMotion && finePointer ? (
         <>
           <div
-            className={`cursor-dot${ready ? " is-ready" : ""}${hovering ? " is-hovering" : ""}`}
+            ref={markRef}
+            className={`cursor-mark${ready ? " is-ready" : ""}${hovering ? " is-hovering" : ""}`}
             aria-hidden="true"
           />
           <div
@@ -83,7 +117,6 @@ export function InteractiveEffects() {
             className={`cursor-ring${ready ? " is-ready" : ""}${hovering ? " is-hovering" : ""}`}
             aria-hidden="true"
           />
-          <div className="cursor-aura" aria-hidden="true" />
           <div className="particle-field" aria-hidden="true">
             {particles.map((particle) => (
               <span

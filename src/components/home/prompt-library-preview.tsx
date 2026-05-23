@@ -12,8 +12,8 @@ export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
     <section className="studio-section">
       <SectionHeading
         eyebrow="可复用资产"
-        title="提示词库预览"
-        description="这里的提示词不是零散记录，而是可以复用、可以继续打磨的构建模块。"
+        title="学习笔记预览"
+        description="这里整理提示词学习资料、视觉表达笔记和可复用的页面构建思路。"
       />
       <div className="grid gap-5 xl:grid-cols-3">
         {items.map((item, index) => (

@@ -6,8 +6,8 @@ import { SectionHeading } from "@/components/shared/section-heading";
 import { stackCategories } from "@/data/site";
 
 export const metadata: Metadata = {
-  title: "工具栈",
-  description: "支撑这个个人 AI Studio 的工具和系统。",
+  title: "工具整理",
+  description: "整理支撑个人项目、网站开发、内容记录与自动化的常用工具。",
 };
 
 export default function StackPage() {
@@ -16,8 +16,8 @@ export default function StackPage() {
       <PageIntro>
         <SectionHeading
           eyebrow="工作系统"
-          title="工具栈"
-          description="支撑这个工作室持续运转的 AI、设计、开发、内容、商业与自动化工具。"
+          title="工具整理"
+          description="整理支撑个人项目、网站开发、内容记录与自动化的常用工具。"
         />
         <div className="space-y-6">
           {stackCategories.map((category, index) => (

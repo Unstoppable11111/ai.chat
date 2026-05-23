@@ -8,17 +8,17 @@ import { siteConfig } from "@/data/site";
 
 export const metadata: Metadata = {
   title: "关于我",
-  description: "一个围绕 AI 构建、设计与产品实验展开的个人工作画像。",
+  description: "一个围绕网站开发、项目记录、视觉实验与技术学习展开的个人介绍页面。",
 };
 
 const sections = [
   {
     title: "我是谁",
-    text: "我在做的不是传统意义上的个人主页，而是一个真实运转中的个人工作室。这里会持续公开我如何用 AI、设计和代码，把一个模糊想法推进成视觉、页面、产品与系统。",
+    text: "我在做的不是传统意义上的个人主页，而是一个持续更新的个人技术展示网站。这里会记录我如何用设计和代码，把一个想法推进成页面、项目与学习资料。",
   },
   {
     title: "我在构建什么",
-    text: "我正在搭一个 AI Native Studio：一边产出视觉实验和提示词资产，一边把有效方法沉淀成可复用工作流。这个站点本身，也是那个系统的一部分。",
+    text: "我正在整理一个个人项目与学习记录系统：一边记录视觉实验和页面开发过程，一边把有效方法沉淀成可复用的资料。这个站点本身，也是持续练习的一部分。",
   },
   {
     title: "我在意什么",
@@ -26,15 +26,15 @@ const sections = [
   },
   {
     title: "我怎么工作",
-    text: "我的工作节奏很像一间轻量创业工作室：先快速验证，再记录过程，再把有效方法抽出来，做成下一轮还能继续用的模块。",
+    text: "我的工作节奏偏轻量迭代：先快速验证，再记录过程，再把有效方法抽出来，做成下一轮还能继续用的模块。",
   },
   {
     title: "现在的重点",
-    text: "目前重点在三个方向：AI 生图与视觉语言、个人产品与工作台，以及内容系统和提示词资产的结构化管理。",
+    text: "目前重点在三个方向：网站开发与视觉语言、个人项目与工作台，以及内容系统和学习资料的结构化管理。",
   },
   {
     title: "我开放什么合作",
-    text: "如果你在做 AI 产品、创意工具、品牌官网、视觉系统，或者独立产品实验，这里会很对路。尤其适合需要把想法快速变成可见成果的阶段。",
+    text: "如果你在做个人网站、品牌官网、视觉系统，或者独立项目实验，这里会很对路。尤其适合需要把想法整理成可见页面和项目记录的阶段。",
   },
 ];
 
@@ -71,7 +71,10 @@ export default function AboutPage() {
             <section className="glass-panel flex h-full flex-col rounded-[30px] p-7 md:p-8">
               <p className="text-sm leading-8 text-muted-foreground">
                 我希望这个网站传递的不是“我会什么”，而是“我现在正在把什么做出来”。
-                如果你正在找一个会把 AI、设计、前端和产品思维放到同一张桌子上工作的人，这里基本就是最真实的切面。
+                如果你正在了解我的项目、学习记录和网站开发过程，这里基本就是最真实的切面。
+              </p>
+              <p className="mt-4 rounded-[20px] border border-slate-900/8 bg-slate-900/[0.03] p-4 text-sm leading-8 text-muted-foreground">
+                本网站为个人技术展示网站，不提供用户注册、评论、即时通讯、生成式人工智能服务或经营性互联网信息服务。
               </p>
               <div className="mt-8 grid gap-4 md:grid-cols-3">
                 {highlights.map((item, index) => {
@@ -95,7 +98,7 @@ export default function AboutPage() {
               <p className="text-xs uppercase tracking-[0.24em] text-brand-cyan">联系</p>
               <h2 className="mt-3 text-3xl font-semibold text-foreground">一起做点东西</h2>
               <p className="mt-4 text-sm leading-8 text-muted-foreground">
-                如果你想聊合作、产品实验、品牌官网、AI 视觉系统，或者只是想交流一个还没成形的想法，都可以直接发我邮件。
+                如果你想聊个人项目、网站开发、品牌官网、视觉系统，或者只是想交流一个还没成形的想法，都可以直接发我邮件。
               </p>
               <a
                 href={`mailto:${siteConfig.email}`}
@@ -109,7 +112,7 @@ export default function AboutPage() {
                   偏好的合作方式：短周期、快同步、边做边看结果。
                 </div>
                 <div className="rounded-[20px] border border-slate-900/8 bg-slate-900/[0.03] p-4">
-                  更适合的话题：AI 产品、视觉实验、内容系统、工作流工具。
+                  更适合的话题：个人项目、视觉实验、内容系统、网站开发记录。
                 </div>
               </div>
             </aside>
