@@ -27,25 +27,26 @@ export function SiteFooter() {
               </Link>
             ))}
           </div>
-          <a
-            href="https://beian.mps.gov.cn/#/query/webSearch?code=44030002012696"
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            粤公网安备 44030002012696号
-          </a>
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2 md:justify-end">
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              粤ICP备2026053642号
+            </a>
+            <span className="opacity-40 hidden md:inline">|</span>
+            <a
+              href="https://beian.mps.gov.cn/#/query/webSearch?code=44030002012696"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              粤公网安备 44030002012696号
+            </a>
+          </div>
         </div>
-      </div>
-      <div className="container-shell pb-6 text-center text-xs text-muted-foreground">
-        <a
-          href="https://beian.miit.gov.cn/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-foreground"
-        >
-          粤ICP备2026053642号
-        </a>
       </div>
     </footer>
   );
