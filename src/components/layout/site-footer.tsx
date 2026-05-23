@@ -7,10 +7,10 @@ export function SiteFooter() {
       <div className="container-shell flex flex-col gap-6 py-10 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.22em] text-foreground/90">
-            CHEN AI STUDIO
+            CHEN TECH STUDIO
           </p>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            一个持续生长的个人工作室,用来展示 AI 图像实验、界面系统、提示词资产,以及这些东西背后的构建过程。
+            一个个人技术展示与项目记录网站，用来整理网站开发、代码构建、视觉实验、工具资料和学习过程。
           </p>
           <a
             href="mailto:chenyc0507@gmail.com"

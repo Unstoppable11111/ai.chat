@@ -15,7 +15,7 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
       <SectionHeading
         eyebrow="最新记录"
         title="最新构建日志"
-        description="比起博客，更像是我用 AI、设计和代码快速构建时留下的现场笔记。"
+        description="记录网站开发、页面搭建、代码构建与学习过程中的现场笔记。"
       />
       <div className="grid gap-5">
         {latest ? (

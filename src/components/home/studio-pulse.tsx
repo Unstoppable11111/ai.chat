@@ -11,8 +11,8 @@ export async function StudioPulse() {
     <section className="studio-section">
       <SectionHeading
         eyebrow="动态内容"
-        title="Studio Pulse"
-        description="我也顺手把 API 接入位预留好了，这里可以承接实时项目动态、外部内容源和自动更新的信息流。"
+        title="项目动态"
+        description="这里预留公开项目动态和个人开发记录入口，用于展示网站更新与项目进展。"
       />
 
       {data.source === "github" ? (
@@ -20,11 +20,11 @@ export async function StudioPulse() {
           <div className="glass-panel rounded-[30px] p-6">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-brand-cyan">
               <Radio className="h-4 w-4" />
-              GitHub Live
+              GitHub 记录
             </div>
             <h3 className="mt-4 text-3xl font-semibold text-foreground">@{data.username}</h3>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              已接入 GitHub Public API，可以实时展示公开仓库更新、仓库数量和关注数据。
+              用于展示公开仓库更新、仓库数量和项目维护记录。
             </p>
             <div className="mt-6 grid gap-3 md:grid-cols-2">
               <div className="rounded-[22px] border border-slate-900/8 bg-slate-900/[0.03] p-4">
@@ -70,12 +70,12 @@ export async function StudioPulse() {
           <div className="glass-panel rounded-[30px] p-6">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-brand-cyan">
               <Sparkles className="h-4 w-4" />
-              API Ready
+              数据记录
             </div>
             <h3 className="mt-4 text-3xl font-semibold text-foreground">{data.title}</h3>
             <p className="mt-3 text-sm leading-8 text-muted-foreground">{data.description}</p>
             <div className="mt-6 rounded-[22px] border border-dashed border-slate-900/12 bg-slate-900/[0.02] p-4 text-sm leading-7 text-muted-foreground">
-              现在只要补一个公开数据源配置，这里就能直接显示实时内容，不需要再改页面结构。
+              后续可接入公开项目数据，用来展示更新记录，不涉及用户注册或在线业务功能。
             </div>
           </div>
 
@@ -85,7 +85,7 @@ export async function StudioPulse() {
                 <Rss className="h-4 w-4 text-brand-violet" />
                 <h4 className="mt-4 text-lg font-semibold text-foreground">{item}</h4>
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                  适合把外部平台内容、动态更新或个人项目数据自动拉进站点里。
+                  适合整理公开内容、动态更新或个人项目数据。
                 </p>
               </div>
             ))}

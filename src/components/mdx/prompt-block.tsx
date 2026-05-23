@@ -25,7 +25,7 @@ function extractText(node: ReactNode): string {
 }
 
 export function PromptBlock({
-  title = "可复用提示词",
+  title = "提示词学习资料",
   prompt,
   children,
 }: PromptBlockProps) {

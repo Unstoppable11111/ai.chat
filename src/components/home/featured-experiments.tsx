@@ -1,24 +1,24 @@
-import { AIWorkCard } from "@/components/cards/ai-work-card";
+import { ExperimentCard } from "@/components/cards/experiment-card";
 import { Reveal } from "@/components/shared/reveal";
 import { SectionHeading } from "@/components/shared/section-heading";
-import type { AiLabEntry } from "@/lib/types";
+import type { ExperimentEntry } from "@/lib/types";
 
-type FeaturedAIExperimentsProps = {
-  items: AiLabEntry[];
+type FeaturedExperimentsProps = {
+  items: ExperimentEntry[];
 };
 
-export function FeaturedAIExperiments({ items }: FeaturedAIExperimentsProps) {
+export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
   return (
     <section className="studio-section">
       <SectionHeading
         eyebrow="精选实验"
-        title="精选 AI 实验"
-        description="几组代表性的视觉实验，展示这个工作室的审美判断、迭代方式和提示词思路。"
+        title="精选技术实验"
+        description="几组代表性的网站视觉、页面构建和提示词学习记录。"
       />
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {items.map((item, index) => (
           <Reveal key={item.slug} delay={index * 0.04} once>
-            <AIWorkCard item={item} />
+            <ExperimentCard item={item} />
           </Reveal>
         ))}
       </div>

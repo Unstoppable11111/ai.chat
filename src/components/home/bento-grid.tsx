@@ -8,20 +8,20 @@ import { SectionHeading } from "@/components/shared/section-heading";
 
 const items = [
   {
-    href: "/ai-lab",
-    title: "AI Lab",
-    description: "用于归档海报、网站视觉、品牌画面和提示词研究的实验库。",
+    href: "/experiments",
+    title: "实验记录",
+    description: "用于归档网站视觉、页面构建、品牌画面和提示词学习资料的实验记录。",
     span: "md:col-span-2",
   },
   {
     href: "/build-log",
     title: "构建日志",
-    description: "记录我如何在 AI、设计、代码与创业压力之间持续把东西做出来。",
+    description: "记录我如何在设计、代码和学习过程中持续把页面与项目做出来。",
   },
   {
     href: "/prompts",
-    title: "提示词库",
-    description: "用于产品视觉、发布物料与创意工作流的可复用提示词库。",
+    title: "学习笔记",
+    description: "用于产品视觉、发布物料与创意工作流的提示词学习资料。",
   },
   {
     href: "/projects",
@@ -31,8 +31,8 @@ const items = [
   },
   {
     href: "/stack",
-    title: "工具栈",
-    description: "支撑整个工作室的 AI、设计、开发、内容与自动化工具。",
+    title: "工具整理",
+    description: "整理支撑个人项目、网站开发、内容记录与自动化的常用工具。",
   },
   {
     href: "/about",
@@ -48,9 +48,9 @@ export function BentoGrid() {
   return (
     <section className="studio-section">
       <SectionHeading
-        eyebrow="工作室地图"
+        eyebrow="站点地图"
         title="核心入口"
-        description="这不是传统博客目录，更像是我如何真正展开工作的控制面板。"
+        description="这里整理了个人项目、构建日志、学习资料和开发实验入口。"
       />
       <div className="grid gap-4">
         <Reveal delay={0} once>

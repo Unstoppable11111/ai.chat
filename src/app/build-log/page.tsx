@@ -8,7 +8,7 @@ import { getBuildLogs } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "构建日志",
-  description: "记录我如何用 AI、设计与代码持续把想法做出来。",
+  description: "记录网站开发、页面搭建、代码构建与学习过程。",
 };
 
 export default function BuildLogPage() {
@@ -20,7 +20,7 @@ export default function BuildLogPage() {
         <SectionHeading
           eyebrow="构建记录"
           title="构建日志"
-          description="记录我如何用 AI、设计与代码持续把想法做出来。"
+          description="记录网站开发、页面搭建、代码构建与学习过程。"
         />
 
         <div className="grid gap-5 xl:grid-cols-2">

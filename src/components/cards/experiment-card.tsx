@@ -3,14 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-import type { AiLabEntry } from "@/lib/types";
+import type { ExperimentEntry } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
-type AIWorkCardProps = {
-  item: AiLabEntry;
+type ExperimentCardProps = {
+  item: ExperimentEntry;
 };
 
-export function AIWorkCard({ item }: AIWorkCardProps) {
+export function ExperimentCard({ item }: ExperimentCardProps) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -19,7 +19,7 @@ export function AIWorkCard({ item }: AIWorkCardProps) {
       transition={{ duration: 0.22, ease: "easeOut" }}
       className="group"
     >
-      <Link href={`/ai-lab/${item.slug}`} className="glass-panel block overflow-hidden rounded-[26px]">
+      <Link href={`/experiments/${item.slug}`} className="glass-panel block overflow-hidden rounded-[26px]">
         <div className="relative aspect-[1.15/1] overflow-hidden">
           <Image
             src={item.cover}
@@ -33,7 +33,7 @@ export function AIWorkCard({ item }: AIWorkCardProps) {
             {item.category}
           </div>
           <div className="absolute inset-x-4 bottom-4 rounded-[20px] border border-white/70 bg-white/82 p-4 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
-            <p className="text-xs uppercase tracking-[0.22em] text-brand-cyan">提示词预览</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-brand-cyan">学习资料</p>
             <p className="mt-2 line-clamp-3 text-sm leading-6 text-foreground/80">
               {item.promptPreview}
             </p>

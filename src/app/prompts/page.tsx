@@ -6,8 +6,8 @@ import { SectionHeading } from "@/components/shared/section-heading";
 import { promptLibrary } from "@/data/site";
 
 export const metadata: Metadata = {
-  title: "提示词库",
-  description: "用于 AI 生图、产品视觉与创意实验的可复用提示词库。",
+  title: "学习笔记",
+  description: "用于提示词学习、产品视觉与创意实验记录的学习资料。",
 };
 
 export default function PromptsPage() {
@@ -15,9 +15,9 @@ export default function PromptsPage() {
     <PageShell>
       <PageIntro>
         <SectionHeading
-          eyebrow="提示词系统"
-          title="提示词库"
-          description="用于 AI 生图、产品视觉与创意实验的可复用提示词库。"
+          eyebrow="学习资料"
+          title="学习笔记"
+          description="用于提示词学习、产品视觉与创意实验记录的学习资料。"
         />
         <PromptLibraryExplorer items={promptLibrary} />
       </PageIntro>

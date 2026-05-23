@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AIWorkCard } from "@/components/cards/ai-work-card";
+import { ExperimentCard } from "@/components/cards/experiment-card";
 import { Reveal } from "@/components/shared/reveal";
-import type { AiLabCategory, AiLabEntry } from "@/lib/types";
+import type { ExperimentCategory, ExperimentEntry } from "@/lib/types";
 
-const filters: Array<"全部" | AiLabCategory> = [
+const filters: Array<"全部" | ExperimentCategory> = [
   "全部",
   "产品海报",
   "角色人物",
@@ -15,11 +15,11 @@ const filters: Array<"全部" | AiLabCategory> = [
   "提示词研究",
 ];
 
-type AiLabGridProps = {
-  items: AiLabEntry[];
+type ExperimentGridProps = {
+  items: ExperimentEntry[];
 };
 
-export function AiLabGrid({ items }: AiLabGridProps) {
+export function ExperimentGrid({ items }: ExperimentGridProps) {
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>("全部");
 
   const filteredItems = useMemo(() => {
@@ -49,7 +49,7 @@ export function AiLabGrid({ items }: AiLabGridProps) {
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {filteredItems.map((item, index) => (
           <Reveal key={item.slug} delay={index * 0.04} once>
-            <AIWorkCard item={item} />
+            <ExperimentCard item={item} />
           </Reveal>
         ))}
       </div>

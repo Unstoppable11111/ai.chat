@@ -1,10 +1,10 @@
 ---
-title: 把网站搭成真正的 Studio Shell
-excerpt: 第一个关键决定不是把页面做满，而是先搭出一个能承载实验、日志、项目和提示词的工作室骨架。
+title: 把网站搭成可维护的内容壳
+excerpt: 第一个关键决定不是把页面做满，而是先搭出一个能承载实验、日志、项目和学习资料的网站骨架。
 date: 2026-04-18
 tags:
   - Next.js
-  - 工作室系统
+  - 站点系统
   - 布局设计
 cover: /images/placeholders/prompt-06.svg
 featured: true
@@ -20,20 +20,20 @@ featured: true
 
 ## 实现选择
 
-我选择 App Router + 内容驱动页面结构，因为 AI Lab、Build Log 和 Projects 本质上是三种内容系统，只是共享同一个视觉框架。
+我选择 App Router + 内容驱动页面结构，因为实验记录、构建日志和项目案例本质上是三种内容系统，只是共享同一个视觉框架。
 
 ```tsx
 export const metadata = {
-  title: "Chen AI Studio",
-  description: "An AI Native Personal Studio",
+  title: "Chen Tech Studio",
+  description: "A personal tech portfolio",
 };
 ```
 
 ## 这一步学到什么
 
-当我不再把首页当 landing page，而把它当作工作室仪表盘来设计时，整个站点的方向就清晰了。
+当我不再把首页当 landing page，而把它当作个人站点的记录面板来设计时，整个站点的方向就清晰了。
 
 <PromptBlock
-  title="AI Core 视觉所用提示词"
-  prompt="A next-gen AI website hero scene, dark workspace environment, floating transparent interface cards, glowing central orb, cinematic depth, layered grids, black and graphite palette, cyan and lime highlights, venture-backed product feel, ultra modern web visual."
+  title="首屏视觉学习资料"
+  prompt="A next-gen technology website hero scene, dark workspace environment, floating transparent interface cards, glowing central orb, cinematic depth, layered grids, black and graphite palette, cyan and lime highlights, modern product feel, ultra modern web visual."
 />

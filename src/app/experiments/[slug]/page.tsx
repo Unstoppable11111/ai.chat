@@ -7,7 +7,7 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { ArticleShell } from "@/components/mdx/article-shell";
 import { mdxComponents } from "@/components/mdx/mdx-components";
-import { getAiLabBySlug, getAiLabEntries, getTableOfContents } from "@/lib/content";
+import { getExperimentBySlug, getExperimentEntries, getTableOfContents } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
 
 type PageProps = {
@@ -15,14 +15,14 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  return getAiLabEntries().map((entry) => ({ slug: entry.slug }));
+  return getExperimentEntries().map((entry) => ({ slug: entry.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const entry = getAiLabBySlug(slug);
+  const entry = getExperimentBySlug(slug);
 
   if (!entry) {
     return {};
@@ -34,9 +34,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function AiLabDetailPage({ params }: PageProps) {
+export default async function ExperimentDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const entry = getAiLabBySlug(slug);
+  const entry = getExperimentBySlug(slug);
 
   if (!entry) {
     notFound();
@@ -46,7 +46,7 @@ export default async function AiLabDetailPage({ params }: PageProps) {
 
   return (
     <ArticleShell
-      kicker="AI Lab"
+      kicker="实验记录"
       title={entry.frontmatter.title as string}
       description={entry.frontmatter.excerpt as string}
       meta={[formatDate(entry.frontmatter.date as string)]}

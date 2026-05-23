@@ -1,6 +1,6 @@
-# Chen AI Studio
+# Chen Tech Studio
 
-一个基于 Next.js App Router、TypeScript、Tailwind CSS v4、Motion 和 MDX 构建的 AI Native Personal Studio。
+一个基于 Next.js App Router、TypeScript、Tailwind CSS v4、Motion 和 MDX 构建的个人技术展示与项目记录网站。
 
 ## 本地运行
 
@@ -24,7 +24,7 @@ npm run dev
 
 ```text
 content/
-  ai-lab/
+  experiments/
   build-log/
   projects/
 src/
@@ -57,9 +57,9 @@ featured: true
 3. 用 Markdown 或 MDX 写正文。
 4. 使用 `##` 和 `###` 标题生成目录。
 
-## 新增一个 AI Lab 作品
+## 新增一个实验记录
 
-1. 在 `content/ai-lab/` 下新增一个 `.mdx` 文件。
+1. 在 `content/experiments/` 下新增一个 `.mdx` 文件。
 2. 写入 frontmatter：
 
 ```md

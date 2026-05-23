@@ -3,7 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
 import type {
-  AiLabEntry,
+  ExperimentEntry,
   BuildLogEntry,
   ProjectEntry,
   TocItem,
@@ -12,7 +12,7 @@ import { slugify } from "@/lib/utils";
 
 const CONTENT_ROOT = path.join(process.cwd(), "content");
 
-type CollectionName = "ai-lab" | "build-log" | "projects";
+type CollectionName = "experiments" | "build-log" | "projects";
 
 function readCollection(collection: CollectionName) {
   const collectionPath = path.join(CONTENT_ROOT, collection);
@@ -43,12 +43,12 @@ function sortByDate<T extends { frontmatter: { date?: string } }>(items: T[]) {
   });
 }
 
-export function getAiLabEntries(): AiLabEntry[] {
-  return sortByDate(readCollection("ai-lab")).map(({ slug, frontmatter }) => ({
+export function getExperimentEntries(): ExperimentEntry[] {
+  return sortByDate(readCollection("experiments")).map(({ slug, frontmatter }) => ({
     slug,
     title: String(frontmatter.title),
     excerpt: String(frontmatter.excerpt),
-    category: frontmatter.category as AiLabEntry["category"],
+    category: frontmatter.category as ExperimentEntry["category"],
     cover: String(frontmatter.cover),
     tools: frontmatter.tools as string[],
     tags: frontmatter.tags as string[],
@@ -83,8 +83,8 @@ export function getProjects(): ProjectEntry[] {
   }));
 }
 
-export function getAiLabBySlug(slug: string) {
-  return readCollection("ai-lab").find((entry) => entry.slug === slug);
+export function getExperimentBySlug(slug: string) {
+  return readCollection("experiments").find((entry) => entry.slug === slug);
 }
 
 export function getBuildLogBySlug(slug: string) {

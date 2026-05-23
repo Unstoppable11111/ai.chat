@@ -1,0 +1,57 @@
+---
+title: 集成 AI 手势互动实验页面与部署调试
+excerpt: 记录如何在一个 Next.js 项目中平滑集成基于 MediaPipe Hands CDN 的静态 HTML 单页，并解决 Cloudflare 缓存与 Next.js 生产环境下的静态映射问题。
+date: 2026-05-22
+tags:
+  - AI 交互
+  - MediaPipe
+  - Next.js
+  - CDN 调试
+cover: /images/placeholders/prompt-05.svg
+featured: true
+---
+
+## 创意灵感与静态单页架构
+
+手势互动实验页面（`gesture-interactive.html`）利用了 MediaPipe Hands 模型的轻量化和高效性，可在浏览器端本地实时检测食指指尖并渲染粒子轨迹。
+
+为了避免复杂的包体积引入和 Next.js 服务端渲染（SSR）中 `window` 或 `navigator` 对象的运行时冲突，我们采取了最直接的方案：**以静态单页形式存放于 `public/` 目录下**。这种物理隔离可以保证核心交互完全不受 Next.js 构建流的影响，且能够通过 CDN 进行最大程度的缓存优化。
+
+## 部署中的路由与缓存踩坑
+
+将静态单页加入生产环境时，碰到了两个经典的 404 故障：
+
+### 1. Next.js 静态资源热加载限制
+
+在 Next.js 的生产模式（`next start`）下，服务端在启动时会为 `public/` 文件夹创建静态文件映射。在服务器运行期间直接通过文件管理器上传 `gesture-interactive.html` 后，Next.js 的路由无法自动感知到它。
+- **解决方法**：每次在 `public` 下增加新静态资源后，需要重启 Node 进程，让 Next.js 重建静态资源映射路由。
+
+### 2. Cloudflare CDN 的 404 缓存
+
+我们的域名接入了 Cloudflare。当在文件上传成功前，我们访问过该 URL 导致了 404，Cloudflare 会根据默认的缓存规则把这个“404 错误页”强行缓存起来。
+- **验证方法**：在 URL 尾部添加随机 Query 参数（如 `?v=1`）可以避开缓存直接请求服务器。
+- **彻底解决**：在 Cloudflare 控制台清理缓存。
+
+## 全局导航与专属按钮设计
+
+为了不让静态页面的大面积黑色色调打乱主站清亮的风格，并且能在导航栏上呈现一个十分显眼的入口，我们采取了“分流”集成设计：
+- 在 `src/data/site.ts` 中声明导航条目，使页脚和全局命令菜单（`Ctrl + K`）自动支持此链接。
+- 在 `SiteHeader` 的“菜单”按钮旁，增加一个具有微弱呼吸动画（`animate-pulse`）和闪烁红点（`animate-ping`）的专属紫色高亮按钮，并配置为新标签页打开。
+
+```tsx
+<a
+  href="/gesture-interactive.html"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="relative hidden items-center gap-1.5 overflow-hidden rounded-full border border-brand-violet/20 bg-brand-violet/5 px-3.5 py-2 text-sm font-medium text-brand-violet md:flex"
+>
+  <span className="relative flex h-1.5 w-1.5">
+    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-violet opacity-75"></span>
+    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-violet"></span>
+  </span>
+  <Hand className="h-3.5 w-3.5 animate-pulse text-brand-violet" />
+  <span>手势互动</span>
+</a>
+```
+
+这种方案将静态创意页面与 Next.js 动力外壳完美融合，既保证了主站的工程复杂度不上升，又实现了突出的引流效果。

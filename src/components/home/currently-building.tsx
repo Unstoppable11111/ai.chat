@@ -8,7 +8,7 @@ export function CurrentlyBuilding() {
       <SectionHeading
         eyebrow="工作流状态"
         title="当前在构建"
-        description="快速查看这个工作室现在正在推进的几件事情。"
+        description="快速查看这个网站现在正在整理和推进的几件事情。"
       />
       <div className="border-y border-slate-900/8 bg-white/42">
         {currentlyBuilding.map((item, index) => (

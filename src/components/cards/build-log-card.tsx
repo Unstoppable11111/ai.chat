@@ -63,7 +63,7 @@ export function BuildLogCard({
                   <div className="rounded-[22px] border border-slate-900/8 bg-slate-900/[0.03] px-4 py-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">定位</p>
                     <p className="mt-2 text-sm leading-6 text-foreground/82">
-                      从页面壳子开始，先把工作室结构搭稳。
+                      从页面壳子开始，先把站点结构搭稳。
                     </p>
                   </div>
                   <div className="rounded-[22px] border border-slate-900/8 bg-slate-900/[0.03] px-4 py-3">

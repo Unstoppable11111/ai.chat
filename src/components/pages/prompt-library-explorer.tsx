@@ -44,7 +44,7 @@ export function PromptLibraryExplorer({ items }: PromptLibraryExplorerProps) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="搜索提示词、场景、标签、模型..."
+              placeholder="搜索提示词、场景、标签、资料..."
               className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
           </div>
