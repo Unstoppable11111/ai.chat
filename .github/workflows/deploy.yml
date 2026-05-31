@@ -69,6 +69,8 @@ jobs:
             --exclude='./node_modules' \
             --exclude='./artifacts' \
             -czf /tmp/chenyc-release.tar.gz .
+          test -s /tmp/chenyc-release.tar.gz
+          ls -lh /tmp/chenyc-release.tar.gz
 
       - name: Upload and deploy
         run: |
@@ -77,6 +79,20 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
             "DEPLOY_PATH='$DEPLOY_PATH' PM2_APP_NAME='$PM2_APP_NAME' bash -s" <<'REMOTE'
           set -euo pipefail
+
+          export NVM_DIR="$HOME/.nvm"
+          if [ -s "$NVM_DIR/nvm.sh" ]; then
+            . "$NVM_DIR/nvm.sh"
+            nvm use 22 >/dev/null || nvm use node >/dev/null
+          fi
+          export PATH="$HOME/.nvm/current/bin:$PATH"
+
+          command -v node
+          command -v npm
+          node --version
+          npm --version
+
+          test -s /tmp/chenyc-release.tar.gz
 
           mkdir -p "$DEPLOY_PATH"
           cd "$DEPLOY_PATH"
@@ -104,4 +120,5 @@ jobs:
           else
             echo "pm2 not found, build finished without process restart."
           fi
+          rm -f /tmp/chenyc-release.tar.gz
           REMOTE
