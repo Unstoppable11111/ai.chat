@@ -66,13 +66,20 @@ jobs:
 
           cd "$DEPLOY_PATH"
 
-          git fetch origin "$DEPLOY_BRANCH"
+          echo "Fetching latest code..."
+          timeout 180 git fetch --depth=1 --prune origin "$DEPLOY_BRANCH"
+
+          echo "Resetting working tree..."
           git reset --hard "origin/$DEPLOY_BRANCH"
 
-          npm ci
+          echo "Installing dependencies..."
+          npm ci --no-audit --no-fund
+
+          echo "Building production bundle..."
           rm -rf .next
           npm run build
 
+          echo "Restarting app..."
           if command -v pm2 >/dev/null 2>&1; then
             if [ -n "${PM2_APP_NAME:-}" ]; then
               pm2 restart "$PM2_APP_NAME"
