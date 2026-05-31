@@ -1702,9 +1702,9 @@ let particleSpeed = 10; // 粒子缩放动画速度
                         // 吸力与距离成反比，但距离越近越强
                         const force = Math.min(2.0, 50.0 / dist);
                         
-                        targetX = positions[i*3] + dx * force * 0.1;
-                        targetY = positions[i*3+1] + dy * force * 0.1;
-                        targetZ = positions[i*3+2] + dz * force * 0.1;
+                        targetX = positions[i*3] + dx * force * 0.3;
+                        targetY = positions[i*3+1] + dy * force * 0.3;
+                        targetZ = positions[i*3+2] + dz * force * 0.3;
 
                     } else if (currentGestureEffect === 'point' && hasAttractor) {
                         // 跟随模式：粒子变成绕指尖旋转的星环
@@ -1726,15 +1726,15 @@ let particleSpeed = 10; // 粒子缩放动画速度
                         const dy = attr.y - positions[i * 3 + 1];
                         const dz = Math.sin(Date.now()*0.005 + i)*5 - positions[i * 3 + 2];
                         
-                        targetX = positions[i*3] + dx * 0.05;
-                        targetY = positions[i*3+1] + dy * 0.05;
-                        targetZ = positions[i*3+2] + dz * 0.05;
+                        targetX = positions[i*3] + dx * 0.15;
+                        targetY = positions[i*3+1] + dy * 0.15;
+                        targetZ = positions[i*3+2] + dz * 0.15;
                     }
 
                     // 使用插值平滑移动到 target
-                    positions[i * 3] += (targetX - positions[i * 3]) * 0.1;
-                    positions[i * 3 + 1] += (targetY - positions[i * 3 + 1]) * 0.1;
-                    positions[i * 3 + 2] += (targetZ - positions[i * 3 + 2]) * 0.1;
+                    positions[i * 3] += (targetX - positions[i * 3]) * 0.3;
+                    positions[i * 3 + 1] += (targetY - positions[i * 3 + 1]) * 0.3;
+                    positions[i * 3 + 2] += (targetZ - positions[i * 3 + 2]) * 0.3;
                 }
                 
                 // 更新粒子位置属性
