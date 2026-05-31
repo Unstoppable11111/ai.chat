@@ -45,6 +45,9 @@ jobs:
       PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Prepare SSH
         run: |
           set -euo pipefail
@@ -57,22 +60,33 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p "$DEPLOY_PORT" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
-      - name: Deploy
+      - name: Pack source
         run: |
           set -euo pipefail
+          tar \
+            --exclude='./.git' \
+            --exclude='./.next' \
+            --exclude='./node_modules' \
+            --exclude='./artifacts' \
+            -czf /tmp/chenyc-release.tar.gz .
+
+      - name: Upload and deploy
+        run: |
+          set -euo pipefail
+          scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" /tmp/chenyc-release.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:/tmp/chenyc-release.tar.gz"
           ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
-            "DEPLOY_PATH='$DEPLOY_PATH' DEPLOY_BRANCH='$DEPLOY_BRANCH' PM2_APP_NAME='$PM2_APP_NAME' bash -s" <<'REMOTE'
+            "DEPLOY_PATH='$DEPLOY_PATH' PM2_APP_NAME='$PM2_APP_NAME' bash -s" <<'REMOTE'
           set -euo pipefail
 
+          mkdir -p "$DEPLOY_PATH"
           cd "$DEPLOY_PATH"
 
-          echo "Fetching latest code..."
-          timeout 180 git fetch --depth=1 --prune origin "$DEPLOY_BRANCH"
-
-          echo "Resetting working tree..."
-          git reset --hard "origin/$DEPLOY_BRANCH"
+          echo "Cleaning old source files..."
+          rm -rf src public content docs .github
+          rm -f AGENTS.md CLAUDE.md README.md eslint.config.mjs next-env.d.ts next.config.ts package.json package-lock.json postcss.config.mjs tsconfig.json
 
           echo "Installing dependencies..."
+          tar -xzf /tmp/chenyc-release.tar.gz -C "$DEPLOY_PATH"
           npm ci --no-audit --no-fund
 
           echo "Building production bundle..."
