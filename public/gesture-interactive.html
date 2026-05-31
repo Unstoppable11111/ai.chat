@@ -671,7 +671,7 @@
         
         <div class="gesture-indicator">
             <i class="fas fa-hand-spock gesture-icon"></i>
-            <div class="gesture-text">手势检测中</div>
+            <div class="gesture-text">手势检测中 (v3)</div>
         </div>
         
         <div id="camera-container" class="hidden">
@@ -725,6 +725,8 @@ let particleSpeed = 10; // 粒子缩放动画速度
         // 音乐播放变量
         let audioElement = null;
         let currentMusic = null;
+        let simulationTimer = null;
+        let lastDetectedGesture = 'none';
 
         // 初始化Three.js场景
         function initThreeJS() {
@@ -1275,42 +1277,72 @@ let particleSpeed = 10; // 粒子缩放动画速度
             }
         }
         
-        // 识别手势（支持更多动作）
+        // 识别手势（恢复并扩展原版高鲁棒性算法）
         function recognizeGesture(hand) {
             const keypoints = hand.keypoints;
             if (!keypoints || keypoints.length < 21) return 'unknown';
             
-            // 计算手指是否伸直 (通过指尖到手腕的距离 与 近端关节到手腕的距离 比较)
-            const isFingerExtended = (tip, pip) => {
-                const tipToWrist = Math.sqrt(Math.pow(keypoints[tip].x - keypoints[0].x, 2) + Math.pow(keypoints[tip].y - keypoints[0].y, 2));
-                const pipToWrist = Math.sqrt(Math.pow(keypoints[pip].x - keypoints[0].x, 2) + Math.pow(keypoints[pip].y - keypoints[0].y, 2));
-                return tipToWrist > pipToWrist;
-            };
-
-            const isThumbExt = isFingerExtended(4, 2);
-            const isIndexExt = isFingerExtended(8, 6);
-            const isMiddleExt = isFingerExtended(12, 10);
-            const isRingExt = isFingerExtended(16, 14);
-            const isPinkyExt = isFingerExtended(20, 18);
-
-            // 拇指和食指的捏合距离
-            const pinchDist = Math.sqrt(Math.pow(keypoints[4].x - keypoints[8].x, 2) + Math.pow(keypoints[4].y - keypoints[8].y, 2));
-            // 归一化捏合阈值（大概占屏幕或边界框的比例）
-            const isPinching = pinchDist < 0.06;
-
-            if (isPinching && !isMiddleExt && !isRingExt && !isPinkyExt) {
-                return 'pinch';
-            } else if (isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt) {
-                return 'point';
-            } else if (isIndexExt && isMiddleExt && !isRingExt && !isPinkyExt) {
-                return 'peace';
-            } else if (!isThumbExt && !isIndexExt && !isMiddleExt && !isRingExt && !isPinkyExt) {
-                return 'fist';
-            } else if (isThumbExt && isIndexExt && isMiddleExt && isRingExt && isPinkyExt) {
-                return 'open';
-            }
+            // 关键点映射
+            const fingers = [
+                { name: 'thumb', tip: 4, mcp: 2 },    // 拇指 (原版用的1，但2更准)
+                { name: 'index', tip: 8, mcp: 5 },    // 食指
+                { name: 'middle', tip: 12, mcp: 9 },  // 中指
+                { name: 'ring', tip: 16, mcp: 13 },   // 无名指
+                { name: 'pinky', tip: 20, mcp: 17 }   // 小指
+            ];
             
-            return 'unknown';
+            // 掌心坐标
+            const palmCenter = {
+                x: (keypoints[0].x + keypoints[9].x) / 2,
+                y: (keypoints[0].y + keypoints[9].y) / 2
+            };
+            
+            // 计算每根手指指尖和近端关节到掌心的距离差
+            const fingerDistances = fingers.map(finger => {
+                const tip = keypoints[finger.tip];
+                const mcp = keypoints[finger.mcp];
+                
+                const distanceToPalm = Math.sqrt(Math.pow(tip.x - palmCenter.x, 2) + Math.pow(tip.y - palmCenter.y, 2));
+                const mcpToPalm = Math.sqrt(Math.pow(mcp.x - palmCenter.x, 2) + Math.pow(mcp.y - palmCenter.y, 2));
+                
+                // 指尖到掌心的净距离
+                return distanceToPalm - mcpToPalm;
+            });
+            
+            const avgDistance = fingerDistances.reduce((sum, dist) => sum + dist, 0) / fingerDistances.length;
+            
+            // 距离差大于0代表手指大概率是伸直的
+            const isExtended = fingerDistances.map(d => d > 0);
+            const [thumbExt, indexExt, middleExt, ringExt, pinkyExt] = isExtended;
+
+            // 计算捏合距离（拇指和食指指尖），用手掌大小作为参考基准
+            const palmSize = Math.sqrt(Math.pow(keypoints[0].x - keypoints[9].x, 2) + Math.pow(keypoints[0].y - keypoints[9].y, 2));
+            const pinchDist = Math.sqrt(Math.pow(keypoints[4].x - keypoints[8].x, 2) + Math.pow(keypoints[4].y - keypoints[8].y, 2));
+            const isPinching = pinchDist < (palmSize * 0.4);
+
+            let result = 'unknown';
+
+            // 优先判断原版握拳和张开（使用原版严格阈值）
+            if (avgDistance < 0.15 && !indexExt && !middleExt && !ringExt && !pinkyExt) {
+                result = 'fist';
+            } else if (avgDistance > 0.25 && indexExt && middleExt && ringExt && pinkyExt) {
+                result = 'open';
+            } 
+            // 否则判断新加入的手势
+            else if (isPinching) {
+                result = 'pinch';
+            } else if (indexExt && middleExt && !ringExt && !pinkyExt) {
+                result = 'peace';
+            } else if (indexExt && !middleExt && !ringExt && !pinkyExt) {
+                result = 'point';
+            }
+
+            // 输出日志便于你按 F12 查看
+            if (Math.random() < 0.1) {
+                console.log(`[手势调试] 捏合:${isPinching?'是':'否'} 食指:${indexExt?'伸':'弯'} 中指:${middleExt?'伸':'弯'} 综合判定: ${result}`);
+            }
+
+            return result;
         }
         
         // 处理手势控制
@@ -1321,6 +1353,7 @@ let particleSpeed = 10; // 粒子缩放动画速度
             if (hands.length >= 1) {
                 const hand = hands[0];
                 const gesture = recognizeGesture(hand);
+                lastDetectedGesture = gesture;
                 updateGestureIndicator(gesture);
                 
                 // 将 MediaPipe 坐标 (0~1) 映射到 Three.js 世界坐标 (Z=0 平面)
@@ -1330,10 +1363,17 @@ let particleSpeed = 10; // 粒子缩放动画速度
                 const visibleWidth = visibleHeight * (window.innerWidth / window.innerHeight);
                 
                 const mapToWorld = (kpt) => {
-                    // Mediapipe 的 x 是从左到右 0~1 (但由于镜像，可能需要反转，先假设标准)
-                    // 由于我们的摄像头可能做了镜像翻转(scaleX(-1))，我们需要反转X
-                    const wx = -(kpt.x - 0.5) * visibleWidth;
-                    const wy = -(kpt.y - 0.5) * visibleHeight;
+                    // 视频实际分辨率通常是 640x480，将其归一化到 0~1
+                    const video = document.getElementById('camera-feed');
+                    const vw = (video && video.videoWidth > 0) ? video.videoWidth : 640;
+                    const vh = (video && video.videoHeight > 0) ? video.videoHeight : 480;
+                    
+                    const normX = kpt.x / vw;
+                    const normY = kpt.y / vh;
+                    
+                    // 映射到 Three.js 坐标系
+                    const wx = -(normX - 0.5) * visibleWidth;
+                    const wy = -(normY - 0.5) * visibleHeight;
                     return {x: wx, y: wy};
                 };
 
@@ -1360,6 +1400,7 @@ let particleSpeed = 10; // 粒子缩放动画速度
                     targetScale = Math.min(5.0, targetScale * 1.05);
                 }
             } else {
+                lastDetectedGesture = 'none';
                 document.querySelector('.gesture-icon').className = 'fas fa-hand-sparkles gesture-icon';
                 document.querySelector('.gesture-text').textContent = '等待交互...';
             }
@@ -1393,6 +1434,10 @@ let particleSpeed = 10; // 粒子缩放动画速度
         // 初始化摄像头和手势检测
         async function initCamera() {
             try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('当前浏览器不支持摄像头访问');
+                }
+
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         width: { ideal: 640 }, 
@@ -1406,6 +1451,7 @@ let particleSpeed = 10; // 粒子缩放动画速度
                 
                 // 显示摄像头容器
                 document.getElementById('camera-container').classList.remove('hidden');
+                await video.play();
                 
                 // 初始化手势检测模型
                 await initHandDetection(video);
@@ -1419,36 +1465,86 @@ let particleSpeed = 10; // 粒子缩放动画速度
             }
         }
         
+        function makeMockHand(gesture, centerX = 320, centerY = 240) {
+            const keypoints = Array.from({ length: 21 }, () => ({ x: centerX, y: centerY }));
+
+            keypoints[0] = { x: centerX, y: centerY + 75 };
+            keypoints[1] = { x: centerX - 42, y: centerY + 38 };
+            keypoints[2] = { x: centerX - 58, y: centerY + 14 };
+            keypoints[5] = { x: centerX - 26, y: centerY + 16 };
+            keypoints[9] = { x: centerX, y: centerY };
+            keypoints[13] = { x: centerX + 26, y: centerY + 16 };
+            keypoints[17] = { x: centerX + 48, y: centerY + 30 };
+
+            const setFinger = (tipIndex, mcpIndex, offsetX, extended) => {
+                const mcp = keypoints[mcpIndex];
+                if (extended) {
+                    keypoints[tipIndex - 2] = { x: mcp.x + offsetX * 0.35, y: mcp.y - 55 };
+                    keypoints[tipIndex - 1] = { x: mcp.x + offsetX * 0.65, y: mcp.y - 95 };
+                    keypoints[tipIndex] = { x: mcp.x + offsetX, y: mcp.y - 135 };
+                } else {
+                    keypoints[tipIndex - 2] = { x: mcp.x + offsetX * 0.12, y: centerY + 32 };
+                    keypoints[tipIndex - 1] = { x: mcp.x + offsetX * 0.08, y: centerY + 40 };
+                    keypoints[tipIndex] = { x: centerX + offsetX * 0.1, y: centerY + 46 };
+                }
+            };
+
+            const extended = {
+                thumb: gesture === 'open',
+                index: gesture === 'open' || gesture === 'point' || gesture === 'peace',
+                middle: gesture === 'open' || gesture === 'peace',
+                ring: gesture === 'open',
+                pinky: gesture === 'open',
+            };
+
+            setFinger(4, 2, -52, extended.thumb);
+            setFinger(8, 5, -22, extended.index);
+            setFinger(12, 9, 0, extended.middle);
+            setFinger(16, 13, 22, extended.ring);
+            setFinger(20, 17, 42, extended.pinky);
+
+            if (gesture === 'pinch') {
+                keypoints[4] = { x: centerX - 18, y: centerY - 74 };
+                keypoints[8] = { x: centerX - 10, y: centerY - 78 };
+            }
+
+            return { keypoints };
+        }
+
+        function applyGestureForTest(gesture, centerX = 320, centerY = 240, pauseDetection = true) {
+            if (pauseDetection) {
+                isDetecting = false;
+            }
+            handleHandGesture([makeMockHand(gesture, centerX, centerY)]);
+        }
+
         // 模拟手势检测（当摄像头不可用时）
         function simulateHandDetection() {
-            let simulatedDistance = 200;
-            let increasing = true;
-            
-            setInterval(() => {
+            isDetecting = true;
+            if (simulationTimer) {
+                clearInterval(simulationTimer);
+            }
+
+            const sequence = ['open', 'fist', 'pinch', 'point', 'peace'];
+            let index = 0;
+
+            applyGestureForTest(sequence[index], 320, 240, false);
+            simulationTimer = setInterval(() => {
                 if (!isDetecting) return;
-                
-                // 模拟距离变化
-                if (increasing) {
-                    simulatedDistance += 10;
-                    if (simulatedDistance > 400) increasing = false;
-                } else {
-                    simulatedDistance -= 10;
-                    if (simulatedDistance < 100) increasing = true;
-                }
-                
-                // 创建模拟手势数据
-                const mockHands = [
-                    { keypoints: [{x: 100, y: 100}, {}, {}, {}, {}, {}, {}, {}, {}, {x: 100, y: 100}] },
-                    { keypoints: [{x: 100 + simulatedDistance, y: 100}, {}, {}, {}, {}, {}, {}, {}, {}, {x: 100 + simulatedDistance, y: 100}] }
-                ];
-                
-                handleHandGesture(mockHands);
-            }, 300);
+                index = (index + 1) % sequence.length;
+                const x = 220 + (index * 55);
+                const y = 210 + Math.sin(Date.now() / 500) * 45;
+                applyGestureForTest(sequence[index], x, y, false);
+            }, 900);
         }
         
         // 初始化手势检测
         async function initHandDetection(video) {
             try {
+                if (!window.handPoseDetection) {
+                    throw new Error('手势检测库未加载');
+                }
+
                 // 使用MediaPipe Hands进行手势检测
                 const model = handPoseDetection.SupportedModels.MediaPipeHands;
                 const detectorConfig = {
@@ -1475,6 +1571,11 @@ let particleSpeed = 10; // 粒子缩放动画速度
                     requestAnimationFrame(detectHands);
                 }
                 
+                if (simulationTimer) {
+                    clearInterval(simulationTimer);
+                    simulationTimer = null;
+                }
+
                 // 开始检测
                 isDetecting = true;
                 detectHands();
@@ -2157,6 +2258,20 @@ let particleSpeed = 10; // 粒子缩放动画速度
             initThreeJS();
             initUIEvents();
         });
+
+        window.gestureTest = {
+            apply: applyGestureForTest,
+            simulate: simulateHandDetection,
+            getState: () => ({
+                gesture: lastDetectedGesture,
+                effect: currentGestureEffect,
+                attractorCount: handAttractors.length,
+                targetScale,
+                isDetecting,
+                hasParticles: Boolean(particleSystem),
+                particleCount
+            })
+        };
     </script>
 </body>
 </html>
