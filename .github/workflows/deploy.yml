@@ -110,15 +110,11 @@ jobs:
           npm run build
 
           echo "Restarting app..."
-          if command -v pm2 >/dev/null 2>&1; then
-            if [ -n "${PM2_APP_NAME:-}" ]; then
-              pm2 restart "$PM2_APP_NAME"
-            else
-              pm2 restart all
-            fi
-            pm2 save
+          if [ -n "${PM2_APP_NAME:-}" ]; then
+            npx --yes pm2 restart "$PM2_APP_NAME" || true
           else
-            echo "pm2 not found, build finished without process restart."
+            npx --yes pm2 restart all || true
           fi
+          npx --yes pm2 save || true
           rm -f /tmp/chenyc-release.tar.gz
           REMOTE
