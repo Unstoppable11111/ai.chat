@@ -258,7 +258,7 @@ services:
 
 ```text
 公网不能直接访问 IP:3002
-只有服务器本机和 Nginx/1Panel 可以访问
+只有服务器本机和 Nginx 反向代理可以访问
 ```
 
 注意：只有配置好 HTTPS 后才能加入：
@@ -332,45 +332,58 @@ nslookup api.example.com
 
 确认返回服务器公网 IP。
 
-## 3. 在 1Panel 配置反向代理
+## 3. 配置 Nginx 反向代理
 
-在 1Panel 中创建网站：
+因为你使用了原生的 Nginx，需要在 `/etc/nginx/sites-available/` 下新建一个配置文件（例如 `new-api`）：
 
-```text
-域名：api.example.com
-类型：反向代理
-代理地址：http://127.0.0.1:3002
+```bash
+sudo nano /etc/nginx/sites-available/new-api
 ```
 
-建议传递这些请求头：
+写入以下反代配置（如果使用 Cloudflare，Nginx 监听 80 端口即可，安全层交由 CF 处理）：
 
 ```nginx
-proxy_set_header Host $host;
-proxy_set_header X-Real-IP $remote_addr;
-proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-proxy_set_header X-Forwarded-Proto $scheme;
+server {
+    listen 80;
+    server_name api.example.com; # 换成你的实际域名
 
-proxy_http_version 1.1;
-proxy_set_header Upgrade $http_upgrade;
-proxy_set_header Connection "upgrade";
+    location / {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
 
-proxy_read_timeout 600s;
-proxy_send_timeout 600s;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # 较长超时适合流式 AI 请求，避免被 Nginx 提前断开
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+        proxy_buffering off;
+    }
+}
 ```
 
-较长超时适合流式 AI 请求，避免长响应被 Nginx 提前断开。
+激活并重启 Nginx：
 
-## 4. 配置 HTTPS
-
-在 1Panel 中为域名申请 Let's Encrypt 证书，然后启用：
-
-```text
-HTTPS
-HTTP 自动跳转 HTTPS
-证书自动续期
+```bash
+sudo ln -s /etc/nginx/sites-available/new-api /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
 ```
 
-测试：
+## 4. 在 Cloudflare 配置 HTTPS 与代理
+
+由于你使用了 Cloudflare（CF）作为前端代理，你不需要在服务器端去手动申请 SSL 证书。请执行以下步骤：
+
+1. 在 CF 的 **DNS** 页面，将域名（例如 `api`）的 A 记录指向你服务器的公网 IP。
+2. 确保 **开启小黄云**（Proxied 代理状态）。
+3. 在 CF 的 **SSL/TLS** 设置中，将加密模式设置为 **灵活 (Flexible)**。这样 CF 到用户的流量是 HTTPS 的，而 CF 到你的服务器 Nginx 的流量走 80 端口的 HTTP。
+4. 在 CF 的 “SSL/TLS -> 边缘证书” 中，开启 **始终使用 HTTPS (Always Use HTTPS)**。
+
+测试解析和访问：
 
 ```bash
 curl -I https://api.example.com
