@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { AnimatedBackground } from "@/components/shared/animated-background";
 import { InteractiveEffects } from "@/components/shared/interactive-effects";
 import { CommandMenu } from "@/components/ui/command-menu";
+import { ChatWidget } from "@/components/shared/chat-widget";
 import { siteConfig } from "@/data/site";
 import "./globals.css";
 
@@ -77,6 +78,7 @@ export default function RootLayout({
           <main className="flex-1 pt-24">{children}</main>
           <SiteFooter />
         </div>
+        <ChatWidget />
         <CommandMenu />
       </body>
     </html>
