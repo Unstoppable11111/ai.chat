@@ -1,22 +1,20 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Bot, X, Send, Sparkles, User, Settings2 } from 'lucide-react';
+import { Bot, X, Send, Sparkles, User } from 'lucide-react';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
 const MODELS = [
   { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro' },
   { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash' },
-  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite' },
-  { id: 'gpt-4o', name: 'GPT-4o' },
-  { id: 'gpt-4o-mini', name: 'GPT-4o Mini' }
+  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite' }
 ];
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
-  const [showSettings, setShowSettings] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: '你好！我是网站 AI 助手，有什么可以帮你的？' }
   ]);
@@ -117,34 +115,11 @@ export function ChatWidget() {
             </div>
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setShowSettings(!showSettings)}
-                className={`rounded-full p-1.5 transition-colors ${showSettings ? 'bg-slate-200 text-slate-900 dark:bg-zinc-700 dark:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-zinc-700 dark:hover:text-white'}`}
-              >
-                <Settings2 className="h-4 w-4" />
-              </button>
-              <button
                 onClick={() => setIsOpen(false)}
                 className="rounded-full p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
-            </div>
-          </div>
-          
-          {/* 模型设置面板 (展开/收起) */}
-          <div className={`overflow-hidden transition-all duration-300 ${showSettings ? 'max-h-20 border-t border-slate-900/5 dark:border-white/5' : 'max-h-0'}`}>
-            <div className="p-3 px-4 flex items-center justify-between bg-white dark:bg-zinc-900/50">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">当前模型</span>
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="px-2 py-1 text-xs border rounded bg-slate-50 dark:bg-zinc-800 dark:border-zinc-700 outline-none focus:border-brand-cyan transition-colors"
-                disabled={loading}
-              >
-                {MODELS.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
             </div>
           </div>
         </div>
@@ -180,16 +155,26 @@ export function ChatWidget() {
         </div>
 
         <div className="border-t border-slate-900/10 bg-white p-3 dark:border-white/10 dark:bg-zinc-900">
-          <div className="flex items-center gap-2 rounded-full border border-slate-900/10 bg-slate-50 px-2 py-1.5 dark:border-white/10 dark:bg-zinc-800 focus-within:ring-2 focus-within:ring-slate-900/20 focus-within:border-slate-900 transition-all dark:focus-within:ring-white/20 dark:focus-within:border-white">
+          <div className="flex items-center gap-2 rounded-full border border-slate-900/10 bg-slate-50 pl-4 pr-1.5 py-1.5 dark:border-white/10 dark:bg-zinc-800 focus-within:ring-2 focus-within:ring-slate-900/20 focus-within:border-slate-900 transition-all dark:focus-within:ring-white/20 dark:focus-within:border-white shadow-sm">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
               placeholder="问点什么..."
-              className="flex-1 bg-transparent px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
+              className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
               disabled={loading}
             />
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="text-[11px] font-medium text-slate-600 dark:text-slate-300 bg-slate-200/50 dark:bg-zinc-700/50 hover:bg-slate-200 dark:hover:bg-zinc-700 border-none outline-none rounded-full px-2 py-1 cursor-pointer transition-colors max-w-[100px] truncate"
+              disabled={loading}
+            >
+              {MODELS.map(m => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
             <button
               onClick={sendMessage}
               disabled={loading || !input.trim()}

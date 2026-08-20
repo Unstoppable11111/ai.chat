@@ -7,9 +7,7 @@ type Message = { role: 'user' | 'assistant'; content: string };
 const MODELS = [
   { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro' },
   { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash' },
-  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite' },
-  { id: 'gpt-4o', name: 'GPT-4o' },
-  { id: 'gpt-4o-mini', name: 'GPT-4o Mini' }
+  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite' }
 ];
 
 export default function ChatPage() {
@@ -99,16 +97,6 @@ export default function ChatPage() {
           <Sparkles className="h-6 w-6 text-brand-cyan" />
           AI 智能助手
         </h3>
-        <select
-          value={selectedModel}
-          onChange={(e) => setSelectedModel(e.target.value)}
-          className="px-3 py-1.5 text-sm border rounded-lg bg-slate-50 dark:bg-zinc-800 dark:border-zinc-700 outline-none focus:border-brand-cyan transition-colors"
-          disabled={loading}
-        >
-          {MODELS.map(m => (
-            <option key={m.id} value={m.id}>{m.name}</option>
-          ))}
-        </select>
       </div>
       
       <div className="h-[500px] overflow-y-auto bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-6 mb-6 space-y-6">
@@ -141,19 +129,31 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex gap-3">
-        <input 
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="输入您的问题，按回车发送..." 
-          className="flex-1 px-4 py-3 border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 outline-none focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan transition-all text-gray-800 dark:text-gray-100 placeholder:text-gray-400"
-          disabled={loading}
-        />
+      <div className="flex gap-3 relative">
+        <div className="flex-1 flex items-center border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 focus-within:ring-2 focus-within:ring-brand-cyan/20 focus-within:border-brand-cyan transition-all bg-white overflow-hidden pr-2 shadow-sm">
+          <input 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="输入您的问题，按回车发送..." 
+            className="flex-1 px-4 py-3 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder:text-gray-400"
+            disabled={loading}
+          />
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-zinc-700/50 hover:bg-slate-200 dark:hover:bg-zinc-700 dark:text-slate-300 border-none outline-none rounded-lg px-3 py-1.5 cursor-pointer transition-colors max-w-[150px] truncate"
+            disabled={loading}
+          >
+            {MODELS.map(m => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        </div>
         <button 
           onClick={sendMessage} 
           disabled={loading || !input.trim()}
-          className="px-6 py-3 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+          className="px-6 py-3 shrink-0 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm"
         >
           <Send className="h-4 w-4" />
           {loading ? '发送中...' : '发送'}
