@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const { message } = await request.json();
+    const { messages } = await request.json();
 
     const response = await fetch(`${process.env.OPENAI_BASE_URL}/chat/completions`, {
       method: 'POST',
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         model: 'gemini-3.1-pro',
         messages: [
           { role: 'system', content: '你是网站专属的智能助手，请简短、专业地回答问题。' },
-          { role: 'user', content: message }
+          ...messages
         ]
       })
     });
