@@ -16,7 +16,7 @@ export function ChatWidget() {
     setResponse('AI 正在思考中...');
 
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api-chat-backend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: question })
