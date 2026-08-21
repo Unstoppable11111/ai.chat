@@ -34,7 +34,7 @@ const MarkdownComponents = {
     <img 
       src={src} 
       alt={alt || 'Image'} 
-      className="max-w-full h-auto rounded-xl my-3 shadow-sm border border-slate-200 dark:border-zinc-700 object-contain max-h-[300px]" 
+      className="inline-block max-w-full h-auto rounded-md object-contain align-middle max-h-[300px] my-1 mr-1" 
       loading="lazy"
       {...props} 
     />
@@ -148,8 +148,8 @@ export default function ChatPage() {
         {messages.map((msg, idx) => {
           const displayContent = msg.role === 'assistant' 
             ? msg.content
-                .replace(/http:\/\/googleusercontent\.com\/map_content\/\d+\s*/g, '')
-                .replace(/\[([^\]]+)\]\(http:\/\/googleusercontent\.com\/map_location_reference\/\d+\)/g, '$1')
+                .replace(/\[([^\]]+)\]\(http:\/\/googleusercontent\.com\/[a-zA-Z0-9_/-]+\)/g, '$1')
+                .replace(/http:\/\/googleusercontent\.com\/[a-zA-Z0-9_/-]+\s*/g, '')
             : msg.content;
             
           return (
