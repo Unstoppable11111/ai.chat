@@ -4,7 +4,12 @@ export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
-    const { messages, model = 'gemini-3.1-pro' } = await request.json();
+    const { messages, model = 'gemini-3.7-flash', thinking_budget } = await request.json();
+
+    const isThinkingModel = typeof model === 'string' && model.endsWith('-thinking');
+    const finalThinkingBudget = typeof thinking_budget === 'number' 
+      ? thinking_budget 
+      : (isThinkingModel ? 2048 : 0);
 
     const response = await fetch(`${process.env.OPENAI_BASE_URL}/chat/completions`, {
       method: 'POST',
@@ -15,6 +20,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: model,
         stream: true,
+        thinking_budget: finalThinkingBudget,
         messages: [
           { role: 'system', content: '你是网站专属的智能助手，请简短、专业地回答问题。' },
           ...messages

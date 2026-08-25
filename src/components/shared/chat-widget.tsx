@@ -1,10 +1,17 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Bot, X, Send, Sparkles, User } from 'lucide-react';
+import { Bot, X, Send, Sparkles, User, Brain } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ThinkingBlock } from '@/components/chat/thinking-block';
+import { cn } from '@/lib/utils';
 
-type Message = { role: 'user' | 'assistant'; content: string };
+type Message = { 
+  role: 'user' | 'assistant'; 
+  content: string; 
+  reasoning_content?: string; 
+  isThinking?: boolean; 
+};
 
 const MarkdownComponents = {
   p: ({children}: any) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
@@ -42,6 +49,7 @@ const MarkdownComponents = {
 };
 
 const MODELS = [
+  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash' },
   { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro' },
   { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash' },
   { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite' }
@@ -51,12 +59,15 @@ export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
+  const [enableThinking, setEnableThinking] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: '你好！我是网站 AI 助手，有什么可以帮你的？' }
   ]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isThinkingActive = enableThinking || selectedModel.endsWith('-thinking');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -74,13 +85,19 @@ export function ChatWidget() {
     setInput('');
     setLoading(true);
 
+    const willThink = isThinkingActive;
+
     try {
       const apiMessages = newMessages.filter((_, i) => i !== 0 || newMessages[0].role !== 'assistant');
 
       const res = await fetch('/api-chat-backend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, model: selectedModel })
+        body: JSON.stringify({ 
+          messages: apiMessages, 
+          model: selectedModel,
+          thinking_budget: willThink ? 2048 : 0
+        })
       });
 
       if (!res.ok) throw new Error('Network response was not ok');
@@ -88,7 +105,12 @@ export function ChatWidget() {
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: '', 
+        reasoning_content: '', 
+        isThinking: willThink 
+      }]);
 
       let done = false;
       let buffer = '';
@@ -105,16 +127,31 @@ export function ChatWidget() {
             if (line.startsWith('data: ') && line !== 'data: [DONE]') {
               try {
                 const data = JSON.parse(line.slice(6));
-                if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
-                  setMessages(prev => {
-                    const newMsgs = [...prev];
-                    const lastIdx = newMsgs.length - 1;
-                    newMsgs[lastIdx] = {
-                      ...newMsgs[lastIdx],
-                      content: newMsgs[lastIdx].content + data.choices[0].delta.content
-                    };
-                    return newMsgs;
-                  });
+                const delta = data.choices?.[0]?.delta;
+                if (delta) {
+                  const hasReasoning = typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0;
+                  const hasContent = typeof delta.content === 'string' && delta.content.length > 0;
+
+                  if (hasReasoning || hasContent) {
+                    setMessages(prev => {
+                      const newMsgs = [...prev];
+                      const lastIdx = newMsgs.length - 1;
+                      const currentMsg = newMsgs[lastIdx];
+                      if (currentMsg && currentMsg.role === 'assistant') {
+                        newMsgs[lastIdx] = {
+                          ...currentMsg,
+                          reasoning_content: hasReasoning
+                            ? (currentMsg.reasoning_content || '') + delta.reasoning_content
+                            : currentMsg.reasoning_content,
+                          content: hasContent
+                            ? currentMsg.content + delta.content
+                            : currentMsg.content,
+                          isThinking: hasContent ? false : currentMsg.isThinking
+                        };
+                      }
+                      return newMsgs;
+                    });
+                  }
                 }
               } catch (e) {
                 // Ignore parse errors on incomplete chunks
@@ -123,14 +160,28 @@ export function ChatWidget() {
           }
         }
       }
+
+      // 流结束，确保将 isThinking 标记为 false
+      setMessages(prev => {
+        const newMsgs = [...prev];
+        const lastIdx = newMsgs.length - 1;
+        if (newMsgs[lastIdx] && newMsgs[lastIdx].role === 'assistant') {
+          newMsgs[lastIdx] = {
+            ...newMsgs[lastIdx],
+            isThinking: false
+          };
+        }
+        return newMsgs;
+      });
     } catch (err) {
       setMessages(prev => {
         if (prev[prev.length - 1].role === 'assistant' && prev[prev.length - 1].content === '') {
           const newMsgs = [...prev];
           newMsgs[newMsgs.length - 1].content = '网络请求失败，请检查。';
+          newMsgs[newMsgs.length - 1].isThinking = false;
           return newMsgs;
         }
-        return [...prev, { role: 'assistant', content: '网络请求失败，请检查。' }];
+        return [...prev, { role: 'assistant', content: '网络请求失败，请检查。', isThinking: false }];
       });
     } finally {
       setLoading(false);
@@ -187,10 +238,22 @@ export function ChatWidget() {
                   ? 'bg-slate-900 text-white border-transparent rounded-tr-sm dark:bg-white dark:text-slate-900 whitespace-pre-wrap' 
                   : 'bg-white text-slate-700 border-slate-100 rounded-tl-sm dark:border-white/5 dark:bg-zinc-800 dark:text-slate-300'
               }`}>
+                {msg.role === 'assistant' && (msg.reasoning_content || msg.isThinking) && (
+                  <ThinkingBlock 
+                    reasoningContent={msg.reasoning_content} 
+                    isThinking={msg.isThinking} 
+                  />
+                )}
                 {msg.role === 'assistant' ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>
-                    {displayContent}
-                  </ReactMarkdown>
+                  displayContent ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>
+                      {displayContent}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.isThinking ? null : (
+                      <span className="text-slate-400 dark:text-zinc-500 text-xs">正在生成回答...</span>
+                    )
+                  )
                 ) : (
                   displayContent
                 )}
@@ -214,20 +277,35 @@ export function ChatWidget() {
         </div>
 
         <div className="border-t border-slate-900/10 bg-white p-3 dark:border-white/10 dark:bg-zinc-900">
-          <div className="flex items-center gap-2 rounded-full border border-slate-900/10 bg-slate-50 pl-4 pr-1.5 py-1.5 dark:border-white/10 dark:bg-zinc-800 focus-within:ring-2 focus-within:ring-slate-900/20 focus-within:border-slate-900 transition-all dark:focus-within:ring-white/20 dark:focus-within:border-white shadow-sm">
+          <div className="flex items-center gap-1.5 rounded-full border border-slate-900/10 bg-slate-50 pl-3 pr-1.5 py-1.5 dark:border-white/10 dark:bg-zinc-800 focus-within:ring-2 focus-within:ring-slate-900/20 focus-within:border-slate-900 transition-all dark:focus-within:ring-white/20 dark:focus-within:border-white shadow-sm">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
               placeholder="问点什么..."
-              className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-white"
+              className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-white min-w-0"
               disabled={loading}
             />
+            <button
+              type="button"
+              onClick={() => setEnableThinking(!enableThinking)}
+              disabled={loading}
+              title={isThinkingActive ? "深度思考模式已开启" : "点击开启深度思考"}
+              className={cn(
+                "flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border transition-all cursor-pointer select-none shrink-0",
+                isThinkingActive
+                  ? "bg-brand-cyan/15 text-brand-cyan border-brand-cyan/40 dark:bg-brand-cyan/20"
+                  : "bg-slate-200/50 text-slate-500 border-transparent hover:bg-slate-200 dark:bg-zinc-700/50 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              )}
+            >
+              <Brain className={cn("h-3 w-3", isThinkingActive ? "text-brand-cyan animate-pulse" : "")} />
+              <span className="hidden xs:inline sm:inline">思考</span>
+            </button>
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="text-[11px] font-medium text-slate-600 dark:text-slate-300 bg-slate-200/50 dark:bg-zinc-700/50 hover:bg-slate-200 dark:hover:bg-zinc-700 border-none outline-none rounded-full px-2 py-1 cursor-pointer transition-colors max-w-[100px] truncate"
+              className="text-[11px] font-medium text-slate-600 dark:text-slate-300 bg-slate-200/50 dark:bg-zinc-700/50 hover:bg-slate-200 dark:hover:bg-zinc-700 border-none outline-none rounded-full px-2 py-1 cursor-pointer transition-colors max-w-[105px] truncate shrink-0"
               disabled={loading}
             >
               {MODELS.map(m => (
@@ -237,7 +315,7 @@ export function ChatWidget() {
             <button
               onClick={sendMessage}
               disabled={loading || !input.trim()}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
             >
               <Send className="h-4 w-4 -ml-0.5" />
             </button>
