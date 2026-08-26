@@ -354,64 +354,33 @@ img {
   text-align: left;
 }
 
-.cursor-mark,
-.cursor-ring {
+.cursor-mark {
   position: fixed;
   left: 0;
   top: 0;
   pointer-events: none;
-  z-index: 80;
+  z-index: 9999;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: white;
+  mix-blend-mode: difference;
   transform: translate3d(50vw, 50vh, 0) translate(-50%, -50%);
   will-change: transform;
-}
-
-.cursor-mark {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #0f172a;
-  box-shadow:
-    0 0 0 3px rgba(255, 255, 255, 0.84),
-    0 0 16px rgba(14, 165, 233, 0.26);
   opacity: 0;
   transition:
     width 180ms ease,
     height 180ms ease,
-    background-color 180ms ease,
     opacity 180ms ease;
 }
 
-.cursor-ring {
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.18);
-  background: rgba(255, 255, 255, 0.42);
-  opacity: 0;
-  transition:
-    width 180ms ease,
-    height 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease,
-    opacity 180ms ease;
-}
-
-.cursor-mark.is-ready,
-.cursor-ring.is-ready {
+.cursor-mark.is-ready {
   opacity: 1;
 }
 
 .cursor-mark.is-hovering {
-  width: 5px;
-  height: 5px;
-  background: var(--brand-cyan);
-}
-
-.cursor-ring.is-hovering {
-  width: 38px;
-  height: 38px;
-  border-color: rgba(14, 165, 233, 0.36);
-  background: rgba(255, 255, 255, 0.56);
+  width: 36px;
+  height: 36px;
 }
 
 html.has-custom-cursor,
@@ -426,29 +395,6 @@ html.has-custom-cursor summary {
   cursor: none !important;
 }
 
-.particle-field {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.particle-field span {
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  width: var(--size);
-  height: var(--size);
-  border-radius: 999px;
-  background: var(--color);
-  opacity: 0.48;
-  box-shadow: 0 0 22px var(--color);
-  animation: particle-float var(--duration) ease-in-out infinite;
-  animation-delay: var(--delay);
-  will-change: transform;
-}
-
 .scroll-progress {
   position: fixed;
   left: 0;
@@ -459,16 +405,6 @@ html.has-custom-cursor summary {
   transform-origin: 0 50%;
   background: linear-gradient(90deg, var(--brand-cyan), var(--brand-violet), var(--brand-lime));
   box-shadow: 0 0 18px rgba(14, 165, 233, 0.34);
-}
-
-@keyframes particle-float {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(16px, -24px, 0) scale(1.36);
-  }
 }
 
 @media (max-width: 768px), (pointer: coarse) {

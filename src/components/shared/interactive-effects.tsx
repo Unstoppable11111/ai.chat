@@ -1,26 +1,7 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
-
-const particles = Array.from({ length: 18 }, (_, index) => {
-  const colors = [
-    "rgba(14, 165, 233, 0.62)",
-    "rgba(139, 92, 246, 0.52)",
-    "rgba(101, 163, 13, 0.42)",
-  ];
-
-  return {
-    id: index,
-    x: `${(index * 37) % 100}%`,
-    y: `${(index * 61) % 100}%`,
-    size: `${4 + (index % 5)}px`,
-    duration: `${6 + (index % 7)}s`,
-    delay: `${(index % 8) * -0.7}s`,
-    color: colors[index % colors.length],
-  };
-});
 
 export function InteractiveEffects() {
   const reduceMotion = useReducedMotion();
@@ -29,7 +10,6 @@ export function InteractiveEffects() {
   const [ready, setReady] = useState(false);
   const [finePointer, setFinePointer] = useState(false);
   const markRef = useRef<HTMLDivElement | null>(null);
-  const ringRef = useRef<HTMLDivElement | null>(null);
   const readyRef = useRef(false);
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 120,
@@ -56,19 +36,16 @@ export function InteractiveEffects() {
     let frame = 0;
     let pointerX = window.innerWidth / 2;
     let pointerY = window.innerHeight / 2;
-    let ringX = pointerX;
-    let ringY = pointerY;
+    // 使用插值坐标让唯一的光标带一点弹性延迟，更显高级
+    let markX = pointerX;
+    let markY = pointerY;
 
     const renderCursor = () => {
-      ringX += (pointerX - ringX) * 0.24;
-      ringY += (pointerY - ringY) * 0.24;
+      markX += (pointerX - markX) * 0.35;
+      markY += (pointerY - markY) * 0.35;
       markRef.current?.style.setProperty(
         "transform",
-        `translate3d(${pointerX}px, ${pointerY}px, 0) translate(-50%, -50%)`,
-      );
-      ringRef.current?.style.setProperty(
-        "transform",
-        `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`,
+        `translate3d(${markX}px, ${markY}px, 0) translate(-50%, -50%)`,
       );
       frame = window.requestAnimationFrame(renderCursor);
     };
@@ -106,35 +83,11 @@ export function InteractiveEffects() {
     <>
       <motion.div className="scroll-progress" style={{ scaleX }} />
       {!reduceMotion && finePointer ? (
-        <>
-          <div
-            ref={markRef}
-            className={`cursor-mark${ready ? " is-ready" : ""}${hovering ? " is-hovering" : ""}`}
-            aria-hidden="true"
-          />
-          <div
-            ref={ringRef}
-            className={`cursor-ring${ready ? " is-ready" : ""}${hovering ? " is-hovering" : ""}`}
-            aria-hidden="true"
-          />
-          <div className="particle-field" aria-hidden="true">
-            {particles.map((particle) => (
-              <span
-                key={particle.id}
-                style={
-                  {
-                    "--x": particle.x,
-                    "--y": particle.y,
-                    "--size": particle.size,
-                    "--duration": particle.duration,
-                    "--delay": particle.delay,
-                    "--color": particle.color,
-                  } as CSSProperties
-                }
-              />
-            ))}
-          </div>
-        </>
+        <div
+          ref={markRef}
+          className={`cursor-mark${ready ? " is-ready" : ""}${hovering ? " is-hovering" : ""}`}
+          aria-hidden="true"
+        />
       ) : null}
     </>
   );
