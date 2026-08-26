@@ -12,7 +12,7 @@ import { slugify } from "@/lib/utils";
 
 const CONTENT_ROOT = path.join(process.cwd(), "content");
 
-type CollectionName = "experiments" | "build-log" | "projects";
+type CollectionName = "experiments" | "build-log" | "projects" | "news";
 
 function readCollection(collection: CollectionName) {
   const collectionPath = path.join(CONTENT_ROOT, collection);
@@ -70,6 +70,18 @@ export function getBuildLogs(): BuildLogEntry[] {
   }));
 }
 
+export function getNews(): BuildLogEntry[] {
+  return sortByDate(readCollection("news")).map(({ slug, frontmatter }) => ({
+    slug,
+    title: String(frontmatter.title),
+    excerpt: String(frontmatter.excerpt),
+    date: String(frontmatter.date),
+    tags: frontmatter.tags as string[],
+    cover: String(frontmatter.cover),
+    featured: Boolean(frontmatter.featured),
+  }));
+}
+
 export function getProjects(): ProjectEntry[] {
   return sortByDate(readCollection("projects")).map(({ slug, frontmatter }) => ({
     slug,
@@ -89,6 +101,10 @@ export function getExperimentBySlug(slug: string) {
 
 export function getBuildLogBySlug(slug: string) {
   return readCollection("build-log").find((entry) => entry.slug === slug);
+}
+
+export function getNewsBySlug(slug: string) {
+  return readCollection("news").find((entry) => entry.slug === slug);
 }
 
 export function getProjectBySlug(slug: string) {
