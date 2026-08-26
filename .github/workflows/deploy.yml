@@ -48,6 +48,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
       - name: Prepare SSH
         run: |
           set -euo pipefail
@@ -65,7 +77,6 @@ jobs:
           set -euo pipefail
           tar \
             --exclude='./.git' \
-            --exclude='./.next' \
             --exclude='./node_modules' \
             --exclude='./artifacts' \
             -czf /tmp/chenyc-release.tar.gz .
@@ -98,16 +109,14 @@ jobs:
           cd "$DEPLOY_PATH"
 
           echo "Cleaning old source files..."
-          rm -rf src public content docs .github
+          rm -rf src public content docs .github .next
           rm -f AGENTS.md CLAUDE.md README.md eslint.config.mjs next-env.d.ts next.config.ts package.json package-lock.json postcss.config.mjs tsconfig.json
 
-          echo "Installing dependencies..."
+          echo "Extracting release..."
           tar -xzf /tmp/chenyc-release.tar.gz -C "$DEPLOY_PATH"
+          
+          echo "Installing dependencies..."
           npm ci --no-audit --no-fund
-
-          echo "Building production bundle..."
-          rm -rf .next
-          npm run build
 
           echo "Restarting app..."
           if [ -n "${PM2_APP_NAME:-}" ]; then
