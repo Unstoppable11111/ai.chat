@@ -6,6 +6,7 @@ import { AnimatedBackground } from "@/components/shared/animated-background";
 import { InteractiveEffects } from "@/components/shared/interactive-effects";
 import { CommandMenu } from "@/components/ui/command-menu";
 import { ChatWidget } from "@/components/shared/chat-widget";
+import { BackToTop } from "@/components/shared/back-to-top";
 import { siteConfig } from "@/data/site";
 import "./globals.css";
 
@@ -79,6 +80,7 @@ export default function RootLayout({
           <SiteFooter />
         </div>
         <ChatWidget />
+        <BackToTop />
         <CommandMenu />
       </body>
     </html>

@@ -33,31 +33,17 @@ export function InteractiveEffects() {
     if (reduceMotion || !finePointer) return;
 
     document.documentElement.classList.add("has-custom-cursor");
-    let frame = 0;
-    let pointerX = window.innerWidth / 2;
-    let pointerY = window.innerHeight / 2;
-    // 使用插值坐标让唯一的光标带一点弹性延迟，更显高级
-    let markX = pointerX;
-    let markY = pointerY;
-
-    const renderCursor = () => {
-      markX += (pointerX - markX) * 0.35;
-      markY += (pointerY - markY) * 0.35;
-      markRef.current?.style.setProperty(
-        "transform",
-        `translate3d(${markX}px, ${markY}px, 0) translate(-50%, -50%)`,
-      );
-      frame = window.requestAnimationFrame(renderCursor);
-    };
 
     const updateCursor = (event: PointerEvent) => {
       if (!readyRef.current) {
         readyRef.current = true;
         setReady(true);
-        frame = window.requestAnimationFrame(renderCursor);
       }
-      pointerX = event.clientX;
-      pointerY = event.clientY;
+      
+      // 放弃所有 JS 的弹簧差值计算（这会产生粘滞感），直接贴合硬件物理坐标
+      if (markRef.current) {
+        markRef.current.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-50%, -50%)`;
+      }
     };
 
     const updateHoverState = (event: Event) => {
@@ -75,7 +61,6 @@ export function InteractiveEffects() {
       document.documentElement.classList.remove("has-custom-cursor");
       window.removeEventListener("pointermove", updateCursor);
       window.removeEventListener("pointerover", updateHoverState);
-      window.cancelAnimationFrame(frame);
     };
   }, [finePointer, reduceMotion]);
 

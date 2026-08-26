@@ -1,13 +1,11 @@
-import { BentoGrid } from "@/components/home/bento-grid";
 import { CurrentlyBuilding } from "@/components/home/currently-building";
 import { FeaturedExperiments } from "@/components/home/featured-experiments";
 import { HeroSection } from "@/components/home/hero-section";
 import { LatestBuildLogs } from "@/components/home/latest-build-logs";
 import { ManifestoSection } from "@/components/home/manifesto-section";
 import { PromptLibraryPreview } from "@/components/home/prompt-library-preview";
-import { StudioPulse } from "@/components/home/studio-pulse";
+import { StackingPanels } from "@/components/home/stacking-panels";
 import { PageIntro } from "@/components/shared/page-intro";
-import { PageShell } from "@/components/shared/page-shell";
 import { promptLibrary } from "@/data/site";
 import { getBuildLogs, getExperimentEntries } from "@/lib/content";
 
@@ -16,17 +14,16 @@ export default function HomePage() {
   const buildLogs = getBuildLogs().slice(0, 3);
 
   return (
-    <PageShell>
+    <main className="page-flow pb-20 overflow-x-hidden">
       <PageIntro>
         <HeroSection />
         <CurrentlyBuilding />
-        <BentoGrid />
+        <StackingPanels />
         <FeaturedExperiments items={experimentEntries} />
         <LatestBuildLogs items={buildLogs} />
         <PromptLibraryPreview items={promptLibrary.slice(0, 3)} />
-        <StudioPulse />
         <ManifestoSection />
       </PageIntro>
-    </PageShell>
+    </main>
   );
 }

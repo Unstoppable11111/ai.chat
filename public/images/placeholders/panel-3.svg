@@ -1,0 +1,17 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#0f172a" />
+  <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="1.5" fill="#334155" />
+  </pattern>
+  <rect width="800" height="600" fill="url(#dots)" />
+  <rect x="80" y="80" width="400" height="300" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2" />
+  <circle cx="110" cy="110" r="6" fill="#ef4444" />
+  <circle cx="130" cy="110" r="6" fill="#eab308" />
+  <circle cx="150" cy="110" r="6" fill="#22c55e" />
+  <path d="M 110 160 h 200 m -200 30 h 150 m -150 30 h 250 m -250 30 h 100" stroke="#94a3b8" stroke-width="6" stroke-linecap="round" />
+  
+  <rect x="520" y="220" width="200" height="280" rx="8" fill="#1e293b" stroke="#0ea5e9" stroke-width="2" />
+  <path d="M 480 230 L 520 250" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="6,6" />
+  <text x="540" y="260" font-family="monospace" font-size="16" fill="#0ea5e9">LOG.OUTPUT</text>
+  <path d="M 540 300 h 120 m -120 20 h 80 m -80 20 h 140" stroke="#64748b" stroke-width="4" stroke-linecap="round" />
+</svg>

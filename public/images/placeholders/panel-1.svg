@@ -1,0 +1,14 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#f8fafc" />
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cbd5e1" stroke-width="1" />
+  </pattern>
+  <rect width="800" height="600" fill="url(#grid)" />
+  <rect x="100" y="100" width="600" height="400" fill="none" stroke="#94a3b8" stroke-width="2" />
+  <circle cx="100" cy="100" r="4" fill="#0f172a" />
+  <circle cx="700" cy="100" r="4" fill="#0f172a" />
+  <circle cx="100" cy="500" r="4" fill="#0f172a" />
+  <circle cx="700" cy="500" r="4" fill="#0f172a" />
+  <text x="120" y="140" font-family="monospace" font-size="24" fill="#64748b">SYS.DASHBOARD.01</text>
+  <path d="M 200 400 L 300 200 L 400 350 L 500 150 L 600 300" fill="none" stroke="#0ea5e9" stroke-width="4" stroke-linejoin="round" />
+</svg>

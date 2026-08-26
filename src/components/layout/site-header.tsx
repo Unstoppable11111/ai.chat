@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Command, Hand, Sparkles } from "lucide-react";
@@ -8,11 +9,27 @@ import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const isHome = pathname === "/";
+  const showGlass = !isHome || isScrolled;
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 max-w-full overflow-x-clip">
+    <header className="fixed inset-x-0 top-0 z-50 max-w-full overflow-x-clip transition-all duration-500">
       <div className="container-shell pt-4">
-        <div className="glass-panel flex min-w-0 items-center justify-between gap-3 rounded-[22px] px-3 py-3 md:rounded-[24px] md:px-4">
+        <div className={cn(
+          "flex min-w-0 items-center justify-between gap-3 rounded-[22px] px-3 py-3 md:rounded-[24px] md:px-4 transition-all duration-500",
+          showGlass ? "glass-panel" : "bg-transparent border-transparent shadow-none"
+        )}>
           <Link href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 shadow-sm md:h-10 md:w-10">
               <Sparkles className="h-4 w-4 text-brand-cyan" />

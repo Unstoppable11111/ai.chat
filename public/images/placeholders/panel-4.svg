@@ -1,0 +1,16 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#f4f4f5" />
+  <g stroke="#d4d4d8" stroke-width="2">
+    <line x1="0" y1="100" x2="800" y2="100" />
+    <line x1="0" y1="200" x2="800" y2="200" />
+    <line x1="0" y1="300" x2="800" y2="300" />
+    <line x1="0" y1="400" x2="800" y2="400" />
+    <line x1="0" y1="500" x2="800" y2="500" />
+    <line x1="150" y1="0" x2="150" y2="600" stroke="#ef4444" opacity="0.5" />
+  </g>
+  <text x="180" y="80" font-family="sans-serif" font-weight="bold" font-size="48" fill="#18181b">NOTES &amp; PROMPTS</text>
+  <path d="M 180 160 h 400 m -400 40 h 500 m -500 40 h 300" stroke="#52525b" stroke-width="12" stroke-linecap="round" />
+  <circle cx="650" cy="450" r="80" fill="none" stroke="#a1a1aa" stroke-width="4" stroke-dasharray="10,10" />
+  <circle cx="650" cy="450" r="40" fill="#e4e4e7" />
+  <text x="615" y="455" font-family="monospace" font-size="14" fill="#71717a">ARCHIVE</text>
+</svg>
