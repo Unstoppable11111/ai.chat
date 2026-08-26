@@ -1,146 +1,179 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, Dot, Sparkles } from "lucide-react";
-import { ButtonLink } from "@/components/ui/button-link";
-import { siteConfig } from "@/data/site";
+import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Link from "next/link";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export function HeroSection() {
   const reduceMotion = useReducedMotion();
-  const floatTransition = {
-    duration: 10,
-    repeat: Number.POSITIVE_INFINITY,
-    ease: [0.45, 0, 0.55, 1],
-  } as const;
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const topBarRef = useRef<HTMLDivElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  const [typingState, setTypingState] = useState({ line: 0, char: 0 });
+  const displayLines = reduceMotion 
+    ? ["CHEN", "TECH", "STUDIO"] 
+    : [
+        "CHEN".slice(0, typingState.line > 0 ? 4 : typingState.line === 0 ? typingState.char : 0),
+        "TECH".slice(0, typingState.line > 1 ? 4 : typingState.line === 1 ? typingState.char : 0),
+        "STUDIO".slice(0, typingState.line > 2 ? 6 : typingState.line === 2 ? typingState.char : 0),
+      ];
+
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    const lines = ["CHEN", "TECH", "STUDIO"];
+    let l = 0;
+    let c = 0;
+    
+    const timer = window.setInterval(() => {
+      c += 1;
+      if (c > lines[l].length) {
+        l += 1;
+        c = 1;
+      }
+      if (l >= lines.length) {
+        setTypingState({ line: l, char: 0 });
+        window.clearInterval(timer);
+        return;
+      }
+      setTypingState({ line: l, char: c });
+    }, 105);
+
+    return () => window.clearInterval(timer);
+  }, [reduceMotion]);
+
+  useEffect(() => {
+    if (reduceMotion || !sectionRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1.2,
+        },
+      });
+
+      // 0-30%: Title scales down
+      tl.to(titleRef.current, {
+        scale: 0.35,
+        y: "-8vh",
+        ease: "power2.inOut",
+        duration: 3,
+      }, 0);
+
+      // Fade out top and bottom micro texts
+      tl.to([topBarRef.current, bottomBarRef.current], {
+        opacity: 0,
+        y: -20,
+        ease: "power2.inOut",
+        duration: 2,
+      }, 0);
+
+      // 30-70%: Workspace space reveals
+      tl.fromTo(workspaceRef.current, 
+        { opacity: 0, scale: 0.95 },
+        { opacity: 1, scale: 1, duration: 1, ease: "power2.out" },
+        0.4
+      );
+
+      // Stagger in the links
+      tl.fromTo(".workspace-link", 
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, stagger: 0.1, duration: 1.2, ease: "power3.out" },
+        0.9
+      );
+
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [reduceMotion]);
 
   return (
-    <section className="studio-section grid min-w-0 gap-10 lg:grid-cols-2 lg:items-center">
-      <div className="min-w-0">
-        <div className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-slate-900/8 bg-white/70 px-3 py-2 text-xs uppercase tracking-[0.16em] text-muted-foreground shadow-sm sm:px-4 sm:tracking-[0.24em]">
-          <Sparkles className="h-3.5 w-3.5 text-brand-cyan" />
-          个人技术展示网站
-        </div>
-        <h1 className="max-w-full text-[clamp(2.75rem,15vw,4.5rem)] font-semibold leading-[0.98] tracking-tight text-foreground break-words md:max-w-3xl md:text-7xl">
-          {siteConfig.title}
-        </h1>
-        <p className="mt-5 text-xl text-gradient md:text-2xl">
-          个人技术展示与项目记录
-        </p>
-        <p className="mt-6 max-w-2xl text-base leading-8 text-muted-foreground md:text-lg">
-          记录网站开发、代码构建、视觉实验、工具整理与学习过程。
-        </p>
-
-        <div className="mt-8 flex min-w-0 flex-col gap-3 sm:flex-row">
-          <ButtonLink href="/experiments" className="w-full justify-center sm:w-auto">
-            查看实验记录 <ArrowRight className="ml-2 h-4 w-4" />
-          </ButtonLink>
-          <ButtonLink href="/projects" variant="secondary" className="w-full justify-center sm:w-auto">
-            查看项目案例
-          </ButtonLink>
-          <ButtonLink href="/build-log" variant="secondary" className="w-full justify-center sm:w-auto">
-            阅读构建日志
-          </ButtonLink>
-        </div>
-
-        <div className="mt-10 flex min-w-0 flex-wrap gap-x-5 gap-y-3 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Dot className="h-5 w-5 text-brand-lime" />
-            视觉实验
-          </div>
-          <div className="flex items-center gap-2">
-            <Dot className="h-5 w-5 text-brand-cyan" />
-            提示词系统
-          </div>
-          <div className="flex items-center gap-2">
-            <Dot className="h-5 w-5 text-brand-violet" />
-            产品构建
-          </div>
-        </div>
+    <section ref={sectionRef} className="relative min-h-[165vh] w-full bg-background overflow-x-clip">
+      {/* Static Background to fix performance and flashing */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-[20%] w-[60vw] h-[60vh] bg-brand-cyan/[0.03] blur-[120px] rounded-full" />
+        <div className="absolute top-[10%] right-[-10%] w-[40vw] h-[60vh] bg-brand-violet/[0.03] blur-[100px] rounded-full" />
+        <div className="absolute top-[40%] left-[-10%] w-[50vw] h-[50vh] bg-brand-lime/[0.02] blur-[100px] rounded-full" />
+        
+        {/* Animated Scanline / Grid */}
+        <div className="absolute inset-0 bg-grid opacity-[0.03] pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, transparent, white 20%, white 80%, transparent)' }} />
       </div>
 
-      <motion.div
-        className="glass-panel noise-overlay relative grid w-full min-w-0 max-w-full gap-4 overflow-hidden rounded-[26px] p-4 md:block md:min-h-[460px] md:rounded-[30px] md:p-6"
-        initial={false}
-        animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-      >
-        <motion.div
-          className="pointer-events-none absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(14,165,233,0.32),rgba(14,165,233,0.14)_36%,rgba(139,92,246,0.12)_64%,transparent_74%)] blur-sm will-change-transform md:h-56 md:w-56"
-          animate={
-            reduceMotion
-              ? undefined
-              : { y: [-8, 7, -8], x: [-5, 5, -5], scale: [1, 1.035, 1] }
-          }
-          transition={{ ...floatTransition, duration: 12 }}
-        />
-
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(255,255,255,0.58))]" />
-
-        <motion.div
-          className="relative z-10 w-full max-w-full rounded-[22px] border border-slate-900/8 bg-white/80 p-4 shadow-sm will-change-transform md:absolute md:left-6 md:top-6 md:w-auto md:max-w-[280px]"
-          animate={reduceMotion ? undefined : { y: [0, -5, 0], rotate: [0, -0.35, 0] }}
-          transition={{ ...floatTransition, duration: 9 }}
-        >
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground sm:tracking-[0.24em]">Tech Notes</p>
-          <p className="mt-2 text-sm text-foreground/90">
-            技术记录、视觉方向、页面表达。
+      <div ref={containerRef} className="sticky top-0 h-screen flex flex-col justify-between p-6 md:p-12 pt-32 z-10">
+        
+        {/* Top Info */}
+        <div ref={topBarRef} className="flex justify-between items-start z-20 w-full max-w-7xl mx-auto">
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.25em] text-muted-foreground max-w-[200px] leading-loose">
+            PERSONAL CREATIVE<br />TECHNOLOGY STUDIO
           </p>
-        </motion.div>
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.25em] text-muted-foreground text-right hidden sm:block">
+            BUILD · EXPERIMENT · RECORD
+          </p>
+        </div>
 
-        <motion.div
-          className="relative z-10 w-full max-w-full rounded-[22px] border border-brand-violet/12 bg-white/84 p-4 shadow-sm will-change-transform md:absolute md:right-6 md:top-6 md:w-auto md:max-w-[260px] hover:border-brand-violet/24 transition-colors"
-          animate={reduceMotion ? undefined : { y: [0, 6, 0], rotate: [0, 0.35, 0] }}
-          transition={{ ...floatTransition, duration: 13 }}
-        >
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-violet opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-violet"></span>
+        {/* Scaled down Title */}
+        <div className="flex-1 flex items-center justify-center z-10 w-full relative pointer-events-none">
+          <h1 ref={titleRef} aria-label="CHEN TECH STUDIO" className="text-[14vw] md:text-[9vw] font-semibold tracking-tighter text-foreground text-center uppercase will-change-transform flex flex-col" style={{ lineHeight: 0.9 }}>
+            <span className="block min-h-[0.9em]">
+              {displayLines[0]}
+              {(!reduceMotion && typingState.line === 0) && <i className="type-caret" aria-hidden="true" />}
             </span>
-            <p className="text-xs uppercase tracking-[0.16em] text-brand-violet font-semibold sm:tracking-[0.24em]">
-              New Experiment
-            </p>
-          </div>
-          <p className="mt-2 text-sm text-foreground/90 leading-6">
-            AI 手势追踪粒子互动实验室上线，伸出食指即可在指尖起舞。
-          </p>
-          <div className="mt-3">
-            <a
-              href="/gesture-interactive.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-violet hover:text-brand-cyan transition-colors"
-            >
-              立即体验手势 <ArrowRight className="h-3 w-3" />
-            </a>
-          </div>
-        </motion.div>
+            <span className="block min-h-[0.9em]">
+              {displayLines[1]}
+              {(!reduceMotion && typingState.line === 1) && <i className="type-caret" aria-hidden="true" />}
+            </span>
+            <span className="block min-h-[0.9em] text-muted-foreground/30">
+              {displayLines[2]}
+              {(!reduceMotion && typingState.line === 2) && <i className="type-caret" aria-hidden="true" />}
+            </span>
+          </h1>
+        </div>
 
-        <motion.div
-          className="relative z-10 w-full min-w-0 max-w-full rounded-[22px] border border-slate-900/8 bg-white/84 p-4 shadow-sm will-change-transform md:absolute md:bottom-6 md:left-6 md:right-6 md:w-auto"
-          animate={reduceMotion ? undefined : { y: [0, 6, 0], rotate: [0, 0.25, 0] }}
-          transition={{ ...floatTransition, duration: 11 }}
-        >
-          <div className="mb-3 flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground sm:tracking-[0.24em]">
-            <span>当前记录方向</span>
-            <span className="text-brand-lime">进行中</span>
+        {/* Scroll Hint */}
+        <div ref={bottomBarRef} className="flex justify-center pb-4 z-20">
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            SCROLL TO ENTER ↓
+          </p>
+        </div>
+
+        {/* Workspace Nav (Reveals on scroll) */}
+        <div ref={workspaceRef} className="absolute inset-0 flex items-center justify-center z-30 opacity-0 pointer-events-none">
+          <div className="translate-y-[10vh] container-shell w-full max-w-5xl rounded-3xl border border-slate-900/10 bg-background/95 px-6 py-8 shadow-[0_24px_80px_rgba(15,23,42,0.12)]">
+            <div className="grid grid-cols-2 gap-6 text-center md:grid-cols-5 md:gap-8">
+              {[
+                { label: 'PROJECTS', href: '/projects' },
+                { label: 'EXPERIMENTS', href: '/experiments' },
+                { label: 'BUILD LOGS', href: '/build-log' },
+                { label: 'TOOLS', href: '/stack' },
+                { label: 'NOTES', href: '/prompts' }
+              ].map((item) => (
+                <Link 
+                  key={item.label} 
+                  href={item.href}
+                  className="workspace-link block pointer-events-auto"
+                >
+                  <span className="text-sm md:text-base font-light tracking-[0.2em] text-foreground hover:text-brand-cyan transition-colors">
+                    {item.label}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="grid min-w-0 gap-3 sm:grid-cols-3">
-            <div className="rounded-[18px] border border-slate-900/8 bg-slate-900/[0.025] p-3">
-              <p className="text-xs text-muted-foreground">记录</p>
-              <p className="mt-1 text-sm leading-6">网站开发与页面实验</p>
-            </div>
-            <div className="rounded-[18px] border border-slate-900/8 bg-slate-900/[0.025] p-3">
-              <p className="text-xs text-muted-foreground">整理</p>
-              <p className="mt-1 text-sm leading-6">界面、系统与发布页</p>
-            </div>
-            <div className="rounded-[18px] border border-slate-900/8 bg-slate-900/[0.025] p-3">
-              <p className="text-xs text-muted-foreground">沉淀</p>
-              <p className="mt-1 text-sm leading-6">日志、资料与复用模式</p>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
+        </div>
+
+      </div>
     </section>
   );
 }
