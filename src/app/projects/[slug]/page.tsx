@@ -27,9 +27,19 @@ export async function generateMetadata({
     return {};
   }
 
+  const title = entry.frontmatter.title as string;
+  const description = entry.frontmatter.description as string;
+  const cover = entry.frontmatter.cover as string | undefined;
+
   return {
-    title: entry.frontmatter.title as string,
-    description: entry.frontmatter.description as string,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: cover ? [{ url: cover }] : undefined,
+    },
   };
 }
 

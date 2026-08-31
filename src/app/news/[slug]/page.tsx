@@ -28,9 +28,20 @@ export async function generateMetadata({
     return {};
   }
 
+  const title = entry.frontmatter.title as string;
+  const description = entry.frontmatter.excerpt as string;
+  const cover = entry.frontmatter.cover as string | undefined;
+
   return {
-    title: entry.frontmatter.title as string,
-    description: entry.frontmatter.excerpt as string,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      publishedTime: entry.frontmatter.date as string | undefined,
+      images: cover ? [{ url: cover }] : undefined,
+    },
   };
 }
 

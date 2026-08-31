@@ -3,61 +3,13 @@ import { useState, useRef, useEffect } from 'react';
 import { Bot, User, Sparkles, Send, Brain } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Message, CHAT_MODELS as MODELS, markdownComponents as MarkdownComponents } from '@/components/chat/chat-types';
 import { ThinkingBlock } from '@/components/chat/thinking-block';
 import { cn } from '@/lib/utils';
 
-type Message = { 
-  role: 'user' | 'assistant'; 
-  content: string; 
-  reasoning_content?: string; 
-  isThinking?: boolean; 
-};
-
-const MarkdownComponents = {
-  p: ({children}: any) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
-  ul: ({children}: any) => <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>,
-  ol: ({children}: any) => <ol className="list-decimal pl-5 mb-2 space-y-1">{children}</ol>,
-  li: ({children}: any) => <li>{children}</li>,
-  h1: ({children}: any) => <h1 className="text-xl font-bold mb-2 mt-4 text-slate-900 dark:text-white">{children}</h1>,
-  h2: ({children}: any) => <h2 className="text-lg font-bold mb-2 mt-3 text-slate-900 dark:text-white">{children}</h2>,
-  h3: ({children}: any) => <h3 className="text-base font-bold mb-2 mt-2 text-slate-900 dark:text-white">{children}</h3>,
-  a: ({href, children}: any) => <a href={href} className="text-brand-cyan hover:underline" target="_blank" rel="noreferrer">{children}</a>,
-  code: ({node, inline, className, children, ...props}: any) => {
-    return inline ? (
-      <code className="bg-slate-100 dark:bg-zinc-700/50 rounded px-1.5 py-0.5 text-[0.9em] text-slate-800 dark:text-slate-200" {...props}>{children}</code>
-    ) : (
-      <pre className="bg-slate-900 text-slate-50 p-4 rounded-xl overflow-x-auto text-[0.9em] my-3 shadow-sm">
-        <code {...props}>{children}</code>
-      </pre>
-    )
-  },
-  strong: ({children}: any) => <strong className="font-semibold text-slate-900 dark:text-white">{children}</strong>,
-  blockquote: ({children}: any) => <blockquote className="border-l-4 border-slate-200 dark:border-zinc-700 pl-4 py-1 my-2 text-slate-500 dark:text-slate-400 italic">{children}</blockquote>,
-  table: ({children}: any) => <div className="overflow-x-auto my-3"><table className="w-full text-sm border-collapse border border-slate-200 dark:border-zinc-700 rounded-lg">{children}</table></div>,
-  th: ({children}: any) => <th className="border border-slate-200 dark:border-zinc-700 px-4 py-2 bg-slate-50 dark:bg-zinc-800/50 text-left font-medium text-slate-900 dark:text-white">{children}</th>,
-  td: ({children}: any) => <td className="border border-slate-200 dark:border-zinc-700 px-4 py-2 text-slate-700 dark:text-slate-300">{children}</td>,
-  img: ({src, alt, ...props}: any) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img 
-      src={src} 
-      alt={alt || 'Image'} 
-      className="inline-block max-w-full h-auto rounded-md object-contain align-middle max-h-[300px] my-1 mr-1" 
-      loading="lazy"
-      {...props} 
-    />
-  ),
-};
-
-const MODELS = [
-  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash' },
-  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro' },
-  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash' },
-  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite' }
-];
-
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
   const [enableThinking, setEnableThinking] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: '你好！我是本站的 AI 助手，随便问我点什么吧？' }
@@ -151,7 +103,7 @@ export default function ChatPage() {
                     });
                   }
                 }
-              } catch (e) {
+              } catch {
                 // parse error on partial chunks is common, ignore
               }
             }
@@ -171,7 +123,7 @@ export default function ChatPage() {
         }
         return newMsgs;
       });
-    } catch (err) {
+    } catch {
       setMessages(prev => {
         if (prev[prev.length - 1].role === 'assistant' && prev[prev.length - 1].content === '') {
           const newMsgs = [...prev];

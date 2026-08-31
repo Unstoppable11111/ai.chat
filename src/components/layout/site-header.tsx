@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Hand, Sparkles } from "lucide-react";
+import { Command, Hand, Menu, Sparkles, X } from "lucide-react";
 import { navigation, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,8 +21,15 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // 当路由变化时关闭菜单（通过比较上一次 pathname，在渲染期间直接重置，不触发二次 effect render）
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setMobileMenuOpen(false);
+  }
+
   const isHome = pathname === "/";
-  const showGlass = !isHome || isScrolled;
+  const showGlass = !isHome || isScrolled || mobileMenuOpen;
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 max-w-full overflow-x-clip transition-all duration-500">
@@ -80,9 +88,9 @@ export function SiteHeader() {
 
             <button
               type="button"
-              className="flex shrink-0 items-center gap-2 rounded-full border border-slate-900/8 bg-white/70 px-3 py-2 text-sm text-muted-foreground shadow-sm"
+              className="flex shrink-0 items-center gap-2 rounded-full border border-slate-900/8 bg-white/70 px-3 py-2 text-sm text-muted-foreground shadow-sm hover:text-foreground"
               onClick={() => window.dispatchEvent(new CustomEvent("open-command-menu"))}
-              aria-label="打开菜单"
+              aria-label="打开搜索菜单"
             >
               <Command className="h-4 w-4" />
               <span className="hidden sm:inline">菜单</span>
@@ -90,8 +98,59 @@ export function SiteHeader() {
                 Ctrl K
               </span>
             </button>
+
+            <button
+              type="button"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 text-muted-foreground shadow-sm lg:hidden hover:text-foreground"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label={mobileMenuOpen ? "关闭导航" : "展开导航"}
+            >
+              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
           </div>
         </div>
+
+        {/* 移动端下拉导航抽屉 */}
+        {mobileMenuOpen && (
+          <div className="glass-panel mt-2 rounded-[20px] p-3 shadow-lg lg:hidden transition-all duration-300">
+            <div className="grid grid-cols-2 gap-1.5">
+              {navigation.map((item) => {
+                const active = pathname === item.href;
+                const isExternal = item.href.endsWith(".html");
+
+                if (isExternal) {
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium text-brand-violet bg-brand-violet/5 hover:bg-brand-violet/10 transition-colors"
+                    >
+                      <span>{item.label}</span>
+                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-brand-violet/10">3D</span>
+                    </a>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-slate-900/[0.08] text-foreground font-semibold"
+                        : "text-muted-foreground hover:bg-slate-900/[0.04] hover:text-foreground"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

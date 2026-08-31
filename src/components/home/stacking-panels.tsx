@@ -1,9 +1,16 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useReducedMotion } from "motion/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const panels = [
   {
@@ -46,6 +53,35 @@ const panels = [
 
 export function StackingPanels() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (reduceMotion || !containerRef.current) return;
+
+    const cards = gsap.utils.toArray<HTMLElement>(".stack-panel");
+    const ctx = gsap.context(() => {
+      cards.forEach((card, index) => {
+        if (index === cards.length - 1) return; // 最后一张卡片不需要被后续遮盖缩放
+
+        const nextCard = cards[index + 1];
+
+        gsap.to(card, {
+          scale: 0.9,
+          opacity: 0.5,
+          filter: "blur(8px)",
+          ease: "power1.inOut",
+          scrollTrigger: {
+            trigger: nextCard,
+            start: "top 80%",
+            end: "top 20%",
+            scrub: true,
+          },
+        });
+      });
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [reduceMotion]);
 
   return (
     <section className="relative w-full bg-background pb-32">
@@ -59,7 +95,7 @@ export function StackingPanels() {
         {panels.map((panel, i) => (
           <div 
             key={panel.id}
-            className={`stack-panel sticky w-[90vw] md:w-[75vw] max-w-5xl h-[60vh] md:h-[70vh] rounded-[32px] md:rounded-[40px] border flex flex-col justify-between p-8 md:p-12 lg:p-16 shadow-[0_-10px_40px_-20px_rgba(0,0,0,0.1)] origin-top overflow-hidden isolate group ${panel.colorClass}`}
+            className={`stack-panel sticky w-[90vw] md:w-[75vw] max-w-5xl h-[60vh] md:h-[70vh] rounded-[32px] md:rounded-[40px] border flex flex-col justify-between p-8 md:p-12 lg:p-16 shadow-[0_-10px_40px_-20px_rgba(0,0,0,0.1)] origin-top overflow-hidden isolate group will-change-transform ${panel.colorClass}`}
             style={{ 
               top: `calc(10vh + ${i * 40}px)`, 
               marginBottom: i === panels.length - 1 ? '0' : '40vh'

@@ -146,12 +146,11 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
           onMouseMove={handleMouseMove}
           onFocus={() => { isPausedRef.current = true; }}
           onBlur={() => { isPausedRef.current = false; }}
-          className="flex gap-8 overflow-x-auto snap-x snap-mandatory px-6 pb-6 md:gap-12 lg:gap-16 lg:px-[max(1rem,calc((100vw-80rem)/2))] hide-scrollbar"
+          className="flex gap-8 overflow-x-auto snap-x snap-mandatory px-6 pb-6 md:gap-12 lg:gap-16 lg:px-[max(1rem,calc((100vw-80rem)/2))] hide-scrollbar cursor-grab active:cursor-grabbing"
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none',
             WebkitOverflowScrolling: 'touch',
-            cursor: isDraggingRef.current ? 'grabbing' : 'grab'
           }}
         >
           {items.map((item) => (

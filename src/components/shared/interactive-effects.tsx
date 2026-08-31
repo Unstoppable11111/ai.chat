@@ -72,7 +72,10 @@ export function InteractiveEffects() {
           ref={markRef}
           className={`cursor-mark${ready ? " is-ready" : ""}${hovering ? " is-hovering" : ""}`}
           aria-hidden="true"
-        />
+        >
+          <div className="cursor-dot" />
+          <div className="cursor-ring" />
+        </div>
       ) : null}
     </>
   );

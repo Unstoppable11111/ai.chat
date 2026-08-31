@@ -363,27 +363,64 @@ img {
   top: 0;
   pointer-events: none;
   z-index: 9999;
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: white;
-  mix-blend-mode: difference;
+  width: 32px;
+  height: 32px;
   transform: translate3d(50vw, 50vh, 0) translate(-50%, -50%);
   will-change: transform;
   opacity: 0;
-  transition:
-    width 180ms ease,
-    height 180ms ease,
-    opacity 180ms ease;
+  transition: opacity 200ms ease;
 }
 
 .cursor-mark.is-ready {
   opacity: 1;
 }
 
-.cursor-mark.is-hovering {
-  width: 36px;
-  height: 36px;
+/* 中心精准微小点 */
+.cursor-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #06b6d4;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+  transform: translate(-50%, -50%);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms ease;
+}
+
+/* 外围同心科技圆环 */
+.cursor-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  background: rgba(6, 182, 212, 0.04);
+  backdrop-filter: blur(1px);
+  transform: translate(-50%, -50%);
+  transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1), 
+              height 300ms cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 300ms ease,
+              background-color 300ms ease,
+              box-shadow 300ms ease;
+}
+
+/* Hover 悬浮在交互元素上的高级扩散 */
+.cursor-mark.is-hovering .cursor-dot {
+  transform: translate(-50%, -50%) scale(1.5);
+  background: #8b5cf6;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.9);
+}
+
+.cursor-mark.is-hovering .cursor-ring {
+  width: 48px;
+  height: 48px;
+  border-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.08);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
 }
 
 html.has-custom-cursor,
