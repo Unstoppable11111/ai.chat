@@ -111,7 +111,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-grid opacity-[0.03] pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, transparent, white 20%, white 80%, transparent)' }} />
       </div>
 
-      <div ref={containerRef} className="sticky top-0 h-screen flex flex-col justify-between p-6 md:p-12 pt-32 z-10">
+      <div ref={containerRef} className="sticky top-0 h-screen flex flex-col justify-between p-4 sm:p-6 md:p-12 pt-24 sm:pt-32 z-10">
         
         {/* Top Info */}
         <div ref={topBarRef} className="flex justify-between items-start z-20 w-full max-w-7xl mx-auto">
@@ -149,9 +149,9 @@ export function HeroSection() {
         </div>
 
         {/* Workspace Nav (Reveals on scroll) */}
-        <div ref={workspaceRef} className="absolute inset-0 flex items-center justify-center z-30 opacity-0 pointer-events-none">
-          <div className="translate-y-[10vh] container-shell w-full max-w-5xl rounded-3xl border border-slate-900/10 bg-background/95 px-6 py-8 shadow-[0_24px_80px_rgba(15,23,42,0.12)]">
-            <div className="grid grid-cols-2 gap-6 text-center md:grid-cols-5 md:gap-8">
+        <div ref={workspaceRef} className="absolute inset-0 flex items-center justify-center z-30 opacity-0 pointer-events-none px-4 sm:px-6">
+          <div className="translate-y-[8vh] container-shell w-full max-w-5xl rounded-2xl sm:rounded-3xl border border-slate-900/10 bg-background/95 p-5 sm:p-8 shadow-[0_24px_80px_rgba(15,23,42,0.12)]">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-10 text-center">
               {[
                 { label: 'PROJECTS', href: '/projects' },
                 { label: 'EXPERIMENTS', href: '/experiments' },
@@ -164,7 +164,7 @@ export function HeroSection() {
                   href={item.href}
                   className="workspace-link block pointer-events-auto"
                 >
-                  <span className="text-sm md:text-base font-light tracking-[0.2em] text-foreground hover:text-brand-cyan transition-colors">
+                  <span className="text-xs sm:text-sm md:text-base font-light tracking-[0.18em] text-foreground hover:text-brand-cyan transition-colors">
                     {item.label}
                   </span>
                 </Link>

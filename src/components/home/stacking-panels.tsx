@@ -95,24 +95,24 @@ export function StackingPanels() {
         {panels.map((panel, i) => (
           <div 
             key={panel.id}
-            className={`stack-panel sticky w-[90vw] md:w-[75vw] max-w-5xl h-[60vh] md:h-[70vh] rounded-[32px] md:rounded-[40px] border flex flex-col justify-between p-8 md:p-12 lg:p-16 shadow-[0_-10px_40px_-20px_rgba(0,0,0,0.1)] origin-top overflow-hidden isolate group will-change-transform ${panel.colorClass}`}
+            className={`stack-panel sticky w-[92vw] sm:w-[88vw] md:w-[75vw] max-w-5xl h-[56vh] sm:h-[62vh] md:h-[70vh] rounded-[28px] sm:rounded-[36px] md:rounded-[40px] border flex flex-col justify-between p-5 sm:p-8 md:p-12 lg:p-16 shadow-[0_-10px_40px_-20px_rgba(0,0,0,0.1)] origin-top overflow-hidden isolate group will-change-transform ${panel.colorClass}`}
             style={{ 
-              top: `calc(10vh + ${i * 40}px)`, 
-              marginBottom: i === panels.length - 1 ? '0' : '40vh'
+              top: `calc(72px + ${i * 20}px)`, 
+              marginBottom: i === panels.length - 1 ? '0' : '30vh'
             }}
           >
             <div className="flex justify-between items-start relative z-20">
-              <span className="text-xl md:text-3xl font-light opacity-50 tracking-tighter">
+              <span className="text-lg sm:text-xl md:text-3xl font-light opacity-50 tracking-tighter">
                 {panel.id}
               </span>
-              <Link href={panel.href} className={`w-12 h-12 rounded-full border border-current/20 flex items-center justify-center transition-colors duration-300 ${panel.buttonHover} pointer-events-auto`}>
-                <ArrowUpRight className="w-5 h-5" />
+              <Link href={panel.href} className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-current/20 flex items-center justify-center transition-colors duration-300 ${panel.buttonHover} pointer-events-auto`}>
+                <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
             </div>
 
             {/* Central Visual Area using flex-1 min-h-0 to avoid overlap */}
-            <div className="flex-1 w-full relative min-h-0 my-6 flex items-center justify-center z-10 pointer-events-none">
-              <div className="relative w-full h-full max-w-3xl rounded-2xl overflow-hidden opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-700 ease-out border border-current/5 shadow-2xl">
+            <div className="flex-1 w-full relative min-h-0 my-3 sm:my-6 flex items-center justify-center z-10 pointer-events-none">
+              <div className="relative w-full h-full max-w-3xl rounded-xl sm:rounded-2xl overflow-hidden opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-700 ease-out border border-current/5 shadow-2xl">
                 <Image 
                   src={panel.image} 
                   alt={panel.title} 
@@ -124,10 +124,10 @@ export function StackingPanels() {
             </div>
 
             <div className="max-w-3xl relative z-20 pointer-events-none">
-              <h3 className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tighter mb-4 md:mb-6 uppercase">
+              <h3 className="text-2xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tighter mb-2 sm:mb-4 md:mb-6 uppercase">
                 {panel.title}
               </h3>
-              <p className="text-base md:text-xl font-light opacity-70 leading-relaxed max-w-xl line-clamp-2">
+              <p className="text-xs sm:text-base md:text-xl font-light opacity-70 leading-relaxed max-w-xl line-clamp-2">
                 {panel.description}
               </p>
             </div>

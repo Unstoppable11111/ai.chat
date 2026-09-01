@@ -94,7 +94,7 @@ export function CurrentlyBuilding() {
       <div className="container-shell max-w-7xl mx-auto relative z-10">
         
         {/* 顶部标头与实时状态雷达 */}
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-14 md:mb-20">
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-10 sm:mb-14 md:mb-20">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="flex h-2 w-2 rounded-full bg-brand-cyan animate-ping" />
@@ -118,7 +118,7 @@ export function CurrentlyBuilding() {
         </div>
 
         {/* 主视窗：超大编号 + 当前激活任务详情 */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start" ref={containerRef}>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 md:gap-16 items-start" ref={containerRef}>
           
           {/* 左侧超大编号（带数字切牌动画） */}
           <div className="md:col-span-5 lg:col-span-4 flex items-start select-none">
@@ -130,14 +130,14 @@ export function CurrentlyBuilding() {
                   animate={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -24, filter: "blur(6px)" }}
                   transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-                  className="text-[26vw] md:text-[15vw] font-light tracking-tighter text-foreground will-change-transform leading-[0.8] bg-gradient-to-b from-foreground via-foreground to-foreground/35 bg-clip-text text-transparent"
+                  className="text-[20vw] sm:text-[18vw] md:text-[15vw] font-light tracking-tighter text-foreground will-change-transform leading-[0.85] bg-gradient-to-b from-foreground via-foreground to-foreground/35 bg-clip-text text-transparent"
                 >
                   {activeTask.id}
                 </motion.div>
               </AnimatePresence>
               
               {/* 编号下标微标签 */}
-              <div className="mt-2 flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
+              <div className="mt-2 flex items-center gap-2 font-mono text-[10px] sm:text-[11px] text-muted-foreground">
                 <span className="inline-block w-2 h-2 rounded-full border border-brand-cyan/60" />
                 <span>{activeTask.phase}</span>
               </div>
@@ -145,7 +145,7 @@ export function CurrentlyBuilding() {
           </div>
 
           {/* 右侧核心任务看板 */}
-          <div className="md:col-span-7 lg:col-span-8 pt-2 md:pt-6">
+          <div className="md:col-span-7 lg:col-span-8 pt-0 md:pt-4">
             <div className="max-w-2xl">
               
               {/* 任务状态元信息徽章 */}
@@ -156,7 +156,7 @@ export function CurrentlyBuilding() {
                   animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
                   transition={{ duration: 0.28 }}
-                  className="flex flex-wrap items-center gap-3 sm:gap-5 text-[10px] md:text-xs uppercase tracking-[0.2em] text-muted-foreground mb-6"
+                  className="flex flex-wrap items-center gap-2.5 sm:gap-5 text-[10px] sm:text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4 sm:mb-6"
                 >
                   <span className="font-mono">{activeTask.date}</span>
                   <span className="text-slate-300">/</span>
@@ -175,7 +175,7 @@ export function CurrentlyBuilding() {
               </AnimatePresence>
 
               {/* 动态主标题 */}
-              <div className="min-h-[120px] md:min-h-[140px]">
+              <div className="min-h-[100px] sm:min-h-[120px] md:min-h-[140px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`content-${activeTask.id}`}
@@ -184,10 +184,10 @@ export function CurrentlyBuilding() {
                     exit={reduceMotion ? undefined : { opacity: 0, y: -14 }}
                     transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <h3 className="text-2xl sm:text-4xl md:text-5xl font-medium tracking-tight text-foreground leading-[1.15] mb-5">
+                    <h3 className="text-xl sm:text-3xl md:text-5xl font-medium tracking-tight text-foreground leading-[1.2] mb-3 sm:mb-5">
                       {activeTask.title}
                     </h3>
-                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-8">
+                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed mb-6 sm:mb-8">
                       {activeTask.notes}
                     </p>
                   </motion.div>
@@ -195,7 +195,7 @@ export function CurrentlyBuilding() {
               </div>
 
               {/* 科技感精度进度仪 */}
-              <div className="border-t border-slate-900/10 pt-6">
+              <div className="border-t border-slate-900/10 pt-4 sm:pt-6">
                 <div className="flex items-center justify-between text-xs font-mono mb-2">
                   <span className="text-muted-foreground uppercase tracking-widest text-[10px]">EXECUTION PROGRESS</span>
                   <span className="text-brand-cyan font-bold tracking-wider">{activeTask.progress}%</span>
@@ -229,7 +229,7 @@ export function CurrentlyBuilding() {
         </div>
 
         {/* 底部 01-04 互动控制台卡片列表 */}
-        <div className="mt-16 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-slate-900/10 pt-8">
+        <div className="mt-12 sm:mt-16 grid gap-2.5 sm:gap-4 grid-cols-2 lg:grid-cols-4 border-t border-slate-900/10 pt-6 sm:pt-8">
           {buildingTasks.map((task, index) => {
             const isActive = index === activeIndex;
 
@@ -240,7 +240,7 @@ export function CurrentlyBuilding() {
                 onClick={() => setActiveIndex(index)}
                 onMouseEnter={() => setActiveIndex(index)}
                 className={cn(
-                  "group relative flex flex-col justify-between text-left p-4 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden",
+                  "group relative flex flex-col justify-between text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden",
                   isActive
                     ? "bg-white border-brand-cyan/40 shadow-sm shadow-brand-cyan/5 ring-1 ring-brand-cyan/20"
                     : "bg-white/40 border-slate-900/8 hover:bg-white hover:border-slate-900/15 hover:shadow-xs"
@@ -258,7 +258,7 @@ export function CurrentlyBuilding() {
                 )}
 
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
                     <span className={cn(
                       "font-mono text-xs font-bold transition-colors",
                       isActive ? "text-brand-cyan" : "text-muted-foreground group-hover:text-foreground"
@@ -271,15 +271,15 @@ export function CurrentlyBuilding() {
                   </div>
 
                   <p className={cn(
-                    "text-xs md:text-sm leading-relaxed line-clamp-2 transition-colors",
+                    "text-[11px] sm:text-xs md:text-sm leading-snug sm:leading-relaxed line-clamp-2 transition-colors",
                     isActive ? "font-semibold text-foreground" : "text-muted-foreground group-hover:text-foreground"
                   )}>
                     {task.title}
                   </p>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between text-[10px] font-mono text-muted-foreground pt-2 border-t border-slate-900/5">
-                  <span className="truncate max-w-[120px]">{task.category}</span>
+                <div className="mt-3 sm:mt-4 flex items-center justify-between text-[9px] sm:text-[10px] font-mono text-muted-foreground pt-1.5 sm:pt-2 border-t border-slate-900/5">
+                  <span className="truncate max-w-[80px] sm:max-w-[120px]">{task.category}</span>
                   <ArrowRight className={cn(
                     "h-3 w-3 transition-transform duration-300",
                     isActive ? "translate-x-1 text-brand-cyan" : "opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5"

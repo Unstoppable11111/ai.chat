@@ -80,9 +80,9 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
           BUILD LOGS
         </h2>
 
-        <div className="relative flex flex-col gap-12 md:gap-20">
+        <div className="relative flex flex-col gap-10 md:gap-20 pl-6 sm:pl-8 md:pl-0">
           {/* Progress Line */}
-          <div ref={lineRef} className="absolute left-[23.5px] md:left-[39.5px] top-4 bottom-4 w-px bg-gradient-to-b from-brand-violet via-brand-cyan to-transparent will-change-transform"></div>
+          <div ref={lineRef} className="absolute left-2 sm:left-2.5 md:left-[39.5px] top-3 bottom-4 w-px bg-gradient-to-b from-brand-violet via-brand-cyan to-transparent will-change-transform" />
 
           {items.map((item) => {
             const formattedDate = new Date(item.date).toLocaleDateString("en-US", {
@@ -91,20 +91,22 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
             }).replace('/', '.');
 
             return (
-              <div key={item.slug} className="timeline-row relative flex gap-8 md:gap-16 group">
+              <div key={item.slug} className="timeline-row relative flex flex-col md:flex-row gap-2 md:gap-16 group">
                 
-                {/* Year/Month & Pulsing Beacon */}
-                <div className="relative z-10 bg-background pt-1 flex items-center justify-center w-12 md:w-20 shrink-0">
-                  <div className="beacon-dot absolute -left-[7.5px] md:-left-[7.5px] w-4 h-4 rounded-full border border-brand-violet/50 bg-background flex items-center justify-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-violet group-hover:scale-150 transition-transform"></span>
-                  </div>
+                {/* Pulsing Beacon aligned with line */}
+                <div className="beacon-dot absolute -left-4 sm:-left-[22px] md:left-[39.5px] md:-translate-x-1/2 top-1 z-20 w-4 h-4 rounded-full border border-brand-violet/50 bg-background flex items-center justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-violet group-hover:scale-150 transition-transform" />
+                </div>
+
+                {/* Year/Month */}
+                <div className="relative z-10 md:w-20 shrink-0 md:pt-0.5">
                   <div className="text-xs md:text-sm font-mono tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">
                     {formattedDate}
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="log-content flex-1 pb-12 border-b border-slate-900/5 group-last:border-0 group-last:pb-0">
+                <div className="log-content flex-1 pb-10 border-b border-slate-900/5 group-last:border-0 group-last:pb-0">
                   <Link href={`/build-log/${item.slug}`} className="block">
                     <p className="text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase text-brand-violet mb-4 flex items-center gap-2">
                       <span className="inline-block w-2 h-[1px] bg-brand-violet"></span>
