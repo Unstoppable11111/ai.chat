@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Bot, X, Send, Sparkles, User, Brain } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -8,6 +9,7 @@ import { ThinkingBlock } from '@/components/chat/thinking-block';
 import { cn } from '@/lib/utils';
 
 export function ChatWidget() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
@@ -139,6 +141,11 @@ export function ChatWidget() {
       setLoading(false);
     }
   };
+
+  // 在独立的 /chat 全屏页面中隐藏全局悬浮球，避免出现双重 AI 对话冲突
+  if (pathname === '/chat') {
+    return null;
+  }
 
   return (
     <>

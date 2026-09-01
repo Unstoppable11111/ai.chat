@@ -138,16 +138,45 @@ export default function ChatPage() {
     }
   };
 
+  const handleSendPrompt = (promptText: string) => {
+    setInput(promptText);
+  };
+
+  const starterPrompts = [
+    { title: "🎨 设计理念", prompt: "介绍一下这个站点的视觉设计风格与技术架构。" },
+    { title: "🧪 视觉实验", prompt: "站内有哪些好玩的 3D Shader 和 WebGL 实验？" },
+    { title: "🛠️ 技术栈", prompt: "CHEN TECH STUDIO 是用什么技术栈和框架开发的？" },
+    { title: "⚡ 深度思考", prompt: "结合 React 19 和 Next.js 16，分析流式 AI 助手的最佳工程实践。" },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto mt-20 p-8 border rounded-2xl shadow-sm bg-white dark:bg-zinc-900 dark:border-zinc-800">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-brand-cyan" />
-          AI 智能助手
-        </h3>
+    <div className="container-shell max-w-4xl mx-auto pt-20 sm:pt-28 pb-8 px-3 sm:px-6 min-h-[calc(100dvh-4rem)] flex flex-col justify-between">
+      
+      {/* 头部标题与控制状态 */}
+      <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6 px-1">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm">
+            <Sparkles className="h-5 w-5 text-brand-cyan" />
+          </span>
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              AI 智能助手
+            </h1>
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              随时为您解答网站架构、设计理念或技术实验相关问题
+            </p>
+          </div>
+        </div>
+
+        {/* 顶部简易指示灯 */}
+        <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full border border-slate-900/5">
+          <span className="flex h-2 w-2 rounded-full bg-brand-cyan animate-pulse" />
+          <span>{MODELS.find(m => m.id === selectedModel)?.name || 'Gemini'}</span>
+        </div>
       </div>
       
-      <div className="h-[500px] overflow-y-auto bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-6 mb-6 space-y-6">
+      {/* 聊天消息流视窗 */}
+      <div className="flex-1 min-h-[380px] max-h-[calc(100dvh-16rem)] overflow-y-auto bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-slate-900/10 dark:border-white/10 p-4 sm:p-6 mb-4 shadow-sm space-y-5">
         {messages.map((msg, idx) => {
           const displayContent = msg.role === 'assistant' 
             ? msg.content
@@ -156,98 +185,137 @@ export default function ChatPage() {
             : msg.content;
             
           return (
-          <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-sm ${msg.role === 'user' ? 'bg-slate-200 dark:bg-zinc-700 text-slate-600 dark:text-zinc-300' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'}`}>
-              {msg.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-            </div>
-            <div className={`max-w-[80%] rounded-2xl px-5 py-3 text-[15px] ${
-              msg.role === 'user' 
-                ? 'bg-slate-900 text-white rounded-tr-sm dark:bg-white dark:text-slate-900 whitespace-pre-wrap' 
-                : 'bg-white text-slate-700 border border-slate-100 rounded-tl-sm shadow-sm dark:border-white/5 dark:bg-zinc-800 dark:text-slate-300'
-            }`}>
-              {msg.role === 'assistant' && (msg.reasoning_content || msg.isThinking) && (
-                <ThinkingBlock 
-                  reasoningContent={msg.reasoning_content} 
-                  isThinking={msg.isThinking} 
-                />
-              )}
-              {msg.role === 'assistant' ? (
-                displayContent ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>
-                    {displayContent}
-                  </ReactMarkdown>
-                ) : (
-                  msg.isThinking ? null : (
-                    <span className="text-slate-400 dark:text-zinc-500 text-sm">正在生成回答...</span>
+            <div key={idx} className={`flex gap-2.5 sm:gap-3.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ${msg.role === 'user' ? 'bg-slate-200 dark:bg-zinc-700 text-slate-600 dark:text-zinc-300' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'}`}>
+                {msg.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+              </div>
+              <div className={`max-w-[88%] sm:max-w-[80%] rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-sm sm:text-[15px] ${
+                msg.role === 'user' 
+                  ? 'bg-slate-900 text-white rounded-tr-xs dark:bg-white dark:text-slate-900 whitespace-pre-wrap' 
+                  : 'bg-white text-slate-700 border border-slate-100 rounded-tl-xs shadow-xs dark:border-white/5 dark:bg-zinc-800 dark:text-slate-300'
+              }`}>
+                {msg.role === 'assistant' && (msg.reasoning_content || msg.isThinking) && (
+                  <ThinkingBlock 
+                    reasoningContent={msg.reasoning_content} 
+                    isThinking={msg.isThinking} 
+                  />
+                )}
+                {msg.role === 'assistant' ? (
+                  displayContent ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>
+                      {displayContent}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.isThinking ? null : (
+                      <span className="text-slate-400 dark:text-zinc-500 text-xs sm:text-sm">正在生成回答...</span>
+                    )
                   )
-                )
-              ) : (
-                displayContent
-              )}
+                ) : (
+                  displayContent
+                )}
+              </div>
             </div>
-          </div>
           );
         })}
+
+        {/* 初始欢迎状态下的快捷推荐选项 */}
+        {messages.length === 1 && !loading && (
+          <div className="pt-4 sm:pt-6 border-t border-slate-900/5 dark:border-white/5">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-3">
+              SUGGESTED TOPICS // 推荐探讨
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {starterPrompts.map((starter, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleSendPrompt(starter.prompt)}
+                  className="flex items-center justify-between text-left p-2.5 sm:p-3 rounded-xl border border-slate-900/5 bg-slate-50/70 hover:bg-slate-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 dark:border-white/5 transition-all text-xs text-foreground/80 hover:text-brand-cyan group cursor-pointer"
+                >
+                  <span className="font-medium">{starter.title}</span>
+                  <span className="text-[11px] text-muted-foreground group-hover:text-brand-cyan truncate max-w-[180px] sm:max-w-[200px] ml-2">
+                    {starter.prompt}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {loading && messages[messages.length - 1].role === 'user' && (
-          <div className="flex gap-3 justify-start">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm">
+          <div className="flex gap-2.5 justify-start">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs">
               <Bot className="h-4 w-4" />
             </div>
-            <div className="max-w-[80%] rounded-2xl px-5 py-3 text-[15px] bg-white text-slate-400 border border-slate-100 rounded-tl-sm shadow-sm dark:border-white/5 dark:bg-zinc-800 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="rounded-2xl px-4 py-3 bg-white text-slate-400 border border-slate-100 rounded-tl-xs shadow-xs dark:border-white/5 dark:bg-zinc-800 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex gap-3 relative">
-        <div className="flex-1 flex items-center border rounded-xl dark:bg-zinc-800 dark:border-zinc-700 focus-within:ring-2 focus-within:ring-brand-cyan/20 focus-within:border-brand-cyan transition-all bg-white overflow-hidden pr-2 shadow-sm gap-2">
+      {/* 底部控制器与输入栏 */}
+      <div className="flex flex-col gap-2">
+        {/* 工具栏：模型选择 + 深度思考开关 */}
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="text-xs font-mono font-medium text-slate-600 bg-white/80 dark:bg-zinc-800/80 dark:text-slate-300 border border-slate-900/10 dark:border-white/10 rounded-full px-3 py-1 cursor-pointer transition-colors shadow-2xs outline-none"
+              disabled={loading}
+            >
+              {MODELS.map(m => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setEnableThinking(!enableThinking)}
+              disabled={loading}
+              className={cn(
+                "flex items-center gap-1.5 text-xs font-mono font-medium px-3 py-1 rounded-full border transition-all cursor-pointer select-none",
+                isThinkingActive
+                  ? "bg-brand-cyan/15 text-brand-cyan border-brand-cyan/40 shadow-xs dark:bg-brand-cyan/20"
+                  : "bg-white/80 text-slate-500 border-slate-900/10 hover:bg-slate-100 dark:bg-zinc-800/80 dark:text-zinc-400 dark:border-white/10"
+              )}
+            >
+              <Brain className={cn("h-3.5 w-3.5", isThinkingActive ? "text-brand-cyan animate-pulse" : "")} />
+              <span>{isThinkingActive ? "THINKING ON" : "THINKING"}</span>
+            </button>
+          </div>
+
+          <span className="text-[10px] font-mono text-muted-foreground hidden sm:inline">
+            ENTER TO SEND
+          </span>
+        </div>
+
+        {/* 核心输入框 */}
+        <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-1.5 sm:p-2 rounded-2xl border border-slate-900/10 dark:border-white/10 shadow-sm focus-within:ring-2 focus-within:ring-brand-cyan/20 focus-within:border-brand-cyan transition-all">
           <input 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="输入您的问题，按回车发送..." 
-            className="flex-1 px-4 py-3 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder:text-gray-400 min-w-0"
+            placeholder="随时输入您的问题或想法..." 
+            className="flex-1 px-3 py-2 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground min-w-0"
             disabled={loading}
           />
-          <button
-            type="button"
-            onClick={() => setEnableThinking(!enableThinking)}
-            disabled={loading}
-            title={isThinkingActive ? "深度思考模式已开启" : "点击开启深度思考"}
-            className={cn(
-              "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer select-none shrink-0",
-              isThinkingActive
-                ? "bg-brand-cyan/15 text-brand-cyan border-brand-cyan/40 shadow-xs dark:bg-brand-cyan/20"
-                : "bg-slate-100 text-slate-500 border-transparent hover:bg-slate-200 dark:bg-zinc-700/50 dark:text-zinc-400 dark:hover:bg-zinc-700"
-            )}
+          <button 
+            onClick={sendMessage} 
+            disabled={loading || !input.trim()}
+            className="flex h-10 w-10 sm:h-10 sm:w-auto sm:px-5 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
+            aria-label="发送消息"
           >
-            <Brain className={cn("h-3.5 w-3.5", isThinkingActive ? "text-brand-cyan animate-pulse" : "")} />
-            <span className="hidden sm:inline">{isThinkingActive ? "深度思考已开" : "深度思考"}</span>
+            <Send className="h-4 w-4" />
+            <span className="hidden sm:inline text-xs font-semibold">{loading ? '...' : '发送'}</span>
           </button>
-          <select
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-zinc-700/50 hover:bg-slate-200 dark:hover:bg-zinc-700 dark:text-slate-300 border-none outline-none rounded-lg px-3 py-1.5 cursor-pointer transition-colors max-w-[150px] truncate shrink-0"
-            disabled={loading}
-          >
-            {MODELS.map(m => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
         </div>
-        <button 
-          onClick={sendMessage} 
-          disabled={loading || !input.trim()}
-          className="px-6 py-3 shrink-0 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm cursor-pointer"
-        >
-          <Send className="h-4 w-4" />
-          {loading ? '发送中...' : '发送'}
-        </button>
       </div>
+
     </div>
   );
 }
