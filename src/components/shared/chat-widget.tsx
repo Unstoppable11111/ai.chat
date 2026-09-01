@@ -19,16 +19,31 @@ export function ChatWidget() {
     { role: 'assistant', content: '你好！我是网站 AI 助手，有什么可以帮你的？' }
   ]);
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const isAutoScrollRef = useRef(true);
 
   const isThinkingActive = enableThinking || selectedModel.endsWith('-thinking');
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (smooth = false) => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+  };
+
+  const handleScroll = () => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 80;
+    isAutoScrollRef.current = isNearBottom;
   };
 
   useEffect(() => {
-    if (isOpen) scrollToBottom();
+    if (isOpen && isAutoScrollRef.current) {
+      scrollToBottom(false);
+    }
   }, [messages, isOpen, loading]);
 
   const sendMessage = async () => {
@@ -179,7 +194,11 @@ export function ChatWidget() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 bg-slate-50/50 dark:bg-zinc-900/50 space-y-4">
+        <div 
+          ref={chatContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto p-4 bg-slate-50/50 dark:bg-zinc-900/50 space-y-4"
+        >
           {messages.map((msg, idx) => {
             const displayContent = msg.role === 'assistant' 
               ? msg.content
@@ -232,7 +251,6 @@ export function ChatWidget() {
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         <div className="border-t border-slate-900/10 bg-white p-3 dark:border-white/10 dark:bg-zinc-900">

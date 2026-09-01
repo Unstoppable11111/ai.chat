@@ -15,16 +15,33 @@ export default function ChatPage() {
     { role: 'assistant', content: '你好！我是本站的 AI 助手，随便问我点什么吧？' }
   ]);
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const isAutoScrollRef = useRef(true);
 
   const isThinkingActive = enableThinking || selectedModel.endsWith('-thinking');
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // 仅在消息容器内部进行局部平滑滚动，绝不触发外部页面的 window 跳跃
+  const scrollToBottom = (smooth = false) => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+  };
+
+  // 检测用户是否手动向上翻看历史，若离开底部则暂停自动跟滚
+  const handleScroll = () => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+    isAutoScrollRef.current = isNearBottom;
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (isAutoScrollRef.current) {
+      scrollToBottom(false);
+    }
   }, [messages, loading]);
 
   const sendMessage = async () => {
@@ -34,6 +51,8 @@ export default function ChatPage() {
     setMessages(newMessages);
     setInput('');
     setLoading(true);
+    isAutoScrollRef.current = true;
+    setTimeout(() => scrollToBottom(true), 50);
 
     const willThink = isThinkingActive;
 
@@ -150,33 +169,37 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="container-shell max-w-4xl mx-auto pt-20 sm:pt-28 pb-8 px-3 sm:px-6 min-h-[calc(100dvh-4rem)] flex flex-col justify-between">
+    <div className="container-shell max-w-4xl mx-auto pt-16 sm:pt-20 pb-4 sm:pb-6 px-3 sm:px-6 h-[calc(100dvh-1rem)] flex flex-col overflow-hidden">
       
-      {/* 头部标题与控制状态 */}
-      <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6 px-1">
+      {/* 头部标题与控制状态（紧凑贴合） */}
+      <div className="flex items-center justify-between gap-3 mb-3 px-1 shrink-0">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm">
-            <Sparkles className="h-5 w-5 text-brand-cyan" />
+          <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm">
+            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-brand-cyan" />
           </span>
           <div>
-            <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <h1 className="text-base sm:text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
               AI 智能助手
             </h1>
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              随时为您解答网站架构、设计理念或技术实验相关问题
+            <p className="text-[11px] text-muted-foreground hidden sm:block">
+              解答网站架构、设计理念与技术实验
             </p>
           </div>
         </div>
 
         {/* 顶部简易指示灯 */}
-        <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full border border-slate-900/5">
-          <span className="flex h-2 w-2 rounded-full bg-brand-cyan animate-pulse" />
+        <div className="flex items-center gap-2 text-[10px] sm:text-[11px] font-mono text-muted-foreground bg-slate-100 dark:bg-zinc-800 px-3 py-1 rounded-full border border-slate-900/5">
+          <span className="flex h-1.5 w-1.5 rounded-full bg-brand-cyan animate-pulse" />
           <span>{MODELS.find(m => m.id === selectedModel)?.name || 'Gemini'}</span>
         </div>
       </div>
       
       {/* 聊天消息流视窗 */}
-      <div className="flex-1 min-h-[380px] max-h-[calc(100dvh-16rem)] overflow-y-auto bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-slate-900/10 dark:border-white/10 p-4 sm:p-6 mb-4 shadow-sm space-y-5">
+      <div 
+        ref={chatContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 min-h-0 overflow-y-auto bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-slate-900/10 dark:border-white/10 p-3.5 sm:p-6 mb-3 shadow-sm space-y-4 sm:space-y-5"
+      >
         {messages.map((msg, idx) => {
           const displayContent = msg.role === 'assistant' 
             ? msg.content
@@ -254,7 +277,6 @@ export default function ChatPage() {
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* 底部控制器与输入栏 */}
