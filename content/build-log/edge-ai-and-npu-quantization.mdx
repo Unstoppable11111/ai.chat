@@ -1,0 +1,19 @@
+---
+title: "端侧 AI 与 4-bit 量化：如何在本地消费级设备高效运行大模型"
+excerpt: "剖析 GGUF、AWQ 与 EXL2 量化算法的权衡，以及利用 Apple Silicon / NPU 硬件加速器实现数十 token/s 的极致体验。"
+date: "2026-06-15"
+tags:
+  - "端侧AI"
+  - "量化"
+  - "NPU"
+  - "本地部署"
+cover: "/images/placeholders/prompt-05.svg"
+featured: false
+---
+## 内存带宽是核心瓶颈
+
+LLM 推理在生成阶段主要受制于内存带宽（Memory Bandwidth）。将 16-bit 浮点权重压缩至 4-bit（甚至 2-bit/3-bit 混合量化），可以将内存占用降低 70%，并使吞吐速度成倍提升。
+
+## 本地隐私计算的最佳选择
+
+对于敏感数据处理和个人代码知识库，端侧轻量化模型正在成为云端大模型的最佳补充。

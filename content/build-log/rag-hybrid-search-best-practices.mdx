@@ -1,0 +1,21 @@
+---
+title: "企业级 RAG 架构演进：从向量检索到混合重排（Rerank）的最佳实践"
+excerpt: "单纯依赖余弦向量检索常常遇到专有名词漏召回。本文分享 BM25 稠密检索结合 Cross-Encoder Rerank 的落地方案。"
+date: "2026-05-20"
+tags:
+  - "RAG"
+  - "向量检索"
+  - "BM25"
+  - "Rerank"
+  - "搜索优化"
+cover: "/images/placeholders/prompt-04.svg"
+featured: false
+---
+## 单纯向量检索（Dense Retrieval）的痛点
+
+- **精确专有名词失真**：如版本号（`Next.js 16.2`）、商品货号或特定函数名，Embedding 向量经常无法精确匹配。
+- **语义漂移**：短句检索时，向量距离相近但并非答案。
+
+## 混合检索（Hybrid Search）架构
+
+通过 **BM25（关键词精确匹配）+ Vector（语义向量相似度）** 的倒数融合排序（Reciprocal Rank Fusion, RRF），再经过轻量 Reranker 模型二次打分，召回准确率提升显著。

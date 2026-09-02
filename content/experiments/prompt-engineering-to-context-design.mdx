@@ -1,0 +1,25 @@
+---
+title: "从单纯提示词到上下文工程（Context Engineering）实测"
+excerpt: "对比单纯增加 Prompt 字数与精细化结构化上下文注入对复杂代码生成任务成功率的影响。"
+date: "2026-08-28"
+tags:
+  - "上下文工程"
+  - "Prompt优化"
+  - "实战实验"
+cover: "/images/placeholders/prompt-06.svg"
+featured: true
+category: "架构调优"
+tools:
+  - "Claude 3.7"
+  - "Gemini 3.7"
+  - "TypeScript"
+promptPreview: "系统上下文包含全局文件依赖拓扑与类型定义时的精准生成测试"
+---
+## Final Result
+
+在长上下文任务中，提供结构清晰的文件树（File Tree）和符号摘要（Symbol Index），比单纯将几千行散乱代码直接塞入 Prompt 的准确率提升了 42%。
+
+## What Worked
+
+- 使用紧凑的 TypeScript `.d.ts` 类型定义作为外部上下文。
+- 限制相关文件的范围，优先提供接口签名而非全量实现。
