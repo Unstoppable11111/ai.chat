@@ -1,0 +1,77 @@
+---
+title: "2026 年企业级 RAG 架构演进：从向量检索到混合重排（Rerank）"
+excerpt: "单纯依赖余弦向量检索常常遇到专有名词丢失与语义漂移。本文深入探讨 BM25 稠密检索 + Cross-Encoder Rerank 的全流程工程调优实录。"
+date: "2026-03-22"
+tags:
+  - "RAG"
+  - "向量检索"
+  - "BM25"
+  - "Rerank"
+  - "知识库"
+cover: "/images/blog-covers/enterprise-rag.svg"
+featured: true
+---
+## 一、朴素 RAG (Naive RAG) 的致命痛点
+
+很多开发者在初次尝试 RAG 时，流程通常极其简单：`拆分段落 -> 计算 Embedding -> 存入向量数据库 -> 提问时余弦相似度 Top-K -> 塞入 Prompt`。但在真实的生产级技术问答中，这种架构存在严重缺陷：
+
+1. **专有名词无法精确命中**：例如用户搜索特定版本号 `Next.js 16.2.4` 或函数名 `getBuildLogs()`，向量 Embedding 往往只捕捉“Next.js 相关概念”，导致最精确的代码文件被漏召回；
+2. **块切分断章取义**：按固定 500 字符切分段落容易将一个完整函数或关联上下文拦腰截断；
+3. **上下文垃圾溢出**：召回了 Top 5 片段，但只有 1 个真正相关，其余 4 个无关上下文反倒稀释了大模型的注意力，引发幻觉。
+
+## 二、企业级混合检索 (Hybrid Search) 工业解法
+
+```text
+[用户提问 Query]
+       │
+       ├───► [BM25 倒排索引检索] ───────► Top 20 候选块 (精确关键词)
+       │                                     │
+       └───► [Dense Embedding 向量检索] ──► Top 20 候选块 (深层语义)
+                                             │
+                                    ┌────────▼────────┐
+                                    │ RRF 倒数排名融合  │
+                                    └────────┬────────┘
+                                             │ 合并 30 个候选块
+                                    ┌────────▼────────┐
+                                    │ Cross-Encoder   │
+                                    │ Reranker 深度打分│
+                                    └────────┬────────┘
+                                             │
+                                    [最终 Top 3 精确上下文] ──► 大模型生成
+```
+
+### 1. 倒数排名融合算法 (RRF)
+
+倒数排名融合通过平滑打分公式整合关键词与向量检索结果：
+
+```text
+RRF_Score(d) = SUM( 1 / (60 + rank_m(d)) )
+```
+
+```typescript
+export function reciprocalRankFusion(
+  bm25Results: { id: string; rank: number }[],
+  vectorResults: { id: string; rank: number }[],
+  k = 60
+): { id: string; score: number }[] {
+  const scoreMap = new Map<string, number>();
+
+  const processList = (list: { id: string; rank: number }[]) => {
+    list.forEach(({ id, rank }) => {
+      const current = scoreMap.get(id) || 0;
+      scoreMap.set(id, current + 1 / (k + rank));
+    });
+  };
+
+  processList(bm25Results);
+  processList(vectorResults);
+
+  return Array.from(scoreMap.entries())
+    .map(([id, score]) => ({ id, score }))
+    .sort((a, b) => b.score - a.score);
+}
+```
+
+## 三、分块策略优化：Parent-Child 层次化切分
+- **子块（Child Chunks，100~200 字）**：用于精细化索引与高灵敏度检索匹配；
+- **父块（Parent Chunks，1000~2000 字）**：匹配成功后，将整个父章节作为完整上下文输送给大模型，彻底解决上下文割裂问题。

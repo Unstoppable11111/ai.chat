@@ -1,40 +1,75 @@
 ---
 title: "Model Context Protocol (MCP)：构建智能体与工具互联的标准协议"
-excerpt: "Anthropic 推出的 MCP 协议正成为 AI Agent 时代的 USB 接口。本文拆解其架构设计、协议规范与本地扩展开发实战。"
+excerpt: "全面解析 Anthropic 主导的 MCP 开放协议标准，剖析其如何统一大模型与数据库、本地文件及第三方 API 的通信规范。"
 date: "2026-03-05"
 tags:
   - "MCP"
-  - "AI Agent"
-  - "架构设计"
-  - "工具协议"
-cover: "/images/placeholders/prompt-02.svg"
+  - "Anthropic"
+  - "Agent协议"
+  - "JSON-RPC"
+  - "系统架构"
+cover: "/images/blog-covers/mcp-protocol.svg"
 featured: true
 ---
-## 为什么需要统一的协议？
+## 一、为什么需要 MCP (Model Context Protocol)？
 
-在 MCP 出现之前，每个 Agent 框架（LangChain, LlamaIndex, AutoGen）都有自己私有的 Tool 封装方式。开发者要为不同的平台重复编写 GitHub、MySQL、Slack 的连接器。
+在 MCP 协议确立之前，AI 应用生态面临严重的**多对多适配困境**：
+- 每一个 Agent 平台（LangChain、LlamaIndex、Semantic Kernel）都维护一套专有的 Tool 封装体系；
+- 开发者若要将企业内部的 MySQL 数据库、Git 仓库或 Jira 系统接入 AI，必须针对不同的客户端重复编写对接中间件；
+- 缺乏统一的安全权限模型、连接生命周期管理与上下文流式传输规范。
 
-MCP（Model Context Protocol）通过标准的 JSON-RPC 2.0 规范，将工具提供方（Server）与消费方（Client/Host）彻底解耦。
+**MCP 协议的诞生被誉为 AI Agent 时代的“USB 标准”**，它基于通用成熟的 **JSON-RPC 2.0** 架构，将 AI 宿主应用（Host）与底层数据源/工具（Server）彻底解耦。
 
-## MCP 核心三要素
+## 二、MCP 核心通信架构与三大支柱
 
-1. **Resources（静态资源）**：向模型提供可读取的上下文文件或数据。
-2. **Prompts（提示词模板）**：服务器预置的高效交互模版。
-3. **Tools（可执行工具）**：具有输入 schema 的可调用函数。
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "query_database",
-    "arguments": {
-      "query": "SELECT count(*) FROM user_logs WHERE level = 'ERROR'"
-    }
-  }
-}
+```text
+┌────────────────────────────────────────────────────────┐
+│                   MCP Host (如 IDE / Chat / CLI)       │
+└───────────────────────────┬────────────────────────────┘
+                            │ (JSON-RPC over Stdio/SSE)
+┌───────────────────────────▼────────────────────────────┐
+│                    MCP Server 端                       │
+│  ┌──────────────────┬──────────────────┬─────────────┐  │
+│  │ 1. Resources     │ 2. Prompts       │ 3. Tools    │  │
+│  │ (静态只读数据源)  │ (预设交互模板)   │ (可执行函数)│  │
+│  └──────────────────┴──────────────────┴─────────────┘  │
+└────────────────────────────────────────────────────────┘
 ```
 
-## 总结与落地展望
+### 1. Resources（资源读取）
+允许 Agent 主动将服务器端的文件、数据库表结构或系统日志作为上下文读入。
 
-随着各大 IDE 和客户端全面支持 MCP，未来的全栈系统只需暴露标准 MCP Server，就能让任意 AI 编程助手安全可控地调用后端能力。
+### 2. Tools（工具执行）
+包含标准 JSON Schema 定义的可调用接口，由模型决策触发执行。
+
+```typescript
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+
+const server = new Server({
+  name: "studio-mysql-tools",
+  version: "1.0.0",
+}, {
+  capabilities: { tools: {} }
+});
+
+// 注册查询数据库工具
+server.setRequestHandler("tools/list", async () => ({
+  tools: [{
+    name: "query_posts_by_tag",
+    description: "根据标签查询站内相关技术文章列表",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tag: { type: "string", description: "搜索标签，如 DeepSeek, RAG" },
+        limit: { type: "number", default: 5 }
+      },
+      required: ["tag"]
+    }
+  }]
+}));
+```
+
+## 三、生产环境安全边界与审计规范
+
+1. **输入参数防注入验证**：MCP 工具在执行 SQL 或 Shell 操作前，必须进行严格的白名单鉴权与参数化绑定；
+2. **人类参与确认（Human-in-the-Loop）**：对于涉及写库、删除文件或发送外部网络请求的高危操作，MCP 协议要求 Host 端向用户弹出确认对话框。

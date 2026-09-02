@@ -1,8 +1,10 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import { TableOfContents } from "@/components/mdx/table-of-contents";
+import { PostInteractions } from "@/components/posts/post-interactions";
 import type { TocItem } from "@/lib/types";
 
 type ArticleShellProps = {
+  slug?: string;
   title: string;
   kicker: string;
   description: string;
@@ -13,6 +15,7 @@ type ArticleShellProps = {
 };
 
 export function ArticleShell({
+  slug,
   title,
   kicker,
   description,
@@ -48,11 +51,22 @@ export function ArticleShell({
             </span>
           ))}
         </div>
+
+        {slug && (
+          <div className="mt-8">
+            <PostInteractions slug={slug} title={title} />
+          </div>
+        )}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
         <article className="glass-panel rounded-[32px] p-6 md:p-10">
           <div className="prose-studio max-w-none">{children}</div>
+          {slug && (
+            <div className="mt-12 pt-8 border-t border-slate-900/10">
+              <PostInteractions slug={slug} title={title} />
+            </div>
+          )}
         </article>
         <div className="hidden lg:block">
           <TableOfContents items={toc} />

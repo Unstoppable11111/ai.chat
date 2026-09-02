@@ -1,0 +1,20 @@
+---
+title: "Diffusion Transformer (DiT) 在视频生成与物理世界模拟中的演进"
+excerpt: "解密从 UNet 到 DiT 架构的范式转移，分析 3D VAE 时空压缩、时空自注意力机制与物理连续性生成的实现细节。"
+date: "2026-08-15"
+tags:
+  - "DiT"
+  - "视频生成"
+  - "Sora架构"
+  - "时空注意力"
+cover: "/images/blog-covers/multimodal-dit.svg"
+featured: true
+---
+## 一、从 2D UNet 走向 3D DiT 的必然性
+
+传统的 2D 卷积 UNet 难以处理具有长时间跨度、空间透视变化的高维视频数据。
+Diffusion Transformer (DiT) 将视频数据切分为**时空连续的时空补丁（Spatiotemporal Patches）**，将其视为类似于文本 Token 的序列，充分利用 Transformer 强大的长程依赖捕捉能力。
+
+## 二、时空注意力与物理一致性
+
+通过联合训练时序自注意力（Temporal Attention）与空间自注意力（Spatial Attention），模型开始展现出基础的物理世界规律模拟能力，如光影反光、流体运动与物体遮挡恢复。

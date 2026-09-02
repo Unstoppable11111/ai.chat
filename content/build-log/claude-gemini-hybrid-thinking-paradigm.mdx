@@ -1,0 +1,25 @@
+---
+title: "混合推理与动态思考预算（Thinking Budget）：前沿大模型认知范式"
+excerpt: "分析 Claude 3.7 Sonnet 与 Gemini 系列模型引入的动态思考预算机制，探讨如何在实时响应与深度思考之间实现弹性平衡。"
+date: "2026-06-18"
+tags:
+  - "混合推理"
+  - "Thinking Budget"
+  - "Claude"
+  - "Gemini"
+  - "API工程"
+cover: "/images/blog-covers/claude-thinking.svg"
+featured: true
+---
+## 一、全开思考 vs 零思考的二元困局
+
+在早期推理模型中，思考链是强制开启且长度不可控的。对于简单的“总结这段文本”或“写一个正则表达式”，模型也会消耗数千 Token 展开冗长推导，造成：
+1. 客户端首字延迟（TTFT）过高；
+2. 开发者 API 费用成倍增加。
+
+## 二、动态思考预算（Thinking Budget）的工程控制
+
+新一代旗舰模型允许客户端在请求体中直接指定 `thinking_budget: 0 ~ 8192`：
+- **`budget = 0`**：退化为标准高速模式，毫秒级流式首字吐出；
+- **`budget = 2048`**：在遇到复杂算法、系统重构任务时自动进行适度反思验证；
+- **`budget = 8192`**：应对前沿学术推理、复杂漏洞排查等极限任务。

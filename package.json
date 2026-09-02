@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "seed:blogs": "node scripts/seed-ai-blogs.mjs",
+    "seed:blogs": "node scripts/seed-24-ai-blogs.mjs",
+    "cron:fetch-blogs": "node scripts/cron-fetch-tech-blogs.mjs",
     "lint": "eslint"
   },
   "dependencies": {

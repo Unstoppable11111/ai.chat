@@ -1,19 +1,30 @@
 ---
 title: "端侧 AI 与 4-bit 量化：如何在本地消费级设备高效运行大模型"
 excerpt: "剖析 GGUF、AWQ 与 EXL2 量化算法的权衡，以及利用 Apple Silicon / NPU 硬件加速器实现数十 token/s 的极致体验。"
-date: "2026-06-15"
+date: "2026-05-15"
 tags:
   - "端侧AI"
   - "量化"
   - "NPU"
+  - "Apple Silicon"
   - "本地部署"
-cover: "/images/placeholders/prompt-05.svg"
+cover: "/images/blog-covers/edge-npu.svg"
 featured: false
 ---
-## 内存带宽是核心瓶颈
+## 一、内存带宽：大模型推理的真正瓶颈
 
-LLM 推理在生成阶段主要受制于内存带宽（Memory Bandwidth）。将 16-bit 浮点权重压缩至 4-bit（甚至 2-bit/3-bit 混合量化），可以将内存占用降低 70%，并使吞吐速度成倍提升。
+大语言模型在生成 Token 的自回归阶段（Generation Phase），每次预测下一个词都需要将几十 GB 的模型权重完整搬运进计算核心一次。因此理论最大生成速率主要取决于硬件的内存带宽：
 
-## 本地隐私计算的最佳选择
+```text
+最大理论吞吐 (Tokens/s) ≈ 内存带宽 (GB/s) / 单模型参数加载量 (GB)
+```
 
-对于敏感数据处理和个人代码知识库，端侧轻量化模型正在成为云端大模型的最佳补充。
+将 16-bit 浮点权重压缩至 4-bit，不仅能将模型显存占用降低 75%，更直接让理论生成速度翻了 3~4 倍！
+
+## 二、主流量化算法特性横评
+
+| 量化方案 | 适用硬件平台 | 精度保留度 | 推理框架生态 |
+| :--- | :--- | :--- | :--- |
+| **GGUF (k-quants)** | CPU / Apple Metal | 4星 | llama.cpp / Ollama |
+| **AWQ (Activation-aware)** | NVIDIA GPU (Tensor Core)| 5星 | vLLM / TGI |
+| **EXL2 (ExLlamaV2)** | 消费级 RTX 显卡 | 5星 | ExLlama / TabbyAPI |

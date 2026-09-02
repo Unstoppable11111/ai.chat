@@ -1,0 +1,22 @@
+---
+title: "推测解码（Speculative Decoding）原理与 KV-Cache 吞吐极限调优"
+excerpt: "剖析小模型草稿预测 + 大模型并行验证的推测解码技术，探讨如何在零精度损失的前提下将 LLM 生成速度提升 2~3 倍。"
+date: "2026-08-02"
+tags:
+  - "推测解码"
+  - "KV-Cache"
+  - "推理加速"
+  - "vLLM"
+cover: "/images/blog-covers/speculative-decoding.svg"
+featured: false
+---
+## 一、为什么大模型推理验证比生成快？
+
+在自回归生成中，由于因果掩码的存在，大模型生成 N 个 Token 必须进行 N 次前向传播（受显存带宽限制）。
+但如果有人预先给出了候选的 N 个 Token，大模型**只需要进行 1 次并行前向计算**就能同时验证这 N 个 Token 的准确性！
+
+## 二、草稿模型协作工作流
+
+1. **Draft Model（如 1B 参数小模型）**：极速生成 5 个候选 Token；
+2. **Target Model（如 70B 参数大模型）**：单次前向并行验证这 5 个 Token；
+3. **接收与截断**：大模型接收前 3 个合格的 Token，并直接给出第 4 个修正 Token。

@@ -59,6 +59,7 @@ export default async function BuildLogDetailPage({ params }: PageProps) {
 
   return (
     <ArticleShell
+      slug={slug}
       kicker="构建日志"
       title={entry.frontmatter.title as string}
       description={entry.frontmatter.excerpt as string}

@@ -1,0 +1,39 @@
+---
+title: "从 Dense 到 MoE：大语言模型稀疏混合专家架构工程落地"
+excerpt: "解析千亿参数大模型如何通过 MoE 稀疏激活技术将单次推理算力成本降低 80%，并探讨 Expert 负载均衡的调度挑战。"
+date: "2026-06-01"
+tags:
+  - "MoE"
+  - "稀疏模型"
+  - "架构设计"
+  - "算力优化"
+cover: "/images/blog-covers/moe-architecture.svg"
+featured: false
+---
+## 一、稠密模型（Dense）遭遇的算力墙
+
+传统的 Dense 模型在处理每个 Token 时，无论问题简单与否，都必须激活全部几千亿参数。这在计算资源上造成了极大的浪费。
+
+## 二、Mixture-of-Experts (MoE) 核心机制
+
+MoE 架构将传统 FFN（前馈网络）层拆分为数十个结构相同的“专家网络（Experts）”，并在前端引入一个轻量级的 **门控路由网络（Gating Router）**：
+- 对于输入的每个 Token，路由网络计算其与各个专家的匹配概率；
+- 仅激活 Top-2 或 Top-4 个专家参与计算，其余 90% 的参数保持休眠。
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class TopKGatingRouter(nn.Module):
+    def __init__(self, d_model: int, num_experts: int, top_k: int = 2):
+        super().__init__()
+        self.gate = nn.Linear(d_model, num_experts, bias=False)
+        self.top_k = top_k
+
+    def forward(self, x: torch.Tensor):
+        logits = self.gate(x)
+        weights, indices = torch.topk(F.softmax(logits, dim=-1), self.top_k)
+        weights = weights / weights.sum(dim=-1, keepdim=True)
+        return weights, indices
+```
