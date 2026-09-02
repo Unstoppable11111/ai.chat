@@ -9,6 +9,7 @@ import { getProjects } from "@/lib/content";
 export const metadata: Metadata = {
   title: "项目案例",
   description: "精选的系统、视觉实验与数字产品案例。",
+  alternates: { canonical: "/projects" },
 };
 
 export default function ProjectsPage() {
@@ -18,6 +19,7 @@ export default function ProjectsPage() {
     <PageShell>
       <PageIntro>
         <SectionHeading
+          level={1}
           eyebrow="精选作品"
           title="项目案例"
           description="精选的系统、视觉实验与数字产品案例。"
@@ -25,7 +27,7 @@ export default function ProjectsPage() {
         <div className="grid gap-5 xl:grid-cols-2">
           {items.map((item, index) => (
             <Reveal key={item.slug} delay={index * 0.05} once>
-              <ProjectCard item={item} />
+              <ProjectCard item={item} eager={index === 0} />
             </Reveal>
           ))}
         </div>

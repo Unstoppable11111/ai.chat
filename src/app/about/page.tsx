@@ -9,6 +9,7 @@ import { siteConfig } from "@/data/site";
 export const metadata: Metadata = {
   title: "关于我",
   description: "一个围绕网站开发、项目记录、视觉实验与技术学习展开的个人介绍页面。",
+  alternates: { canonical: "/about" },
 };
 
 const sections = [
@@ -61,6 +62,7 @@ export default function AboutPage() {
     <PageShell>
       <PageIntro>
         <SectionHeading
+          level={1}
           eyebrow="个人画像"
           title="关于我"
           description="这不是一页传统简历，更像是一份关于我如何思考、如何构建、如何实验的工作画像。"

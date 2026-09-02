@@ -173,6 +173,8 @@ export function ChatWidget() {
       </button>
 
       <div
+        aria-hidden={!isOpen}
+        inert={!isOpen ? true : undefined}
         className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex h-[580px] max-h-[82vh] w-[calc(100vw-2rem)] max-w-[400px] flex-col overflow-hidden rounded-2xl border border-slate-900/10 bg-white shadow-2xl transition-all duration-300 dark:border-white/10 dark:bg-zinc-900 ${isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-8 opacity-0'}`}
       >
         <div className="flex flex-col border-b border-slate-900/10 bg-slate-50 dark:border-white/10 dark:bg-zinc-800/50">
@@ -186,6 +188,7 @@ export function ChatWidget() {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setIsOpen(false)}
+                aria-label="关闭 AI 助手"
                 className="rounded-full p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors"
               >
                 <X className="h-4 w-4" />

@@ -112,7 +112,7 @@ export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
         <div className="flex flex-col relative">
           {items.map((item, index) => (
             <Link 
-              href={`/prompts/${item.id}`}
+              href={`/prompts#${item.id}`}
               key={item.id} 
               onMouseEnter={() => setHoveredImage(item.exampleImage)}
               onMouseLeave={() => setHoveredImage(null)}

@@ -25,6 +25,11 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
   const lastTimeRef = useRef(0);
   const momentumIDRef = useRef(0);
 
+  const getYear = (date: string) => {
+    const year = new Date(date).getFullYear();
+    return Number.isNaN(year) ? "2026" : String(year);
+  };
+
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container || items.length < 2) return;
@@ -182,7 +187,7 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
                 </h3>
                 <div className="flex gap-4 text-xs font-mono tracking-widest text-white/40 uppercase">
                   <span>{item.category}</span>
-                  <span>{item.date?.split('-')[0] || '2026'}</span>
+                  <time dateTime={item.date}>{getYear(item.date)}</time>
                 </div>
               </div>
             </Link>

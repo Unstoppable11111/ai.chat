@@ -18,7 +18,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/stack',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date(),
     changeFrequency: route === '' ? 'daily' : 'weekly',
     priority: route === '' ? 1.0 : 0.8,
   }));
@@ -42,7 +41,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // 项目动态路由
   const projectRoutes: MetadataRoute.Sitemap = getProjects().map((entry) => ({
     url: `${baseUrl}/projects/${entry.slug}`,
-    lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   }));

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { CurrentlyBuilding } from "@/components/home/currently-building";
 import { FeaturedExperiments } from "@/components/home/featured-experiments";
 import { HeroSection } from "@/components/home/hero-section";
@@ -8,6 +9,10 @@ import { StackingPanels } from "@/components/home/stacking-panels";
 import { PageIntro } from "@/components/shared/page-intro";
 import { promptLibrary } from "@/data/site";
 import { getBuildLogs, getExperimentEntries } from "@/lib/content";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   const experimentEntries = getExperimentEntries().slice(0, 6);

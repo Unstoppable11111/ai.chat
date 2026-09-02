@@ -21,12 +21,10 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 当路由变化时关闭菜单（通过比较上一次 pathname，在渲染期间直接重置，不触发二次 effect render）
-  const [prevPathname, setPrevPathname] = useState(pathname);
-  if (prevPathname !== pathname) {
-    setPrevPathname(pathname);
-    setMobileMenuOpen(false);
-  }
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setMobileMenuOpen(false), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [pathname]);
 
   const isHome = pathname === "/";
   const showGlass = !isHome || isScrolled || mobileMenuOpen;

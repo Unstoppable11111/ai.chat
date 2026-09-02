@@ -8,6 +8,7 @@ import { getExperimentEntries } from "@/lib/content";
 export const metadata: Metadata = {
   title: "实验记录",
   description: "一个持续更新的网站视觉、页面构建与技术实验记录。",
+  alternates: { canonical: "/experiments" },
 };
 
 export default function ExperimentsPage() {
@@ -17,6 +18,7 @@ export default function ExperimentsPage() {
     <PageShell>
       <PageIntro>
         <SectionHeading
+          level={1}
           eyebrow="实验记录"
           title="实验记录"
           description="一个持续更新的网站视觉、页面构建与技术实验记录。"

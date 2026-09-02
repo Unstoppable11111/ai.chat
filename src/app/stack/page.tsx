@@ -8,6 +8,7 @@ import { stackCategories } from "@/data/site";
 export const metadata: Metadata = {
   title: "工具整理",
   description: "整理支撑个人项目、网站开发、内容记录与自动化的常用工具。",
+  alternates: { canonical: "/stack" },
 };
 
 export default function StackPage() {
@@ -15,6 +16,7 @@ export default function StackPage() {
     <PageShell>
       <PageIntro>
         <SectionHeading
+          level={1}
           eyebrow="工作系统"
           title="工具整理"
           description="整理支撑个人项目、网站开发、内容记录与自动化的常用工具。"

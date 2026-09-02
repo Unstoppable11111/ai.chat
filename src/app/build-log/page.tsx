@@ -9,6 +9,7 @@ import { getBuildLogs } from "@/lib/content";
 export const metadata: Metadata = {
   title: "构建日志",
   description: "记录网站开发、页面搭建、代码构建与学习过程。",
+  alternates: { canonical: "/build-log" },
 };
 
 export default function BuildLogPage() {
@@ -18,6 +19,7 @@ export default function BuildLogPage() {
     <PageShell>
       <PageIntro>
         <SectionHeading
+          level={1}
           eyebrow="构建记录"
           title="构建日志"
           description="记录网站开发、页面搭建、代码构建与学习过程。"

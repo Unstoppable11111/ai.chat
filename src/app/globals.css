@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* The current visual system is light-only. Dark utilities activate only when
+   a future theme switch explicitly adds the .dark class. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f5f7fb;
   --background-muted: #eef3f9;
@@ -55,6 +59,7 @@
 }
 
 html {
+  color-scheme: light;
   max-width: 100%;
   overflow-x: clip;
   scroll-behavior: smooth;

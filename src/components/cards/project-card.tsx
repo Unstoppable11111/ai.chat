@@ -5,9 +5,10 @@ import type { ProjectEntry } from "@/lib/types";
 
 type ProjectCardProps = {
   item: ProjectEntry;
+  eager?: boolean;
 };
 
-export function ProjectCard({ item }: ProjectCardProps) {
+export function ProjectCard({ item, eager = false }: ProjectCardProps) {
   return (
     <Link
       href={`/projects/${item.slug}`}
@@ -19,6 +20,7 @@ export function ProjectCard({ item }: ProjectCardProps) {
             src={item.cover}
             alt={item.title}
             fill
+            loading={eager ? "eager" : "lazy"}
             className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
             sizes="(max-width: 768px) 100vw, 50vw"
           />

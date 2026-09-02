@@ -35,12 +35,8 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Chen" }],
   creator: "Chen",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
-    url: siteConfig.url,
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
@@ -60,6 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >

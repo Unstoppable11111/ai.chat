@@ -9,6 +9,7 @@ import { getNews } from "@/lib/content";
 export const metadata: Metadata = {
   title: "科技资讯",
   description: "每日最新 AI 与科技前沿动态抓取与总结。",
+  alternates: { canonical: "/news" },
 };
 
 export default function NewsPage() {
@@ -18,6 +19,7 @@ export default function NewsPage() {
     <PageShell>
       <PageIntro>
         <SectionHeading
+          level={1}
           eyebrow="新闻与动态"
           title="科技资讯"
           description="每日自动抓取外网高质量 AI 和科技新闻，由大模型总结提炼。"

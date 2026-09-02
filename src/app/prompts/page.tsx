@@ -8,6 +8,7 @@ import { promptLibrary } from "@/data/site";
 export const metadata: Metadata = {
   title: "学习笔记",
   description: "用于提示词学习、产品视觉与创意实验记录的学习资料。",
+  alternates: { canonical: "/prompts" },
 };
 
 export default function PromptsPage() {
@@ -15,6 +16,7 @@ export default function PromptsPage() {
     <PageShell>
       <PageIntro>
         <SectionHeading
+          level={1}
           eyebrow="学习资料"
           title="学习笔记"
           description="用于提示词学习、产品视觉与创意实验记录的学习资料。"

@@ -14,7 +14,9 @@ export function PromptCard({ item }: PromptCardProps) {
 
   return (
     <motion.div
+      id={item.id}
       className="group h-full"
+      style={{ scrollMarginTop: "7rem" }}
       whileHover={reduceMotion ? undefined : { y: -6 }}
       transition={{ duration: 0.22, ease: "easeOut" }}
     >
