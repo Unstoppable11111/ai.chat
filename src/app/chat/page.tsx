@@ -1,10 +1,11 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Bot, User, Sparkles, Send, Brain } from 'lucide-react';
+import { Bot, User, Sparkles, Send, Brain, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message, CHAT_MODELS as MODELS, markdownComponents as MarkdownComponents } from '@/components/chat/chat-types';
 import { ThinkingBlock } from '@/components/chat/thinking-block';
+import { ModelSelector } from '@/components/chat/model-selector';
 import { cn } from '@/lib/utils';
 
 export default function ChatPage() {
@@ -168,12 +169,34 @@ export default function ChatPage() {
     setInput(promptText);
   };
 
-  const starterPrompts = [
-    { title: "🎨 设计理念", prompt: "介绍一下这个站点的视觉设计风格与技术架构。" },
-    { title: "🧪 视觉实验", prompt: "站内有哪些好玩的 3D Shader 和 WebGL 实验？" },
-    { title: "🛠️ 技术栈", prompt: "CHEN TECH STUDIO 是用什么技术栈和框架开发的？" },
-    { title: "⚡ 深度思考", prompt: "结合 React 19 和 Next.js 16，分析流式 AI 助手的最佳工程实践。" },
+  const ALL_SUGGESTED_TOPICS = [
+    { title: "🎨 视觉工程", prompt: "介绍一下本站的极简现代排版、流光字体与 3D WebGL 动效设计体系。" },
+    { title: "🤖 Coding Agent", prompt: "阅读《自主 Coding Agent 工作流》，自主智能体如何实现端到端代码重构？" },
+    { title: "⚡ 混合思考", prompt: "深入解析 Claude 与 Gemini 的混合思考（Hybrid Thinking）双核推理范式。" },
+    { title: "🛡️ 安全防线", prompt: "在企业级大模型落地中，如何防御越狱注入（Prompt Injection）与凭证泄露？" },
+    { title: "🧠 稀疏 MoE", prompt: "解读 DeepSeek 与前沿 MoE 架构的高吞吐推理与动态门控路由机制。" },
+    { title: "📐 RAG 原理", prompt: "在 RAG 系统中，万字长文是如何通过 H2/H3 标题拓扑切分为 Parent-Child 知识块的？" },
+    { title: "🧪 Shader 实验", prompt: "站内 Shader 视觉实验中的光线步进（Raymarching）与流体物理是如何实现的？" },
+    { title: "🛠️ 全栈架构", prompt: "CHEN TECH STUDIO 的 React 19 + Next.js 16 + MySQL 全栈架构有哪些工程亮点？" },
+    { title: "🌐 协议革命", prompt: "Model Context Protocol (MCP) 是如何重构大模型与本地工具链连接的？" },
+    { title: "🚀 生产降级", prompt: "当云端数据库发生高并发抖动时，流式 AI 助手是如何做到零感知优雅降级的？" },
+    { title: "📊 性能优化", prompt: "Next.js 16 的 Turbopack 与 React Server Components 是如何提升首屏性能的？" },
+    { title: "⚙️ 提示词工程", prompt: "从简单的 System Prompt 到 Context Engineering，上下文设计的演进脉络是什么？" },
+    { title: "💡 独立开发", prompt: "作为全栈工程师与独立开发者，CHEN TECH STUDIO 创立的技术愿景是什么？" },
+    { title: "🔮 未来趋势", prompt: "未来 2-3 年内，具身智能与大模型端侧推理会呈现怎样的技术突破？" },
   ];
+
+  const [activeTopics, setActiveTopics] = useState(ALL_SUGGESTED_TOPICS.slice(0, 4));
+
+  const refreshTopics = () => {
+    const shuffled = [...ALL_SUGGESTED_TOPICS].sort(() => 0.5 - Math.random());
+    setActiveTopics(shuffled.slice(0, 4));
+  };
+
+  useEffect(() => {
+    // 首次客户端挂载时随机洗牌一次
+    refreshTopics();
+  }, []);
 
   return (
     <div className="container-shell max-w-4xl mx-auto pt-16 sm:pt-20 pb-4 sm:pb-6 px-3 sm:px-6 h-[calc(100dvh-1rem)] flex flex-col overflow-hidden">
@@ -251,18 +274,29 @@ export default function ChatPage() {
         {/* 初始欢迎状态下的快捷推荐选项 */}
         {messages.length === 1 && !loading && (
           <div className="pt-4 sm:pt-6 border-t border-slate-900/5 dark:border-white/5">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-3">
-              SUGGESTED TOPICS // 推荐探讨
-            </p>
+            <div className="flex items-center justify-between mb-2.5 px-0.5">
+              <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3 text-brand-cyan" />
+                SUGGESTED TOPICS // 推荐探讨
+              </p>
+              <button
+                type="button"
+                onClick={refreshTopics}
+                className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground hover:text-brand-cyan transition-colors cursor-pointer px-2 py-0.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800"
+              >
+                <RefreshCw className="h-3 w-3 transition-transform hover:rotate-180 duration-300" />
+                <span>换一批</span>
+              </button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {starterPrompts.map((starter, i) => (
+              {activeTopics.map((starter, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => handleSendPrompt(starter.prompt)}
                   className="flex items-center justify-between text-left p-2.5 sm:p-3 rounded-xl border border-slate-900/5 bg-slate-50/70 hover:bg-slate-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 dark:border-white/5 transition-all text-xs text-foreground/80 hover:text-brand-cyan group cursor-pointer"
                 >
-                  <span className="font-medium">{starter.title}</span>
+                  <span className="font-medium shrink-0">{starter.title}</span>
                   <span className="text-[11px] text-muted-foreground group-hover:text-brand-cyan truncate max-w-[180px] sm:max-w-[200px] ml-2">
                     {starter.prompt}
                   </span>
@@ -291,16 +325,11 @@ export default function ChatPage() {
         {/* 工具栏：模型选择 + 深度思考开关 */}
         <div className="flex items-center justify-between gap-2 px-1">
           <div className="flex items-center gap-2">
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="text-xs font-mono font-medium text-slate-600 bg-white/80 dark:bg-zinc-800/80 dark:text-slate-300 border border-slate-900/10 dark:border-white/10 rounded-full px-3 py-1 cursor-pointer transition-colors shadow-2xs outline-none"
+            <ModelSelector
+              selectedModel={selectedModel}
+              onSelect={setSelectedModel}
               disabled={loading}
-            >
-              {MODELS.map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+            />
 
             <button
               type="button"

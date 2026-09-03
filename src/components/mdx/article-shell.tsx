@@ -4,7 +4,10 @@ import { PostInteractions } from "@/components/posts/post-interactions";
 import type { TocItem } from "@/lib/types";
 
 type ArticleShellProps = {
+  postId?: number;
   slug?: string;
+  initialViews?: number;
+  initialLikes?: number;
   title: string;
   kicker: string;
   description: string;
@@ -15,7 +18,10 @@ type ArticleShellProps = {
 };
 
 export function ArticleShell({
+  postId,
   slug,
+  initialViews,
+  initialLikes,
   title,
   kicker,
   description,
@@ -64,7 +70,13 @@ export function ArticleShell({
                 <p className="text-sm font-medium text-foreground">感谢阅读本文</p>
                 <p className="text-xs text-muted-foreground mt-1">如果你觉得内容有帮助，欢迎点赞支持或分享给同行开发者。</p>
               </div>
-              <PostInteractions slug={slug} title={title} />
+              <PostInteractions
+                postId={postId}
+                slug={slug}
+                title={title}
+                initialViews={initialViews}
+                initialLikes={initialLikes}
+              />
             </div>
           )}
         </article>

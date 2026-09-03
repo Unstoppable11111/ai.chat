@@ -9,6 +9,7 @@ import { ArticleShell } from "@/components/mdx/article-shell";
 import { mdxComponents } from "@/components/mdx/mdx-components";
 import { getBuildLogBySlug, getBuildLogs, getTableOfContents } from "@/lib/content";
 import { formatDate, getReadingTimeText } from "@/lib/utils";
+import { executeQuery } from "@/lib/db";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -55,11 +56,36 @@ export default async function BuildLogDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  // 服务端直接获取主键数字 id，并在服务端静默自增阅读量，杜绝客户端重复请求
+  let postId: number | undefined = undefined;
+  let initialViews = Number(entry.frontmatter.views) || 0;
+  let initialLikes = Number(entry.frontmatter.likes) || 0;
+
+  try {
+    const rows = await executeQuery<{ id: number; views: number; likes: number }>(
+      "SELECT id, views, likes FROM posts WHERE slug = ? LIMIT 1",
+      [slug]
+    );
+    if (rows && rows.length > 0) {
+      postId = rows[0].id;
+      initialViews = (rows[0].views ?? 0) + 1;
+      initialLikes = rows[0].likes ?? 0;
+
+      // 服务端执行一次性静默自增，客户端无需额外 HTTP 请求
+      await executeQuery("UPDATE posts SET views = views + 1 WHERE id = ?", [postId]);
+    }
+  } catch {
+    // 容错
+  }
+
   const toc = getTableOfContents(entry.content);
 
   return (
     <ArticleShell
+      postId={postId}
       slug={slug}
+      initialViews={initialViews}
+      initialLikes={initialLikes}
       kicker="构建日志"
       title={entry.frontmatter.title as string}
       description={entry.frontmatter.excerpt as string}

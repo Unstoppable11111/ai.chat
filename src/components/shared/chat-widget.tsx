@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message, CHAT_MODELS as MODELS, markdownComponents as MarkdownComponents } from '@/components/chat/chat-types';
 import { ThinkingBlock } from '@/components/chat/thinking-block';
+import { ModelSelector } from '@/components/chat/model-selector';
 import { cn } from '@/lib/utils';
 
 export function ChatWidget() {
@@ -289,16 +290,12 @@ export function ChatWidget() {
               <Brain className={cn("h-3 w-3", isThinkingActive ? "text-brand-cyan animate-pulse" : "")} />
               <span className="hidden xs:inline sm:inline">思考</span>
             </button>
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="text-[11px] font-medium text-slate-600 dark:text-slate-300 bg-slate-200/50 dark:bg-zinc-700/50 hover:bg-slate-200 dark:hover:bg-zinc-700 border-none outline-none rounded-full px-2 py-1 cursor-pointer transition-colors max-w-[105px] truncate shrink-0"
+            <ModelSelector
+              selectedModel={selectedModel}
+              onSelect={setSelectedModel}
               disabled={loading}
-            >
-              {MODELS.map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+              align="right"
+            />
             <button
               onClick={sendMessage}
               disabled={loading || !input.trim()}

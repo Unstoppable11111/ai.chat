@@ -21,16 +21,18 @@ export default async function BuildLogPage() {
   // 100% 优先直接从 MySQL 数据库读取用户设置的最新的真实阅读量与点赞数
   try {
     const dbPosts = await executeQuery<{
+      id: number;
       slug: string;
       views: number;
       likes: number;
-    }>("SELECT slug, views, likes FROM posts");
+    }>("SELECT id, slug, views, likes FROM posts");
 
     if (dbPosts && dbPosts.length > 0) {
       const statsMap = new Map(dbPosts.map((p) => [p.slug, p]));
       items.forEach((item) => {
         const dbItem = statsMap.get(item.slug);
         if (dbItem) {
+          item.id = dbItem.id;
           item.views = dbItem.views ?? 0;
           item.likes = dbItem.likes ?? 0;
         }

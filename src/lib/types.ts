@@ -1,4 +1,4 @@
-﻿export type NavItem = {
+export type NavItem = {
   href: string;
   label: string;
   shortLabel?: string;
@@ -29,6 +29,7 @@ export type ExperimentEntry = {
 };
 
 export type BuildLogEntry = {
+  id?: number;
   slug: string;
   title: string;
   excerpt: string;

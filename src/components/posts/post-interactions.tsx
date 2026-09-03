@@ -5,78 +5,82 @@ import { Eye, Heart, Share2, Check } from "lucide-react";
 import { motion } from "motion/react";
 
 interface PostInteractionsProps {
+  postId?: number;
   slug: string;
   title: string;
+  initialViews?: number;
+  initialLikes?: number;
 }
 
-export function PostInteractions({ slug, title }: PostInteractionsProps) {
-  const [views, setViews] = useState<number | null>(null);
-  const [likes, setLikes] = useState<number | null>(null);
+export function PostInteractions({
+  postId,
+  slug,
+  title,
+  initialViews = 0,
+  initialLikes = 0,
+}: PostInteractionsProps) {
+  const [views] = useState<number>(initialViews);
+  const [likes, setLikes] = useState<number>(initialLikes);
   const [hasLiked, setHasLiked] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const storageKey = postId ? `post_liked_id_${postId}` : `post_liked_${slug}`;
 
   useEffect(() => {
     // 读取本地点赞缓存
     if (typeof window !== "undefined") {
-      const likedState = localStorage.getItem(`post_liked_${slug}`);
+      const likedState = localStorage.getItem(storageKey) || localStorage.getItem(`post_liked_${slug}`);
       if (likedState === "true") {
         setHasLiked(true);
       }
     }
-
-    // 记录阅读量并获取最新数据
-    const recordView = async () => {
-      try {
-        const res = await fetch(`/api/posts/${slug}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "view", title }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setViews(data.views);
-          setLikes(data.likes);
-        }
-      } catch {
-        // 容错
-      }
-    };
-
-    recordView();
-  }, [slug, title]);
+  }, [storageKey, slug]);
 
   const handleToggleLike = async () => {
     if (hasLiked) {
-      // 取消点赞
-      setLikes((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
+      // 取消点赞 (乐观更新 UI)
+      setLikes((prev) => Math.max(0, prev - 1));
       setHasLiked(false);
       if (typeof window !== "undefined") {
+        localStorage.removeItem(storageKey);
         localStorage.removeItem(`post_liked_${slug}`);
       }
 
       try {
-        await fetch(`/api/posts/${slug}`, {
+        const res = await fetch("/api-post-like", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "unlike", title }),
+          body: JSON.stringify({ postId, slug, action: "unlike" }),
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.likes === "number") {
+            setLikes(data.likes);
+          }
+        }
       } catch {
         // 容错
       }
     } else {
-      // 点赞
-      setLikes((prev) => (prev !== null ? prev + 1 : 1));
+      // 点赞 (乐观更新 UI)
+      setLikes((prev) => prev + 1);
       setHasLiked(true);
       if (typeof window !== "undefined") {
-        localStorage.setItem(`post_liked_${slug}`, "true");
+        localStorage.setItem(storageKey, "true");
       }
 
       try {
-        await fetch(`/api/posts/${slug}`, {
+        const res = await fetch("/api-post-like", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "like", title }),
+          body: JSON.stringify({ postId, slug, action: "like" }),
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.likes === "number") {
+            setLikes(data.likes);
+          }
+        }
       } catch {
         // 容错
       }
