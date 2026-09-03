@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Eye, Heart, Share2, Check } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -19,71 +19,101 @@ export function PostInteractions({
   initialViews = 0,
   initialLikes = 0,
 }: PostInteractionsProps) {
-  const [views] = useState<number>(initialViews);
+  const [currentPostId, setCurrentPostId] = useState<number | undefined>(postId);
+  const [views, setViews] = useState<number>(initialViews);
   const [likes, setLikes] = useState<number>(initialLikes);
   const [hasLiked, setHasLiked] = useState(false);
   const [copied, setCopied] = useState(false);
+  const hasRecordedView = useRef(false);
 
-  const storageKey = postId ? `post_liked_id_${postId}` : `post_liked_${slug}`;
+  // 本地存储键优先采用数字主键 id
+  const storageKey = currentPostId ? `post_liked_id_${currentPostId}` : `post_liked_${slug}`;
 
   useEffect(() => {
-    // 读取本地点赞缓存
+    // 1. 同步可能更新的 postId
+    if (postId && postId !== currentPostId) {
+      setCurrentPostId(postId);
+    }
+
+    // 2. 读取本地点赞缓存
     if (typeof window !== "undefined") {
       const likedState = localStorage.getItem(storageKey) || localStorage.getItem(`post_liked_${slug}`);
       if (likedState === "true") {
         setHasLiked(true);
       }
     }
-  }, [storageKey, slug]);
+
+    // 3. 页面挂载时自增阅读量并获取最新真实统计
+    if (!hasRecordedView.current) {
+      hasRecordedView.current = true;
+      fetch("/api-post-like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId: currentPostId || postId,
+          slug,
+          action: "view",
+        }),
+      })
+        .then((res) => res.json())
+        .then((resJson) => {
+          const data = resJson?.data || resJson;
+          if (typeof data?.views === "number") {
+            setViews(data.views);
+          }
+          if (typeof data?.likes === "number") {
+            setLikes(data.likes);
+          }
+          if (typeof data?.id === "number") {
+            setCurrentPostId(data.id);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [postId, currentPostId, storageKey, slug]);
 
   const handleToggleLike = async () => {
-    if (hasLiked) {
-      // 取消点赞 (乐观更新 UI)
-      setLikes((prev) => Math.max(0, prev - 1));
-      setHasLiked(false);
-      if (typeof window !== "undefined") {
+    const isUnliking = hasLiked;
+    const action = isUnliking ? "unlike" : "like";
+
+    // 乐观更新 UI
+    setLikes((prev) => (isUnliking ? Math.max(0, prev - 1) : prev + 1));
+    setHasLiked(!isUnliking);
+
+    if (typeof window !== "undefined") {
+      if (isUnliking) {
         localStorage.removeItem(storageKey);
         localStorage.removeItem(`post_liked_${slug}`);
-      }
-
-      try {
-        const res = await fetch("/api-post-like", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ postId, slug, action: "unlike" }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (typeof data.likes === "number") {
-            setLikes(data.likes);
-          }
-        }
-      } catch {
-        // 容错
-      }
-    } else {
-      // 点赞 (乐观更新 UI)
-      setLikes((prev) => prev + 1);
-      setHasLiked(true);
-      if (typeof window !== "undefined") {
+      } else {
         localStorage.setItem(storageKey, "true");
       }
+    }
 
-      try {
-        const res = await fetch("/api-post-like", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ postId, slug, action: "like" }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (typeof data.likes === "number") {
-            setLikes(data.likes);
-          }
+    try {
+      // 严格以数字 postId 为主键进行唯一索引更新
+      const res = await fetch("/api-post-like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId: currentPostId,
+          slug,
+          action,
+        }),
+      });
+
+      if (res.ok) {
+        const resJson = await res.json();
+        // 按照标准企业级规范从 data.data 中提取最新数据
+        const data = resJson?.data || resJson;
+        if (typeof data?.likes === "number") {
+          setLikes(data.likes);
         }
-      } catch {
-        // 容错
+        if (typeof data?.id === "number" && !currentPostId) {
+          setCurrentPostId(data.id);
+        }
       }
+    } catch {
+      // 容错处理
     }
   };
 

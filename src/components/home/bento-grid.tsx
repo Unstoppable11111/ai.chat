@@ -15,8 +15,8 @@ const items = [
   },
   {
     href: "/build-log",
-    title: "构建日志",
-    description: "记录我如何在设计、代码和学习过程中持续把页面与项目做出来。",
+    title: "技术白皮书",
+    description: "系统性梳理大模型推理架构、Agent 协议、RAG 混合检索与全栈工程实战报告。",
   },
   {
     href: "/prompts",

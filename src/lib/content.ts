@@ -1,4 +1,4 @@
-﻿import fs from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
@@ -65,8 +65,20 @@ export function getExperimentEntries(): ExperimentEntry[] {
   }));
 }
 
+export function calculateReadingMinutes(content: string, fallback = 12): number {
+  if (!content) return fallback;
+  const chineseChars = (content.match(/[\u4e00-\u9fa5]/g) || []).length;
+  const englishWords = (content.match(/[a-zA-Z0-9_-]+/g) || []).length;
+  const codeBlocks = content.match(/```[\s\S]*?```/g) || [];
+  const codeLines = codeBlocks.reduce((sum, block) => sum + block.split("\n").length, 0);
+
+  // 中文约 420 字/分，英文约 220 词/分，代码块约 20 行/分，产生科学的自然梯度差异
+  const minutes = (chineseChars / 420) + (englishWords / 220) + (codeLines / 20);
+  return Math.max(7, Math.round(minutes));
+}
+
 export function getBuildLogs(): BuildLogEntry[] {
-  return sortByDate(readCollection("build-log")).map(({ slug, frontmatter, stats }) => ({
+  return sortByDate(readCollection("build-log")).map(({ slug, frontmatter, content }) => ({
     slug,
     title: String(frontmatter.title),
     excerpt: String(frontmatter.excerpt),
@@ -76,7 +88,7 @@ export function getBuildLogs(): BuildLogEntry[] {
     featured: Boolean(frontmatter.featured),
     views: Number(frontmatter.views) || 500,
     likes: Number(frontmatter.likes) || 45,
-    readingMinutes: Math.max(1, Math.round(stats.minutes)),
+    readingMinutes: calculateReadingMinutes(content, 14),
   }));
 }
 

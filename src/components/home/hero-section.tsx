@@ -172,7 +172,7 @@ export function HeroSection() {
                 href="/build-log"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-900/10 bg-white/80 dark:bg-zinc-800/80 text-[11px] font-medium text-foreground shadow-2xs hover:border-brand-cyan transition-colors"
               >
-                <span>📝 构建日志</span>
+                <span>📑 技术白皮书</span>
               </Link>
               <a 
                 href="/gesture-interactive.html"
