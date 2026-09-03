@@ -1,18 +1,48 @@
-﻿import { executeQuery } from "./db";
+import { executeQuery } from "./db";
 
 export interface ChatLogPayload {
   sessionId?: string;
   model: string;
   userQuery: string;
   assistantReply: string;
-  ragSources?: string[];
+  ragSources?: any[] | string[];
   ipAddress?: string;
   userAgent?: string;
   durationMs?: number;
 }
 
+let hasEnsuredTable = false;
+
+async function ensureChatLogTable() {
+  if (hasEnsuredTable) return;
+  const createSql = `
+    CREATE TABLE IF NOT EXISTS \`ai_chat_logs\` (
+      \`id\` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      \`session_id\` VARCHAR(64) NOT NULL,
+      \`model\` VARCHAR(64) NOT NULL,
+      \`user_query\` TEXT NOT NULL,
+      \`assistant_reply\` LONGTEXT NOT NULL,
+      \`rag_sources\` JSON NULL,
+      \`ip_address\` VARCHAR(45) NULL,
+      \`user_agent\` VARCHAR(255) NULL,
+      \`duration_ms\` INT UNSIGNED DEFAULT 0,
+      \`created_at\` DATETIME DEFAULT CURRENT_TIMESTAMP,
+      INDEX \`idx_session_id\` (\`session_id\`),
+      INDEX \`idx_created_at\` (\`created_at\`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `;
+  try {
+    await executeQuery(createSql);
+    hasEnsuredTable = true;
+  } catch {
+    // 容错
+  }
+}
+
 export async function logChatMessageAsync(payload: ChatLogPayload): Promise<void> {
   try {
+    await ensureChatLogTable();
+
     const {
       sessionId = "anonymous-session",
       model,
@@ -43,6 +73,6 @@ export async function logChatMessageAsync(payload: ChatLogPayload): Promise<void
 
     await executeQuery(sql, values);
   } catch (err) {
-    console.error("[ChatLogger Error]: Failed to save chat log:", err);
+    console.warn("[ChatLogger Notice]: 对话日志持久化跳过 (数据库未就绪):", err);
   }
 }

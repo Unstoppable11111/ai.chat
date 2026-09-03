@@ -12,7 +12,7 @@ export default function ChatPage() {
   const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
   const [enableThinking, setEnableThinking] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '你好！我是本站的 AI 助手，随便问我点什么吧？' }
+    { role: 'assistant', content: '你好！我是贾维斯 (JARVIS)，CHEN TECH STUDIO 专属人工智能助理。关于系统架构、深度技术白皮书或全栈工程落地，有什么我可以协助你的？' }
   ]);
   const [loading, setLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -59,13 +59,20 @@ export default function ChatPage() {
     try {
       const apiMessages = newMessages.filter((_, i) => i !== 0 || newMessages[0].role !== 'assistant');
 
+      let sessionId = "anonymous-web";
+      if (typeof window !== "undefined") {
+        sessionId = localStorage.getItem("chat_session_id") || `sess_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        localStorage.setItem("chat_session_id", sessionId);
+      }
+
       const res = await fetch('/api-chat-backend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           messages: apiMessages, 
           model: selectedModel,
-          thinking_budget: willThink ? 2048 : 0
+          thinking_budget: willThink ? 2048 : 0,
+          session_id: sessionId
         })
       });
 
@@ -179,10 +186,10 @@ export default function ChatPage() {
           </span>
           <div>
             <h1 className="text-base sm:text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              AI 智能助手
+              贾维斯 (JARVIS)
             </h1>
             <p className="text-[11px] text-muted-foreground hidden sm:block">
-              解答网站架构、设计理念与技术实验
+              专属人工智能助手 · 知识库联动 · 全栈技术支持
             </p>
           </div>
         </div>
@@ -190,7 +197,7 @@ export default function ChatPage() {
         {/* 顶部简易指示灯 */}
         <div className="flex items-center gap-2 text-[10px] sm:text-[11px] font-mono text-muted-foreground bg-slate-100 dark:bg-zinc-800 px-3 py-1 rounded-full border border-slate-900/5">
           <span className="flex h-1.5 w-1.5 rounded-full bg-brand-cyan animate-pulse" />
-          <span>{MODELS.find(m => m.id === selectedModel)?.name || 'Gemini'}</span>
+          <span>{MODELS.find(m => m.id === selectedModel)?.name || 'Jarvis-Omni'}</span>
         </div>
       </div>
       

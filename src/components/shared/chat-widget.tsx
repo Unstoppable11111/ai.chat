@@ -16,7 +16,7 @@ export function ChatWidget() {
   const [enableThinking, setEnableThinking] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '你好！我是网站 AI 助手，有什么可以帮你的？' }
+    { role: 'assistant', content: '你好！我是贾维斯 (JARVIS)，CHEN TECH STUDIO 专属人工智能助理。有什么可以帮你的？' }
   ]);
   const [loading, setLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -59,13 +59,20 @@ export function ChatWidget() {
     try {
       const apiMessages = newMessages.filter((_, i) => i !== 0 || newMessages[0].role !== 'assistant');
 
+      let sessionId = "anonymous-widget";
+      if (typeof window !== "undefined") {
+        sessionId = localStorage.getItem("chat_session_id") || `sess_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        localStorage.setItem("chat_session_id", sessionId);
+      }
+
       const res = await fetch('/api-chat-backend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           messages: apiMessages, 
           model: selectedModel,
-          thinking_budget: willThink ? 2048 : 0
+          thinking_budget: willThink ? 2048 : 0,
+          session_id: sessionId
         })
       });
 
@@ -183,7 +190,7 @@ export function ChatWidget() {
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/10 text-slate-900 dark:bg-white/10 dark:text-white">
                 <Sparkles className="h-4 w-4" />
               </span>
-              <span className="font-semibold text-sm text-slate-900 dark:text-white">AI 智能助手</span>
+              <span className="font-semibold text-sm text-slate-900 dark:text-white">贾维斯 (JARVIS)</span>
             </div>
             <div className="flex items-center gap-1">
               <button

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "db:sync": "node scripts/sync-mdx-to-mysql.mjs",
+    "rag:index": "node scripts/seed-rag-chunks.mjs",
     "seed:blogs": "node scripts/seed-24-ai-blogs.mjs",
     "cron:fetch-blogs": "node scripts/cron-fetch-tech-blogs.mjs",
     "lint": "eslint"

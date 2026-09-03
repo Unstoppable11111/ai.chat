@@ -8,10 +8,9 @@ export type Message = {
 };
 
 export const CHAT_MODELS = [
-  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash' },
-  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro' },
-  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash' },
-  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite' },
+  { id: 'jarvis-balanced', name: 'Jarvis-Omni 均衡', desc: '智力与速度黄金平衡，全栈工程与架构首选' },
+  { id: 'jarvis-speed', name: 'Jarvis-Speed 极速', desc: '极致低延迟，毫秒级快速答疑与灵感交互' },
+  { id: 'jarvis-ultra', name: 'Jarvis-Ultra 极致', desc: '深度逻辑推导，长上下文与复杂系统攻坚' },
 ] as const;
 
 export type ChatModelId = typeof CHAT_MODELS[number]['id'];
