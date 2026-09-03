@@ -3,25 +3,62 @@ import path from "path";
 import matter from "gray-matter";
 import mysql from "mysql2/promise";
 
-// 手动解析 .env.local
-const envPath = path.join(process.cwd(), ".env.local");
-const envVars = {};
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, "utf8");
-  envContent.split("\n").forEach(line => {
-    const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith("#")) {
-      const idx = trimmed.indexOf("=");
-      if (idx > 0) {
-        const key = trimmed.slice(0, idx).trim();
-        let val = trimmed.slice(idx + 1).trim();
-        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-          val = val.slice(1, -1);
+// 1. 全方位解析环境配置文件 (.env, .env.production, .env.local)
+const envCandidates = [".env", ".env.production", ".env.local"];
+const fileEnvVars = {};
+
+for (const envName of envCandidates) {
+  const envPath = path.join(process.cwd(), envName);
+  if (fs.existsSync(envPath)) {
+    try {
+      const content = fs.readFileSync(envPath, "utf8");
+      content.split("\n").forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith("#")) {
+          const idx = trimmed.indexOf("=");
+          if (idx > 0) {
+            const key = trimmed.slice(0, idx).trim();
+            let val = trimmed.slice(idx + 1).trim();
+            if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+              val = val.slice(1, -1);
+            }
+            fileEnvVars[key] = val;
+          }
         }
-        envVars[key] = val;
-      }
+      });
+      console.log(`📋 已载入配置文件: ${envName}`);
+    } catch {
+      // 容错
     }
-  });
+  }
+}
+
+// 2. 智能探测密码与配置 (优先级: 命令行入参 > 系统环境变量 > 配置文件)
+const cliPassword = process.argv[2]; // 允许直接传递: npm run db:sync 你的密码
+
+const host = process.env.DB_HOST || fileEnvVars.DB_HOST || process.env.MYSQL_HOST || fileEnvVars.MYSQL_HOST || "127.0.0.1";
+const port = Number(process.env.DB_PORT || fileEnvVars.DB_PORT || process.env.MYSQL_PORT || fileEnvVars.MYSQL_PORT) || 3306;
+const user = process.env.DB_USER || fileEnvVars.DB_USER || process.env.MYSQL_USER || fileEnvVars.MYSQL_USER || "root";
+const database = process.env.DB_DATABASE || fileEnvVars.DB_DATABASE || process.env.MYSQL_DATABASE || fileEnvVars.MYSQL_DATABASE || "ai_studio";
+
+let password = cliPassword ||
+  process.env.DB_PASSWORD || fileEnvVars.DB_PASSWORD ||
+  process.env.MYSQL_PASSWORD || fileEnvVars.MYSQL_PASSWORD ||
+  process.env.MYSQL_ROOT_PASSWORD || fileEnvVars.MYSQL_ROOT_PASSWORD ||
+  "";
+
+// 支持解析 DATABASE_URL (如 mysql://root:password@127.0.0.1:3306/ai_studio)
+const databaseUrl = process.env.DATABASE_URL || fileEnvVars.DATABASE_URL;
+if (databaseUrl && !password) {
+  try {
+    const parsed = new URL(databaseUrl);
+    if (parsed.password) {
+      password = decodeURIComponent(parsed.password);
+      console.log("🔑 已从 DATABASE_URL 中自动提取出连接密码");
+    }
+  } catch {
+    // 容错
+  }
 }
 
 const buildLogDir = path.join(process.cwd(), "content", "build-log");
@@ -29,7 +66,7 @@ const files = fs.readdirSync(buildLogDir).filter(f => f.endsWith(".mdx"));
 
 console.log(`🔍 扫描到本地 ${files.length} 篇深度技术长文...`);
 
-// 1. 自动生成标准 SQL 导入脚本
+// 3. 自动生成标准 SQL 导入脚本
 let sqlExport = `-- =======================================================
 -- AI Studio 博客全量数据导入脚本 (自动生成)
 -- 包含 12 篇万字长文完整正文、标签、封面与统计指标
@@ -106,17 +143,11 @@ ON DUPLICATE KEY UPDATE
 // 写入 SQL 脚本
 const sqlFilePath = path.join(process.cwd(), "scripts", "posts_seed.sql");
 fs.writeFileSync(sqlFilePath, sqlExport, "utf8");
-console.log(`📄 已成功导出标准 SQL 文件: scripts/posts_seed.sql`);
+console.log(`📄 已成功更新标准 SQL 文件: scripts/posts_seed.sql`);
 
-// 2. 尝试直接通过 MySQL 连接池批量写入
+// 4. 执行 MySQL 数据库同步
 async function tryDirectSync() {
-  const host = envVars.DB_HOST || "127.0.0.1";
-  const user = envVars.DB_USER || "root";
-  const password = envVars.DB_PASSWORD || "";
-  const database = envVars.DB_DATABASE || "ai_studio";
-  const port = Number(envVars.DB_PORT) || 3306;
-
-  console.log(`🔌 正在尝试连接 MySQL (${host}:${port}, database: ${database})...`);
+  console.log(`🔌 正在尝试连接 MySQL (${host}:${port}, database: ${database}, user: ${user}, password: ${password ? "已加载" : "未加载"})...`);
 
   try {
     const connection = await mysql.createConnection({
@@ -164,10 +195,13 @@ async function tryDirectSync() {
     }
 
     await connection.end();
-    console.log(`🎉 全部 ${records.length} 篇万字长文已 100% 成功直连写入 MySQL 数据库！`);
+    console.log(`🎉 恭喜！全部 ${records.length} 篇万字长文已 100% 成功直连写入 MySQL 数据库！`);
   } catch (error) {
-    console.log("\n💡 [提示] 本地当前未直连远程 MySQL（提示：" + error.message + "）。");
-    console.log("👉 已为你生成好全量 SQL 导入文件: scripts/posts_seed.sql，可一键导入数据库！");
+    console.log("\n💡 [提示] MySQL 连接失败：" + error.message);
+    if (!password) {
+      console.log("👉 检测到当前未提供密码，你可以直接在命令行后追加密码执行：");
+      console.log("   npm run db:sync 你的数据库密码");
+    }
   }
 }
 
