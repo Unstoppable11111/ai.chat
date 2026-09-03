@@ -26,16 +26,13 @@ for (const envName of envCandidates) {
           }
         }
       });
-      console.log(`📋 已载入配置文件: ${envName}`);
     } catch {
       // 容错
     }
   }
 }
 
-// 2. 智能探测密码与配置 (优先级: 命令行入参 > 系统环境变量 > 配置文件)
-const cliPassword = process.argv[2]; // 允许直接传递: npm run db:sync 你的密码
-
+const cliPassword = process.argv[2];
 const host = process.env.DB_HOST || fileEnvVars.DB_HOST || process.env.MYSQL_HOST || fileEnvVars.MYSQL_HOST || "127.0.0.1";
 const port = Number(process.env.DB_PORT || fileEnvVars.DB_PORT || process.env.MYSQL_PORT || fileEnvVars.MYSQL_PORT) || 3306;
 const user = process.env.DB_USER || fileEnvVars.DB_USER || process.env.MYSQL_USER || fileEnvVars.MYSQL_USER || "root";
@@ -47,14 +44,12 @@ let password = cliPassword ||
   process.env.MYSQL_ROOT_PASSWORD || fileEnvVars.MYSQL_ROOT_PASSWORD ||
   "";
 
-// 支持解析 DATABASE_URL (如 mysql://root:password@127.0.0.1:3306/ai_studio)
 const databaseUrl = process.env.DATABASE_URL || fileEnvVars.DATABASE_URL;
 if (databaseUrl && !password) {
   try {
     const parsed = new URL(databaseUrl);
     if (parsed.password) {
       password = decodeURIComponent(parsed.password);
-      console.log("🔑 已从 DATABASE_URL 中自动提取出连接密码");
     }
   } catch {
     // 容错
@@ -66,10 +61,9 @@ const files = fs.readdirSync(buildLogDir).filter(f => f.endsWith(".mdx"));
 
 console.log(`🔍 扫描到本地 ${files.length} 篇深度技术长文...`);
 
-// 3. 自动生成标准 SQL 导入脚本
+// 2. 自动生成标准 SQL 导入脚本 (包含字段自适应补充)
 let sqlExport = `-- =======================================================
--- AI Studio 博客全量数据导入脚本 (自动生成)
--- 包含 12 篇万字长文完整正文、标签、封面与统计指标
+-- AI Studio 博客全量数据导入脚本 (自动适配旧表结构)
 -- =======================================================
 
 CREATE DATABASE IF NOT EXISTS \`ai_studio\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -140,14 +134,12 @@ ON DUPLICATE KEY UPDATE
   \`likes\` = VALUES(\`likes\`);\n\n`;
 }
 
-// 写入 SQL 脚本
 const sqlFilePath = path.join(process.cwd(), "scripts", "posts_seed.sql");
 fs.writeFileSync(sqlFilePath, sqlExport, "utf8");
-console.log(`📄 已成功更新标准 SQL 文件: scripts/posts_seed.sql`);
 
-// 4. 执行 MySQL 数据库同步
+// 3. 执行 MySQL 数据库同步 (带字段自动无损迁移补全)
 async function tryDirectSync() {
-  console.log(`🔌 正在尝试连接 MySQL (${host}:${port}, database: ${database}, user: ${user}, password: ${password ? "已加载" : "未加载"})...`);
+  console.log(`🔌 正在尝试连接 MySQL (${host}:${port}, database: ${database}, user: ${user})...`);
 
   try {
     const connection = await mysql.createConnection({
@@ -159,25 +151,48 @@ async function tryDirectSync() {
       connectTimeout: 3000,
     });
 
-    console.log("✅ 成功连接至 MySQL！正在同步数据表结构与文章数据...");
+    console.log("✅ 成功连接至 MySQL！正在检查并自动补全数据表字段...");
 
+    // 确保数据表存在
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS \`posts\` (
         \`id\` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         \`slug\` VARCHAR(191) NOT NULL UNIQUE,
         \`collection\` VARCHAR(64) NOT NULL DEFAULT 'build-log',
         \`title\` VARCHAR(255) NOT NULL,
-        \`excerpt\` TEXT NULL,
-        \`cover\` VARCHAR(255) NULL,
-        \`tags\` JSON NULL,
-        \`content\` LONGTEXT NULL,
         \`views\` INT UNSIGNED DEFAULT 0,
         \`likes\` INT UNSIGNED DEFAULT 0,
         \`created_at\` DATETIME DEFAULT CURRENT_TIMESTAMP,
-        \`updated_at\` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX \`idx_collection_slug\` (\`collection\`, \`slug\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+
+    // 查询当前表的所有列名
+    const [columns] = await connection.execute("SHOW COLUMNS FROM `posts`");
+    const existingCols = new Set(columns.map(col => col.Field.toLowerCase()));
+
+    // 自动无损补全缺失字段
+    if (!existingCols.has("excerpt")) {
+      console.log("🛠️ 正在补全缺失字段: excerpt (TEXT)...");
+      await connection.execute("ALTER TABLE `posts` ADD COLUMN `excerpt` TEXT NULL AFTER `title`");
+    }
+    if (!existingCols.has("cover")) {
+      console.log("🛠️ 正在补全缺失字段: cover (VARCHAR(255))...");
+      await connection.execute("ALTER TABLE `posts` ADD COLUMN `cover` VARCHAR(255) NULL AFTER `excerpt`");
+    }
+    if (!existingCols.has("tags")) {
+      console.log("🛠️ 正在补全缺失字段: tags (JSON)...");
+      await connection.execute("ALTER TABLE `posts` ADD COLUMN `tags` JSON NULL AFTER `cover`");
+    }
+    if (!existingCols.has("content")) {
+      console.log("🛠️ 正在补全缺失字段: content (LONGTEXT)...");
+      await connection.execute("ALTER TABLE `posts` ADD COLUMN `content` LONGTEXT NULL AFTER `tags`");
+    }
+    if (!existingCols.has("updated_at")) {
+      await connection.execute("ALTER TABLE `posts` ADD COLUMN `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+    }
+
+    console.log("✅ 表结构检查并补全完毕！开始全量写入 12 篇万字长文数据...");
 
     for (const r of records) {
       await connection.execute(`
@@ -197,11 +212,7 @@ async function tryDirectSync() {
     await connection.end();
     console.log(`🎉 恭喜！全部 ${records.length} 篇万字长文已 100% 成功直连写入 MySQL 数据库！`);
   } catch (error) {
-    console.log("\n💡 [提示] MySQL 连接失败：" + error.message);
-    if (!password) {
-      console.log("👉 检测到当前未提供密码，你可以直接在命令行后追加密码执行：");
-      console.log("   npm run db:sync 你的数据库密码");
-    }
+    console.log("\n💡 [提示] 同步失败：" + error.message);
   }
 }
 
