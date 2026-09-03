@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { TableOfContents } from "@/components/mdx/table-of-contents";
 import { PostInteractions } from "@/components/posts/post-interactions";
 import type { TocItem } from "@/lib/types";
@@ -36,7 +36,7 @@ export function ArticleShell({
         <p className="mt-5 max-w-3xl text-base leading-8 text-muted-foreground md:text-lg">
           {description}
         </p>
-        <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-muted-foreground font-mono">
           {meta.map((item) => (
             <span key={item}>{item}</span>
           ))}
@@ -51,19 +51,19 @@ export function ArticleShell({
             </span>
           ))}
         </div>
-
-        {slug && (
-          <div className="mt-8">
-            <PostInteractions slug={slug} title={title} />
-          </div>
-        )}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
         <article className="glass-panel rounded-[32px] p-6 md:p-10">
           <div className="prose-studio max-w-none">{children}</div>
+          
+          {/* 底部唯一的互动与点赞区域 */}
           {slug && (
-            <div className="mt-12 pt-8 border-t border-slate-900/10">
+            <div className="mt-14 pt-8 border-t border-slate-900/8">
+              <div className="mb-4">
+                <p className="text-sm font-medium text-foreground">感谢阅读本文</p>
+                <p className="text-xs text-muted-foreground mt-1">如果你觉得内容有帮助，欢迎点赞支持或分享给同行开发者。</p>
+              </div>
               <PostInteractions slug={slug} title={title} />
             </div>
           )}

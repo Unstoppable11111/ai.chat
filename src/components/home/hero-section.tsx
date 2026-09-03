@@ -117,22 +117,9 @@ export function HeroSection() {
 
       <div ref={containerRef} className="sticky top-0 h-[100svh] flex flex-col justify-between p-4 sm:p-6 md:h-screen md:p-12 pt-20 sm:pt-28 z-10">
         
-        {/* Top Info & Live Status Capsule */}
-        <div ref={topBarRef} className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-3 z-20 w-full max-w-7xl mx-auto">
-          {/* 左侧工作室定位 */}
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-900/10 bg-white/70 backdrop-blur-md shadow-2xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span className="text-[10px] font-mono tracking-widest text-foreground font-semibold uppercase">
-                SYSTEM ONLINE // 2026.09
-              </span>
-            </div>
-          </div>
-
-          <p className="text-[10px] md:text-xs uppercase tracking-[0.25em] text-muted-foreground text-center sm:text-right hidden sm:block">
+        {/* Top Minimal Info Bar */}
+        <div ref={topBarRef} className="flex justify-end items-center z-20 w-full max-w-7xl mx-auto pointer-events-none">
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.28em] text-muted-foreground/80 font-mono hidden sm:block">
             BUILD · EXPERIMENT · RECORD
           </p>
         </div>

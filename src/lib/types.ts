@@ -1,4 +1,4 @@
-export type NavItem = {
+﻿export type NavItem = {
   href: string;
   label: string;
   shortLabel?: string;
@@ -23,6 +23,9 @@ export type ExperimentEntry = {
   promptPreview: string;
   date: string;
   featured?: boolean;
+  views?: number;
+  likes?: number;
+  readingMinutes?: number;
 };
 
 export type BuildLogEntry = {
@@ -33,6 +36,9 @@ export type BuildLogEntry = {
   tags: string[];
   cover: string;
   featured?: boolean;
+  views?: number;
+  likes?: number;
+  readingMinutes?: number;
 };
 
 export type ProjectEntry = {

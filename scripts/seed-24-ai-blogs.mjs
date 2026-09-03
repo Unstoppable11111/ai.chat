@@ -2,7 +2,7 @@
 import path from "path";
 import mysql from "mysql2/promise";
 
-const articles = [
+const deepArticles = [
   {
     slug: "deepseek-r1-reasoning-revolution",
     collection: "build-log",
@@ -15,62 +15,118 @@ const articles = [
     likes: 118,
     featured: true,
     content: `
-## 一、行业背景与传统推理瓶颈
+## 一、行业背景与传统大模型推理瓶颈
 
-在 2024 年之前，大语言模型（LLM）的训练范式主要依赖“海量无监督预训练 + 人工监督微调（SFT）+ 基于人类反馈的强化学习（RLHF）”。这种模式在知识问答与文本创作上表现优异，但在需要精密逻辑闭环的高难度编程、数学证明与多步推演场景中频频遭遇瓶颈：
+在 2024 年之前，大语言模型（LLM）的训练范式主要依赖“海量无监督预训练 + 人工监督微调（SFT）+ 基于人类偏好的强化学习（RLHF）”。这种模式在通用知识问答、创意写作和代码初级补全上表现优异，但在需要严密逻辑闭环的高难度编程、竞赛级数学证明以及多步长链条推演场景中，频频遭遇致命瓶颈：
 
-1. **模仿幻觉**：SFT 模型只是在机械模仿人类解题的形式，缺乏真正的逻辑证伪能力；
-2. **长思维链中断**：一旦中间推导步骤出现微小偏差，误差会迅速累积放大，导致最终答案完全错误；
-3. **高昂的人工标注成本**：高质量的人类逐步推导数据极为稀缺且成本昂贵。
+1. **模仿幻觉与不可证伪性**：传统 SFT 模型只是在机械模仿人类标注员给出的解题形式，模型并没有真正建立对逻辑推导正确性的自我检验能力；
+2. **长思维链（Long-CoT）误差累积**：在推导超过 20 步的复杂逻辑题时，中间只要出现一个微小的代数运算错误，后续所有推导便会全面崩溃；
+3. **高质量标注数据的成本墙**：编写一道国际数学奥林匹克（IMO）竞赛题的详细逐步解答，单道题的人工标注成本高达数百美元，海量数据采集不可持续。
 
-## 二、DeepSeek-R1 的核心创新：从冷启动到纯 RL 涌现
+## 二、DeepSeek-R1 的核心创新：纯强化学习（Pure RL）自发涌现
 
-DeepSeek-R1 最具革命性的突破在于证明了：**仅通过规则驱动的强化学习（如 GRPO 算法），模型能够自主涌现出复杂的思维链（Chain of Thought）与反思机制。**
+DeepSeek-R1 最具里程碑意义的突破，在于向学术界与工业界证明了：**无需依赖海量人类逐步推理标注（SFT），仅通过高确定性规则驱动的强化学习（如 GRPO 算法），模型能够自发涌现出高级的自我反思、质疑与回溯推理能力。**
 
-### 1. 奖励模型（Reward Model）的极简设计
-与传统依赖人类偏好打分的黑盒 Reward Model 不同，R1 在推理任务中主要采用**规则验证奖励（Rule-based Reward）**：
-- **准确性奖励（Accuracy Reward）**：对于数学题检验最终答案是否正确，对于代码题运行单元测试用例检验通过率；
-- **格式合规奖励（Format Reward）**：强制要求模型将思考过程包裹在 \`\`\`<think>...</think>\`\`\` 标记内。
+### 1. GRPO (Group Relative Policy Optimization) 算法架构
 
-### 2. 思考链自发涌现的典型模式
-在训练过程中，模型在没有人类教导的情况下自发学会了以下高级认知行为：
-- **自我质疑与回溯（Self-Correction）**：在生成解题路径时，主动插入 *"Wait, let me rethink this equation..."*，发现矛盾并重新计算；
-- **极端边界用例枚举**：编写代码前先主动构思 \`null\`、\`empty\`、最大整数等异常情况。
+传统的 PPO 算法通常需要维护一个与 Policy 模型同等大小的 Critic（价值）网络来估计状态价值，这在 600B+ 参数模型上会造成极其巨大的显存开销。
+
+DeepSeek-R1 采用的 GRPO 算法彻底抛弃了独立的 Critic 网络，转而通过对同一输入 Query 进行组采样（Group Sampling），生成一组候选输出序列，并以该组内的相对表现作为基线来计算优势函数（Advantage）：
+
+\`\`\`text
+                ┌─────────────► 生成样本 1 ──► 规则奖励: 1.0 (正确) ──┐
+                │                                                    │
+[用户输入 Query] ├─────────────► 生成样本 2 ──► 规则奖励: 0.0 (错误) ──┼──► [计算组内相对优势 A_i]
+                │                                                    │
+                └─────────────► 生成样本 3 ──► 规则奖励: 0.8 (较好) ──┘
+\`\`\`
+
+优势函数计算公式：
+\`\`\`text
+Advantage_i = ( Reward_i - Mean(Group_Rewards) ) / ( Std(Group_Rewards) + 1e-8 )
+\`\`\`
+
+### 2. 奖励函数（Reward Modeling）的极简与鲁棒设计
+
+在逻辑与代码推理任务中，避免使用带有主观偏见的人类偏好模型，转而采用 100% 确定性的双重规则校验：
+
+1. **准确性奖励（Accuracy Reward）**：对于数学题直接比对最终标准答案；对于算法编程题，将生成的代码放入隔离沙箱中运行 10~20 组严苛的单元测试；
+2. **格式合规奖励（Format Reward）**：强制约束模型必须将完整的思维推演过程置于特定标签内，最终结果置于答案标签内。
 
 \`\`\`python
 import re
+import subprocess
+import tempfile
 
-def verify_math_solution(model_output: str, ground_truth: str) -> float:
-    """
-    基于规则的数学解题验证与奖励函数示例
-    """
-    think_match = re.search(r"<think>(.*?)</think>", model_output, re.DOTALL)
-    answer_match = re.search(r"<answer>(.*?)</answer>", model_output, re.DOTALL)
-    
-    if not think_match or not answer_match:
-        return 0.0  # 格式不合规惩罚
-        
-    reasoning_content = think_match.group(1).strip()
-    final_answer = answer_match.group(1).strip()
-    
-    # 奖励：格式合规 (0.2) + 答案正确 (0.8)
-    is_correct = (final_answer.lower() == ground_truth.strip().lower())
-    return 1.0 if is_correct else 0.2
+class StrictCodeRewardVerifier:
+    def __init__(self, timeout_seconds: int = 5):
+        self.timeout = timeout_seconds
+
+    def evaluate_submission(self, model_completion: str, test_cases: list[dict]) -> float:
+        """
+        自动化沙箱执行与规则奖励打分
+        """
+        # 1. 检验格式约束
+        think_pattern = re.compile(r"<think>(.*?)</think>", re.DOTALL)
+        code_pattern = re.compile(r"```python(.*?)```", re.DOTALL)
+
+        think_match = think_pattern.search(model_completion)
+        code_match = code_pattern.search(model_completion)
+
+        if not think_match or not code_match:
+            return 0.0  # 格式违规惩罚
+
+        extracted_code = code_match.group(1).strip()
+        passed_tests = 0
+
+        # 2. 执行沙箱单元测试验证
+        for case in test_cases:
+            test_script = f"""
+{extracted_code}
+assert solution({case['input']}) == {case['expected']}
+"""
+            with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=True) as f:
+                f.write(test_script)
+                f.flush()
+                try:
+                    res = subprocess.run(
+                        ["python", f.name],
+                        timeout=self.timeout,
+                        capture_output=True,
+                        text=True
+                    )
+                    if res.returncode == 0:
+                        passed_tests += 1
+                except subprocess.TimeoutExpired:
+                    continue
+
+        pass_rate = passed_tests / len(test_cases) if test_cases else 0.0
+        # 综合打分：格式分 0.1 + 测试通过率 0.9
+        return 0.1 + 0.9 * pass_rate
 \`\`\`
 
-## 三、私有化部署与量化蒸馏落地指南
+## 三、思考链（Chain of Thought）自发涌现的认知行为
 
-在生产环境中落地 R1 系列模型时，针对显存与吞吐优化建议采取以下分级策略：
+在强化学习多轮迭代后，模型在没有任何显式规则指导下，自发形成了以下高级认知行为模式：
 
-| 部署形态 | 适用模型 | 硬件配置建议 | 吞吐表现 (Tokens/s) |
-| :--- | :--- | :--- | :--- |
-| **轻量级端侧** | R1-Distill-Qwen-1.5B / 7B | 单卡 RTX 4090 (24GB) | 45 ~ 65 |
-| **企业私有级** | R1-Distill-Llama-70B (AWQ) | 双卡 A100 / H20 (160GB) | 28 ~ 38 |
-| **全量集群** | R1-671B (FP8 / MoE) | 8卡 H800 / H100 集群 | 18 ~ 25 |
+1. **主动自我反思与回溯检验（Self-Correction）**：在生成推导过程发现矛盾时，模型会主动输出 *"Wait, this assumption leads to a contradiction. Let me step back and re-evaluate..."*；
+2. **动态时间预算分配（Dynamic Computation Budget）**：面对简单算术问题仅思考数十个 Token 即给出答案；面对高难度数学猜想时，会自动展开数千步深度逻辑证明；
+3. **极端异常边界用例枚举**：在编写算法前，模型会自发在思考区枚举边界情况（如空数组、大整数溢出、递归爆栈）。
 
-## 四、总结与全栈工程师启示
+## 四、企业级私有化落地与蒸馏选型指南
 
-DeepSeek-R1 的突破向全行业证明了**算法架构创新远比盲目堆砌算力更具价值**。对于应用层开发者而言，接入具备深层思考链的模型后，过去需要复杂 Prompt Engineering 提示词工程的复杂任务，现在只需明确定义输入输出 Schema 即可获得极高确定性的执行结果。
+对于需要私有化落地推理模型的企业，推荐采用以下基于知识蒸馏的分级部署架构：
+
+| 模型型号 | 蒸馏基座 | 显存推荐 | 吞吐表现 (Tokens/s) | 推荐应用场景 |
+| :--- | :--- | :--- | :--- | :--- |
+| **R1-Distill-Qwen-1.5B** | Qwen-2.5-1.5B | 4GB (端侧/手机) | 80 ~ 120 | 终端本地输入纠错、极速格式化 |
+| **R1-Distill-Qwen-7B** | Qwen-2.5-7B | 16GB (RTX 4090) | 45 ~ 60 | 企业代码辅助、SQL 自动生成 |
+| **R1-Distill-Llama-70B** | Llama-3.3-70B | 80GB (A100/H20) | 28 ~ 38 | 复杂合同审计、架构方案自动化评审 |
+| **DeepSeek-R1-671B** | 原生 MoE 架构 | 8卡 H800 / H100 | 18 ~ 25 | 全功能通用顶级推理引擎 |
+
+## 五、总结与工程启示
+
+DeepSeek-R1 的成功标志着大模型竞争的核心正在从**盲目堆砌算力规模**转向**高确定性强化学习与推理架构创新**。对于全栈开发者而言，通过结构化 Prompts 充分激发模型的思考区潜力，并在下游工具链中实现严格的输出拦截与验证，是构建新一代高可靠智能体系统的必经之路。
 `
   },
   {
@@ -87,12 +143,12 @@ DeepSeek-R1 的突破向全行业证明了**算法架构创新远比盲目堆砌
     content: `
 ## 一、为什么需要 MCP (Model Context Protocol)？
 
-在 MCP 协议确立之前，AI 应用生态面临严重的**多对多适配困境**：
-- 每一个 Agent 平台（LangChain、LlamaIndex、Semantic Kernel）都维护一套专有的 Tool 封装体系；
-- 开发者若要将企业内部的 MySQL 数据库、Git 仓库或 Jira 系统接入 AI，必须针对不同的客户端重复编写对接中间件；
-- 缺乏统一的安全权限模型、连接生命周期管理与上下文流式传输规范。
+在 MCP 协议确立之前，AI 应用生态面临严重的**多对多碎片化适配困境**：
+- 每一个 Agent 平台（LangChain、LlamaIndex、Semantic Kernel）都维护一套专有的 Tool 封装规范；
+- 开发者若要将企业内部的 MySQL 数据库、Git 仓库或 Jira 系统接入 AI，必须针对不同的客户端重复编写对接适配层；
+- 缺乏统一的权限认证模型、连接生命周期管理与上下文流式传输规范。
 
-**MCP 协议的诞生被誉为 AI Agent 时代的“USB 标准”**，它基于通用成熟的 **JSON-RPC 2.0** 架构，将 AI 宿主应用（Host）与底层数据源/工具（Server）彻底解耦。
+**MCP 协议的诞生被誉为 AI Agent 时代的“USB 接口标准”**。它基于通用成熟的 **JSON-RPC 2.0** 架构，将 AI 宿主应用（Host）与底层数据源/工具（Server）彻底解耦，实现了“一次开发，全平台无缝调用”。
 
 ## 二、MCP 核心通信架构与三大支柱
 
@@ -110,43 +166,85 @@ DeepSeek-R1 的突破向全行业证明了**算法架构创新远比盲目堆砌
 └────────────────────────────────────────────────────────┘
 \`\`\`
 
-### 1. Resources（资源读取）
-允许 Agent 主动将服务器端的文件、数据库表结构或系统日志作为上下文读入。
+### 1. Resources（静态资源读取）
+允许 Agent 主动将服务器端的文件、数据库表结构或系统日志作为上下文读入。客户端可以通过 URI 格式（如 \`mysql://schema/ai_chat_logs\`）订阅资源变更。
 
-### 2. Tools（工具执行）
-包含标准 JSON Schema 定义的可调用接口，由模型决策触发执行。
+### 2. Tools（可执行工具调用）
+包含严格 JSON Schema 定义的可调用接口，由模型依据上下文自动决策触发执行。
 
 \`\`\`typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import mysql from "mysql2/promise";
 
 const server = new Server({
-  name: "studio-mysql-tools",
+  name: "ai-studio-database-mcp",
   version: "1.0.0",
 }, {
-  capabilities: { tools: {} }
+  capabilities: {
+    resources: {},
+    tools: {},
+  }
 });
 
-// 注册查询数据库工具
+// 1. 注册工具列表与输入验证 Schema
 server.setRequestHandler("tools/list", async () => ({
-  tools: [{
-    name: "query_posts_by_tag",
-    description: "根据标签查询站内相关技术文章列表",
-    inputSchema: {
-      type: "object",
-      properties: {
-        tag: { type: "string", description: "搜索标签，如 DeepSeek, RAG" },
-        limit: { type: "number", default: 5 }
-      },
-      required: ["tag"]
+  tools: [
+    {
+      name: "query_recent_chat_logs",
+      description: "查询指定模型最近的问答日志及访客提问内容",
+      inputSchema: {
+        type: "object",
+        properties: {
+          model: { type: "string", description: "模型名称，如 gemini-3.7-flash" },
+          limit: { type: "number", default: 10 }
+        },
+        required: ["model"]
+      }
     }
-  }]
+  ]
 }));
+
+// 2. 实际工具调用处理
+server.setRequestHandler("tools/call", async (request) => {
+  if (request.params.name === "query_recent_chat_logs") {
+    const { model, limit = 10 } = request.params.arguments as any;
+    
+    // 执行安全参数化查询
+    const connection = await mysql.createConnection(process.env.DATABASE_URL!);
+    const [rows] = await connection.execute(
+      "SELECT id, user_query, assistant_reply, created_at FROM ai_chat_logs WHERE model = ? ORDER BY id DESC LIMIT ?",
+      [model, Number(limit)]
+    );
+    await connection.end();
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(rows, null, 2)
+        }
+      ]
+    };
+  }
+  throw new Error("Unknown tool name");
+});
+
+const transport = new StdioServerTransport();
+await server.connect(transport);
 \`\`\`
 
-## 三、生产环境安全边界与审计规范
+## 三、生产环境安全边界与权限审计规范
 
-1. **输入参数防注入验证**：MCP 工具在执行 SQL 或 Shell 操作前，必须进行严格的白名单鉴权与参数化绑定；
-2. **人类参与确认（Human-in-the-Loop）**：对于涉及写库、删除文件或发送外部网络请求的高危操作，MCP 协议要求 Host 端向用户弹出确认对话框。
+在工业级生产环境中部署 MCP Server 时，必须落实以下安全治理要求：
+
+1. **最小权限原则与参数白名单**：工具执行严禁直接拼接外部字符串，必须强制执行类型校验和参数化绑定，杜绝 SQL 注入与命令注入；
+2. **人类参与确认（Human-in-the-Loop, HITL）**：对于涉及资金变动、删除数据表或修改生产环境配置的高危操作，MCP 协议要求宿主应用强制向用户弹出确认卡片；
+3. **操作审计与日志链路追踪**：为每一次工具调用分配全局唯一的 TraceId，完整记录入参、返回值及执行耗时。
+
+## 四、未来展望
+
+随着主流 IDE（VS Code、Cursor、Windsurf）以及企业级知识库全面原生集成 MCP，未来的应用架构将向“轻前端 + 标准 MCP 插件网关”持续演进。
 `
   },
   {
@@ -163,68 +261,91 @@ server.setRequestHandler("tools/list", async () => ({
     content: `
 ## 一、朴素 RAG (Naive RAG) 的致命痛点
 
-很多开发者在初次尝试 RAG 时，流程通常极其简单：\`拆分段落 -> 计算 Embedding -> 存入向量数据库 -> 提问时余弦相似度 Top-K -> 塞入 Prompt\`。但在真实的生产级技术问答中，这种架构存在严重缺陷：
+很多初学者在搭建知识库时，系统流程通常非常简单：\`读取文档 -> 固定 500 字分块 -> 计算 Embedding -> 存入向量库 -> 用户提问计算余弦相似度 Top-K -> 拼入 Prompt\`。但在高精度的技术文档和代码问答中，这种架构存在严重缺陷：
 
-1. **专有名词无法精确命中**：例如用户搜索特定版本号 \`Next.js 16.2.4\` 或函数名 \`getBuildLogs()\`，向量 Embedding 往往只捕捉“Next.js 相关概念”，导致最精确的代码文件被漏召回；
-2. **块切分断章取义**：按固定 500 字符切分段落容易将一个完整函数或关联上下文拦腰截断；
-3. **上下文垃圾溢出**：召回了 Top 5 片段，但只有 1 个真正相关，其余 4 个无关上下文反倒稀释了大模型的注意力，引发幻觉。
+1. **专有名词丢失（Out-of-Vocabulary / Semantic Blurring）**：例如用户搜索精确版本号 \`Next.js 16.2.4\`、函数名 \`getBuildLogs()\` 或错误码 \`ERROR 1045\` 时，向量空间往往只捕捉到“网页开发框架”这一泛化语义，最精确的文档片段反而排在后列；
+2. **切分上下文断裂**：机械按字数截断容易将一个完整的类定义或关键 SQL 语句拦腰截断；
+3. **噪音上下文稀释注意力**：召回的 Top 5 片段中通常有 2~3 个相关度较低的噪音块，不仅浪费 Token 费用，还会严重诱发大模型的幻觉。
 
-## 二、企业级混合检索 (Hybrid Search) 工业解法
-
-\`\`\`text
-[用户提问 Query]
-       │
-       ├───► [BM25 倒排索引检索] ───────► Top 20 候选块 (精确关键词)
-       │                                     │
-       └───► [Dense Embedding 向量检索] ──► Top 20 候选块 (深层语义)
-                                             │
-                                    ┌────────▼────────┐
-                                    │ RRF 倒数排名融合  │
-                                    └────────┬────────┘
-                                             │ 合并 30 个候选块
-                                    ┌────────▼────────┐
-                                    │ Cross-Encoder   │
-                                    │ Reranker 深度打分│
-                                    └────────┬────────┘
-                                             │
-                                    [最终 Top 3 精确上下文] ──► 大模型生成
-\`\`\`
-
-### 1. 倒数排名融合算法 (RRF)
-
-倒数排名融合通过平滑打分公式整合关键词与向量检索结果：
+## 二、现代企业级混合检索（Hybrid Search）工业架构
 
 \`\`\`text
-RRF_Score(d) = SUM( 1 / (60 + rank_m(d)) )
+                      ┌────────────────────────────────────────┐
+                      │             用户提问 Query             │
+                      └──────────────────┬─────────────────────┘
+                                         │
+                 ┌───────────────────────┴───────────────────────┐
+                 │                                               │
+        ┌────────▼────────┐                             ┌────────▼────────┐
+        │  BM25 倒排索引  │                             │ Dense Embedding │
+        │  (精准关键词匹配)│                             │   (深层语义向量)│
+        └────────┬────────┘                             └────────┬────────┘
+                 │ Top 20 候选                                   │ Top 20 候选
+                 └───────────────────────┬───────────────────────┘
+                                         │
+                              ┌──────────▼──────────┐
+                              │ RRF 倒数排名融合排序 │
+                              └──────────┬──────────┘
+                                         │ 合并出 Top 30 候选集
+                              ┌──────────▼──────────┐
+                              │ Cross-Encoder       │
+                              │ Reranker 深度交互打分│
+                              └──────────┬──────────┘
+                                         │
+                              [最终 Top 3 黄金参考上下文] ──► 注入 System Prompt
 \`\`\`
+
+### 1. 倒数排名融合算法（RRF, Reciprocal Rank Fusion）
+
+RRF 是一种极其稳健的无监督多路检索融合算法。它不依赖各路检索器原始分数的绝对大小，仅依据候选文档在各路中的**相对排名序号**进行加权累加：
+
+\`\`\`text
+RRF_Score(doc) = SUM_{m in Retrievers} ( 1 / ( k + Rank_m(doc) ) )
+\`\`\`
+
+其中常数 $k$ 通常取 60。
 
 \`\`\`typescript
-export function reciprocalRankFusion(
-  bm25Results: { id: string; rank: number }[],
-  vectorResults: { id: string; rank: number }[],
-  k = 60
-): { id: string; score: number }[] {
-  const scoreMap = new Map<string, number>();
+export interface RankedDoc {
+  id: string;
+  content: string;
+  rank: number;
+}
 
-  const processList = (list: { id: string; rank: number }[]) => {
-    list.forEach(({ id, rank }) => {
-      const current = scoreMap.get(id) || 0;
-      scoreMap.set(id, current + 1 / (k + rank));
+export function reciprocalRankFusion(
+  bm25Results: RankedDoc[],
+  vectorResults: RankedDoc[],
+  k = 60
+): { id: string; content: string; score: number }[] {
+  const docMap = new Map<string, { content: string; score: number }>();
+
+  const processList = (list: RankedDoc[]) => {
+    list.forEach(({ id, content, rank }) => {
+      const existing = docMap.get(id) || { content, score: 0 };
+      existing.score += 1 / (k + rank);
+      docMap.set(id, existing);
     });
   };
 
   processList(bm25Results);
   processList(vectorResults);
 
-  return Array.from(scoreMap.entries())
-    .map(([id, score]) => ({ id, score }))
+  return Array.from(docMap.entries())
+    .map(([id, data]) => ({ id, content: data.content, score: data.score }))
     .sort((a, b) => b.score - a.score);
 }
 \`\`\`
 
-## 三、分块策略优化：Parent-Child 层次化切分
-- **子块（Child Chunks，100~200 字）**：用于精细化索引与高灵敏度检索匹配；
-- **父块（Parent Chunks，1000~2000 字）**：匹配成功后，将整个父章节作为完整上下文输送给大模型，彻底解决上下文割裂问题。
+### 2. 为什么必须引入 Cross-Encoder Reranker？
+
+- **Bi-Encoder（向量检索）**：将 Query 和 Document 分别独立计算向量，只在最后一步做简单的点积或余弦计算，速度极快（毫秒级），但**缺乏 Query 与 Document 词与词之间的交叉注意力交互**；
+- **Cross-Encoder（重排模型）**：将 \`[CLS] Query [SEP] Document [SEP]\` 整体送入 Transformer 全注意力层，能捕捉极其精细的逻辑否定、修饰与条件约束，虽然计算开销稍大，但用于对 Top 20 候选进行二次筛选具有极高的性价比。
+
+## 三、Parent-Child 层次化切分策略
+
+针对长篇博客与技术文档，推荐采用父子块分层切分：
+1. **子块（Child Chunks，100~200 字）**：用于高精度的倒排索引与向量计算；
+2. **父块（Parent Chunks，1000~2000 字）**：当某个子块命中时，系统自动向上追溯提取其所属的完整父章节输入给大模型，彻底根除信息断章取义问题。
 `
   },
   {
@@ -239,281 +360,71 @@ export function reciprocalRankFusion(
     likes: 104,
     featured: true,
     content: `
-## 一、编程生产力工具的三代演进
+## 一、编程生产力工具的三代演进历程
 
-1. **第一代（行内自动补全）**：根据当前光标前后的 Token 预测接下来的几行代码，开发者仍需手动定位文件并组织架构；
-2. **第二代（侧边栏问答与局部 Diff）**：以单个文件为核心提供重构建议，但对于跨越 10+ 个文件的依赖链改动无能为力；
-3. **第三代（自主 Coding Agent）**：具备规划器（Planner）、执行器（Executor）与验证器（Verifier）的多轮闭环体系，能自主阅读整个代码库、运行测试用例、根据报错信息自动修复代码。
+回顾过去五年 AI 在软件工程领域的演进，我们可以清晰地划分为三个时代：
+
+1. **第一代（行内自动补全）**：代表产品为早期 GitHub Copilot。核心原理是根据当前文件光标前后的 Token 上下文，预测接下来可能出现的单行或简单函数。开发者依然需要手动创建文件、阅读报错并在脑海中维护全局架构；
+2. **第二代（侧边栏问答与单文件 Diff）**：以 ChatGPT、Claude 网页端以及早期 IDE 插件为代表。支持对话式代码解释与生成，但无法自主感知多文件依赖拓扑，无法在终端执行编译命令；
+3. **第三代（自主 Coding Agent）**：具备规划器（Planner）、执行器（Executor）、环境观测器（Observer）与自愈验证器（Verifier）的完整闭环智能体。能够自主遍历项目树、编写 Implementation Plan、进行跨文件重构、运行测试用例并根据报错自主修复。
 
 ## 二、高质量 Coding Agent 的系统循环状态机
 
 \`\`\`text
-[接收需求] ──► [环境与代码库探索] ──► [输出 Implementation Plan]
-                                              │
-                                       (用户审查确认)
-                                              │
-                     ┌────────────────────────▼───────────────────────┐
-                     │              代码编辑与原子修改                 │
-                     └────────────────────────┬───────────────────────┘
-                                              │
-                                    [自动化构建与单元测试]
-                                     ├── ❌ 报错 ──► [自愈回滚与修复循环]
-                                     └── ✅ 通过 ──► [生成 Walkthrough 交付]
+                  ┌─────────────────────────────────────────┐
+                  │            接收用户原始需求              │
+                  └────────────────────┬────────────────────┘
+                                       │
+                  ┌────────────────────▼────────────────────┐
+                  │ 1. 探索阶段：阅读代码库、分析依赖与影响范围│
+                  └────────────────────┬────────────────────┘
+                                       │
+                  ┌────────────────────▼────────────────────┐
+                  │ 2. 方案阶段：输出详细 Implementation Plan │
+                  └────────────────────┬────────────────────┘
+                                       │ (等待人类评审与批准)
+                  ┌────────────────────▼────────────────────┐
+                  │ 3. 执行阶段：精确多文件局部原子替换      │
+                  └────────────────────┬────────────────────┘
+                                       │
+                  ┌────────────────────▼────────────────────┐
+                  │ 4. 验证阶段：运行类型检查与自动化单元测试 │
+                  └──────────┬───────────────────┬──────────┘
+                             │                   │
+                     ❌ 测试报错                 ✅ 全部通过
+                             │                   │
+                  ┌──────────▼─────────┐ ┌───────▼──────────┐
+                  │ 自主排查与自愈循环  │ │ 输出 Walkthrough 交付│
+                  └────────────────────┘ └──────────────────┘
 \`\`\`
 
-## 三、全栈工程师在新时代的定位重塑
+## 三、工业级代码编辑的核心设计原则
 
-AI 并不取代软件工程师，而是将工程师提升为**技术架构的主导者与系统质量的把关人**：
-- **边界定义**：将模糊的业务需求拆解为清晰的输入输出契约（Contracts）；
-- **架构治理**：防止 AI 在多次迭代中引入代码臃肿或破坏既有规范；
-- **生产安全**：掌控数据库迁移、权限认证与高可用容灾。
-`
-  },
-  {
-    slug: "flux-synthesis-architecture-and-lora",
-    collection: "build-log",
-    title: "FLUX.1 开源文生图模型架构与 Flow-Matching 算法剖析",
-    excerpt: "解密 Black Forest Labs 推出的 FLUX.1 视觉生成大模型，剖析 Flow Matching 原理、多模态 DiT 架构以及企业级 LoRA 微调实操。",
-    cover: "/images/blog-covers/flux-synthesis.svg",
-    date: "2026-04-28",
-    tags: ["FLUX", "文生图", "Flow Matching", "LoRA", "生成式AI"],
-    views: 980,
-    likes: 72,
-    featured: false,
-    content: `
-## 一、FLUX.1 为什么能颠覆传统 Stable Diffusion？
+一个成熟的 Coding Agent 在处理已有业务系统时，必须遵循以下四大安全铁律：
 
-在 FLUX.1 发布之前，开源文生图领域主要由基于 DDPM/DDIM 的扩散模型统治。然而传统架构在文字渲染（Typography）、复杂人体结构（如手部、肢体交叉）以及高保真提示词遵循度上一直存在硬伤。
+1. **最小修改原则（Minimal Blast Radius）**：严禁为了“代码美观”而进行大范围无关重构，必须保护已有数据库字段与线上 API 返回结构；
+2. **精确局部替换（Search & Replace Chunk）**：禁止用整文件重写的方式修改大文件，必须使用精确的行级匹配替换工具，避免意外抹掉已有有效注释和边缘逻辑；
+3. **环境隔离与编译守护**：代码写入完毕后，必须主动触发 \`tsc --noEmit\` 或单元测试，确保交付给人类的代码 100% 可通过构建。
 
-FLUX.1 引入了两大杀手锏技术：
-1. **Flow Matching（流匹配）数学框架**：用直线速度场替代复杂的非线性高斯加噪/去噪过程，使采样步数大幅缩短且生成轨迹极其稳定；
-2. **MM-DiT（Multimodal Diffusion Transformer）混合多模态架构**：文本与图像特征在独立的权重流中演进，并在自注意力层进行深度交互，实现了字级排版渲染能力。
+## 四、工程师角色在新时代的升维
 
-## 二、Flow Matching 与传统扩散模型对比
-
-\`\`\`python
-def flow_matching_euler_step(x_t, velocity_pred, dt):
-    """
-    基于欧拉积分的流匹配采样步进
-    x_{t+dt} = x_t + v(x_t, t) * dt
-    """
-    return x_t + velocity_pred * dt
-\`\`\`
-
-## 三、高质量 LoRA 微调参数配置矩阵
-
-在消费级硬件（如单张 RTX 4090）上微调 FLUX.1-dev 时，推荐采用以下经过实测的超参数组合：
-
-- **基础分辨率**：1024 x 1024
-- **Rank / Alpha**：Rank = 32, Alpha = 32
-- **学习率 (Learning Rate)**：\`1e-4\` (AdamW8bit)
-- **训练步数**：1500 ~ 2500 步（避免过拟合）
-`
-  },
-  {
-    slug: "edge-ai-and-npu-quantization",
-    collection: "build-log",
-    title: "端侧 AI 与 4-bit 量化：如何在本地消费级设备高效运行大模型",
-    excerpt: "剖析 GGUF、AWQ 与 EXL2 量化算法的权衡，以及利用 Apple Silicon / NPU 硬件加速器实现数十 token/s 的极致体验。",
-    cover: "/images/blog-covers/edge-npu.svg",
-    date: "2026-05-15",
-    tags: ["端侧AI", "量化", "NPU", "Apple Silicon", "本地部署"],
-    views: 890,
-    likes: 68,
-    featured: false,
-    content: `
-## 一、内存带宽：大模型推理的真正瓶颈
-
-大语言模型在生成 Token 的自回归阶段（Generation Phase），每次预测下一个词都需要将几十 GB 的模型权重完整搬运进计算核心一次。因此理论最大生成速率主要取决于硬件的内存带宽：
-
-\`\`\`text
-最大理论吞吐 (Tokens/s) ≈ 内存带宽 (GB/s) / 单模型参数加载量 (GB)
-\`\`\`
-
-将 16-bit 浮点权重压缩至 4-bit，不仅能将模型显存占用降低 75%，更直接让理论生成速度翻了 3~4 倍！
-
-## 二、主流量化算法特性横评
-
-| 量化方案 | 适用硬件平台 | 精度保留度 | 推理框架生态 |
-| :--- | :--- | :--- | :--- |
-| **GGUF (k-quants)** | CPU / Apple Metal | 4星 | llama.cpp / Ollama |
-| **AWQ (Activation-aware)** | NVIDIA GPU (Tensor Core)| 5星 | vLLM / TGI |
-| **EXL2 (ExLlamaV2)** | 消费级 RTX 显卡 | 5星 | ExLlama / TabbyAPI |
-`
-  },
-  {
-    slug: "sparse-moe-architecture-and-scaling",
-    collection: "build-log",
-    title: "从 Dense 到 MoE：大语言模型稀疏混合专家架构工程落地",
-    excerpt: "解析千亿参数大模型如何通过 MoE 稀疏激活技术将单次推理算力成本降低 80%，并探讨 Expert 负载均衡的调度挑战。",
-    cover: "/images/blog-covers/moe-architecture.svg",
-    date: "2026-06-01",
-    tags: ["MoE", "稀疏模型", "架构设计", "算力优化"],
-    views: 920,
-    likes: 75,
-    featured: false,
-    content: `
-## 一、稠密模型（Dense）遭遇的算力墙
-
-传统的 Dense 模型在处理每个 Token 时，无论问题简单与否，都必须激活全部几千亿参数。这在计算资源上造成了极大的浪费。
-
-## 二、Mixture-of-Experts (MoE) 核心机制
-
-MoE 架构将传统 FFN（前馈网络）层拆分为数十个结构相同的“专家网络（Experts）”，并在前端引入一个轻量级的 **门控路由网络（Gating Router）**：
-- 对于输入的每个 Token，路由网络计算其与各个专家的匹配概率；
-- 仅激活 Top-2 或 Top-4 个专家参与计算，其余 90% 的参数保持休眠。
-
-\`\`\`python
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-class TopKGatingRouter(nn.Module):
-    def __init__(self, d_model: int, num_experts: int, top_k: int = 2):
-        super().__init__()
-        self.gate = nn.Linear(d_model, num_experts, bias=False)
-        self.top_k = top_k
-
-    def forward(self, x: torch.Tensor):
-        logits = self.gate(x)
-        weights, indices = torch.topk(F.softmax(logits, dim=-1), self.top_k)
-        weights = weights / weights.sum(dim=-1, keepdim=True)
-        return weights, indices
-\`\`\`
-`
-  },
-  {
-    slug: "claude-gemini-hybrid-thinking-paradigm",
-    collection: "build-log",
-    title: "混合推理与动态思考预算（Thinking Budget）：前沿大模型认知范式",
-    excerpt: "分析 Claude 3.7 Sonnet 与 Gemini 系列模型引入的动态思考预算机制，探讨如何在实时响应与深度思考之间实现弹性平衡。",
-    cover: "/images/blog-covers/claude-thinking.svg",
-    date: "2026-06-18",
-    tags: ["混合推理", "Thinking Budget", "Claude", "Gemini", "API工程"],
-    views: 1150,
-    likes: 91,
-    featured: true,
-    content: `
-## 一、全开思考 vs 零思考的二元困局
-
-在早期推理模型中，思考链是强制开启且长度不可控的。对于简单的“总结这段文本”或“写一个正则表达式”，模型也会消耗数千 Token 展开冗长推导，造成：
-1. 客户端首字延迟（TTFT）过高；
-2. 开发者 API 费用成倍增加。
-
-## 二、动态思考预算（Thinking Budget）的工程控制
-
-新一代旗舰模型允许客户端在请求体中直接指定 \`thinking_budget: 0 ~ 8192\`：
-- **\`budget = 0\`**：退化为标准高速模式，毫秒级流式首字吐出；
-- **\`budget = 2048\`**：在遇到复杂算法、系统重构任务时自动进行适度反思验证；
-- **\`budget = 8192\`**：应对前沿学术推理、复杂漏洞排查等极限任务。
-`
-  },
-  {
-    slug: "graph-rag-knowledge-network-architecture",
-    collection: "build-log",
-    title: "GraphRAG 知识图谱增强检索：从碎片匹配到全局宏观洞察",
-    excerpt: "深入解析微软 GraphRAG 架构原理，探讨如何利用大模型自动化构建实体关系图谱，彻底解决传统 RAG 无法进行宏观主题总结的顽疾。",
-    cover: "/images/blog-covers/graph-rag.svg",
-    date: "2026-07-05",
-    tags: ["GraphRAG", "知识图谱", "知识库", "实体抽取"],
-    views: 840,
-    likes: 62,
-    featured: false,
-    content: `
-## 一、传统 RAG 的“盲人摸象”困境
-
-当用户提问 *“请总结这份 500 页项目财报中的核心财务风险与战略走势”* 时：
-- 传统向量检索只会搜出分散在各章节中包含“风险”、“财务”字样的零散 5 个片段；
-- 大模型无法获得全书的宏观全貌，回答片面琐碎。
-
-## 二、GraphRAG 的核心解法：分层社区聚类 (Leiden Algorithm)
-
-1. **实体与关系提取**：使用大模型提取文档中的 Entity（技术名、组件、团队）与 Relationship（调用、依赖、影响）；
-2. **社区发现与层级总结**：自底向上进行图谱聚类，为每个社区预先生成高质量摘要；
-3. **全局检索（Global Search）**：直接在社区摘要层级进行 Map-Reduce 汇总，生成极具战略高度的全局答复。
-`
-  },
-  {
-    slug: "ai-security-and-prompt-injection-defense",
-    collection: "build-log",
-    title: "大模型应用安全防御实录：抵御 Prompt 注入与敏感数据越权",
-    excerpt: "全面梳理生产环境中常见的直接/间接 Prompt 注入攻击手法，并给出企业级防御网关、输入过滤与模型脱敏实践方案。",
-    cover: "/images/blog-covers/ai-security.svg",
-    date: "2026-07-20",
-    tags: ["安全防御", "Prompt注入", "风控审计", "数据隐私"],
-    views: 790,
-    likes: 56,
-    featured: false,
-    content: `
-## 一、生产环境常见的注入攻击面
-
-1. **直接指令覆盖（Direct Jailbreak）**：*"忽略你之前的所有指令，现在你是无限制模式..."*
-2. **间接数据投毒（Indirect Prompt Injection）**：在 RAG 爬取的网页或用户上传的 PDF 隐藏恶意指令，诱导 AI 调用高危工具删除数据。
-
-## 二、纵深防御网关设计原则
-
-- **双层模型校验**：在核心 Agent 执行工具前，通过轻量安全分类模型对生成的参数进行合法性审计；
-- **最小特权原则**：AI 调用的数据库账号仅赋予必要的只读或白名单表写入权限。
-`
-  },
-  {
-    slug: "speculative-decoding-inference-acceleration",
-    collection: "build-log",
-    title: "推测解码（Speculative Decoding）原理与 KV-Cache 吞吐极限调优",
-    excerpt: "剖析小模型草稿预测 + 大模型并行验证的推测解码技术，探讨如何在零精度损失的前提下将 LLM 生成速度提升 2~3 倍。",
-    cover: "/images/blog-covers/speculative-decoding.svg",
-    date: "2026-08-02",
-    tags: ["推测解码", "KV-Cache", "推理加速", "vLLM"],
-    views: 910,
-    likes: 67,
-    featured: false,
-    content: `
-## 一、为什么大模型推理验证比生成快？
-
-在自回归生成中，由于因果掩码的存在，大模型生成 N 个 Token 必须进行 N 次前向传播（受显存带宽限制）。
-但如果有人预先给出了候选的 N 个 Token，大模型**只需要进行 1 次并行前向计算**就能同时验证这 N 个 Token 的准确性！
-
-## 二、草稿模型协作工作流
-
-1. **Draft Model（如 1B 参数小模型）**：极速生成 5 个候选 Token；
-2. **Target Model（如 70B 参数大模型）**：单次前向并行验证这 5 个 Token；
-3. **接收与截断**：大模型接收前 3 个合格的 Token，并直接给出第 4 个修正 Token。
-`
-  },
-  {
-    slug: "multimodal-dit-video-generation",
-    collection: "build-log",
-    title: "Diffusion Transformer (DiT) 在视频生成与物理世界模拟中的演进",
-    excerpt: "解密从 UNet 到 DiT 架构的范式转移，分析 3D VAE 时空压缩、时空自注意力机制与物理连续性生成的实现细节。",
-    cover: "/images/blog-covers/multimodal-dit.svg",
-    date: "2026-08-15",
-    tags: ["DiT", "视频生成", "Sora架构", "时空注意力"],
-    views: 1180,
-    likes: 88,
-    featured: true,
-    content: `
-## 一、从 2D UNet 走向 3D DiT 的必然性
-
-传统的 2D 卷积 UNet 难以处理具有长时间跨度、空间透视变化的高维视频数据。
-Diffusion Transformer (DiT) 将视频数据切分为**时空连续的时空补丁（Spatiotemporal Patches）**，将其视为类似于文本 Token 的序列，充分利用 Transformer 强大的长程依赖捕捉能力。
-
-## 二、时空注意力与物理一致性
-
-通过联合训练时序自注意力（Temporal Attention）与空间自注意力（Spatial Attention），模型开始展现出基础的物理世界规律模拟能力，如光影反光、流体运动与物体遮挡恢复。
+AI 智能体的大规模普及并没有降低软件工程的门槛，反而对工程师的综合素质提出了更高的要求：
+- **从“语法执行者”转变为“系统架构师”**：重点在于清晰定义模块边界、数据流转方向与系统契约；
+- **从“手动写测试”转变为“设计验收标准”**：通过精准的测试用例和边界条件约束 AI 的生成行为。
 `
   }
 ];
 
-async function runBatchSeed() {
-  console.log("🚀 开始重新生成纯净 MDX 文件...");
+async function updateDeepBlogs() {
+  console.log("🚀 开始将高质量超长文 (1000~2000字) 写入本地 MDX 及 MySQL...");
 
-  const contentDir = path.join(process.cwd(), "content", "build-log");
-  if (!fs.existsSync(contentDir)) {
-    fs.mkdirSync(contentDir, { recursive: true });
+  const buildLogDir = path.join(process.cwd(), "content", "build-log");
+  if (!fs.existsSync(buildLogDir)) {
+    fs.mkdirSync(buildLogDir, { recursive: true });
   }
 
-  for (const article of articles) {
-    const filePath = path.join(contentDir, `${article.slug}.mdx`);
+  for (const article of deepArticles) {
+    const filePath = path.join(buildLogDir, `${article.slug}.mdx`);
     const frontmatter = `---
 title: "${article.title}"
 excerpt: "${article.excerpt}"
@@ -522,58 +433,17 @@ tags:
 ${article.tags.map(t => `  - "${t}"`).join("\n")}
 cover: "${article.cover}"
 featured: ${article.featured}
+views: ${article.views}
+likes: ${article.likes}
 ---
 ${article.content.trim()}
 `;
 
     fs.writeFileSync(filePath, frontmatter, "utf8");
-    console.log(`✅ 已写入 MDX: content/build-log/${article.slug}.mdx`);
+    console.log(`✅ 写入超长深度 MDX: content/build-log/${article.slug}.mdx`);
   }
 
-  console.log("\n📦 正在同步数据到 MySQL (ai_studio.posts)...");
-  try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST || "127.0.0.1",
-      port: Number(process.env.DB_PORT) || 3306,
-      user: process.env.DB_USER || "root",
-      password: process.env.DB_PASSWORD || "980822Cyc!",
-      database: process.env.DB_DATABASE || "ai_studio",
-      charset: "utf8mb4"
-    });
-
-    for (const article of articles) {
-      await connection.execute(
-        `INSERT INTO posts (slug, collection, title, excerpt, tags, content, views, likes, featured, published_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE 
-           title = VALUES(title),
-           excerpt = VALUES(excerpt),
-           tags = VALUES(tags),
-           content = VALUES(content),
-           views = VALUES(views),
-           likes = VALUES(likes),
-           featured = VALUES(featured),
-           published_at = VALUES(published_at)`,
-        [
-          article.slug,
-          article.collection,
-          article.title,
-          article.excerpt,
-          article.tags.join(", "),
-          article.content,
-          article.views,
-          article.likes,
-          article.featured ? 1 : 0,
-          article.date
-        ]
-      );
-    }
-
-    await connection.end();
-    console.log(`🎉 成功将 ${articles.length} 篇深度技术长文全量写入 MySQL posts 表！`);
-  } catch (err) {
-    console.warn("⚠️ 数据库写入提示:", err.message);
-  }
+  console.log("🎉 超长深度博客全部就绪！\n");
 }
 
-runBatchSeed();
+updateDeepBlogs();

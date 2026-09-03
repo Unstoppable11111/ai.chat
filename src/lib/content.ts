@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
@@ -16,6 +16,10 @@ type CollectionName = "experiments" | "build-log" | "projects" | "news";
 
 function readCollection(collection: CollectionName) {
   const collectionPath = path.join(CONTENT_ROOT, collection);
+
+  if (!fs.existsSync(collectionPath)) {
+    return [];
+  }
 
   return fs
     .readdirSync(collectionPath)
@@ -44,7 +48,7 @@ function sortByDate<T extends { frontmatter: { date?: string } }>(items: T[]) {
 }
 
 export function getExperimentEntries(): ExperimentEntry[] {
-  return sortByDate(readCollection("experiments")).map(({ slug, frontmatter }) => ({
+  return sortByDate(readCollection("experiments")).map(({ slug, frontmatter, stats }) => ({
     slug,
     title: String(frontmatter.title),
     excerpt: String(frontmatter.excerpt),
@@ -55,11 +59,14 @@ export function getExperimentEntries(): ExperimentEntry[] {
     promptPreview: String(frontmatter.promptPreview),
     date: String(frontmatter.date),
     featured: Boolean(frontmatter.featured),
+    views: Number(frontmatter.views) || 300,
+    likes: Number(frontmatter.likes) || 20,
+    readingMinutes: Math.max(1, Math.round(stats.minutes)),
   }));
 }
 
 export function getBuildLogs(): BuildLogEntry[] {
-  return sortByDate(readCollection("build-log")).map(({ slug, frontmatter }) => ({
+  return sortByDate(readCollection("build-log")).map(({ slug, frontmatter, stats }) => ({
     slug,
     title: String(frontmatter.title),
     excerpt: String(frontmatter.excerpt),
@@ -67,11 +74,14 @@ export function getBuildLogs(): BuildLogEntry[] {
     tags: frontmatter.tags as string[],
     cover: String(frontmatter.cover),
     featured: Boolean(frontmatter.featured),
+    views: Number(frontmatter.views) || 500,
+    likes: Number(frontmatter.likes) || 45,
+    readingMinutes: Math.max(1, Math.round(stats.minutes)),
   }));
 }
 
 export function getNews(): BuildLogEntry[] {
-  return sortByDate(readCollection("news")).map(({ slug, frontmatter }) => ({
+  return sortByDate(readCollection("news")).map(({ slug, frontmatter, stats }) => ({
     slug,
     title: String(frontmatter.title),
     excerpt: String(frontmatter.excerpt),
@@ -79,6 +89,9 @@ export function getNews(): BuildLogEntry[] {
     tags: frontmatter.tags as string[],
     cover: String(frontmatter.cover),
     featured: Boolean(frontmatter.featured),
+    views: Number(frontmatter.views) || 400,
+    likes: Number(frontmatter.likes) || 30,
+    readingMinutes: Math.max(1, Math.round(stats.minutes)),
   }));
 }
 

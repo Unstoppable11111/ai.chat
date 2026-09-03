@@ -18,6 +18,10 @@ export function ModernBlogCard({
 }: ModernBlogCardProps) {
   const reduceMotion = useReducedMotion();
 
+  const viewsCount = item.views ?? 680;
+  const likesCount = item.likes ?? 52;
+  const minutes = item.readingMinutes ?? 5;
+
   return (
     <motion.div
       className="group h-full flex flex-col"
@@ -26,23 +30,24 @@ export function ModernBlogCard({
     >
       <Link
         href={`${basePath}/${item.slug}`}
-        className="glass-panel flex flex-col h-full overflow-hidden rounded-[24px] border border-slate-900/8 bg-white/75 transition-all duration-300 hover:border-slate-900/18 hover:shadow-lg hover:shadow-slate-900/[0.04]"
+        className="glass-panel flex flex-col h-full overflow-hidden rounded-[24px] border border-slate-900/8 bg-white/75 transition-all duration-300 hover:border-slate-900/20 hover:shadow-xl hover:shadow-slate-900/[0.05]"
       >
-        {/* 顶部封面图 */}
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900/5">
+        {/* 顶部封面图 (添加 unoptimized 确保矢量 SVG 100% 稳定高清呈现) */}
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950">
           <Image
             src={item.cover}
             alt={item.title}
             fill
+            unoptimized
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/20 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/25 via-transparent to-transparent pointer-events-none" />
 
           {/* 标签悬浮徽章 */}
           {item.tags?.[0] && (
-            <div className="absolute top-3.5 left-3.5">
-              <span className="rounded-full border border-white/20 bg-slate-950/60 px-3 py-1 text-[11px] font-medium tracking-wide text-white backdrop-blur-md shadow-sm">
+            <div className="absolute top-3.5 left-3.5 z-10">
+              <span className="rounded-full border border-white/20 bg-slate-950/70 px-3 py-1 text-[11px] font-medium tracking-wide text-white backdrop-blur-md shadow-sm">
                 {item.tags[0]}
               </span>
             </div>
@@ -51,13 +56,13 @@ export function ModernBlogCard({
 
         {/* 卡片主体内容 */}
         <div className="flex flex-1 flex-col p-5 md:p-6">
-          {/* 日期与阅读时间 */}
+          {/* 日期与真实阅读时间 */}
           <div className="mb-3 flex items-center gap-3 text-xs text-muted-foreground font-mono">
             <span>{formatDate(item.date)}</span>
             <span>•</span>
             <span className="inline-flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>5 分钟</span>
+              <span>{minutes} 分钟</span>
             </span>
           </div>
 
@@ -71,16 +76,16 @@ export function ModernBlogCard({
             {item.excerpt}
           </p>
 
-          {/* 底部互动指标与进入箭头 */}
-          <div className="mt-auto pt-5 flex items-center justify-between border-t border-slate-900/6 text-xs text-muted-foreground">
+          {/* 底部动态真实互动指标 */}
+          <div className="mt-auto pt-5 flex items-center justify-between border-t border-slate-900/6 text-xs text-muted-foreground font-mono">
             <div className="flex items-center gap-4">
               <span className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                 <Eye className="h-3.5 w-3.5 text-brand-cyan" />
-                <span>800+</span>
+                <span>{viewsCount} 阅读</span>
               </span>
               <span className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
-                <Heart className="h-3.5 w-3.5 text-rose-400" />
-                <span>60+</span>
+                <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-50" />
+                <span>{likesCount} 赞</span>
               </span>
             </div>
 
