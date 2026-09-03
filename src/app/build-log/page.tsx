@@ -1,9 +1,13 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { PaginatedBlogList } from "@/components/pages/paginated-blog-list";
 import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { getBuildLogs } from "@/lib/content";
+import { executeQuery } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "技术博客与前沿探索",
@@ -11,8 +15,30 @@ export const metadata: Metadata = {
   alternates: { canonical: "/build-log" },
 };
 
-export default function BuildLogPage() {
+export default async function BuildLogPage() {
   const items = getBuildLogs();
+
+  // 100% 优先直接从 MySQL 数据库读取用户设置的最新的真实阅读量与点赞数
+  try {
+    const dbPosts = await executeQuery<{
+      slug: string;
+      views: number;
+      likes: number;
+    }>("SELECT slug, views, likes FROM posts");
+
+    if (dbPosts && dbPosts.length > 0) {
+      const statsMap = new Map(dbPosts.map((p) => [p.slug, p]));
+      items.forEach((item) => {
+        const dbItem = statsMap.get(item.slug);
+        if (dbItem) {
+          item.views = dbItem.views ?? 0;
+          item.likes = dbItem.likes ?? 0;
+        }
+      });
+    }
+  } catch (error) {
+    console.error("[BuildLogPage DB Fetch Error]:", error);
+  }
 
   return (
     <PageShell>

@@ -1,10 +1,50 @@
 {
-  "speculative-decoding-inference-acceleration": {
-    "views": 684,
-    "likes": 52
+  "deepseek-r1-reasoning-revolution": {
+    "views": 280,
+    "likes": 66
+  },
+  "mcp-protocol-and-agent-ecosystem": {
+    "views": 480,
+    "likes": 64
+  },
+  "autonomous-coding-agents-workflow": {
+    "views": 366,
+    "likes": 23
+  },
+  "edge-ai-and-npu-quantization": {
+    "views": 564,
+    "likes": 25
+  },
+  "ai-security-and-prompt-injection-defense": {
+    "views": 123,
+    "likes": 12
+  },
+  "claude-gemini-hybrid-thinking-paradigm": {
+    "views": 880,
+    "likes": 32
+  },
+  "enterprise-rag-hybrid-search-matrix": {
+    "views": 1560,
+    "likes": 123
+  },
+  "flux-synthesis-architecture-and-lora": {
+    "views": 321,
+    "likes": 86
+  },
+  "graph-rag-knowledge-network-architecture": {
+    "views": 1854,
+    "likes": 295
+  },
+  "multimodal-dit-video-generation": {
+    "views": 780,
+    "likes": 53
   },
   "sparse-moe-architecture-and-scaling": {
-    "views": 683,
-    "likes": 52
+    "views": 946,
+    "likes": 33
+  },
+  "speculative-decoding-inference-acceleration": {
+    "views": 2280,
+    "likes": 221
   }
 }

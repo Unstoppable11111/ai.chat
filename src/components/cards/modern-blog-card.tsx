@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -18,8 +18,8 @@ export function ModernBlogCard({
 }: ModernBlogCardProps) {
   const reduceMotion = useReducedMotion();
 
-  const viewsCount = item.views ?? 680;
-  const likesCount = item.likes ?? 52;
+  const viewsCount = item.views ?? 0;
+  const likesCount = item.likes ?? 0;
   const minutes = item.readingMinutes ?? 5;
 
   return (
