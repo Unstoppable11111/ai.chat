@@ -12,6 +12,7 @@ export const siteConfig = {
 export const navigation: NavItem[] = [
   { href: "/", label: "首页" },
   { href: "/chat", label: "AI 助手" },
+  { href: "/market", label: "量化投研" },
   { href: "/projects", label: "项目案例" },
   { href: "/build-log", label: "技术白皮书" },
   { href: "/news", label: "科技资讯" },

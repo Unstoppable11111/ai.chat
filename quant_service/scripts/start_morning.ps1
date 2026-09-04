@@ -1,0 +1,1 @@
+cd e:\codex\a-share\a_stock_review\npython -m app.main --mode morning\n\n

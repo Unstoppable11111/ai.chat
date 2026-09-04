@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "user_id": "default_user",
+    "stock_code": "600584",
+    "stock_name": "长电科技",
+    "quantity": 1000,
+    "cost_price": 72.5,
+    "hold_type": "core",
+    "notes": "半导体先进封测龙头，主线持股",
+    "created_at": "2026-09-04T18:00:00.000Z",
+    "updated_at": "2026-09-04T18:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "user_id": "default_user",
+    "stock_code": "300476",
+    "stock_name": "胜宏科技",
+    "quantity": 500,
+    "cost_price": 210.0,
+    "hold_type": "attack",
+    "notes": "高阶 PCB 算力板，短线高赔率进攻",
+    "created_at": "2026-09-04T18:00:00.000Z",
+    "updated_at": "2026-09-04T18:00:00.000Z"
+  }
+]

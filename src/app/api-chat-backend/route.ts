@@ -69,6 +69,45 @@ export async function POST(request: Request) {
       systemPrompt += "\n请优先结合上述站内技术长文的真实原理解答。若回答引用了上述资料，请在回答末尾以自然口吻推荐用户阅读对应文章。";
     }
 
+    // 智能检测是否涉及 A股、大盘、个股分析或持仓诊断
+    const isQuantQuery = /(股票|A股|大盘|持仓|加仓|减仓|止损|复盘|行情|仓位|牛市|熊市|龙头|趋势|长电|胜宏|中际)/i.test(userQuery);
+    if (isQuantQuery) {
+      try {
+        const pythonApiUrl = process.env.QUANT_API_URL || "http://127.0.0.1:8100";
+        // 并行拉取大盘快照与持仓诊断
+        const [mRes, pRes] = await Promise.allSettled([
+          fetch(`${pythonApiUrl}/api/v1/market/latest`, { cache: "no-store" }).then(r => r.json()),
+          fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://127.0.0.1:3000"}/api/portfolio?userId=default_user`, { cache: "no-store" }).then(r => r.json())
+        ]);
+
+        let quantContext = "\n\n【站内 A股量化决策系统实时盘中推演事实数据】\n";
+        if (mRes.status === "fulfilled" && mRes.value?.success) {
+          const m = mRes.value;
+          quantContext += `- 今日市场评分: ${m.market_score} / 100 ｜ 市场状态: ${m.market_state} ｜ 建议仓位: ${m.suggested_position} ｜ 主导风格: ${m.market_style}\n`;
+          if (m.decision_card_text) {
+            quantContext += `- 决策卡核心结论: \n${m.decision_card_text.slice(0, 500)}...\n`;
+          }
+        }
+
+        if (pRes.status === "fulfilled" && pRes.value?.diagnose) {
+          const diag = pRes.value.diagnose;
+          quantContext += `\n【用户私有持仓即时诊断数据】：\n- 组合总市值: ¥${diag.summary?.total_market_value || 0} ｜ 累计浮动盈亏: ¥${diag.summary?.total_pnl || 0} (${diag.summary?.total_pnl_pct || 0}%)\n- 组合综合建议: ${diag.summary?.overall_action}\n- 个股明细与风控指令:\n`;
+          (diag.diagnosed_holdings || []).forEach((h: any) => {
+            quantContext += `  * ${h.name}(${h.code}): 现价 ¥${h.current_price}, 成本 ¥${h.cost_price}, 浮盈亏: ${h.pnl_pct}%, 动态止损线: ¥${h.stop_loss_price} ➔ 操作指令: 【${h.action}】 (理由: ${h.advice_reason})\n`;
+          });
+        }
+
+        quantContext += `\n【AI 投研风控指引准则】：
+1. 始终以当前量化系统给出的【大盘状态】和【动态止损线】为核心风控依据，禁止脱离事实盲目鼓吹买入或追高。
+2. 若大盘处于退潮或震荡，提醒严控仓位；对跌破动态止损线的标的明确提醒执行纪律止损。
+3. 结合用户持仓的真实成本价和盈亏情况给出有条理、有温度、遵守纪律的专业建议。`;
+
+        systemPrompt += quantContext;
+      } catch (qErr) {
+        console.warn("量化上下文注入跳过:", qErr);
+      }
+    }
+
     // 截断最近历史记录，控制上下文长度，防止恶意超长请求
     const safeMessages = messages.slice(-15).map((m) => ({
       role: m.role === "assistant" ? "assistant" : "user",

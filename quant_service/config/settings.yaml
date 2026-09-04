@@ -1,0 +1,113 @@
+# ============================================================
+# A股量化复盘与交易决策系统 V3.0 — 全局配置
+# ============================================================
+
+system:
+  version: "3.0.0"
+  name: "A股交易决策辅助系统"
+  timezone: "Asia/Shanghai"
+
+# 日志配置
+logging:
+  level: "INFO"
+  dir: "logs"
+  rotation: "10 MB"
+  retention: "30 days"
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} | {message}"
+
+# 数据库配置
+database:
+  path: "database/a_stock.db"
+  echo: false
+
+# 数据源优先级配置
+data_sources:
+  realtime:
+    - name: "eastmoney"
+      enabled: true
+      timeout: 10
+      max_retries: 3
+      retry_delay: 1.0
+    - name: "tencent"
+      enabled: true
+      timeout: 10
+      max_retries: 3
+      retry_delay: 1.0
+    - name: "sina"
+      enabled: true
+      timeout: 10
+      max_retries: 2
+      retry_delay: 1.5
+    - name: "cache"
+      enabled: true
+
+  history:
+    - name: "eastmoney"
+      enabled: true
+      timeout: 15
+      max_retries: 3
+    - name: "akshare"
+      enabled: true
+      timeout: 20
+      max_retries: 2
+    - name: "baostock"
+      enabled: true
+      timeout: 15
+      max_retries: 2
+    - name: "cache"
+      enabled: true
+
+  sector:
+    - name: "eastmoney"
+      enabled: true
+      timeout: 15
+      max_retries: 3
+    - name: "akshare"
+      enabled: true
+      timeout: 20
+      max_retries: 2
+    - name: "cache"
+      enabled: true
+
+  financial:
+    - name: "eastmoney"
+      enabled: true
+      timeout: 20
+      max_retries: 2
+    - name: "akshare"
+      enabled: true
+      timeout: 20
+      max_retries: 2
+    - name: "cache"
+      enabled: true
+
+# 数据源请求配置
+request:
+  default_timeout: 10
+  max_retries: 3
+  retry_backoff: 1.5
+  batch_size: 50              # 批量请求每批大小
+  batch_delay: 0.3            # 批次间延迟（秒）
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+
+# 缓存策略
+cache:
+  stock_info_ttl: 604800       # 股票基本信息 7天
+  trading_calendar_ttl: 2592000 # 交易日历 30天
+  kline_daily_ttl: 86400       # 日K线 1天
+  financial_ttl: 7776000       # 财务数据 90天（财报级）
+  sector_ttl: 86400            # 板块数据 1天
+  realtime_ttl: 60             # 实时行情 60秒
+  limit_stocks_ttl: 300        # 涨跌停 5分钟
+
+# 报告输出
+reports:
+  output_dir: "reports_output"
+  excel_prefix: "daily_review"
+  markdown_prefix: "daily_review"
+
+# 运行模式时间
+schedule:
+  morning: "10:00"
+  afternoon: "14:30"
+  close: "15:10"
