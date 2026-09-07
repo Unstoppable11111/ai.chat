@@ -28,6 +28,7 @@ from app.context import RunContext
 from data.storage.database import Database
 from data.providers.tencent import TencentProvider
 from data.providers.sina import SinaProvider
+from data.providers.eastmoney import EastmoneyProvider
 from utils.trading_calendar import TradingCalendar
 from market.score import MarketScorer
 from sector.mainline import MainlineEngine
@@ -40,6 +41,7 @@ class SystemState:
     def __init__(self):
         self.ctx: Optional[RunContext] = None
         self.db: Optional[Database] = None
+        self.eastmoney: Optional[EastmoneyProvider] = None
         self.tencent: Optional[TencentProvider] = None
         self.sina: Optional[SinaProvider] = None
         self.calendar: Optional[TradingCalendar] = None
@@ -94,14 +96,50 @@ async def refresh_market_snapshot():
         date_str = now_dt.strftime("%Y-%m-%d")
         time_str = now_dt.strftime("%H:%M:%S")
         
-        # 1. 查询指数行情
-        index_codes = ["000001", "399001", "399006"]
+        # 1. 查询四大核心指数行情与全景
+        index_codes = ["000001", "399001", "399006", "000688"]
         idx_df = pd.DataFrame()
-        if state.tencent:
+        total_turnover = 0.0
+        up_count = 0
+        down_count = 0
+        flat_count = 0
+
+        # 优先使用 Eastmoney（带有上涨、下跌和平盘家数统计）
+        if state.eastmoney:
+            try:
+                idx_df = state.eastmoney.get_index_quotes(index_codes)
+                if not idx_df.empty:
+                    for _, row in idx_df.iterrows():
+                        c = str(row.get("code", ""))
+                        if c in ("000001", "399001"):
+                            total_turnover += float(row.get("amount", 0.0))
+                            up_count += int(row.get("up_count", 0))
+                            down_count += int(row.get("down_count", 0))
+                            flat_count += int(row.get("flat_count", 0))
+            except Exception as em_err:
+                logger.warning(f"东财指数行情拉取异常: {em_err}")
+
+        if idx_df.empty and state.tencent:
             idx_df = state.tencent.get_index_quotes(index_codes)
+            if not idx_df.empty:
+                for _, row in idx_df.iterrows():
+                    c = str(row.get("code", ""))
+                    if c in ("000001", "399001"):
+                        # 腾讯 amount 单位为万元
+                        total_turnover += float(row.get("amount", 0.0)) * 10000.0
+
         if idx_df.empty and state.sina:
             idx_df = state.sina.get_index_quotes(index_codes)
+            if not idx_df.empty:
+                for _, row in idx_df.iterrows():
+                    c = str(row.get("code", ""))
+                    if c in ("000001", "399001"):
+                        total_turnover += float(row.get("amount", 0.0))
             
+        # 格式化量能（单位转换为亿元）
+        turnover_yi = round(total_turnover / 1e8, 2) if total_turnover > 0 else 0.0
+        turnover_label = f"{round(turnover_yi / 10000, 2)}万亿" if turnover_yi >= 10000 else f"{turnover_yi}亿"
+
         # 2. 调用市场综合评分器
         analysis = state.market_scorer.analyze(
             index_df=idx_df,
@@ -132,10 +170,15 @@ async def refresh_market_snapshot():
             "confidence": analysis.confidence or "high",
             "indices": idx_df.to_dict(orient="records") if not idx_df.empty else [],
             "decision_card_text": card_content,
+            "total_turnover": turnover_yi,
+            "total_turnover_text": turnover_label,
+            "up_count": up_count,
+            "down_count": down_count,
+            "flat_count": flat_count,
             "last_updated": f"{date_str} {time_str}"
         }
         state.last_update_time = f"{date_str} {time_str}"
-        logger.info(f"5分钟市场快照推演成功 | 评分: {analysis.market_score} | 状态: {analysis.market_state}")
+        logger.info(f"5分钟市场快照推演成功 | 评分: {analysis.market_score} | 状态: {analysis.market_state} | 量能: {turnover_label}")
     except Exception as e:
         logger.error(f"5分钟行情推演异常: {e}")
     finally:
@@ -148,6 +191,7 @@ async def lifespan(app: FastAPI):
     logger.info("正在初始化 A股量化决策系统 FastAPI 服务...")
     state.ctx = RunContext.create(mode="close")
     state.db = Database(state.ctx.db_path)
+    state.eastmoney = EastmoneyProvider()
     state.tencent = TencentProvider()
     state.sina = SinaProvider()
     state.calendar = TradingCalendar(state.db)

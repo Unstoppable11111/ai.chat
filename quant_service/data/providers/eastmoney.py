@@ -118,7 +118,7 @@ class EastMoneyProvider(QuoteProvider):
             url = "http://push2.eastmoney.com/api/qt/ulist/get"
             params = {
                 "secids": ",".join(secids),
-                "fields": "f12,f14,f2,f3,f4,f5,f6,f15,f16,f17,f18,f8"
+                "fields": "f12,f14,f2,f3,f4,f5,f6,f15,f16,f17,f18,f8,f104,f105,f106"
             }
             data = self._get(url, params)
             if data and data.get("data") and data["data"].get("diff"):
@@ -126,10 +126,11 @@ class EastMoneyProvider(QuoteProvider):
                 rename_map = {
                     "f12": "code", "f14": "name", "f2": "close", "f3": "change_pct",
                     "f4": "change", "f5": "volume", "f6": "amount", "f15": "high",
-                    "f16": "low", "f17": "open", "f18": "pre_close", "f8": "turnover"
+                    "f16": "low", "f17": "open", "f18": "pre_close", "f8": "turnover",
+                    "f104": "up_count", "f105": "down_count", "f106": "flat_count"
                 }
                 df = df.rename(columns=rename_map)
-                for col in ["close", "change_pct", "change", "volume", "amount", "high", "low", "open", "pre_close", "turnover"]:
+                for col in ["close", "change_pct", "change", "volume", "amount", "high", "low", "open", "pre_close", "turnover", "up_count", "down_count", "flat_count"]:
                     if col in df.columns:
                         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
                 return df

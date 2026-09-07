@@ -41,8 +41,11 @@ class SinaProvider(QuoteProvider):
                 batch = codes[i:i+batch_size]
                 query_list = []
                 for code in batch:
-                    prefix = "sh" if code.startswith("6") else "sz"
-                    query_list.append(f"{prefix}{code}")
+                    if code.startswith(("sh", "sz")):
+                        query_list.append(code)
+                    else:
+                        prefix = "sh" if (code.startswith("6") or code.startswith("9")) else "sz"
+                        query_list.append(f"{prefix}{code}")
                 
                 url = f"https://hq.sinajs.cn/list={','.join(query_list)}"
                 text = self._get(url)
@@ -75,7 +78,16 @@ class SinaProvider(QuoteProvider):
         return pd.DataFrame()
 
     def get_index_quotes(self, codes: list[str]) -> pd.DataFrame:
-        return self.get_realtime_quotes(codes)
+        """获取指数行情，严格映射市场前缀"""
+        index_queries = []
+        for c in codes:
+            if c.startswith(("sh", "sz")):
+                index_queries.append(c)
+            elif c in ("000001", "000688"):
+                index_queries.append(f"sh{c}")
+            else:
+                index_queries.append(f"sz{c}")
+        return self.get_realtime_quotes(index_queries)
 
     def get_history_kline(self, code: str, start_date: str, end_date: str, adjust: str = "qfq") -> pd.DataFrame:
         return pd.DataFrame()

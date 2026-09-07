@@ -47,12 +47,15 @@ export function ChatWidget() {
     }
   }, [messages, isOpen, loading]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+  const sendMessage = async (overridePrompt?: string) => {
+    const textToSend = (overridePrompt ?? input).trim();
+    if (!textToSend || loading) return;
     
-    const newMessages = [...messages, { role: 'user', content: input } as Message];
+    const newMessages = [...messages, { role: 'user', content: textToSend } as Message];
     setMessages(newMessages);
-    setInput('');
+    if (!overridePrompt) {
+      setInput('');
+    }
     setLoading(true);
 
     const willThink = isThinkingActive;
@@ -164,6 +167,27 @@ export function ChatWidget() {
       setLoading(false);
     }
   };
+
+  const sendMessageRef = useRef(sendMessage);
+  sendMessageRef.current = sendMessage;
+
+  useEffect(() => {
+    const handleTriggerChat = (e: Event) => {
+      const customEvent = e as CustomEvent<{ prompt: string }>;
+      const prompt = customEvent.detail?.prompt;
+      if (prompt) {
+        setIsOpen(true);
+        setTimeout(() => {
+          sendMessageRef.current(prompt);
+        }, 150);
+      }
+    };
+
+    window.addEventListener('trigger-ai-chat', handleTriggerChat);
+    return () => {
+      window.removeEventListener('trigger-ai-chat', handleTriggerChat);
+    };
+  }, []);
 
   // 在独立的 /chat 全屏页面中隐藏全局悬浮球，避免出现双重 AI 对话冲突
   if (pathname === '/chat') {
@@ -297,7 +321,7 @@ export function ChatWidget() {
               align="right"
             />
             <button
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
               disabled={loading || !input.trim()}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
             >
