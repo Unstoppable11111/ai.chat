@@ -93,7 +93,7 @@ export default function MarketDashboardPage() {
   // 拉取市场最新 5 分钟快照
   const fetchMarketData = useCallback(async () => {
     try {
-      const res = await fetch("/api/market/latest");
+      const res = await fetch("/api-market/latest");
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
@@ -108,7 +108,7 @@ export default function MarketDashboardPage() {
   // 拉取私人持仓与诊断推演
   const fetchPortfolioData = useCallback(async () => {
     try {
-      const res = await fetch("/api/portfolio?userId=default_user");
+      const res = await fetch("/api-portfolio?userId=default_user");
       if (res.ok) {
         const json = await res.json();
         if (json.diagnose) {
@@ -176,7 +176,7 @@ export default function MarketDashboardPage() {
     if (!formData.stock_code) return;
     setFormSubmitting(true);
     try {
-      const res = await fetch("/api/portfolio", {
+      const res = await fetch("/api-portfolio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -213,7 +213,7 @@ export default function MarketDashboardPage() {
     if (!id) return;
     if (!confirm("确定要删除这笔持仓吗？")) return;
     try {
-      const res = await fetch(`/api/portfolio?id=${id}&userId=default_user`, {
+      const res = await fetch(`/api-portfolio?id=${id}&userId=default_user`, {
         method: "DELETE",
       });
       if (res.ok) {

@@ -77,7 +77,7 @@ export async function POST(request: Request) {
         // 并行拉取大盘快照与持仓诊断
         const [mRes, pRes] = await Promise.allSettled([
           fetch(`${pythonApiUrl}/api/v1/market/latest`, { cache: "no-store" }).then(r => r.json()),
-          fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://127.0.0.1:3000"}/api/portfolio?userId=default_user`, { cache: "no-store" }).then(r => r.json())
+          fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://127.0.0.1:3000"}/api-portfolio?userId=default_user`, { cache: "no-store" }).then(r => r.json())
         ]);
 
         let quantContext = "\n\n【站内 A股量化决策系统实时盘中推演事实数据】\n";
