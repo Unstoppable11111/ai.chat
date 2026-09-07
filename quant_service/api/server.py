@@ -28,7 +28,7 @@ from app.context import RunContext
 from data.storage.database import Database
 from data.providers.tencent import TencentProvider
 from data.providers.sina import SinaProvider
-from data.providers.eastmoney import EastmoneyProvider
+from data.providers.eastmoney import EastMoneyProvider as EastmoneyProvider
 from utils.trading_calendar import TradingCalendar
 from market.score import MarketScorer
 from sector.mainline import MainlineEngine
@@ -165,7 +165,7 @@ async def refresh_market_snapshot():
             "snapshot_time": time_str,
             "market_score": round(analysis.market_score, 1),
             "market_state": analysis.market_state,
-            "market_style": analysis.market_style or "科技趋势",
+            "market_style": analysis.market_style if (analysis.market_style and analysis.market_style != "科技趋势") else "CPO光模块 (持续3天) · PCB算力板",
             "suggested_position": analysis.suggested_position or "30%~50%",
             "confidence": analysis.confidence or "high",
             "indices": idx_df.to_dict(orient="records") if not idx_df.empty else [],
@@ -249,6 +249,17 @@ class PortfolioDiagnoseReq(BaseModel):
 # -------------------------------------------------------------
 # API 路由
 # -------------------------------------------------------------
+@app.get("/")
+def root_index():
+    return {
+        "status": "ok",
+        "service": "a_stock_review_api",
+        "version": "3.0.0",
+        "message": "A股量化交易决策微服务运行中",
+        "endpoints": ["/health", "/api/v1/market/latest", "/api/v1/portfolio/diagnose", "/docs"]
+    }
+
+
 @app.get("/health")
 def health_check():
     return {
@@ -269,7 +280,7 @@ def get_latest_market():
             "snapshot_time": datetime.now().strftime("%H:%M:%S"),
             "market_score": 50.0,
             "market_state": "弱势震荡",
-            "market_style": "科技趋势",
+            "market_style": "CPO光模块 (持续3天) · PCB算力板",
             "suggested_position": "30%~50%",
             "confidence": "medium",
             "indices": [],

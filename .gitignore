@@ -46,3 +46,11 @@ next-env.d.ts
 #logs
 *.log
 
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+*.db-shm
+*.db-wal
+quant_service/database/

@@ -8,6 +8,14 @@ interface QuantumRadar3DProps {
   marketState?: string;
 }
 
+/**
+ * 全息极光量子引力核心 3D (Aurora Quantum Gravity Core 3D)
+ * 专为量化交易决策打造的高端赛博极光全息能量核：
+ * - 霓虹青 (Electric Cyan) 与极光绿 (Aurora Emerald) 双层动态引力环高速反向自转
+ * - 核心多面体量子晶体晶格发光脉动与能量核呼吸
+ * - 64 颗环绕漫游的极光粒子星尘与光晕
+ * - 灵敏的视差动态投影与悬浮特技光效
+ */
 export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: QuantumRadar3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -15,74 +23,109 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
     const container = containerRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || 160;
-    const height = container.clientHeight || 140;
+    const width = container.clientWidth || 140;
+    const height = container.clientHeight || 120;
 
-    // 1. Scene, Camera, Renderer
+    // 1. Scene, Camera, WebGL Renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.z = 5;
+    camera.position.z = 4.5;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance",
+    });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // 主题色彩计算（红涨绿跌 / 情绪打分）
-    const isBull = score >= 60;
-    const isBear = score < 40;
-    const primaryColor = isBull ? 0x10b981 : isBear ? 0xf43f5e : 0x06b6d4; // 绿(涨)/红(跌)/青蓝(震荡)
-    const secondaryColor = isBull ? 0x06b6d4 : isBear ? 0xa855f7 : 0xf59e0b;
+    // 2. 颜色体系：霓虹青、极光翠绿、纯净星白
+    const cyanHex = 0x06b6d4; // cyan-500 赛博青
+    const emeraldHex = 0x10b981; // emerald-500 极光绿
+    const brightHex = 0x38bdf8; // sky-400 璀璨高光
 
-    // 2. 内层 3D 多面体线框 (Quantum Core)
-    const coreGeo = new THREE.IcosahedronGeometry(1.2, 1);
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // 3. 外层主星环 (Outer Cyan Ring)
+    const outerRingGeo = new THREE.TorusGeometry(1.42, 0.02, 16, 64);
+    const outerRingMat = new THREE.MeshBasicMaterial({
+      color: cyanHex,
+      transparent: true,
+      opacity: 0.8,
+    });
+    const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
+    group.add(outerRing);
+
+    // 4. 次级倾角极光引力环 (Secondary Tilted Gyro Ring)
+    const innerRingGeo = new THREE.TorusGeometry(1.12, 0.016, 16, 64);
+    const innerRingMat = new THREE.MeshBasicMaterial({
+      color: emeraldHex,
+      transparent: true,
+      opacity: 0.85,
+    });
+    const innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
+    innerRing.rotation.x = Math.PI / 3.2;
+    innerRing.rotation.y = Math.PI / 6;
+    group.add(innerRing);
+
+    // 5. 核心悬浮晶格多面体 (Core Quantum Polyhedron)
+    const coreGeo = new THREE.IcosahedronGeometry(0.72, 0);
     const coreMat = new THREE.MeshBasicMaterial({
-      color: primaryColor,
+      color: brightHex,
       wireframe: true,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.85,
     });
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    scene.add(coreMesh);
+    group.add(coreMesh);
 
-    // 3. 核心发光质点球
-    const nucleusGeo = new THREE.SphereGeometry(0.45, 16, 16);
-    const nucleusMat = new THREE.MeshBasicMaterial({
-      color: secondaryColor,
+    // 内部半透明多面体发光内核 (Inner Facet Glow)
+    const innerCoreGeo = new THREE.OctahedronGeometry(0.48, 0);
+    const innerCoreMat = new THREE.MeshBasicMaterial({
+      color: cyanHex,
       wireframe: true,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.55,
     });
-    const nucleusMesh = new THREE.Mesh(nucleusGeo, nucleusMat);
-    scene.add(nucleusMesh);
+    const innerCoreMesh = new THREE.Mesh(innerCoreGeo, innerCoreMat);
+    group.add(innerCoreMesh);
 
-    // 4. 外层动态量子粒子星环 (Orbital Particle Rings)
-    const particleCount = 180;
-    const posArray = new Float32Array(particleCount * 3);
-    const colorArray = new Float32Array(particleCount * 3);
-    const p1 = new THREE.Color(primaryColor);
-    const p2 = new THREE.Color(secondaryColor);
+    // 6. 核心能量质心脉冲球 (Radiant Center Energy Sphere)
+    const centerGeo = new THREE.SphereGeometry(0.18, 16, 16);
+    const centerMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.95,
+    });
+    const centerMesh = new THREE.Mesh(centerGeo, centerMat);
+    group.add(centerMesh);
+
+    // 7. 64 颗极光青与翠绿星云微粒 (Swirling Aurora Star Dust)
+    const particleCount = 64;
+    const posArr = new Float32Array(particleCount * 3);
+    const colorArr = new Float32Array(particleCount * 3);
+
+    const c1 = new THREE.Color(0x06b6d4);
+    const c2 = new THREE.Color(0x10b981);
 
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2;
-      const radius = 1.8 + (Math.random() - 0.5) * 0.4;
-      const x = Math.cos(angle) * radius;
-      const y = (Math.random() - 0.5) * 0.6;
-      const z = Math.sin(angle) * radius;
+      const r = 1.35 + (Math.random() - 0.5) * 0.45;
+      posArr[i * 3] = Math.cos(angle) * r;
+      posArr[i * 3 + 1] = (Math.random() - 0.5) * 0.7;
+      posArr[i * 3 + 2] = Math.sin(angle) * r;
 
-      posArray[i * 3] = x;
-      posArray[i * 3 + 1] = y;
-      posArray[i * 3 + 2] = z;
-
-      const mixed = p1.clone().lerp(p2, Math.random());
-      colorArray[i * 3] = mixed.r;
-      colorArray[i * 3 + 1] = mixed.g;
-      colorArray[i * 3 + 2] = mixed.b;
+      const mixed = i % 2 === 0 ? c1 : c2;
+      colorArr[i * 3] = mixed.r;
+      colorArr[i * 3 + 1] = mixed.g;
+      colorArr[i * 3 + 2] = mixed.b;
     }
 
     const particleGeo = new THREE.BufferGeometry();
-    particleGeo.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
-    particleGeo.setAttribute("color", new THREE.BufferAttribute(colorArray, 3));
+    particleGeo.setAttribute("position", new THREE.BufferAttribute(posArr, 3));
+    particleGeo.setAttribute("color", new THREE.BufferAttribute(colorArr, 3));
 
     const particleMat = new THREE.PointsMaterial({
       size: 0.05,
@@ -90,22 +133,57 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
       transparent: true,
       opacity: 0.85,
     });
-    const particleSystem = new THREE.Points(particleGeo, particleMat);
-    scene.add(particleSystem);
+    const particles = new THREE.Points(particleGeo, particleMat);
+    group.add(particles);
 
-    // 5. 交互与动画循环
-    let mouseX = 0;
-    let mouseY = 0;
-    let frameId: number;
-
+    // 8. 视差悬浮交互
+    let targetRotX = 0;
+    let targetRotY = 0;
     const onMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
-      mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouseY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      targetRotX = ny * 0.45;
+      targetRotY = nx * 0.45;
     };
-    container.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousemove", onMouseMove);
 
-    const onResize = () => {
+    // 9. 动画渲染循环 (特技级脉冲与多维自转)
+    let reqId: number;
+    let clock = new THREE.Clock();
+
+    const animate = () => {
+      reqId = requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      // 多轴高速动态旋转
+      outerRing.rotation.z += 0.008;
+      outerRing.rotation.x = Math.sin(elapsed * 0.8) * 0.2;
+
+      innerRing.rotation.y += 0.012;
+      innerRing.rotation.z -= 0.006;
+
+      coreMesh.rotation.x += 0.01;
+      coreMesh.rotation.y += 0.015;
+
+      innerCoreMesh.rotation.x -= 0.015;
+      innerCoreMesh.rotation.y -= 0.01;
+
+      particles.rotation.y -= 0.006;
+
+      // 核心呼吸发光缩放 (能量脉动)
+      const pulse = 1 + Math.sin(elapsed * 3) * 0.12;
+      centerMesh.scale.set(pulse, pulse, pulse);
+
+      // 视差过渡
+      group.rotation.x += (targetRotX - group.rotation.x) * 0.08;
+      group.rotation.y += (targetRotY - group.rotation.y) * 0.08;
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const handleResize = () => {
       if (!container) return;
       const w = container.clientWidth;
       const h = container.clientHeight;
@@ -115,47 +193,25 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
         renderer.setSize(w, h);
       }
     };
-    window.addEventListener("resize", onResize);
-
-    let clock = new THREE.Clock();
-
-    const animate = () => {
-      frameId = requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
-      const rotSpeed = 0.008 + (score / 100) * 0.015;
-
-      // 核心多面体与粒子自转
-      coreMesh.rotation.x += rotSpeed * 0.7;
-      coreMesh.rotation.y += rotSpeed;
-      nucleusMesh.rotation.y -= rotSpeed * 1.5;
-      particleSystem.rotation.y += rotSpeed * 0.5;
-      particleSystem.rotation.z = Math.sin(elapsedTime * 0.5) * 0.2;
-
-      // 呼吸脉冲缩放
-      const pulse = 1 + Math.sin(elapsedTime * 2.5) * 0.06;
-      coreMesh.scale.set(pulse, pulse, pulse);
-
-      // 鼠标轻微微动跟随
-      camera.position.x += (mouseX * 0.6 - camera.position.x) * 0.05;
-      camera.position.y += (mouseY * 0.6 - camera.position.y) * 0.05;
-      camera.lookAt(scene.position);
-
-      renderer.render(scene, camera);
-    };
-
-    animate();
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      cancelAnimationFrame(frameId);
-      window.removeEventListener("resize", onResize);
-      container.removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(reqId);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("resize", handleResize);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
+      outerRingGeo.dispose();
+      outerRingMat.dispose();
+      innerRingGeo.dispose();
+      innerRingMat.dispose();
       coreGeo.dispose();
       coreMat.dispose();
-      nucleusGeo.dispose();
-      nucleusMat.dispose();
+      innerCoreGeo.dispose();
+      innerCoreMat.dispose();
+      centerGeo.dispose();
+      centerMat.dispose();
       particleGeo.dispose();
       particleMat.dispose();
       renderer.dispose();
@@ -163,11 +219,11 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
   }, [score, marketState]);
 
   return (
-    <div className="relative w-full h-32 flex items-center justify-center overflow-hidden rounded-xl bg-slate-950/40 border border-slate-800/60 shadow-inner">
-      <div ref={containerRef} className="w-full h-full cursor-crosshair" />
-      <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[10px] text-cyan-400/80 font-mono tracking-wider">
+    <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c182b]/80 via-[#08101e]/90 to-[#0e1d35]/80 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+      <div ref={containerRef} className="w-full h-full cursor-crosshair pointer-events-auto" />
+      <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-cyan-300 font-mono tracking-wider">
         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-        QUANTUM 3D CORE
+        AURORA GRAVITY CORE · 3D 全息极光引力核
       </div>
     </div>
   );
