@@ -565,7 +565,7 @@ ${holdingsText}
                   <span className="text-white font-bold truncate">
                     {marketData?.market_style && marketData.market_style !== "科技趋势"
                       ? marketData.market_style
-                      : "CPO光模块 (持续3天) · PCB算力板"}
+                      : "农业种植 (持续2天) · PCB算力板"}
                   </span>
                 </p>
               </div>

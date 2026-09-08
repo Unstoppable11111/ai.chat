@@ -1,11 +1,14 @@
-import { NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getRecommendations, calculateWinRate, getPaperTradingData } from "@/lib/recommendations-db";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const accountStyle = searchParams.get("account") || "aggressive";
+
     const all = await getRecommendations();
     const stats = calculateWinRate(all);
-    const paper = getPaperTradingData(all);
+    const paper = await getPaperTradingData(all, accountStyle);
 
     const todayStr = "2026-09-07";
     const todayPicks = all.filter((item) => item.recommend_date === todayStr);
@@ -13,9 +16,11 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      today_picks: todayPicks.length > 0 ? todayPicks : all.slice(0, 3),
-      history: history.length > 0 ? history : all.slice(3),
+      today_picks: todayPicks.length > 0 ? todayPicks : all.slice(0, 4),
+      history: history.length > 0 ? history : all.slice(4),
       stats,
+      accounts: paper.accounts,
+      active_account: paper.active_account,
       paper_account: paper.paper_account,
       pnl_kline: paper.pnl_kline,
       trade_events: paper.trade_events,

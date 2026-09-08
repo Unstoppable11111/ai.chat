@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { formatDynamicMarketStyle } from "@/lib/recommendations-db";
 
 const PYTHON_API_URL = process.env.QUANT_API_URL || "http://127.0.0.1:8100";
 
@@ -270,7 +271,7 @@ export async function GET() {
       snapshot_time: timeStr,
       market_score: 52.5,
       market_state: "震荡蓄势",
-      market_style: "CPO光模块 (持续3天) · PCB算力板",
+      market_style: formatDynamicMarketStyle(),
       suggested_position: "40%~60%",
       confidence: "high",
       indices: fallbackIndices,

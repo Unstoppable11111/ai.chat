@@ -19,6 +19,7 @@ import {
   PaperAccount,
   DailyPnlCandle,
   TradeEvent,
+  AccountStyle,
 } from "@/lib/recommendations-db";
 import { PnlKlineChart } from "@/components/market/pnl-kline-chart";
 
@@ -28,6 +29,8 @@ interface StockSignalsViewProps {
 }
 
 export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsViewProps) {
+  const [activeAccountStyle, setActiveAccountStyle] = useState<AccountStyle>("aggressive");
+  const [accounts, setAccounts] = useState<PaperAccount[]>([]);
   const [todayPicks, setTodayPicks] = useState<StockRecommendation[]>([]);
   const [history, setHistory] = useState<StockRecommendation[]>([]);
   const [stats, setStats] = useState<WinRateStats | null>(null);
@@ -37,29 +40,37 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
   const [loading, setLoading] = useState(true);
   const [addingCode, setAddingCode] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadSignals() {
-      try {
-        const res = await fetch("/api-market/signals");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success) {
-            setTodayPicks(json.today_picks || []);
-            setHistory(json.history || []);
-            setStats(json.stats || null);
-            setPaperAccount(json.paper_account);
-            setPnlKline(json.pnl_kline || []);
-            setTradeEvents(json.trade_events || []);
-          }
+  const fetchSignals = async (style: AccountStyle = activeAccountStyle, isInitial = false) => {
+    if (isInitial) setLoading(true);
+    try {
+      const res = await fetch(`/api-market/signals?account=${style}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          setTodayPicks(json.today_picks || []);
+          setHistory(json.history || []);
+          setStats(json.stats || null);
+          setPaperAccount(json.paper_account);
+          setAccounts(json.accounts || []);
+          setPnlKline(json.pnl_kline || []);
+          setTradeEvents(json.trade_events || []);
         }
-      } catch (err) {
-        console.error("加载量化金股数据异常:", err);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.error("加载量化金股数据异常:", err);
+    } finally {
+      setLoading(false);
     }
-    loadSignals();
+  };
+
+  useEffect(() => {
+    fetchSignals("aggressive", true);
   }, []);
+
+  const handleSelectAccount = (style: AccountStyle) => {
+    setActiveAccountStyle(style);
+    fetchSignals(style, false);
+  };
 
   const handleQuickAdd = async (pick: StockRecommendation) => {
     setAddingCode(pick.stock_code);
@@ -106,9 +117,12 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
 
   return (
     <div className="space-y-6">
-      {/* 1. 模拟盘资产 HUD 与收益率日 K 线走势图 (含事件打标，从9月1日建仓启动) */}
+      {/* 1. 模拟盘资产 HUD 与收益率日 K 线走势图 (三大风格账户体系，从昨天 2026-09-07 建仓启动) */}
       <PnlKlineChart
         account={paperAccount}
+        accounts={accounts}
+        activeAccountId={activeAccountStyle}
+        onSelectAccount={handleSelectAccount}
         pnlKline={pnlKline}
         events={tradeEvents}
       />

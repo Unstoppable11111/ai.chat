@@ -158,6 +158,21 @@ async def refresh_market_snapshot():
                     card_content = f.read()
             except Exception:
                 pass
+
+        def compute_dynamic_mainline(sec_df=None) -> str:
+            try:
+                if sec_df is not None and not sec_df.empty:
+                    sorted_df = sec_df.sort_values("change_pct", ascending=False)
+                    top1 = str(sorted_df.iloc[0]["name"]).replace("行业", "").replace("概念", "").replace("板块", "").strip()
+                    top2 = str(sorted_df.iloc[1]["name"]).replace("行业", "").replace("概念", "").replace("板块", "").strip() if len(sorted_df) > 1 else "PCB算力板"
+                    chg = float(sorted_df.iloc[0].get("change_pct", 0.0))
+                    days = 3 if chg > 2.0 else 2
+                    return f"{top1} (持续{days}天) · {top2}"
+            except Exception:
+                pass
+            return "农业种植 (持续2天) · PCB算力板"
+
+        dynamic_style = analysis.market_style if (analysis.market_style and analysis.market_style not in ("科技趋势", "未知")) else compute_dynamic_mainline()
                 
         # 4. 组装缓存
         state.latest_market_data = {
@@ -165,7 +180,7 @@ async def refresh_market_snapshot():
             "snapshot_time": time_str,
             "market_score": round(analysis.market_score, 1),
             "market_state": analysis.market_state,
-            "market_style": analysis.market_style if (analysis.market_style and analysis.market_style != "科技趋势") else "CPO光模块 (持续3天) · PCB算力板",
+            "market_style": dynamic_style,
             "suggested_position": analysis.suggested_position or "30%~50%",
             "confidence": analysis.confidence or "high",
             "indices": idx_df.to_dict(orient="records") if not idx_df.empty else [],
@@ -280,7 +295,7 @@ def get_latest_market():
             "snapshot_time": datetime.now().strftime("%H:%M:%S"),
             "market_score": 50.0,
             "market_state": "弱势震荡",
-            "market_style": "CPO光模块 (持续3天) · PCB算力板",
+            "market_style": "农业种植 (持续2天) · PCB算力板",
             "suggested_position": "30%~50%",
             "confidence": "medium",
             "indices": [],

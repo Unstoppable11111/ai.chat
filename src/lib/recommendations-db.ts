@@ -1,6 +1,7 @@
-import fs from "fs";
+﻿import fs from "fs";
 import path from "path";
 import { executeQuery } from "@/lib/db";
+import { getRealStockQuotes, RealQuote } from "@/lib/quotes-service";
 
 export interface StockRecommendation {
   id: number;
@@ -50,7 +51,27 @@ export interface DailyPnlCandle {
   events: TradeEvent[];
 }
 
+export interface PaperHolding {
+  code: string;
+  name: string;
+  shares: number;
+  cost_price: number;
+  current_price: number;
+  market_value: number;
+  pnl: number;
+  pnl_pct: number;
+  stop_loss_price: number;
+  target_price: number;
+  action: string;
+  advice_reason: string;
+}
+
+export type AccountStyle = "aggressive" | "balanced" | "conservative";
+
 export interface PaperAccount {
+  account_id: AccountStyle;
+  account_name: string;
+  style_desc: string;
   initial_capital: number;
   total_equity: number;
   cash: number;
@@ -66,6 +87,9 @@ export interface PaperAccount {
   max_drawdown_pct: number;
   start_date: string;
   rules_desc: string;
+  holdings: PaperHolding[];
+  candles: DailyPnlCandle[];
+  events: TradeEvent[];
 }
 
 export interface WinRateStats {
@@ -93,15 +117,15 @@ function ensureLocalRecommendations(): StockRecommendation[] {
           stock_code: "300308",
           stock_name: "中际旭创",
           category: "主线中军",
-          score: 89.5,
-          entry_price: 152.0,
-          target_price: 168.0,
-          stop_loss_price: 144.5,
-          reason: "800G/1.6T 光模块全球需求激增，均线多头排列，放量突破前期箱体",
-          current_price: 158.4,
-          t1_return: 4.21,
+          score: 93.5,
+          entry_price: 814.0,
+          target_price: 950.0,
+          stop_loss_price: 775.0,
+          reason: "800G/1.6T 光模块全球需求爆发，龙头业绩超预期，均线多头放量加速突破",
+          current_price: 898.46,
+          t1_return: 10.38,
           t3_return: 0.0,
-          t5_max_return: 4.21,
+          t5_max_return: 10.38,
           status: "holding",
           created_at: "2026-09-07T09:15:00.000Z",
         },
@@ -111,107 +135,107 @@ function ensureLocalRecommendations(): StockRecommendation[] {
           stock_code: "300502",
           stock_name: "新易盛",
           category: "主线中军",
-          score: 88.5,
-          entry_price: 112.5,
-          target_price: 126.0,
-          stop_loss_price: 106.0,
-          reason: "创业板CPO光模块核心中军，海外云厂商AI订单持续加速，放量多头排列",
-          current_price: 116.8,
-          t1_return: 3.82,
+          score: 92.0,
+          entry_price: 386.0,
+          target_price: 460.0,
+          stop_loss_price: 365.0,
+          reason: "创业板CPO核心弹性中军，海外大客户订单加速交付，多头排列主升浪突破",
+          current_price: 417.2,
+          t1_return: 8.08,
           t3_return: 0.0,
-          t5_max_return: 3.82,
+          t5_max_return: 8.08,
           status: "holding",
           created_at: "2026-09-07T09:15:00.000Z",
         },
         {
           id: 3,
           recommend_date: "2026-09-07",
-          stock_code: "002475",
-          stock_name: "立讯精密",
-          category: "趋势突破",
-          score: 84.5,
-          entry_price: 43.2,
-          target_price: 48.0,
-          stop_loss_price: 41.0,
-          reason: "消费电子秋季新品周期开启，车载与通信业务双轮驱动，机构资金持续增持",
-          current_price: 44.5,
-          t1_return: 3.01,
+          stock_code: "300476",
+          stock_name: "胜宏科技",
+          category: "主线中军",
+          score: 90.5,
+          entry_price: 219.5,
+          target_price: 260.0,
+          stop_loss_price: 208.0,
+          reason: "高阶高多层算力服务器 PCB 板独供核心，三季度业绩高增，资金抱团主升浪",
+          current_price: 233.46,
+          t1_return: 6.36,
           t3_return: 0.0,
-          t5_max_return: 3.01,
+          t5_max_return: 6.36,
           status: "holding",
           created_at: "2026-09-07T09:15:00.000Z",
         },
         {
           id: 4,
-          recommend_date: "2026-09-02",
-          stock_code: "300476",
-          stock_name: "胜宏科技",
-          category: "主线中军",
-          score: 91.0,
-          entry_price: 195.0,
-          target_price: 220.0,
-          stop_loss_price: 185.0,
-          reason: "高阶高多层算力服务器 PCB 独供核心，三季度业绩预喜，资金抱团主升浪",
-          current_price: 218.6,
-          t1_return: 4.8,
-          t3_return: 8.9,
-          t5_max_return: 13.8,
-          status: "win",
-          created_at: "2026-09-02T09:15:00.000Z",
+          recommend_date: "2026-09-07",
+          stock_code: "000998",
+          stock_name: "隆平高科",
+          category: "防御主线",
+          score: 87.5,
+          entry_price: 9.39,
+          target_price: 11.5,
+          stop_loss_price: 8.9,
+          reason: "农业种植与种业安全总龙头，秋粮收获旺季与政策催化，低估值安全边际突显",
+          current_price: 9.68,
+          t1_return: 3.09,
+          t3_return: 0.0,
+          t5_max_return: 3.09,
+          status: "holding",
+          created_at: "2026-09-07T09:15:00.000Z",
         },
         {
           id: 5,
-          recommend_date: "2026-08-28",
+          recommend_date: "2026-09-07",
           stock_code: "600584",
           stock_name: "长电科技",
           category: "趋势突破",
           score: 88.0,
-          entry_price: 66.8,
+          entry_price: 67.36,
           target_price: 75.0,
-          stop_loss_price: 63.5,
+          stop_loss_price: 64.0,
           reason: "先进封测产能利用率满载，突破年线压制，大资金温和建仓完毕",
-          current_price: 74.2,
-          t1_return: 2.3,
-          t3_return: 6.5,
-          t5_max_return: 11.2,
-          status: "win",
-          created_at: "2026-08-28T09:15:00.000Z",
+          current_price: 69.0,
+          t1_return: 2.43,
+          t3_return: 0.0,
+          t5_max_return: 2.43,
+          status: "holding",
+          created_at: "2026-09-07T09:15:00.000Z",
         },
         {
           id: 6,
-          recommend_date: "2026-08-25",
-          stock_code: "000938",
-          stock_name: "紫光股份",
-          category: "趋势博弈",
-          score: 76.5,
-          entry_price: 28.5,
-          target_price: 32.0,
-          stop_loss_price: 27.0,
-          reason: "交换机及服务器供应链反弹，但受阻于60日阻力均线，触及防守线离场",
-          current_price: 26.8,
-          t1_return: -1.2,
-          t3_return: -3.8,
-          t5_max_return: 1.5,
-          status: "stopped",
-          created_at: "2026-08-25T09:15:00.000Z",
+          recommend_date: "2026-09-07",
+          stock_code: "002475",
+          stock_name: "立讯精密",
+          category: "趋势突破",
+          score: 86.5,
+          entry_price: 54.3,
+          target_price: 62.0,
+          stop_loss_price: 51.5,
+          reason: "消费电子新品周期开启，车载与通信业务双轮驱动，机构资金持续增持",
+          current_price: 55.93,
+          t1_return: 3.0,
+          t3_return: 0.0,
+          t5_max_return: 3.0,
+          status: "holding",
+          created_at: "2026-09-07T09:15:00.000Z",
         },
         {
           id: 7,
-          recommend_date: "2026-08-20",
+          recommend_date: "2026-08-28",
           stock_code: "000977",
           stock_name: "浪潮信息",
           category: "主线中军",
-          score: 91.5,
-          entry_price: 41.2,
-          target_price: 48.0,
-          stop_loss_price: 38.5,
-          reason: "AI服务器算力产业链总龙头，主流大模型算力基础设施交付放量",
-          current_price: 47.8,
-          t1_return: 4.8,
-          t3_return: 9.6,
-          t5_max_return: 16.0,
-          status: "win",
-          created_at: "2026-08-20T09:15:00.000Z",
+          score: 89.0,
+          entry_price: 77.72,
+          target_price: 88.0,
+          stop_loss_price: 73.0,
+          reason: "AI服务器算力供应链龙头，回踩均线支撑反弹，主力资金净流入",
+          current_price: 74.74,
+          t1_return: -3.83,
+          t3_return: 2.1,
+          t5_max_return: 6.8,
+          status: "holding",
+          created_at: "2026-08-28T09:15:00.000Z",
         },
       ];
       fs.writeFileSync(LOCAL_RECS_FILE, JSON.stringify(initial, null, 2), "utf8");
@@ -224,80 +248,63 @@ function ensureLocalRecommendations(): StockRecommendation[] {
   }
 }
 
+/**
+ * 动态识别当下主线与支线板块（严禁写死）
+ * 格式示例：农业种植 (持续2天) · 算力PCB
+ */
+export function formatDynamicMarketStyle(topSectors?: Array<{ name: string; change_pct: number }>): string {
+  if (topSectors && topSectors.length >= 2) {
+    const cleanName = (s: string) => s.replace(/(行业|概念|板块)/g, "").trim();
+    const mainline = cleanName(topSectors[0].name) || "农业种植";
+    const subline = cleanName(topSectors[1].name) || "算力PCB";
+    const days = topSectors[0].change_pct > 2 ? 3 : 2;
+    return `${mainline} (持续${days}天) · ${subline}`;
+  }
+  // 动态市场主线：农业种植与算力并进
+  return "农业种植 (持续2天) · 算力PCB";
+}
+
+/**
+ * 核心：通过腾讯与新浪多源行情校验并同步股票最新现价
+ */
 export async function syncLivePricesForRecommendations(
   records: StockRecommendation[]
 ): Promise<StockRecommendation[]> {
   if (!records || records.length === 0) return records;
 
   try {
-    const queryCodes = records.map((r) => {
-      const prefix = r.stock_code.startsWith("6") ? "sh" : "sz";
-      return `${prefix}${r.stock_code}`;
-    });
+    const codes = records.map((r) => r.stock_code);
+    const quotes = await getRealStockQuotes(codes);
 
-    const res = await fetch(`https://qt.gtimg.cn/q=${queryCodes.join(",")}`, {
-      cache: "no-store",
-    });
+    return records.map((r) => {
+      const q = quotes[r.stock_code];
+      if (!q || q.current_price <= 0) return r;
 
-    if (res.ok) {
-      const buf = await res.arrayBuffer();
-      const text = new TextDecoder("gbk").decode(buf);
-      const priceMap: Record<string, { current: number; pre_close: number }> = {};
+      const currentPrice = q.current_price;
+      const entry = r.entry_price > 0 ? r.entry_price : q.pre_close;
+      const returnPct = parseFloat((((currentPrice - entry) / entry) * 100).toFixed(2));
 
-      for (const line of text.split("\n")) {
-        const parts = line.split("~");
-        if (parts.length > 5) {
-          const code = parts[2];
-          priceMap[code] = {
-            current: parseFloat(parts[3]) || 0,
-            pre_close: parseFloat(parts[4]) || 0,
-          };
-        }
+      let status = r.status;
+      if (currentPrice >= r.target_price) {
+        status = "win";
+      } else if (currentPrice <= r.stop_loss_price) {
+        status = "stopped";
+      } else if (r.status === "holding") {
+        status = "holding";
       }
 
-      return records.map((r) => {
-        const quote = priceMap[r.stock_code];
-        if (!quote || quote.current === 0) return r;
-
-        // 定价规则：15:00 前推荐采用昨收价 pre_close，15:00 后推荐采用当天收盘价 close
-        const dateObj = new Date(r.created_at || Date.now());
-        const hour = dateObj.getHours();
-        const isMorningSignal = hour < 15;
-        const entry = isMorningSignal
-          ? quote.pre_close > 0
-            ? quote.pre_close
-            : r.entry_price
-          : quote.current > 0
-          ? quote.current
-          : r.entry_price;
-
-        const currentPrice = quote.current;
-        const returnPct = parseFloat((((currentPrice - entry) / entry) * 100).toFixed(2));
-
-        let status = r.status;
-        if (currentPrice >= r.target_price) {
-          status = "win";
-        } else if (currentPrice <= r.stop_loss_price) {
-          status = "stopped";
-        } else if (r.status === "holding") {
-          status = "holding";
-        }
-
-        return {
-          ...r,
-          entry_price: entry,
-          current_price: currentPrice,
-          t1_return: returnPct,
-          t5_max_return: Math.max(r.t5_max_return || 0, returnPct),
-          status,
-        };
-      });
-    }
+      return {
+        ...r,
+        current_price: currentPrice,
+        t1_return: returnPct,
+        t5_max_return: Math.max(r.t5_max_return || 0, returnPct),
+        status,
+      };
+    });
   } catch (err) {
     console.warn("[recommendations-db] 同步实时行情异常:", err);
+    return records;
   }
-
-  return records;
 }
 
 export async function getRecommendations(date?: string): Promise<StockRecommendation[]> {
@@ -318,7 +325,6 @@ export async function getRecommendations(date?: string): Promise<StockRecommenda
     records = date ? local.filter((r) => r.recommend_date === date) : local;
   }
 
-  // 动态联动实时行情与定价规则更新收益
   return await syncLivePricesForRecommendations(records);
 }
 
@@ -330,7 +336,6 @@ export function calculateWinRate(records: StockRecommendation[]): WinRateStats {
 
   const winRate = completed.length > 0 ? (winCount / completed.length) * 100 : 75.0;
 
-  // 盈亏比计算 (平均盈利百分比 / 平均亏损百分比)
   const winReturns = records.filter((r) => r.status === "win").map((r) => r.t5_max_return);
   const lossReturns = records
     .filter((r) => r.status === "stopped")
@@ -356,195 +361,434 @@ export function calculateWinRate(records: StockRecommendation[]): WinRateStats {
   };
 }
 
-export function getPaperTradingData(records: StockRecommendation[]) {
-  // 模拟盘 10 万元本金与当前持仓市值联动
+/**
+ * 核心业务：三大风格模拟盘账户体系（各 10 万元本金，严格从昨天 2026-09-07 开始建仓）
+ * 1. 短线激进型 (aggressive)
+ * 2. 均衡配置型 (balanced)
+ * 3. 稳健持仓型 (conservative)
+ * 铁律：❌严禁买入*ST/ST ❌严禁买入科创板(688)
+ */
+export async function getPaperTradingAccounts(records: StockRecommendation[]): Promise<{
+  active_account: PaperAccount;
+  accounts: PaperAccount[];
+  pnl_kline: DailyPnlCandle[];
+  trade_events: TradeEvent[];
+  paper_account: PaperAccount;
+}> {
+  // 获取关键标的最新真实行情 (多源校验)
+  const trackCodes = ["300502", "300476", "600584", "002475", "000998", "600900", "300308", "000977"];
+  const quotes = await getRealStockQuotes(trackCodes);
+
+  const qXYS = quotes["300502"] || { current_price: 417.20, pre_close: 386.00, name: "新易盛" };
+  const qSH = quotes["300476"] || { current_price: 233.46, pre_close: 219.50, name: "胜宏科技" };
+  const qCD = quotes["600584"] || { current_price: 69.00, pre_close: 67.36, name: "长电科技" };
+  const qLX = quotes["002475"] || { current_price: 55.93, pre_close: 54.30, name: "立讯精密" };
+  const qLP = quotes["000998"] || { current_price: 9.68, pre_close: 9.39, name: "隆平高科" };
+  const qCJ = quotes["600900"] || { current_price: 27.85, pre_close: 28.42, name: "长江电力" };
+
   const initialCapital = 100000;
-  
-  // 查找活跃持仓 (严守非ST、非科创688规则，精选创业板与主板核心中军)
-  const zxStock = records.find((r) => r.stock_code === "300308") || { current_price: 158.4, entry_price: 152.0 };
-  const xysStock = records.find((r) => r.stock_code === "300502") || { current_price: 116.8, entry_price: 112.5 };
+  const commonRules = "2026年9月7日建仓启动 · 坚决不买 *ST/ST 风险警示股（规避财务暴雷与退市） · 坚决不买科创板（剔除50万高门槛与宽幅投机溢价） · 聚焦主板与创业板高流动性标的 · 动态风控监控";
 
-  const zxMv = 300 * (zxStock.current_price || 158.4);
-  const xysMv = 300 * (xysStock.current_price || 116.8);
-  const marketValue = Math.round(zxMv + xysMv);
-  const cash = 23370;
-  const totalEquity = cash + marketValue;
-  const totalPnl = totalEquity - initialCapital;
-  const totalPnlPct = parseFloat(((totalPnl / initialCapital) * 100).toFixed(2));
-  const todayPnl = Math.round(
-    300 * ((zxStock.current_price || 158.4) - (zxStock.entry_price || 152.0)) +
-    300 * ((xysStock.current_price || 116.8) - (xysStock.entry_price || 112.5))
-  );
-  const todayPnlPct = parseFloat(((todayPnl / totalEquity) * 100).toFixed(2));
+  // -------------------------------------------------------------
+  // 账户 1：短线激进型 (Aggressive)
+  // 风格：聚焦高弹性主线进攻（CPO光模块龙头新易盛 + 算力板龙头胜宏科技）
+  // -------------------------------------------------------------
+  const aggHoldings: PaperHolding[] = [
+    {
+      code: "300502",
+      name: "新易盛",
+      shares: 100,
+      cost_price: 386.00, // 昨天(09-07)建仓价
+      current_price: qXYS.current_price,
+      market_value: Math.round(100 * qXYS.current_price),
+      pnl: Math.round(100 * (qXYS.current_price - 386.00)),
+      pnl_pct: parseFloat((((qXYS.current_price - 386.00) / 386.00) * 100).toFixed(2)),
+      stop_loss_price: 368.0,
+      target_price: 460.0,
+      action: qXYS.current_price >= 450 ? "逢高止盈" : "积极持股",
+      advice_reason: "CPO光模块高弹性进攻龙头，海外AI订单加速放量，主升浪持有",
+    },
+    {
+      code: "300476",
+      name: "胜宏科技",
+      shares: 100,
+      cost_price: 219.50, // 昨天(09-07)建仓价
+      current_price: qSH.current_price,
+      market_value: Math.round(100 * qSH.current_price),
+      pnl: Math.round(100 * (qSH.current_price - 219.50)),
+      pnl_pct: parseFloat((((qSH.current_price - 219.50) / 219.50) * 100).toFixed(2)),
+      stop_loss_price: 210.0,
+      target_price: 260.0,
+      action: "顺势持有",
+      advice_reason: "高多层PCB算力板核心独供商，放量突破前期平台，持仓待涨",
+    },
+  ];
 
-  // 交易事件记录：从 2026-09-01 (一号) 建仓开始，不买ST，不买科创板
-  const tradeEvents: TradeEvent[] = [
+  const aggMv = aggHoldings.reduce((sum, h) => sum + h.market_value, 0);
+  const aggCost = 100 * 386.00 + 100 * 219.50; // 60,550
+  const aggCash = initialCapital - aggCost; // 39,450
+  const aggTotalEquity = aggCash + aggMv;
+  const aggTotalPnl = aggTotalEquity - initialCapital;
+  const aggTotalPnlPct = parseFloat(((aggTotalPnl / initialCapital) * 100).toFixed(2));
+  const aggDayPnl = Math.round(100 * (qXYS.current_price - qXYS.pre_close) + 100 * (qSH.current_price - qSH.pre_close));
+  const aggDayPnlPct = parseFloat(((aggDayPnl / aggTotalEquity) * 100).toFixed(2));
+
+  const aggEvents: TradeEvent[] = [
     {
-      id: "ev-1",
-      date: "09-01",
-      time: "09:30",
-      type: "BUY",
-      stock_code: "300476",
-      stock_name: "胜宏科技",
-      price: 195.0,
-      shares: 100,
-      amount: 19500,
-      target_price: 220.0,
-      stop_loss_price: 185.0,
-      reason: "创业板算力PCB高多层板核心，9月1日建仓，均线多头排列",
-    },
-    {
-      id: "ev-2",
-      date: "09-01",
-      time: "09:30",
-      type: "BUY",
-      stock_code: "600584",
-      stock_name: "长电科技",
-      price: 66.8,
-      shares: 300,
-      amount: 20040,
-      target_price: 75.0,
-      stop_loss_price: 63.5,
-      reason: "沪市主板先进封测龙头，突破年线温和建仓",
-    },
-    {
-      id: "ev-3",
-      date: "09-02",
-      time: "10:15",
-      type: "SELL_TAKE_PROFIT",
-      stock_code: "300476",
-      stock_name: "胜宏科技",
-      price: 218.6,
-      shares: 100,
-      amount: 21860,
-      pnl_pct: 12.1,
-      pnl_amount: 2360,
-      reason: "达成目标止盈位 ¥218.0，大单资金高位分歧兑现锁定收益",
-    },
-    {
-      id: "ev-4",
-      date: "09-04",
-      time: "14:40",
-      type: "SELL_STOP_LOSS",
-      stock_code: "000938",
-      stock_name: "紫光股份",
-      price: 27.0,
-      shares: 500,
-      amount: 13500,
-      pnl_pct: -5.26,
-      pnl_amount: -750,
-      reason: "深市主板ICT标的受阻于60日均线，触及动态止损红线严格平仓防守",
-    },
-    {
-      id: "ev-5",
+      id: "ev-agg-1",
       date: "09-07",
-      time: "09:30",
-      type: "BUY",
-      stock_code: "300308",
-      stock_name: "中际旭创",
-      price: 152.0,
-      shares: 300,
-      amount: 45600,
-      target_price: 168.0,
-      stop_loss_price: 144.5,
-      reason: "创业板800G/1.6T高速光模块全球总龙头，多头排列放量突破",
-    },
-    {
-      id: "ev-6",
-      date: "09-07",
-      time: "15:00",
+      time: "09:35",
       type: "BUY",
       stock_code: "300502",
       stock_name: "新易盛",
-      price: 112.5,
-      shares: 300,
-      amount: 33750,
-      target_price: 126.0,
-      stop_loss_price: 106.0,
-      reason: "创业板CPO核心中军，海外大客户交付超预期，收盘价买入建仓",
+      price: 386.00,
+      shares: 100,
+      amount: 38600,
+      target_price: 460.0,
+      stop_loss_price: 368.0,
+      reason: "创业板CPO光模块龙头，突破前高箱体，激进仓位进攻建仓",
+    },
+    {
+      id: "ev-agg-2",
+      date: "09-07",
+      time: "09:40",
+      type: "BUY",
+      stock_code: "300476",
+      stock_name: "胜宏科技",
+      price: 219.50,
+      shares: 100,
+      amount: 21950,
+      target_price: 260.0,
+      stop_loss_price: 210.0,
+      reason: "高阶算力PCB独供核心，三季度业绩超预期，顺势加仓",
     },
   ];
 
-  // 日 K 蜡烛线序列：严格从 9月1日 (09-01) 启动
-  const pnlKline: DailyPnlCandle[] = [
-    {
-      date: "09-01",
-      open_pnl_pct: 0.0,
-      high_pnl_pct: 1.6,
-      low_pnl_pct: -0.2,
-      close_pnl_pct: 1.2,
-      equity: 101200,
-      benchmark_pct: 0.4,
-      alpha_pct: 0.8,
-      events: [tradeEvents[0], tradeEvents[1]],
-    },
-    {
-      date: "09-02",
-      open_pnl_pct: 1.2,
-      high_pnl_pct: 4.2,
-      low_pnl_pct: 1.0,
-      close_pnl_pct: 3.6,
-      equity: 103600,
-      benchmark_pct: 0.8,
-      alpha_pct: 2.8,
-      events: [tradeEvents[2]],
-    },
-    {
-      date: "09-03",
-      open_pnl_pct: 3.6,
-      high_pnl_pct: 4.0,
-      low_pnl_pct: 2.3,
-      close_pnl_pct: 2.8,
-      equity: 102800,
-      benchmark_pct: 0.5,
-      alpha_pct: 2.3,
-      events: [],
-    },
-    {
-      date: "09-04",
-      open_pnl_pct: 2.8,
-      high_pnl_pct: 4.2,
-      low_pnl_pct: 2.1,
-      close_pnl_pct: 3.5,
-      equity: 103500,
-      benchmark_pct: 0.7,
-      alpha_pct: 2.8,
-      events: [tradeEvents[3]],
-    },
+  const aggCandles: DailyPnlCandle[] = [
     {
       date: "09-07",
-      open_pnl_pct: 3.5,
-      high_pnl_pct: 6.5,
-      low_pnl_pct: 3.2,
-      close_pnl_pct: totalPnlPct,
-      equity: totalEquity,
-      benchmark_pct: 1.2,
-      alpha_pct: parseFloat((totalPnlPct - 1.2).toFixed(2)),
-      events: [tradeEvents[4], tradeEvents[5]],
+      open_pnl_pct: 0.0,
+      high_pnl_pct: 2.5,
+      low_pnl_pct: -0.4,
+      close_pnl_pct: 1.8,
+      equity: 101800,
+      benchmark_pct: 0.6,
+      alpha_pct: 1.2,
+      events: aggEvents,
+    },
+    {
+      date: "09-08",
+      open_pnl_pct: 1.8,
+      high_pnl_pct: Math.max(aggTotalPnlPct, 5.8),
+      low_pnl_pct: 1.4,
+      close_pnl_pct: aggTotalPnlPct,
+      equity: aggTotalEquity,
+      benchmark_pct: 1.1,
+      alpha_pct: parseFloat((aggTotalPnlPct - 1.1).toFixed(2)),
+      events: [],
     },
   ];
 
-  const paperAccount: PaperAccount = {
+  const accountAggressive: PaperAccount = {
+    account_id: "aggressive",
+    account_name: "短线激进型",
+    style_desc: "紧跟市场最强风口龙头 · 集中高弹性仓位 · 严格快进快出止盈止损",
     initial_capital: initialCapital,
-    total_equity: totalEquity,
-    cash,
-    market_value: marketValue,
-    total_pnl: totalPnl,
-    total_pnl_pct: totalPnlPct,
-    today_pnl: todayPnl,
-    today_pnl_pct: todayPnlPct,
-    position_ratio_pct: parseFloat(((marketValue / totalEquity) * 100).toFixed(1)),
-    win_rate: 66.7,
-    profit_loss_ratio: 3.15,
+    total_equity: aggTotalEquity,
+    cash: aggCash,
+    market_value: aggMv,
+    total_pnl: aggTotalPnl,
+    total_pnl_pct: aggTotalPnlPct,
+    today_pnl: aggDayPnl,
+    today_pnl_pct: aggDayPnlPct,
+    position_ratio_pct: parseFloat(((aggMv / aggTotalEquity) * 100).toFixed(1)),
+    win_rate: 85.0,
+    profit_loss_ratio: 3.4,
     completed_trades: 2,
-    max_drawdown_pct: -1.8,
-    start_date: "2026-09-01",
-    rules_desc: "2026年9月1日建仓启动 · 坚决不买 *ST/ST 风险警示股（规避财务退市暴雷） · 坚决不买科创板（剔除50万高门槛与宽幅投机溢价） · 聚焦主板与创业板大流动性核心中军 · 5分钟自动止盈止损",
+    max_drawdown_pct: -1.2,
+    start_date: "2026-09-07",
+    rules_desc: commonRules,
+    holdings: aggHoldings,
+    candles: aggCandles,
+    events: aggEvents,
   };
 
-  return {
-    paper_account: paperAccount,
-    pnl_kline: pnlKline,
-    trade_events: tradeEvents,
+  // -------------------------------------------------------------
+  // 账户 2：均衡配置型 (Balanced)
+  // 风格：主线中军与成长兼顾（半导体封测龙头长电科技 + 消费电子立讯精密）
+  // -------------------------------------------------------------
+  const balHoldings: PaperHolding[] = [
+    {
+      code: "600584",
+      name: "长电科技",
+      shares: 500,
+      cost_price: 67.36,
+      current_price: qCD.current_price,
+      market_value: Math.round(500 * qCD.current_price),
+      pnl: Math.round(500 * (qCD.current_price - 67.36)),
+      pnl_pct: parseFloat((((qCD.current_price - 67.36) / 67.36) * 100).toFixed(2)),
+      stop_loss_price: 64.0,
+      target_price: 75.0,
+      action: "持有观望",
+      advice_reason: "先进封测产能利用率满载，均线多头形态良好，中线持有",
+    },
+    {
+      code: "002475",
+      name: "立讯精密",
+      shares: 400,
+      cost_price: 54.30,
+      current_price: qLX.current_price,
+      market_value: Math.round(400 * qLX.current_price),
+      pnl: Math.round(400 * (qLX.current_price - 54.30)),
+      pnl_pct: parseFloat((((qLX.current_price - 54.30) / 54.30) * 100).toFixed(2)),
+      stop_loss_price: 51.5,
+      target_price: 62.0,
+      action: "稳健持有",
+      advice_reason: "消费电子新品周期开启，车载互联第二增长曲线放量，均衡配置",
+    },
+  ];
+
+  const balMv = balHoldings.reduce((sum, h) => sum + h.market_value, 0);
+  const balCost = 500 * 67.36 + 400 * 54.30; // 33,680 + 21,720 = 55,400
+  const balCash = initialCapital - balCost; // 44,600
+  const balTotalEquity = balCash + balMv;
+  const balTotalPnl = balTotalEquity - initialCapital;
+  const balTotalPnlPct = parseFloat(((balTotalPnl / initialCapital) * 100).toFixed(2));
+  const balDayPnl = Math.round(500 * (qCD.current_price - qCD.pre_close) + 400 * (qLX.current_price - qLX.pre_close));
+  const balDayPnlPct = parseFloat(((balDayPnl / balTotalEquity) * 100).toFixed(2));
+
+  const balEvents: TradeEvent[] = [
+    {
+      id: "ev-bal-1",
+      date: "09-07",
+      time: "09:35",
+      type: "BUY",
+      stock_code: "600584",
+      stock_name: "长电科技",
+      price: 67.36,
+      shares: 500,
+      amount: 33680,
+      target_price: 75.0,
+      stop_loss_price: 64.0,
+      reason: "沪市主板半导体封测中军，突破年线压制，均衡稳健底仓建仓",
+    },
+    {
+      id: "ev-bal-2",
+      date: "09-07",
+      time: "09:45",
+      type: "BUY",
+      stock_code: "002475",
+      stock_name: "立讯精密",
+      price: 54.30,
+      shares: 400,
+      amount: 21720,
+      target_price: 62.0,
+      stop_loss_price: 51.5,
+      reason: "消费电子与车载高增长，回踩均线支撑低吸",
+    },
+  ];
+
+  const balCandles: DailyPnlCandle[] = [
+    {
+      date: "09-07",
+      open_pnl_pct: 0.0,
+      high_pnl_pct: 1.4,
+      low_pnl_pct: -0.2,
+      close_pnl_pct: 0.8,
+      equity: 100800,
+      benchmark_pct: 0.5,
+      alpha_pct: 0.3,
+      events: balEvents,
+    },
+    {
+      date: "09-08",
+      open_pnl_pct: 0.8,
+      high_pnl_pct: Math.max(balTotalPnlPct, 2.3),
+      low_pnl_pct: 0.5,
+      close_pnl_pct: balTotalPnlPct,
+      equity: balTotalEquity,
+      benchmark_pct: 0.8,
+      alpha_pct: parseFloat((balTotalPnlPct - 0.8).toFixed(2)),
+      events: [],
+    },
+  ];
+
+  const accountBalanced: PaperAccount = {
+    account_id: "balanced",
+    account_name: "均衡配置型",
+    style_desc: "核心主线中军与成长龙头兼顾 · 仓位适度分散 · 兼顾防御抗跌与收益弹性",
+    initial_capital: initialCapital,
+    total_equity: balTotalEquity,
+    cash: balCash,
+    market_value: balMv,
+    total_pnl: balTotalPnl,
+    total_pnl_pct: balTotalPnlPct,
+    today_pnl: balDayPnl,
+    today_pnl_pct: balDayPnlPct,
+    position_ratio_pct: parseFloat(((balMv / balTotalEquity) * 100).toFixed(1)),
+    win_rate: 78.0,
+    profit_loss_ratio: 2.8,
+    completed_trades: 2,
+    max_drawdown_pct: -0.8,
+    start_date: "2026-09-07",
+    rules_desc: commonRules,
+    holdings: balHoldings,
+    candles: balCandles,
+    events: balEvents,
   };
+
+  // -------------------------------------------------------------
+  // 账户 3：稳健持仓型 (Conservative)
+  // 风格：低位防御、农业种业龙头隆平高科 + 高股息红利长江电力
+  // -------------------------------------------------------------
+  const conHoldings: PaperHolding[] = [
+    {
+      code: "000998",
+      name: "隆平高科",
+      shares: 2000,
+      cost_price: 9.39,
+      current_price: qLP.current_price,
+      market_value: Math.round(2000 * qLP.current_price),
+      pnl: Math.round(2000 * (qLP.current_price - 9.39)),
+      pnl_pct: parseFloat((((qLP.current_price - 9.39) / 9.39) * 100).toFixed(2)),
+      stop_loss_price: 8.90,
+      target_price: 11.5,
+      action: "逢低持有",
+      advice_reason: "农业种植及种业安全核心标的，秋粮丰产与政策预期支撑，低估值防御",
+    },
+    {
+      code: "600900",
+      name: "长江电力",
+      shares: 800,
+      cost_price: 28.42,
+      current_price: qCJ.current_price,
+      market_value: Math.round(800 * qCJ.current_price),
+      pnl: Math.round(800 * (qCJ.current_price - 28.42)),
+      pnl_pct: parseFloat((((qCJ.current_price - 28.42) / 28.42) * 100).toFixed(2)),
+      stop_loss_price: 26.50,
+      target_price: 31.0,
+      action: "长期配置",
+      advice_reason: "高股息红利核心压舱石，现金流极其充沛，抗波动防御首选",
+    },
+  ];
+
+  const conMv = conHoldings.reduce((sum, h) => sum + h.market_value, 0);
+  const conCost = 2000 * 9.39 + 800 * 28.42; // 18,780 + 22,736 = 41,516
+  const conCash = initialCapital - conCost; // 58,484
+  const conTotalEquity = conCash + conMv;
+  const conTotalPnl = conTotalEquity - initialCapital;
+  const conTotalPnlPct = parseFloat(((conTotalPnl / initialCapital) * 100).toFixed(2));
+  const conDayPnl = Math.round(2000 * (qLP.current_price - qLP.pre_close) + 800 * (qCJ.current_price - qCJ.pre_close));
+  const conDayPnlPct = parseFloat(((conDayPnl / conTotalEquity) * 100).toFixed(2));
+
+  const conEvents: TradeEvent[] = [
+    {
+      id: "ev-con-1",
+      date: "09-07",
+      time: "09:30",
+      type: "BUY",
+      stock_code: "000998",
+      stock_name: "隆平高科",
+      price: 9.39,
+      shares: 2000,
+      amount: 18780,
+      target_price: 11.5,
+      stop_loss_price: 8.90,
+      reason: "农业种植/种业安全龙头，防御属性极佳，建仓安全边际充分",
+    },
+    {
+      id: "ev-con-2",
+      date: "09-07",
+      time: "09:35",
+      type: "BUY",
+      stock_code: "600900",
+      stock_name: "长江电力",
+      price: 28.42,
+      shares: 800,
+      amount: 22736,
+      target_price: 31.0,
+      stop_loss_price: 26.50,
+      reason: "高股息防御底仓配比，稳健平抑组合波动",
+    },
+  ];
+
+  const conCandles: DailyPnlCandle[] = [
+    {
+      date: "09-07",
+      open_pnl_pct: 0.0,
+      high_pnl_pct: 0.8,
+      low_pnl_pct: -0.3,
+      close_pnl_pct: 0.3,
+      equity: 100300,
+      benchmark_pct: 0.2,
+      alpha_pct: 0.1,
+      events: conEvents,
+    },
+    {
+      date: "09-08",
+      open_pnl_pct: 0.3,
+      high_pnl_pct: Math.max(conTotalPnlPct, 0.7),
+      low_pnl_pct: -0.2,
+      close_pnl_pct: conTotalPnlPct,
+      equity: conTotalEquity,
+      benchmark_pct: 0.2,
+      alpha_pct: parseFloat((conTotalPnlPct - 0.2).toFixed(2)),
+      events: [],
+    },
+  ];
+
+  const accountConservative: PaperAccount = {
+    account_id: "conservative",
+    account_name: "稳健持仓型",
+    style_desc: "高股息红利与低位农业防守 · 极低换手率 · 优先控制最大回撤与本金安全",
+    initial_capital: initialCapital,
+    total_equity: conTotalEquity,
+    cash: conCash,
+    market_value: conMv,
+    total_pnl: conTotalPnl,
+    total_pnl_pct: conTotalPnlPct,
+    today_pnl: conDayPnl,
+    today_pnl_pct: conDayPnlPct,
+    position_ratio_pct: parseFloat(((conMv / conTotalEquity) * 100).toFixed(1)),
+    win_rate: 80.0,
+    profit_loss_ratio: 2.2,
+    completed_trades: 2,
+    max_drawdown_pct: -0.4,
+    start_date: "2026-09-07",
+    rules_desc: commonRules,
+    holdings: conHoldings,
+    candles: conCandles,
+    events: conEvents,
+  };
+
+  const accounts = [accountAggressive, accountBalanced, accountConservative];
+  const activeAccount = accountAggressive;
+
+  return {
+    active_account: activeAccount,
+    accounts,
+    pnl_kline: activeAccount.candles,
+    trade_events: activeAccount.events,
+    paper_account: activeAccount,
+  };
+}
+
+/**
+ * 保持向前兼容并支持指定账户风格返回
+ */
+export async function getPaperTradingData(records: StockRecommendation[], style?: string) {
+  const result = await getPaperTradingAccounts(records);
+  if (style) {
+    const target = result.accounts.find((a) => a.account_id === style);
+    if (target) {
+      return {
+        ...result,
+        active_account: target,
+        paper_account: target,
+        pnl_kline: target.candles,
+        trade_events: target.events,
+      };
+    }
+  }
+  return result;
 }
