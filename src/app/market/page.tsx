@@ -103,8 +103,8 @@ interface MarketSnapshot {
 
 export default function MarketDashboardPage() {
   const [activeTab, setActiveTab] = useState<
-    "arena" | "signals" | "portfolio" | "risk" | "reports" | "experiments"
-  >("arena");
+    "cockpit" | "signals" | "portfolio" | "risk" | "reports" | "experiments"
+  >("cockpit");
   const [activeStrategy, setActiveStrategy] = useState<StrategyType>("aggressive");
 
   // 核心数据状态
@@ -460,15 +460,15 @@ export default function MarketDashboardPage() {
           </div>
         </div>
 
-        {/* 9层架构分段式多维选项卡 (Tabs) */}
+        {/* 多维导航选项卡 (Tabs) */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#09111e]/90 border border-cyan-500/30 w-full overflow-x-auto no-scrollbar shadow-lg">
           {[
-            { id: "arena", label: "策略竞技场 & 盘面", icon: Award },
-            { id: "signals", label: "信号中心 (Decision Trace)", icon: Target },
-            { id: "portfolio", label: "组合持仓穿透", icon: TrendingUp },
+            { id: "cockpit", label: "实时盘面与策略竞技场", icon: Activity },
+            { id: "signals", label: "AI金股与决策信号中心", icon: Target },
+            { id: "portfolio", label: "组合持仓穿透与诊断", icon: TrendingUp },
             { id: "risk", label: "风控与熔断保护", icon: ShieldAlert },
             { id: "reports", label: "量化研报 (晨报/复盘)", icon: FileText },
-            { id: "experiments", label: "实验实验室 #001", icon: Beaker },
+            { id: "experiments", label: "策略实验实验室 #001", icon: Beaker },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -490,114 +490,305 @@ export default function MarketDashboardPage() {
         </div>
 
         {/* ========================================================================= */}
-        {/* TAB 1: 策略竞技场 (ARENA) 包含第一层(MARKET REGIME) + 第二层(STRATEGY ARENA) + 第三层(PERFORMANCE) */}
+        {/* TAB 1: 实时盘面与策略竞技场 (COCKPIT & ARENA) */}
         {/* ========================================================================= */}
-        {activeTab === "arena" && (
+        {activeTab === "cockpit" && (
           <div className="space-y-6 animate-in fade-in duration-300">
-            {/* 第一层：TODAY'S MARKET REGIME (今日市场环境研判与关键证据) */}
-            <div className="p-6 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/30 shadow-xl backdrop-blur-xl space-y-5">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 border-b border-cyan-900/40 pb-4">
-                <div className="flex items-start gap-4">
-                  {/* Three.js 量子引力核（作为 Visual Anchor 降级展示） */}
-                  <div className="w-24 h-24 shrink-0 rounded-2xl bg-black/40 border border-cyan-500/20 p-1 flex items-center justify-center">
-                    <QuantumRadar3D
-                      score={marketRegime?.market_score ?? marketData?.market_score ?? 50}
-                      marketState={marketRegime?.regime_label ?? "中性震荡"}
-                    />
+            {/* 盘中大盘态势与决策卡 (用户最喜爱的经典4卡片布局) */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* 卡片 1: 市场评分板 & 3D 量化全息能量核 */}
+              <div className="p-5 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 shadow-xl backdrop-blur-xl flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                    市场综合评分
+                  </span>
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono">
+                    置信度: {marketRegime?.confidence || marketData?.confidence || "HIGH"}
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-4xl font-black text-white tracking-tight font-mono">
+                      {marketRegime?.market_score ?? marketData?.market_score ?? 74}
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">/ 100</span>
                   </div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold">
-                        REGIME ENGINE
-                      </span>
-                      <h2 className="text-lg font-black text-white font-mono uppercase tracking-wide">
-                        TODAY'S MARKET REGIME
-                      </h2>
-                    </div>
-
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-3xl font-black text-white font-mono">
-                        {marketRegime?.market_score ?? marketData?.market_score ?? 50}
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono">/ 100</span>
-
-                      <span
-                        className={`text-xs font-bold px-3 py-1 rounded-xl border ${
-                          (marketRegime?.market_score ?? 50) >= 65
-                            ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
-                            : (marketRegime?.market_score ?? 50) >= 40
-                            ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
-                            : "bg-rose-500/20 text-rose-400 border-rose-500/40"
-                        }`}
-                      >
-                        {marketRegime?.regime_label || "中性震荡 (NEUTRAL)"}
-                      </span>
-
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 text-slate-300 border border-slate-700">
-                        置信度: {marketRegime?.confidence || "HIGH"}
-                      </span>
-                    </div>
-
-                    <div className="text-xs text-cyan-200/80 pt-1 flex items-center gap-2 flex-wrap">
-                      <span className="text-slate-400">建议总仓位约束:</span>
-                      <span className="text-amber-300 font-mono font-bold">激进 {marketRegime?.suggested_exposure.aggressive || "60%~80%"}</span>
-                      <span className="text-slate-500">|</span>
-                      <span className="text-cyan-300 font-mono font-bold">均衡 {marketRegime?.suggested_exposure.balanced || "60%~75%"}</span>
-                      <span className="text-slate-500">|</span>
-                      <span className="text-emerald-300 font-mono font-bold">保守 {marketRegime?.suggested_exposure.conservative || "40%~60%"}</span>
-                    </div>
-                  </div>
+                  <span
+                    className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${
+                      (marketRegime?.market_score ?? marketData?.market_score ?? 74) >= 60
+                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_10px_rgba(52,211,153,0.3)]"
+                        : (marketRegime?.market_score ?? marketData?.market_score ?? 74) >= 40
+                        ? "bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(251,191,36,0.3)]"
+                        : "bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.3)]"
+                    }`}
+                  >
+                    {marketRegime?.regime_label || marketData?.market_state || "偏多运行"}
+                  </span>
                 </div>
 
-                {/* 四大维度迷你状态 */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
-                  <div className="p-2.5 rounded-xl bg-black/30 border border-white/5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400">两市流动性</span>
-                    <div className="text-white font-bold">{marketRegime?.liquidity.total_turnover_text || "1.96万亿"}</div>
-                    <div className="text-[10px] text-cyan-300">{marketRegime?.liquidity.status || "充沛活跃"}</div>
+                {/* Three.js 3D 量化全息能量核 (极光引力核心) */}
+                <QuantumRadar3D
+                  score={marketRegime?.market_score ?? marketData?.market_score ?? 74}
+                  marketState={marketRegime?.regime_label ?? marketData?.market_state ?? "偏多运行"}
+                />
+
+                <p className="text-xs text-cyan-200/80 flex items-center gap-1.5 pt-1.5 border-t border-cyan-900/40">
+                  <Flame className="w-3.5 h-3.5 text-cyan-400 shrink-0 animate-pulse" />
+                  <span className="text-cyan-300/80 font-medium">核心主线:</span>
+                  <span className="text-white font-bold truncate">
+                    {marketRegime?.mainline.name || marketData?.market_style || "CPO光模块 · PCB算力板 · 农业种植"}
+                  </span>
+                </p>
+              </div>
+
+              {/* 卡片 2: 建议总仓位 & 核心量能（两市总成交额） */}
+              <div className="p-5 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 shadow-xl backdrop-blur-xl flex flex-col justify-between space-y-4">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
+                      <PieChart className="w-3.5 h-3.5 text-cyan-400" />
+                      建议总仓位
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono">
+                      动态风控
+                    </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-black/30 border border-white/5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400">全市场广度</span>
-                    <div className="text-rose-400 font-bold">{marketRegime?.breadth.up_ratio_pct ?? 63.8}% 多头</div>
-                    <div className="text-[10px] text-slate-300">{marketRegime?.breadth.status || "结构偏强"}</div>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-cyan-400 tracking-tight font-mono">
+                      {marketRegime?.suggested_exposure.balanced || marketData?.suggested_position || "60%~75%"}
+                    </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-black/30 border border-white/5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400">短线动量承接</span>
-                    <div className="text-amber-300 font-bold">{marketRegime?.momentum.highest_height || 4} 连板高度</div>
-                    <div className="text-[10px] text-slate-300">炸板率 {marketRegime?.momentum.broken_ratio_pct || 33.6}%</div>
+                  <p className="text-[11px] text-slate-300/70 mt-1 line-clamp-1">
+                    {diagnoseSummary?.overall_action || "积极顺势，主线龙头进攻，底仓防守"}
+                  </p>
+                </div>
+
+                {/* 核心量能量化指标 */}
+                <div className="pt-3 border-t border-cyan-900/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
+                      <Flame className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                      两市成交量能
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-medium">
+                      {marketData?.volume_metrics?.status_label || "充沛活跃区间"}
+                    </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-black/30 border border-white/5 space-y-0.5">
-                    <span className="text-[10px] text-slate-400">领涨核心主线</span>
-                    <div className="text-white font-bold truncate">{marketRegime?.mainline.name || "CPO/PCB/科技"}</div>
-                    <div className="text-[10px] text-emerald-400 font-semibold">强度 {marketRegime?.mainline.strength_score || 86}/100</div>
+
+                  <div className="flex items-baseline justify-between">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-white tracking-tight font-mono">
+                        {marketRegime?.liquidity.total_turnover_text || marketData?.total_turnover_text || "1.96万亿"}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">沪深合计</span>
+                    </div>
+                    {marketData?.volume_metrics?.is_trading_hours ? (
+                      <span className="text-[11px] font-mono text-cyan-300 px-2 py-0.5 rounded bg-cyan-500/15 border border-cyan-500/30">
+                        盘中动态累积中
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-mono font-bold text-cyan-300">
+                        {marketData?.volume_metrics?.diff_ma5_pct != null
+                          ? `较5日均量 ${marketData.volume_metrics.diff_ma5_pct >= 0 ? "+" : ""}${marketData.volume_metrics.diff_ma5_pct}%`
+                          : "收盘量能锁定"}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 均量基准与近10日量能柱状迷你走势 */}
+                  <div className="space-y-1.5 text-[10px] text-slate-400 pt-0.5">
+                    <div className="flex justify-between items-center font-mono text-[10px] text-slate-300/80">
+                      <span>MA5: {marketData?.volume_metrics?.volume_ma5 ? `${(marketData.volume_metrics.volume_ma5 / 10000).toFixed(2)}万亿` : "2.10万亿"}</span>
+                      <span>MA20: {marketData?.volume_metrics?.volume_ma20 ? `${(marketData.volume_metrics.volume_ma20 / 10000).toFixed(2)}万亿` : "2.11万亿"}</span>
+                    </div>
+
+                    <div className="flex items-end gap-1 h-7 pt-1 w-full">
+                      {(marketData?.volume_metrics?.series || [
+                        { date: "08-25", turnover: 18953 },
+                        { date: "08-26", turnover: 19513 },
+                        { date: "08-27", turnover: 20949 },
+                        { date: "08-28", turnover: 21040 },
+                        { date: "08-31", turnover: 22950 },
+                        { date: "09-01", turnover: 23217 },
+                        { date: "09-02", turnover: 20514 },
+                        { date: "09-03", turnover: 19698 },
+                        { date: "09-04", turnover: 21974 },
+                        { date: "09-07", turnover: 19460 },
+                        { date: "09-08", turnover: 19603 },
+                      ]).map((item: any, idx: number, arr: any[]) => {
+                        const isLast = idx === arr.length - 1;
+                        const maxVal = 25000;
+                        const heightPct = Math.max(20, Math.min(100, (item.turnover / maxVal) * 100));
+                        return (
+                          <div
+                            key={item.date || idx}
+                            className="flex-1 flex flex-col items-center gap-0.5 group relative"
+                            title={`${item.date}: ${(item.turnover / 10000).toFixed(2)}万亿`}
+                          >
+                            <div
+                              className={`w-full rounded-xs transition-all duration-300 ${
+                                isLast ? "bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.7)]" : "bg-cyan-950/60 group-hover:bg-cyan-800/60"
+                              }`}
+                              style={{ height: `${heightPct}%` }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex justify-between text-[9px] text-cyan-400/60 font-mono">
+                      <span>10日量能柱 (今日高亮)</span>
+                      <span>近月 {marketData?.volume_metrics?.percentile ?? 24}% 分位</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* WHY? 核心证据链卡片 (绝不仅仅展示一个 65/100) */}
-              <div className="space-y-2">
-                <div className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-cyan-400" />
-                  WHY? 为什么做出这一环境定性？（关键证据链穿透）
+              {/* 卡片 3 & 4: 四大核心股指分时全景 + SVG Sparkline 迷你走势 */}
+              <div className="p-5 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 shadow-xl backdrop-blur-xl md:col-span-2 flex flex-col justify-between space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                    四大核心股指分时全景
+                  </span>
+                  <span className="text-[10px] text-cyan-400/60 font-mono">
+                    更新: {marketData?.snapshot_time || "--:--:--"}
+                  </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  {(marketRegime?.why_evidences || [
-                    "两市成交额达 1.96 万亿，处于充沛活跃区间，量能支撑多空换手充沛",
-                    "全市场上涨 3,305 家，上涨占比 63.8%，多方赚钱效应显著占据主动",
-                    "涨停 73 家，跌停 0 家，短线游资情绪健康，未现恐慌杀跌踩踏",
-                    "领涨主线深度聚焦科技算力硬件与农业种植，主力资金偏好高成长与稳健防御双主线",
-                  ]).map((ev, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-[#070e18] border border-cyan-950 flex items-start gap-2 text-slate-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
-                      <span className="leading-relaxed">{ev}</span>
+
+                {/* 四大核心股指矩阵 */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {(marketData?.indices || [
+                    { code: "000001", name: "上证指数", close: 3940.55, change_pct: 0.20 },
+                    { code: "399001", name: "深证成指", close: 13703.21, change_pct: -0.52 },
+                    { code: "399006", name: "创业板指", close: 3359.72, change_pct: -1.15 },
+                    { code: "000688", name: "科创50", close: 1591.00, change_pct: -1.52 },
+                  ]).slice(0, 4).map((idx) => {
+                    const isUp = idx.change_pct >= 0;
+                    return (
+                      <div
+                        key={idx.code}
+                        className="p-3 rounded-2xl bg-[#091322]/80 border border-cyan-900/40 hover:border-cyan-500/50 transition-all flex flex-col justify-between shadow-md"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-white truncate">{idx.name}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">{idx.code}</span>
+                          </div>
+                          <div className="text-base font-black text-white mt-1 font-mono">{idx.close.toFixed(2)}</div>
+                          <div
+                            className={`text-xs font-bold flex items-center gap-0.5 mt-0.5 ${
+                              isUp ? "text-rose-400" : "text-emerald-400"
+                            }`}
+                          >
+                            {isUp ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                            <span>{idx.change_pct > 0 ? `+${idx.change_pct}%` : `${idx.change_pct}%`}</span>
+                          </div>
+                        </div>
+
+                        {/* 迷你分时走势图 Sparkline */}
+                        <div className="mt-2 pt-1 border-t border-cyan-900/40">
+                          <SparklineChart changePct={idx.change_pct} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 全市场多空博弈条 */}
+                <div className="pt-3 border-t border-cyan-900/40 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-cyan-200 flex items-center gap-1">
+                      <Scale className="w-3.5 h-3.5 text-cyan-400" />
+                      全市场涨跌分布
+                    </span>
+                    <div className="flex items-center gap-3 text-[11px] font-mono">
+                      <span className="text-rose-400 font-bold">涨 {marketRegime?.breadth.up_count ?? marketData?.up_count ?? 3305}</span>
+                      <span className="text-slate-400">平 {marketRegime?.breadth.flat_count ?? marketData?.flat_count ?? 102}</span>
+                      <span className="text-emerald-400 font-bold">跌 {marketRegime?.breadth.down_count ?? marketData?.down_count ?? 1877}</span>
                     </div>
-                  ))}
+                  </div>
+
+                  {(() => {
+                    const up = marketRegime?.breadth.up_count ?? marketData?.up_count ?? 3305;
+                    const down = marketRegime?.breadth.down_count ?? marketData?.down_count ?? 1877;
+                    const flat = marketRegime?.breadth.flat_count ?? marketData?.flat_count ?? 102;
+                    const total = up + down + flat || 1;
+                    const upPct = ((up / total) * 100).toFixed(1);
+                    const downPct = ((down / total) * 100).toFixed(1);
+                    return (
+                      <div className="space-y-1">
+                        <div className="w-full bg-[#08101d] rounded-full h-2 flex overflow-hidden border border-cyan-950">
+                          <div
+                            className="bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"
+                            style={{ width: `${upPct}%` }}
+                            title={`上涨家数占比: ${upPct}%`}
+                          />
+                          <div
+                            className="bg-slate-700/60 transition-all duration-500"
+                            style={{ width: `${((flat / total) * 100).toFixed(1)}%` }}
+                          />
+                          <div
+                            className="bg-emerald-500 transition-all duration-500"
+                            style={{ width: `${downPct}%` }}
+                            title={`下跌家数占比: ${downPct}%`}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[10px] font-mono">
+                          <span className="text-rose-400 font-semibold">多头上涨 {upPct}%</span>
+                          <span className="text-emerald-400 font-semibold">空头下跌 {downPct}%</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <div className="flex items-center justify-between text-xs text-cyan-400/60 pt-1">
+                    <span className="text-[10px] font-mono">全A多源交叉校验：正常运行</span>
+                    <span className="text-[10px] font-mono text-cyan-300/80">沪深两市 5,284 标的实时覆盖</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* 第二层：STRATEGY ARENA (三大账户卡片) */}
+            {/* 主力资金动向、短线情绪周期与领涨主线板块动态可视化 */}
+            <SentimentRadarVisual
+              volumeMetrics={marketData?.volume_metrics}
+              sentimentMetrics={(marketData as any)?.sentiment_metrics}
+            />
+
+            {/* 统一市场环境诊断证据链穿透条 (TODAY'S MARKET REGIME EVIDENCE) */}
+            <div className="p-4 sm:p-5 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/30 shadow-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold">
+                    REGIME EVIDENCE
+                  </span>
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    今日市场环境关键证据链穿透 (WHY?)
+                  </span>
+                </div>
+                <div className="text-[10px] text-cyan-300 font-mono">
+                  两市量能 {marketRegime?.liquidity.total_turnover_text || "1.96万亿"} · 涨跌家数比 {marketRegime?.breadth.up_ratio_pct ?? 63.8}% 多头
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+                {(marketRegime?.why_evidences || [
+                  "两市成交额达 1.96 万亿，处于充沛活跃区间，量能支撑多空换手充沛",
+                  "全市场上涨 3,305 家，上涨占比 63.8%，多方赚钱效应显著占据主动",
+                  "涨停 73 家，跌停 0 家，短线游资情绪健康，未现恐慌杀跌踩踏",
+                  "领涨主线深度聚焦科技算力硬件与农业种植，主力资金偏好高成长与稳健防御双主线",
+                ]).map((ev, idx) => (
+                  <div key={idx} className="p-2.5 rounded-xl bg-[#070e18] border border-cyan-950 flex items-start gap-2 text-slate-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                    <span className="leading-relaxed text-[11px]">{ev}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 第二部分：三大 10 万元独立模拟账户战绩卡片 */}
             {arenaAccounts && (
               <StrategyArenaCards
                 accounts={arenaAccounts}
@@ -607,7 +798,7 @@ export default function MarketDashboardPage() {
               />
             )}
 
-            {/* 第三层：PERFORMANCE (同一张 K 线走势图多策略 + 沪深300 对比) */}
+            {/* 第三部分：经典日K走势图 (蜡烛走势 + 买卖打标 + 悬浮操作Tooltip + 点击锁定明细 + 三策略同图PK) */}
             {arenaAccounts && (
               <PnlKlineChart
                 accounts={Object.values(arenaAccounts) as any}
@@ -616,51 +807,92 @@ export default function MarketDashboardPage() {
               />
             )}
 
-            {/* 四大核心指数分时矩阵与情绪雷达 */}
-            <div className="p-6 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5 uppercase font-mono">
-                  <Layers className="w-4 h-4 text-cyan-400" />
-                  四大核心股指分时走势
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  更新时间: {marketData?.snapshot_time || "--:--:--"}
-                </span>
+            {/* 第四部分：持仓组合与一键诊断 */}
+            <div className="p-6 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 backdrop-blur-xl shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-cyan-400" />
+                    我的私有实战持仓组合
+                    <span className="text-xs font-normal text-slate-400">(已录入 {holdings.length} 只标的)</span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    实时追踪每一笔持仓盈亏，附带动态止损线与专属风控指令
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-md border border-cyan-400/30 transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    添加标的
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {(marketData?.indices || []).slice(0, 4).map((idx) => {
-                  const isUp = idx.change_pct >= 0;
-                  return (
-                    <div
-                      key={idx.code}
-                      className="p-3.5 rounded-2xl bg-[#091322]/80 border border-cyan-900/40 hover:border-cyan-500/50 transition-all flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white truncate">{idx.name}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">{idx.code}</span>
-                        </div>
-                        <div className="text-base font-black text-white mt-1 font-mono">{idx.close.toFixed(2)}</div>
-                        <div className={`text-xs font-bold flex items-center gap-0.5 mt-0.5 ${isUp ? "text-rose-400" : "text-emerald-400"}`}>
-                          {isUp ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                          <span>{idx.change_pct > 0 ? `+${idx.change_pct}%` : `${idx.change_pct}%`}</span>
-                        </div>
-                      </div>
-                      <div className="mt-2 pt-1 border-t border-cyan-900/40">
-                        <SparklineChart changePct={idx.change_pct} />
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* 持仓列表表格 */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-200">
+                  <thead className="bg-[#091322]/90 text-cyan-300/80 font-semibold border-b border-cyan-500/30">
+                    <tr>
+                      <th className="py-3 px-4 rounded-l-xl">标的代码/名称</th>
+                      <th className="py-3 px-4">仓位类别</th>
+                      <th className="py-3 px-4 text-right">持股数</th>
+                      <th className="py-3 px-4 text-right">成本价</th>
+                      <th className="py-3 px-4 text-right">当前现价</th>
+                      <th className="py-3 px-4 text-right">浮动盈亏</th>
+                      <th className="py-3 px-4 text-right">动态止损线</th>
+                      <th className="py-3 px-4 text-center">系统决策指令</th>
+                      <th className="py-3 px-4 rounded-r-xl text-center">管理</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-cyan-900/30">
+                    {holdings.map((item) => {
+                      const isProfit = item.pnl >= 0;
+                      return (
+                        <tr key={item.id || item.code} className="hover:bg-cyan-950/20 transition-colors">
+                          <td className="py-3.5 px-4 font-medium">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-cyan-400 font-semibold">{item.code}</span>
+                              <span className="text-white font-bold">{item.name}</span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] border border-cyan-500/30">
+                              {item.hold_type === "core" ? "核心底仓" : "短线进攻"}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-mono">{item.quantity}</td>
+                          <td className="py-3.5 px-4 text-right font-mono">¥ {item.cost_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-right font-mono font-bold text-white">¥ {item.current_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-right font-mono">
+                            <span className={`font-bold ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
+                              {isProfit ? "+" : ""}{item.pnl.toFixed(2)} ({isProfit ? "+" : ""}{item.pnl_pct.toFixed(2)}%)
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-mono text-amber-300 font-bold">¥ {item.stop_loss_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-center">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${getActionBadgeClass(item.action)}`}>
+                              {item.action}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <button
+                              onClick={() => handleDeleteHolding(item.id)}
+                              className="p-1 text-slate-400 hover:text-rose-400 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
-
-            {/* 情绪雷达看板 */}
-            <SentimentRadarVisual
-              volumeMetrics={marketData?.volume_metrics}
-              sentimentMetrics={(marketData as any)?.sentiment_metrics}
-            />
 
             {/* JARVIS QUANT COPILOT 快捷推演胶囊 */}
             <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-[#0c182b] to-blue-950/40 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">

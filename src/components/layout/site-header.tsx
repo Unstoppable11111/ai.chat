@@ -10,14 +10,28 @@ import { cn } from "@/lib/utils";
 export function SiteHeader() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    let lastScrollY = window.scrollY;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const currentScrollY = window.scrollY;
+      setIsScrolled(currentScrollY > 20);
+
+      // 向下滚动且滚动超过 60px 时隐藏，向上滚动时滑出恢复
+      if (currentScrollY > 60) {
+        if (currentScrollY - lastScrollY > 6) {
+          setIsVisible(false);
+        } else if (lastScrollY - currentScrollY > 6) {
+          setIsVisible(true);
+        }
+      } else {
+        setIsVisible(true);
+      }
+      lastScrollY = currentScrollY;
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -30,7 +44,10 @@ export function SiteHeader() {
   const showGlass = !isHome || isScrolled || mobileMenuOpen;
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 max-w-full overflow-x-clip transition-all duration-500">
+    <header className={cn(
+      "fixed inset-x-0 top-0 z-50 max-w-full overflow-x-clip transition-transform duration-300 ease-in-out",
+      (!isVisible && !mobileMenuOpen) ? "-translate-y-full" : "translate-y-0"
+    )}>
       <div className="container-shell pt-4">
         <div className={cn(
           "flex min-w-0 items-center justify-between gap-3 rounded-[22px] px-3 py-3 md:rounded-[24px] md:px-4 transition-all duration-500",

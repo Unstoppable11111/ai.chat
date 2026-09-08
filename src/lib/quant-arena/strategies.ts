@@ -117,14 +117,14 @@ export function evaluateAggressive(
     data_input: `最新现价 ¥${price.toFixed(2)}，日内涨跌 ${factors!.day_change_pct}%，PE ${p.pe_ttm}，净利增速 ${p.profit_growth_pct}%`,
     factors: `行业=${p.sector}(+${indScore})，成长=+${p.profit_growth_pct}%(+${grScore})，趋势=${ind.is_60d_breakout ? "60D新高突破" : "多头排列"}(+${trScore})，动量=Beta ${p.beta}(+${moScore})`,
     score_eval: `激进综合评分 ${totalScore} / 100（突破入选阈值 75分）`,
-    signal_eval: action === "BUY" ? "触发【放量突破 + 行业龙头共振】买入信号" : action === "HOLD" ? "保持主升浪顺势持有" : "观望或止损",
-    risk_check: "ATR风控检查通过：单票最大25%仓位，硬止损线设定为成本 -5.0%",
-    sizing_rationale: "主升浪高弹性龙头，建议单票仓位 20% ~ 25%，严格执行快速移动止盈止损",
-    execution_plan: "次日开盘买入，包含 0.02% 滑点与万2.5佣金，当日买入计入不可卖持仓 (T+1锁仓)",
-    rule_compliance: "符合激进策略规则：不买ST、不买科创板、动态行业强度Top1",
+    signal_eval: action === "BUY" ? "触发【超短最强龙头 + 放量突破打板】买入信号" : action === "HOLD" ? "龙头主升浪顺势持有，紧盯分时换手" : "观望或止损",
+    risk_check: "超短宽幅止损风控：单票最大25%仓位，硬止损线放大至成本 -7.0%（给予龙头股宽幅震荡洗盘空间，破位坚决离场），目标止盈放大至 +18%~25%",
+    sizing_rationale: "超短快进快出，集中重仓市场最强领涨龙头，单票仓位 20% ~ 25%，次日或第3日冲高分批止盈",
+    execution_plan: "支持打板/排板挂单撮合：需日内有开板换手时间点，若全天一字封死未开板默认排单不成交；严守 T+1 次日或第三日快速冲高止盈",
+    rule_compliance: "符合超短龙头战法规则：快进快出、做最强主线龙头、不惧高位、允许打板回封买入、放大止盈止损",
   };
 
-  return { score: totalScore, detail, signal: action, reason: `${p.sector}高弹性龙头，放量突破形态，业绩与动量双轮驱动`, trace };
+  return { score: totalScore, detail, signal: action, reason: `${p.sector}最强领涨龙头，快进快出打板突破，业绩与超短动量双轮驱动`, trace };
 }
 
 /**
@@ -365,13 +365,13 @@ export function generateStrategyRecommendations(
         score_detail: agg.detail,
         data_as_of: `${dateStr} 15:00:00`,
         signal_time: `${dateStr} ${timeStr}`,
-        execution_time: "次日 09:30:00",
+        execution_time: "次日 09:30:00 (支持日内开板换手回封撮合)",
         current_price: quote.current_price,
-        suggested_entry: parseFloat((quote.current_price * 0.995).toFixed(2)),
-        stop_loss: parseFloat((quote.current_price * 0.95).toFixed(2)),
-        target_price: parseFloat((quote.current_price * 1.15).toFixed(2)),
-        position_size_pct: 20,
-        risk_reward_ratio: 3.0,
+        suggested_entry: parseFloat((quote.current_price * 0.998).toFixed(2)),
+        stop_loss: parseFloat((quote.current_price * 0.93).toFixed(2)), // 宽幅严格止损 -7.0%
+        target_price: parseFloat((quote.current_price * 1.20).toFixed(2)), // 连板止盈目标 +20.0%
+        position_size_pct: 25,
+        risk_reward_ratio: 2.85,
         confidence: "HIGH",
         reason: agg.reason,
         data_quality: quote.source === "cache" ? "MEDIUM" : "HIGH",

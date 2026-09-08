@@ -57,7 +57,7 @@ export function calculateSellExecution(nominalPrice: number, shares: number) {
 }
 
 /**
- * 执行买入模拟撮合 (严格执行 T+1 规则，当日买入 available_shares = 0)
+ * 执行买入模拟撮合 (严格执行 T+1 规则，当日买入 available_shares = 0；支持超短打板开板与未开板撮合规则)
  */
 export function executeBuy(
   account: ArenaAccount,
@@ -72,6 +72,9 @@ export function executeBuy(
     reason: string;
     sector: string;
     beta: number;
+    is_limit_up_order?: boolean;
+    has_opened_limit?: boolean;
+    open_limit_time?: string;
     decision_trace?: DecisionTrace;
   }
 ): { success: boolean; error?: string; order?: TradeOrder } {
@@ -86,11 +89,48 @@ export function executeBuy(
     reason,
     sector,
     beta,
+    is_limit_up_order,
+    has_opened_limit,
+    open_limit_time,
     decision_trace,
   } = params;
 
   if (account.is_protection_mode) {
     return { success: false, error: "账户处于保护模式 (PROTECTION MODE)，锁定开仓" };
+  }
+
+  // 超短打板/排板专属铁律：买入涨停板若全天一字未开板，默认无换手成交机会，判定为未买入
+  if (is_limit_up_order && !has_opened_limit) {
+    const unfillOrder: TradeOrder = {
+      id: `ord-unfill-${account.id}-${date_str}-${stock_code}-${Date.now()}`,
+      date: date_str,
+      signal_time: `${date_str} 09:15:00`,
+      execution_time: `${date_str} 15:00:00 (收盘废单)`,
+      stock_code,
+      stock_name,
+      strategy: account.id,
+      action: "BUY",
+      price: nominal_price,
+      shares: 0,
+      amount: 0,
+      commission: 0,
+      stamp_tax: 0,
+      slippage: 0,
+      total_cost: 0,
+      score,
+      reason: `【打板未成交】全天一字封死未开板，前方巨量封单无法挂入，按超短纪律收盘自动撤单，资金原路保留`,
+      is_limit_up_order: true,
+      has_opened_limit: false,
+      execution_status: "UNFILLED",
+      unfilled_reason: "全天一字板未开板，无换手回封撮合点，按A股真实规则默认未买入",
+      decision_trace,
+    };
+    account.orders.unshift(unfillOrder);
+    return {
+      success: false,
+      error: "全天一字板未开板，排单无法成交，按A股真实规则默认未买入",
+      order: unfillOrder,
+    };
   }
 
   // 计算目标买入资金与股数
@@ -106,6 +146,27 @@ export function executeBuy(
 
   // 扣减现金
   account.cash = parseFloat((account.cash - exec.total_cash_required).toFixed(2));
+
+  // 针对不同策略风格，配置差异化的止盈与止损比例
+  // 激进策略（做最强龙头股，快进快出，放大止盈至 +18%~25%，放大止损至 -7% 容忍剧烈洗盘）
+  // 均衡策略（GARP中军，止盈 +10%，止损 -4.5%）
+  // 保守策略（红利低波，止盈 +6%，止损 -3.0%）
+  let stopLossRatio = 0.95;
+  let targetRatio = 1.15;
+  if (account.id === "aggressive") {
+    stopLossRatio = 0.93; // -7.0% 宽幅止损
+    targetRatio = 1.20;   // +20.0% 主升浪连板止盈
+  } else if (account.id === "balanced") {
+    stopLossRatio = 0.955; // -4.5%
+    targetRatio = 1.10;    // +10.0%
+  } else if (account.id === "conservative") {
+    stopLossRatio = 0.97;  // -3.0%
+    targetRatio = 1.06;    // +6.0%
+  }
+
+  const finalReason = is_limit_up_order && has_opened_limit
+    ? `${reason} (于 ${open_limit_time || "09:42"} 放量开板换手回封，排板挂单撮合成交)`
+    : reason;
 
   // 检查已有持仓
   const existingPos = account.positions.find((p) => p.code === stock_code);
@@ -128,11 +189,11 @@ export function executeBuy(
       weight_pct: parseFloat(((shares * exec.execution_price / account.total_equity) * 100).toFixed(1)),
       pnl: 0,
       pnl_pct: 0,
-      stop_loss_price: parseFloat((exec.execution_price * 0.95).toFixed(2)),
-      target_price: parseFloat((exec.execution_price * 1.15).toFixed(2)),
+      stop_loss_price: parseFloat((exec.execution_price * stopLossRatio).toFixed(2)),
+      target_price: parseFloat((exec.execution_price * targetRatio).toFixed(2)),
       holding_days: 1,
       buy_date: date_str,
-      strategy_reason: reason,
+      strategy_reason: finalReason,
       sector,
       beta,
     });
@@ -142,8 +203,8 @@ export function executeBuy(
   const order: TradeOrder = {
     id: `ord-${account.id}-${date_str}-${stock_code}-${Date.now()}`,
     date: date_str,
-    signal_time: `${date_str} 15:00:00`,
-    execution_time: `${date_str} ${time_str}`,
+    signal_time: `${date_str} 09:15:00`,
+    execution_time: is_limit_up_order && open_limit_time ? `${date_str} ${open_limit_time}` : `${date_str} ${time_str}`,
     stock_code,
     stock_name,
     strategy: account.id,
@@ -156,7 +217,11 @@ export function executeBuy(
     slippage: exec.slippage,
     total_cost: exec.total_cash_required,
     score,
-    reason,
+    reason: finalReason,
+    is_limit_up_order: !!is_limit_up_order,
+    has_opened_limit: !!has_opened_limit,
+    open_limit_time: open_limit_time,
+    execution_status: "FILLED",
     decision_trace,
   };
 

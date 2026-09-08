@@ -84,9 +84,69 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
         beta: 1.36,
       },
     ],
+    account_id: "aggressive",
     equity_series: [
       { date: "09-07", equity: 101850, return_pct: 1.85, benchmark_pct: 0.60, alpha_pct: 1.25, drawdown_pct: 0 },
       { date: "09-08", equity: 104250, return_pct: 4.25, benchmark_pct: 1.10, alpha_pct: 3.15, drawdown_pct: 0 },
+    ],
+    candles: [
+      { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.4, low_pnl_pct: -0.2, close_pnl_pct: 0.1, equity: 100100, benchmark_pct: 0.1, alpha_pct: 0.0, events: [] },
+      { date: "09-02", open_pnl_pct: 0.1, high_pnl_pct: 0.8, low_pnl_pct: -0.1, close_pnl_pct: 0.5, equity: 100500, benchmark_pct: 0.3, alpha_pct: 0.2, events: [] },
+      { date: "09-03", open_pnl_pct: 0.5, high_pnl_pct: 1.2, low_pnl_pct: 0.2, close_pnl_pct: 0.9, equity: 100900, benchmark_pct: 0.4, alpha_pct: 0.5, events: [] },
+      { date: "09-04", open_pnl_pct: 0.9, high_pnl_pct: 1.5, low_pnl_pct: 0.4, close_pnl_pct: 1.1, equity: 101100, benchmark_pct: 0.5, alpha_pct: 0.6, events: [] },
+      {
+        date: "09-07",
+        open_pnl_pct: 1.1,
+        high_pnl_pct: 2.5,
+        low_pnl_pct: 0.8,
+        close_pnl_pct: 1.85,
+        equity: 101850,
+        benchmark_pct: 0.6,
+        alpha_pct: 1.25,
+        events: [
+          {
+            id: "ev-agg-1",
+            date: "09-07",
+            time: "09:30",
+            type: "BUY",
+            stock_code: "300502",
+            stock_name: "新易盛",
+            price: 386.0,
+            shares: 100,
+            amount: 38600,
+            target_price: 463.2,
+            stop_loss_price: 358.98,
+            pnl_pct: 8.08,
+            reason: "CPO光模块龙头，突破前高箱体，主升浪高弹性打板建仓",
+          },
+          {
+            id: "ev-agg-2",
+            date: "09-07",
+            time: "09:30",
+            type: "BUY",
+            stock_code: "300476",
+            stock_name: "胜宏科技",
+            price: 219.5,
+            shares: 100,
+            amount: 21950,
+            target_price: 263.4,
+            stop_loss_price: 204.14,
+            pnl_pct: 6.36,
+            reason: "PCB算力板独供龙头，量比突破平台，快进快出打板进攻",
+          },
+        ],
+      },
+      {
+        date: "09-08",
+        open_pnl_pct: 1.85,
+        high_pnl_pct: 4.8,
+        low_pnl_pct: 1.5,
+        close_pnl_pct: 4.25,
+        equity: 104250,
+        benchmark_pct: 1.1,
+        alpha_pct: 3.15,
+        events: [],
+      },
     ],
     orders: [
       {
@@ -211,9 +271,69 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
         beta: 1.05,
       },
     ],
+    account_id: "balanced",
     equity_series: [
       { date: "09-07", equity: 100800, return_pct: 0.80, benchmark_pct: 0.50, alpha_pct: 0.30, drawdown_pct: 0 },
       { date: "09-08", equity: 102150, return_pct: 2.15, benchmark_pct: 0.80, alpha_pct: 1.35, drawdown_pct: 0 },
+    ],
+    candles: [
+      { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.3, low_pnl_pct: -0.1, close_pnl_pct: 0.1, equity: 100100, benchmark_pct: 0.1, alpha_pct: 0.0, events: [] },
+      { date: "09-02", open_pnl_pct: 0.1, high_pnl_pct: 0.5, low_pnl_pct: 0.0, close_pnl_pct: 0.3, equity: 100300, benchmark_pct: 0.3, alpha_pct: 0.0, events: [] },
+      { date: "09-03", open_pnl_pct: 0.3, high_pnl_pct: 0.7, low_pnl_pct: 0.1, close_pnl_pct: 0.5, equity: 100500, benchmark_pct: 0.4, alpha_pct: 0.1, events: [] },
+      { date: "09-04", open_pnl_pct: 0.5, high_pnl_pct: 0.9, low_pnl_pct: 0.3, close_pnl_pct: 0.6, equity: 100600, benchmark_pct: 0.5, alpha_pct: 0.1, events: [] },
+      {
+        date: "09-07",
+        open_pnl_pct: 0.6,
+        high_pnl_pct: 1.2,
+        low_pnl_pct: 0.4,
+        close_pnl_pct: 0.8,
+        equity: 100800,
+        benchmark_pct: 0.5,
+        alpha_pct: 0.3,
+        events: [
+          {
+            id: "ev-bal-1",
+            date: "09-07",
+            time: "09:35",
+            type: "BUY",
+            stock_code: "600584",
+            stock_name: "长电科技",
+            price: 67.36,
+            shares: 500,
+            amount: 33680,
+            target_price: 74.1,
+            stop_loss_price: 64.33,
+            pnl_pct: 2.43,
+            reason: "半导体封测中军，MA60支撑扎实，PEG估值合理，均衡底仓配置",
+          },
+          {
+            id: "ev-bal-2",
+            date: "09-07",
+            time: "09:35",
+            type: "BUY",
+            stock_code: "002475",
+            stock_name: "立讯精密",
+            price: 54.3,
+            shares: 400,
+            amount: 21720,
+            target_price: 59.73,
+            stop_loss_price: 51.86,
+            pnl_pct: 3.0,
+            reason: "消费电子龙头，估值处于合理分位，业绩持续成长，稳健加仓",
+          },
+        ],
+      },
+      {
+        date: "09-08",
+        open_pnl_pct: 0.8,
+        high_pnl_pct: 2.6,
+        low_pnl_pct: 0.6,
+        close_pnl_pct: 2.15,
+        equity: 102150,
+        benchmark_pct: 0.8,
+        alpha_pct: 1.35,
+        events: [],
+      },
     ],
     orders: [
       {
@@ -338,9 +458,69 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
         beta: 0.42,
       },
     ],
+    account_id: "conservative",
     equity_series: [
       { date: "09-07", equity: 100300, return_pct: 0.30, benchmark_pct: 0.20, alpha_pct: 0.10, drawdown_pct: 0 },
       { date: "09-08", equity: 100850, return_pct: 0.85, benchmark_pct: 0.40, alpha_pct: 0.45, drawdown_pct: 0 },
+    ],
+    candles: [
+      { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.2, low_pnl_pct: -0.1, close_pnl_pct: 0.05, equity: 100050, benchmark_pct: 0.1, alpha_pct: -0.05, events: [] },
+      { date: "09-02", open_pnl_pct: 0.05, high_pnl_pct: 0.3, low_pnl_pct: 0.0, close_pnl_pct: 0.15, equity: 100150, benchmark_pct: 0.3, alpha_pct: -0.15, events: [] },
+      { date: "09-03", open_pnl_pct: 0.15, high_pnl_pct: 0.4, low_pnl_pct: 0.1, close_pnl_pct: 0.2, equity: 100200, benchmark_pct: 0.4, alpha_pct: -0.2, events: [] },
+      { date: "09-04", open_pnl_pct: 0.2, high_pnl_pct: 0.45, low_pnl_pct: 0.15, close_pnl_pct: 0.25, equity: 100250, benchmark_pct: 0.5, alpha_pct: -0.25, events: [] },
+      {
+        date: "09-07",
+        open_pnl_pct: 0.25,
+        high_pnl_pct: 0.5,
+        low_pnl_pct: 0.1,
+        close_pnl_pct: 0.3,
+        equity: 100300,
+        benchmark_pct: 0.2,
+        alpha_pct: 0.1,
+        events: [
+          {
+            id: "ev-con-1",
+            date: "09-07",
+            time: "09:30",
+            type: "BUY",
+            stock_code: "000998",
+            stock_name: "隆平高科",
+            price: 9.39,
+            shares: 2000,
+            amount: 18780,
+            target_price: 9.95,
+            stop_loss_price: 9.11,
+            pnl_pct: 3.09,
+            reason: "种业安全压舱石，低位防御建仓，抗跌低波动",
+          },
+          {
+            id: "ev-con-2",
+            date: "09-07",
+            time: "09:35",
+            type: "BUY",
+            stock_code: "600900",
+            stock_name: "长江电力",
+            price: 28.42,
+            shares: 800,
+            amount: 22736,
+            target_price: 30.13,
+            stop_loss_price: 27.57,
+            pnl_pct: -2.01,
+            reason: "高股息特许垄断核心压舱石，现金流极佳，抗波动首选",
+          },
+        ],
+      },
+      {
+        date: "09-08",
+        open_pnl_pct: 0.3,
+        high_pnl_pct: 1.1,
+        low_pnl_pct: 0.1,
+        close_pnl_pct: 0.85,
+        equity: 100850,
+        benchmark_pct: 0.4,
+        alpha_pct: 0.45,
+        events: [],
+      },
     ],
     orders: [
       {
@@ -422,6 +602,25 @@ export function loadArenaAccounts(): Record<StrategyType, ArenaAccount> {
     const content = fs.readFileSync(ARENA_DATA_FILE, "utf8");
     const accounts = JSON.parse(content);
     if (accounts && accounts.aggressive && accounts.balanced && accounts.conservative) {
+      const initial = createInitialArenaAccounts();
+      let updated = false;
+      for (const t of ["aggressive", "balanced", "conservative"] as StrategyType[]) {
+        if (!accounts[t].account_id) {
+          accounts[t].account_id = accounts[t].id || t;
+          updated = true;
+        }
+        if (!accounts[t].candles || accounts[t].candles.length === 0) {
+          accounts[t].candles = initial[t].candles;
+          updated = true;
+        }
+        if (!accounts[t].events || accounts[t].events.length === 0) {
+          accounts[t].events = initial[t].events;
+          updated = true;
+        }
+      }
+      if (updated) {
+        fs.writeFileSync(ARENA_DATA_FILE, JSON.stringify(accounts, null, 2), "utf8");
+      }
       return accounts;
     }
     const fresh = createInitialArenaAccounts();
@@ -492,6 +691,15 @@ export async function syncArenaAccountsWithRealQuotes(): Promise<Record<Strategy
       // 重新核算持仓个股的权重
       for (const pos of acc.positions) {
         pos.weight_pct = parseFloat(((pos.market_value / acc.total_equity) * 100).toFixed(1));
+      }
+
+      // 同步最新日K线数据
+      if (acc.candles && acc.candles.length > 0) {
+        const lastCandle = acc.candles[acc.candles.length - 1];
+        lastCandle.close_pnl_pct = acc.total_return_pct;
+        lastCandle.equity = acc.total_equity;
+        lastCandle.high_pnl_pct = Math.max(lastCandle.high_pnl_pct, acc.total_return_pct);
+        lastCandle.low_pnl_pct = Math.min(lastCandle.low_pnl_pct, acc.total_return_pct);
       }
 
       // 动态核算风控与熔断保护模式

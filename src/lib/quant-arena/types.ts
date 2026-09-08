@@ -3,6 +3,8 @@
  * 包含：三大策略账户、市场环境、多因子评分、信号中心、A股撮合模型、风控与归因
  */
 
+import type { DailyPnlCandle, TradeEvent, AccountStyle } from "@/lib/recommendations-db";
+
 export type StrategyType = "aggressive" | "balanced" | "conservative";
 
 export type MarketRegime = "BULL" | "NEUTRAL" | "BEAR" | "PANIC";
@@ -183,11 +185,18 @@ export interface TradeOrder {
   pnl_pct?: number;
   holding_days?: number;
   exit_reason?: string;
+  // 超短打板与排板撮合规则扩展
+  is_limit_up_order?: boolean;
+  has_opened_limit?: boolean;
+  open_limit_time?: string;
+  execution_status?: "FILLED" | "UNFILLED" | "CANCELLED";
+  unfilled_reason?: string;
   decision_trace?: DecisionTrace;
 }
 
 export interface ArenaAccount {
   id: StrategyType;
+  account_id?: AccountStyle; // 兼容多组件接口
   name: string;
   version: string;
   initial_capital: number;
@@ -210,6 +219,8 @@ export interface ArenaAccount {
   is_protection_mode: boolean;
   positions: ArenaPosition[];
   equity_series: EquityDataPoint[];
+  candles?: DailyPnlCandle[]; // 每日收益K线蜡烛
+  events?: TradeEvent[];      // 交易事件
   orders: TradeOrder[];
   attribution: PortfolioAttribution;
   risk_metrics: PortfolioRiskMetrics;

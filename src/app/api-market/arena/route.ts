@@ -5,7 +5,7 @@ import {
   getLatestExperiment,
 } from "@/lib/quant-arena/arena-store";
 import { evaluateMarketRegime } from "@/lib/quant-arena/regime-engine";
-import { getRealMarketSentiment, getRealStockQuotes } from "@/lib/quotes-service";
+import { getRealMarketSentiment, fetchRealIndicesAndTurnover } from "@/lib/quotes-service";
 
 export async function GET() {
   try {
@@ -20,38 +20,18 @@ export async function GET() {
       // 容错
     }
 
-    // 3. 拉取四大指数真实行情
-    let indicesData: any[] = [];
-    let turnoverWan = 0;
-    try {
-      const idxQuotes = await getRealStockQuotes(["000001", "399001", "399006", "000688"]);
-      indicesData = Object.values(idxQuotes).map((q) => ({
-        code: q.code,
-        name: q.name,
-        close: q.current_price,
-        change_pct: q.change_pct,
-        amount: q.amount,
-      }));
-      // 上证与深证成交额合计 (转换为亿元)
-      const shAmt = idxQuotes["000001"]?.amount || 0;
-      const szAmt = idxQuotes["399001"]?.amount || 0;
-      turnoverWan = Math.round((shAmt + szAmt) / 100000000);
-    } catch {}
-
-    const turnoverYi = turnoverWan > 0 ? turnoverWan : 19603;
+    // 3. 多源拉取四大指数真实行情与全市场真实量能 (包含腾讯/新浪交叉校验与 >5000 亿安全断言防线)
+    const marketSnapshot = await fetchRealIndicesAndTurnover();
+    const indicesData = marketSnapshot.indices;
+    const turnoverYi = marketSnapshot.total_turnover;
 
     // 4. 运行统一市场环境状态机 (Market Regime)
     const regime = evaluateMarketRegime({
-      indices: indicesData.length > 0 ? indicesData : [
-        { code: "000001", name: "上证指数", close: 3940.55, change_pct: 0.20, amount: 915500000000 },
-        { code: "399001", name: "深证成指", close: 13703.21, change_pct: -0.52, amount: 1044700000000 },
-        { code: "399006", name: "创业板指", close: 3359.72, change_pct: -1.15, amount: 473700000000 },
-        { code: "000688", name: "科创50", close: 1591.00, change_pct: -1.52, amount: 78710000000 },
-      ],
+      indices: indicesData,
       total_turnover: turnoverYi,
-      up_count: 3305,
-      down_count: 1877,
-      flat_count: 102,
+      up_count: marketSnapshot.up_count || 3305,
+      down_count: marketSnapshot.down_count || 1877,
+      flat_count: marketSnapshot.flat_count || 102,
       ma5_diff_pct: -6.4,
       limit_up_count: rawSentiment?.limit_up_count || 73,
       limit_down_count: rawSentiment?.limit_down_count || 0,
