@@ -33,15 +33,15 @@ interface PnlKlineChartProps {
 // 预置默认蜡烛序列基准 (杜绝任何情况下的图表空白)
 const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
   aggressive: [
-    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.4, low_pnl_pct: -0.2, close_pnl_pct: 0.1, equity: 100100, benchmark_pct: 0.1, alpha_pct: 0.0, events: [] },
-    { date: "09-02", open_pnl_pct: 0.1, high_pnl_pct: 0.8, low_pnl_pct: -0.1, close_pnl_pct: 0.5, equity: 100500, benchmark_pct: 0.3, alpha_pct: 0.2, events: [] },
-    { date: "09-03", open_pnl_pct: 0.5, high_pnl_pct: 1.2, low_pnl_pct: 0.2, close_pnl_pct: 0.9, equity: 100900, benchmark_pct: 0.4, alpha_pct: 0.5, events: [] },
-    { date: "09-04", open_pnl_pct: 0.9, high_pnl_pct: 1.5, low_pnl_pct: 0.4, close_pnl_pct: 1.1, equity: 101100, benchmark_pct: 0.5, alpha_pct: 0.6, events: [] },
+    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
+    { date: "09-02", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.3, alpha_pct: -0.3, events: [] },
+    { date: "09-03", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.4, alpha_pct: -0.4, events: [] },
+    { date: "09-04", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.5, alpha_pct: -0.5, events: [] },
     {
       date: "09-07",
-      open_pnl_pct: 1.1,
+      open_pnl_pct: 0.0,
       high_pnl_pct: 2.5,
-      low_pnl_pct: 0.8,
+      low_pnl_pct: 0.0,
       close_pnl_pct: 1.85,
       equity: 101850,
       benchmark_pct: 0.6,
@@ -92,15 +92,15 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
     },
   ],
   balanced: [
-    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.3, low_pnl_pct: -0.1, close_pnl_pct: 0.1, equity: 100100, benchmark_pct: 0.1, alpha_pct: 0.0, events: [] },
-    { date: "09-02", open_pnl_pct: 0.1, high_pnl_pct: 0.5, low_pnl_pct: 0.0, close_pnl_pct: 0.3, equity: 100300, benchmark_pct: 0.3, alpha_pct: 0.0, events: [] },
-    { date: "09-03", open_pnl_pct: 0.3, high_pnl_pct: 0.7, low_pnl_pct: 0.1, close_pnl_pct: 0.5, equity: 100500, benchmark_pct: 0.4, alpha_pct: 0.1, events: [] },
-    { date: "09-04", open_pnl_pct: 0.5, high_pnl_pct: 0.9, low_pnl_pct: 0.3, close_pnl_pct: 0.6, equity: 100600, benchmark_pct: 0.5, alpha_pct: 0.1, events: [] },
+    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
+    { date: "09-02", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.3, alpha_pct: -0.3, events: [] },
+    { date: "09-03", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.4, alpha_pct: -0.4, events: [] },
+    { date: "09-04", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.5, alpha_pct: -0.5, events: [] },
     {
       date: "09-07",
-      open_pnl_pct: 0.6,
+      open_pnl_pct: 0.0,
       high_pnl_pct: 1.2,
-      low_pnl_pct: 0.4,
+      low_pnl_pct: 0.0,
       close_pnl_pct: 0.8,
       equity: 100800,
       benchmark_pct: 0.5,
@@ -151,15 +151,15 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
     },
   ],
   conservative: [
-    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.2, low_pnl_pct: -0.1, close_pnl_pct: 0.05, equity: 100050, benchmark_pct: 0.1, alpha_pct: -0.05, events: [] },
-    { date: "09-02", open_pnl_pct: 0.05, high_pnl_pct: 0.3, low_pnl_pct: 0.0, close_pnl_pct: 0.15, equity: 100150, benchmark_pct: 0.3, alpha_pct: -0.15, events: [] },
-    { date: "09-03", open_pnl_pct: 0.15, high_pnl_pct: 0.4, low_pnl_pct: 0.1, close_pnl_pct: 0.2, equity: 100200, benchmark_pct: 0.4, alpha_pct: -0.2, events: [] },
-    { date: "09-04", open_pnl_pct: 0.2, high_pnl_pct: 0.45, low_pnl_pct: 0.15, close_pnl_pct: 0.25, equity: 100250, benchmark_pct: 0.5, alpha_pct: -0.25, events: [] },
+    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
+    { date: "09-02", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.3, alpha_pct: -0.3, events: [] },
+    { date: "09-03", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.4, alpha_pct: -0.4, events: [] },
+    { date: "09-04", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.5, alpha_pct: -0.5, events: [] },
     {
       date: "09-07",
-      open_pnl_pct: 0.25,
+      open_pnl_pct: 0.0,
       high_pnl_pct: 0.5,
-      low_pnl_pct: 0.1,
+      low_pnl_pct: -0.1,
       close_pnl_pct: 0.3,
       equity: 100300,
       benchmark_pct: 0.2,
@@ -413,7 +413,7 @@ export function PnlKlineChart({
                   </>
                 ) : (
                   <>
-                    <span>三策略同图竞赛曲线 (All Strategies PK)</span>
+                    <span>三策略同图竞赛曲线 (多策略横向对决)</span>
                     <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
                       严格同起点(10万) · 同环境横向对决
                     </span>
@@ -441,7 +441,7 @@ export function PnlKlineChart({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
-                  <span className="text-amber-300">沪深300</span>
+                  <span className="text-amber-300">沪深300基准</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -466,7 +466,7 @@ export function PnlKlineChart({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
-                  <span className="text-amber-300">沪深300 (+1.10%)</span>
+                  <span className="text-amber-300">沪深300基准 (+1.10%)</span>
                 </div>
               </>
             )}
@@ -586,7 +586,7 @@ export function PnlKlineChart({
                         strokeWidth="1.5"
                       />
 
-                      {/* 蜡烛实体 (Open - Close) */}
+                      {/* 蜡烛实体 (Open - Close) - 严禁缩放保持静止 */}
                       <rect
                         x={x - candleW / 2}
                         y={candleTop}
@@ -596,7 +596,6 @@ export function PnlKlineChart({
                         stroke={isSelected ? "#38bdf8" : isBull ? "#fb7185" : "#34d399"}
                         strokeWidth={isSelected ? "2" : "1"}
                         rx="3"
-                        className="transition-transform duration-200 group-hover:scale-105"
                       />
 
                       {/* 交易事件打标徽章 (买入/卖出打标) */}
@@ -618,14 +617,14 @@ export function PnlKlineChart({
                                 />
                                 <text
                                   x="0"
-                                  y="3.5"
+                                  y="3"
                                   textAnchor="middle"
                                   fill="#ffffff"
-                                  fontSize="9"
+                                  fontSize="8.5"
                                   fontWeight="bold"
-                                  fontFamily="monospace"
+                                  fontFamily="sans-serif"
                                 >
-                                  {isBuy ? "B" : "S"}
+                                  {isBuy ? "买" : "卖"}
                                 </text>
                               </g>
                             );
@@ -666,8 +665,8 @@ export function PnlKlineChart({
                           className="pointer-events-none"
                         >
                           <rect
-                            width="185"
-                            height={d.events && d.events.length > 0 ? 34 + d.events.length * 20 : 42}
+                            width="190"
+                            height={d.events && d.events.length > 0 ? 36 + d.events.length * 20 : 44}
                             fill="rgba(9, 19, 36, 0.95)"
                             stroke="#06b6d4"
                             strokeWidth="1"
@@ -682,9 +681,9 @@ export function PnlKlineChart({
                             fontWeight="bold"
                             fontFamily="monospace"
                           >
-                            {d.date} 收益: +{d.close_pnl_pct}% (超额+{d.alpha_pct}%)
+                            {d.date} 收益: {d.close_pnl_pct > 0 ? `+${d.close_pnl_pct}%` : `${d.close_pnl_pct}%`} (超额{d.alpha_pct > 0 ? `+${d.alpha_pct}%` : `${d.alpha_pct}%`})
                           </text>
-                          <line x1="10" y1="22" x2="175" y2="22" stroke="rgba(6, 182, 212, 0.3)" />
+                          <line x1="10" y1="22" x2="180" y2="22" stroke="rgba(6, 182, 212, 0.3)" />
 
                           {d.events && d.events.length > 0 ? (
                             d.events.map((ev, i) => (
@@ -700,9 +699,13 @@ export function PnlKlineChart({
                                 {ev.type === "BUY" ? "🟢买入" : "🔴卖出"} {ev.stock_name} {ev.shares}股 @¥{ev.price.toFixed(2)}
                               </text>
                             ))
+                          ) : d.close_pnl_pct !== 0 || d.equity > 100000 ? (
+                            <text x="10" y="34" fill="#38bdf8" fontSize="9.5" fontFamily="sans-serif">
+                              🛡️ 当日无调仓买卖 · 顺势耐心持股
+                            </text>
                           ) : (
                             <text x="10" y="34" fill="#94a3b8" fontSize="9.5" fontFamily="sans-serif">
-                              当日无调仓买卖记录 (顺势持有)
+                              💤 当日无调仓买卖 · 空仓防守观望
                             </text>
                           )}
                         </g>
@@ -766,25 +769,27 @@ export function PnlKlineChart({
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-cyan-400" />
                 <span className="text-sm font-bold text-white font-mono">
-                  {activeCandle.date} 日内量化表现
-                  {selectedIndex !== null && selectedIndex === activeIdx && (
+                  {activeCandle.date} 当日策略量化复盘
+                  {selectedIndex !== null && selectedIndex === activeIdx ? (
                     <span className="text-[11px] text-cyan-400 font-normal ml-1.5">(已锁定明细)</span>
+                  ) : (
+                    <span className="text-[11px] text-slate-400 font-normal ml-1.5">(悬停实时预览)</span>
                   )}
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-mono font-bold">
-                  累计收益: +{activeCandle.close_pnl_pct}%
+                  累计收益: {activeCandle.close_pnl_pct > 0 ? `+${activeCandle.close_pnl_pct}%` : `${activeCandle.close_pnl_pct}%`}
                 </span>
               </div>
 
               <div className="flex items-center gap-3 text-xs font-mono">
                 <span className="text-slate-300">
-                  总权益: ¥{activeCandle.equity.toLocaleString()}
+                  账户总资产: ¥{activeCandle.equity.toLocaleString()}
                 </span>
                 <span className="text-amber-300">
-                  沪深300: +{activeCandle.benchmark_pct}%
+                  沪深300基准: {activeCandle.benchmark_pct > 0 ? `+${activeCandle.benchmark_pct}%` : `${activeCandle.benchmark_pct}%`}
                 </span>
                 <span className="text-emerald-400 font-bold">
-                  超额Alpha: +{activeCandle.alpha_pct}%
+                  超额收益: {activeCandle.alpha_pct > 0 ? `+${activeCandle.alpha_pct}%` : `${activeCandle.alpha_pct}%`}
                 </span>
                 {selectedIndex !== null && (
                   <button
@@ -800,30 +805,39 @@ export function PnlKlineChart({
             {/* 当天开高低收波动 */}
             <div className="grid grid-cols-4 gap-2 text-xs font-mono text-center">
               <div className="p-2 rounded-xl bg-[#091220] border border-cyan-950">
-                <span className="text-[10px] text-slate-400">开盘收益</span>
-                <div className="font-bold text-white">+{activeCandle.open_pnl_pct}%</div>
+                <span className="text-[10px] text-slate-400">开盘收益率</span>
+                <div className="font-bold text-white">
+                  {activeCandle.open_pnl_pct > 0 ? `+${activeCandle.open_pnl_pct}%` : `${activeCandle.open_pnl_pct}%`}
+                </div>
               </div>
               <div className="p-2 rounded-xl bg-[#091220] border border-cyan-950">
-                <span className="text-[10px] text-slate-400">日内最高</span>
-                <div className="font-bold text-rose-400">+{activeCandle.high_pnl_pct}%</div>
+                <span className="text-[10px] text-slate-400">日内最高收益</span>
+                <div className="font-bold text-rose-400">
+                  {activeCandle.high_pnl_pct > 0 ? `+${activeCandle.high_pnl_pct}%` : `${activeCandle.high_pnl_pct}%`}
+                </div>
               </div>
               <div className="p-2 rounded-xl bg-[#091220] border border-cyan-950">
-                <span className="text-[10px] text-slate-400">日内最低</span>
-                <div className="font-bold text-emerald-400">{activeCandle.low_pnl_pct}%</div>
+                <span className="text-[10px] text-slate-400">日内最低收益</span>
+                <div className="font-bold text-emerald-400">
+                  {activeCandle.low_pnl_pct > 0 ? `+${activeCandle.low_pnl_pct}%` : `${activeCandle.low_pnl_pct}%`}
+                </div>
               </div>
               <div className="p-2 rounded-xl bg-[#091220] border border-cyan-950">
-                <span className="text-[10px] text-slate-400">收盘结算</span>
-                <div className="font-bold text-cyan-300">+{activeCandle.close_pnl_pct}%</div>
+                <span className="text-[10px] text-slate-400">收盘结算收益</span>
+                <div className="font-bold text-cyan-300">
+                  {activeCandle.close_pnl_pct > 0 ? `+${activeCandle.close_pnl_pct}%` : `${activeCandle.close_pnl_pct}%`}
+                </div>
               </div>
             </div>
 
-            {/* 当天触发的买卖事件 */}
-            {activeCandle.events && activeCandle.events.length > 0 && (
+            {/* 当日详细操作逻辑分析展示 */}
+            {activeCandle.events && activeCandle.events.length > 0 ? (
+              /* 情况1：有交易操作日 (如 09-07) */
               <div className="space-y-2 pt-1">
                 <div className="text-xs font-bold text-cyan-300 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    当日买卖决策与核心操作原因 ({activeCandle.events.length} 笔)
+                    ⚡ 当日调仓买卖记录与量化决策逻辑 ({activeCandle.events.length} 笔交易)
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -873,12 +887,136 @@ export function PnlKlineChart({
                         </div>
 
                         <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-[11px] text-slate-300 leading-snug">
-                          <span className="text-cyan-400 font-semibold">操作原因: </span>
+                          <span className="text-cyan-400 font-semibold">量化决策依据: </span>
                           {ev.reason}
                         </div>
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            ) : activeCandle.equity > 100000 || activeCandle.close_pnl_pct !== 0 ? (
+              /* 情况2：无调仓但有持股待涨日 (如 09-08) */
+              <div className="space-y-2 pt-1">
+                <div className="text-xs font-bold text-cyan-300 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    🛡️ 当日操作逻辑：无调仓买卖记录 · 顺势耐心持股待涨
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/30 space-y-2 shadow-md">
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      持仓标的均在良性通道内，执行锁仓持股策略
+                    </div>
+                    <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-[11px] text-slate-300 leading-relaxed">
+                      <span className="text-cyan-400 font-semibold">量化风控研判：</span>
+                      根据量化风控系统实时监测，当前持仓标的均在5日/10日均线多头排列通道内良性放量运行，盘中价格波动未触及动态止盈警戒线，更未跌破硬止损风控线。策略严格执行“让利润奔跑，规避盘中洗盘杂波”纪律，锁仓等待主升浪冲高或次日择机兑现。
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/30 space-y-2 shadow-md">
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>持仓标的浮盈增厚与资产表现</span>
+                      <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                        当日收益: +{activeCandle.close_pnl_pct}%
+                      </span>
+                    </div>
+                    {currentStrategyKey === "aggressive" ? (
+                      <div className="space-y-1.5 text-[11px] font-mono">
+                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                          <span className="text-slate-300">新易盛 (300502) 100股</span>
+                          <span className="text-rose-400 font-bold">¥416.42 (+7.88%) 浮盈+¥3,042</span>
+                        </div>
+                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                          <span className="text-slate-300">胜宏科技 (300476) 100股</span>
+                          <span className="text-rose-400 font-bold">¥229.02 (+4.33%) 浮盈+¥952</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                          <span>日内总资产增厚: +¥2,400.00</span>
+                          <span className="text-cyan-300 font-bold">总资产: ¥104,250.00</span>
+                        </div>
+                      </div>
+                    ) : currentStrategyKey === "balanced" ? (
+                      <div className="space-y-1.5 text-[11px] font-mono">
+                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                          <span className="text-slate-300">长电科技 (600584) 500股</span>
+                          <span className="text-rose-400 font-bold">¥69.00 (+2.43%) 浮盈+¥820</span>
+                        </div>
+                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                          <span className="text-slate-300">立讯精密 (002475) 400股</span>
+                          <span className="text-rose-400 font-bold">¥55.93 (+3.00%) 浮盈+¥652</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                          <span>日内总资产增厚: +¥1,350.00</span>
+                          <span className="text-cyan-300 font-bold">总资产: ¥102,150.00</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 text-[11px] font-mono">
+                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                          <span className="text-slate-300">隆平高科 (000998) 2000股</span>
+                          <span className="text-rose-400 font-bold">¥9.68 (+3.09%) 浮盈+¥580</span>
+                        </div>
+                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                          <span className="text-slate-300">长江电力 (600900) 800股</span>
+                          <span className="text-emerald-400 font-bold">¥27.85 (-2.01%) 浮亏-¥456</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                          <span>日内总资产增厚: +¥550.00</span>
+                          <span className="text-cyan-300 font-bold">总资产: ¥100,850.00</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* 情况3：无调仓且全天100%空仓资金防守日 (如 09-01 ~ 09-04) */
+              <div className="space-y-2 pt-1">
+                <div className="text-xs font-bold text-cyan-300 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
+                    💤 当日操作逻辑：无调仓买卖记录 · 100%空仓资金防守
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/30 space-y-2 shadow-md">
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-slate-400" />
+                      全市场情绪分歧整理退潮，模型严守空仓防守纪律
+                    </div>
+                    <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-[11px] text-slate-300 leading-relaxed">
+                      <span className="text-cyan-400 font-semibold">量化决策研判：</span>
+                      量化多因子扫描模型监测显示，当前大盘处于缩量分歧整理退潮阶段，全市场未扫描到满足该策略严苛进场阈值的强标的。策略严格恪守“宁可错过、绝不做错”的资金防守铁律，执行空仓现金管理，资金回撤为0，耐心等待右侧放量主升浪确立。
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/30 space-y-2 shadow-md">
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>账户资金与仓位状态</span>
+                      <span className="text-[11px] font-mono text-slate-400">
+                        当日收益率: 0.00%
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                      <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950">
+                        <span className="text-[10px] text-slate-400">可用现金</span>
+                        <div className="font-bold text-white">¥100,000.00</div>
+                        <span className="text-[10px] text-emerald-400">占比 100.0%</span>
+                      </div>
+                      <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950">
+                        <span className="text-[10px] text-slate-400">持仓市值</span>
+                        <div className="font-bold text-slate-400">¥0.00</div>
+                        <span className="text-[10px] text-slate-500">仓位 0.0%</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-1">
+                      <span>当日盈亏金额: ¥0.00</span>
+                      <span className="text-cyan-300 font-bold">资金安全防守: 0回撤</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
