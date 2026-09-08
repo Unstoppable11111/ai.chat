@@ -607,13 +607,21 @@ ${holdingsText}
                   <div className="flex items-baseline justify-between">
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-white tracking-tight font-mono">
-                        {marketData?.total_turnover_text || "1.95万亿"}
+                        {marketData?.total_turnover_text || "1.96万亿"}
                       </span>
                       <span className="text-[10px] text-slate-400 font-mono">沪深合计</span>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-emerald-400/90">
-                      较5日均量 {marketData?.volume_metrics?.diff_ma5_pct != null ? `${marketData.volume_metrics.diff_ma5_pct >= 0 ? "+" : ""}${marketData.volume_metrics.diff_ma5_pct}%` : "-7.2%"}
-                    </span>
+                    {marketData?.volume_metrics?.is_trading_hours ? (
+                      <span className="text-[11px] font-mono text-cyan-300 px-2 py-0.5 rounded bg-cyan-500/15 border border-cyan-500/30">
+                        盘中动态累积中
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-mono font-bold text-cyan-300">
+                        {marketData?.volume_metrics?.diff_ma5_pct != null
+                          ? `较5日均量 ${marketData.volume_metrics.diff_ma5_pct >= 0 ? "+" : ""}${marketData.volume_metrics.diff_ma5_pct}%`
+                          : "收盘量能锁定"}
+                      </span>
+                    )}
                   </div>
 
                   {/* 均量基准与近10日量能柱状迷你走势 */}
@@ -766,7 +774,10 @@ ${holdingsText}
             </div>
 
             {/* 主力资金动向、短线情绪周期炸板率与领涨主线板块动态可视化 (包含近月对比基准) */}
-            <SentimentRadarVisual volumeMetrics={marketData?.volume_metrics} />
+            <SentimentRadarVisual
+              volumeMetrics={marketData?.volume_metrics}
+              sentimentMetrics={(marketData as any)?.sentiment_metrics}
+            />
 
             {/* 用户私人持仓总览卡片 */}
             <div className="p-6 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 backdrop-blur-xl shadow-xl space-y-6">

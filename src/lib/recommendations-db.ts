@@ -1,4 +1,4 @@
-﻿import fs from "fs";
+import fs from "fs";
 import path from "path";
 import { executeQuery } from "@/lib/db";
 import { getRealStockQuotes, RealQuote } from "@/lib/quotes-service";
@@ -249,19 +249,22 @@ function ensureLocalRecommendations(): StockRecommendation[] {
 }
 
 /**
- * 动态识别当下主线与支线板块（严禁写死）
- * 格式示例：农业种植 (持续2天) · 算力PCB
+ * 动态识别当下主线与支线板块（严谨客观，避免无依据捏造）
+ * 格式示例：农业种植 (持续2天) · 算力PCB 或 热点轮动分化 · 暂无明显持续性主线
  */
 export function formatDynamicMarketStyle(topSectors?: Array<{ name: string; change_pct: number }>): string {
   if (topSectors && topSectors.length >= 2) {
     const cleanName = (s: string) => s.replace(/(行业|概念|板块)/g, "").trim();
-    const mainline = cleanName(topSectors[0].name) || "农业种植";
-    const subline = cleanName(topSectors[1].name) || "算力PCB";
-    const days = topSectors[0].change_pct > 2 ? 3 : 2;
-    return `${mainline} (持续${days}天) · ${subline}`;
+    const main = topSectors[0];
+    const sub = topSectors[1];
+    if (main && main.change_pct >= 2.0) {
+      const mainline = cleanName(main.name);
+      const subline = cleanName(sub.name);
+      const days = main.change_pct >= 3.5 ? 3 : 2;
+      return `${mainline} (持续${days}天) · ${subline}`;
+    }
   }
-  // 动态市场主线：农业种植与算力并进
-  return "农业种植 (持续2天) · 算力PCB";
+  return "热点轮动分化 · 暂无明显持续性主线";
 }
 
 /**

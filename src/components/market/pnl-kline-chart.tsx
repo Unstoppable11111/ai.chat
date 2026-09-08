@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import {
@@ -38,14 +38,19 @@ export function PnlKlineChart({
   events = [],
 }: PnlKlineChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  // 默认选最新一天
-  const activeCandle =
-    hoveredIndex !== null && pnlKline[hoveredIndex]
-      ? pnlKline[hoveredIndex]
+  // 默认显示选中的交易日或悬浮日，最后一天作为默认
+  const activeIdx =
+    selectedIndex !== null
+      ? selectedIndex
+      : hoveredIndex !== null
+      ? hoveredIndex
       : pnlKline.length > 0
-      ? pnlKline[pnlKline.length - 1]
+      ? pnlKline.length - 1
       : null;
+
+  const activeCandle = activeIdx !== null && pnlKline[activeIdx] ? pnlKline[activeIdx] : null;
 
   // SVG 画布尺寸与坐标映射
   const width = 860;
@@ -112,7 +117,10 @@ export function PnlKlineChart({
             return (
               <button
                 key={tab.id}
-                onClick={() => onSelectAccount?.(tab.id)}
+                onClick={() => {
+                  setSelectedIndex(null);
+                  onSelectAccount?.(tab.id);
+                }}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   isActive
                     ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-400/50 font-bold"
@@ -127,15 +135,15 @@ export function PnlKlineChart({
         </div>
       </div>
 
-      {/* 1. 模拟盘顶层实时资产 HUD 看板 (赛博极光黑曜石科技风) */}
+      {/* 1. 模拟盘顶层实时资产 HUD 看板 (突出展示今日盈亏与总盈亏对比) */}
       {account && (
         <div className="relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-[#0c1a30]/90 via-[#0a1324]/95 to-[#0e223d]/90 border border-cyan-500/30 shadow-[0_0_35px_rgba(6,182,212,0.12)] backdrop-blur-xl">
           <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
           <div className="absolute -left-16 -bottom-16 w-56 h-56 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
 
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
-            {/* 左侧：本金与总权益 */}
-            <div className="space-y-2">
+            {/* 左侧：总权益与核心盈亏对比 */}
+            <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
                   <Award className="w-4 h-4" />
@@ -148,32 +156,49 @@ export function PnlKlineChart({
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              {/* 总权益主数值 */}
+              <div>
+                <span className="text-[11px] text-slate-400">当前总权益 (本金+浮盈)</span>
                 <div className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-white">
                   ¥ {account.total_equity.toLocaleString("zh-CN", { minimumFractionDigits: 2 })}
                 </div>
-                <div
-                  className={`flex items-center gap-1 text-sm font-bold font-mono ${
-                    account.total_pnl >= 0 ? "text-rose-400" : "text-emerald-400"
-                  }`}
-                >
-                  <ArrowUpRight className="w-4 h-4" />
-                  {account.total_pnl >= 0 ? "+" : ""}
-                  {account.total_pnl_pct}% ({account.total_pnl >= 0 ? "+" : ""}¥
-                  {account.total_pnl.toLocaleString()})
+              </div>
+
+              {/* 核心盈亏对比：总盈亏 vs 当天盈亏 */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="p-2.5 px-3.5 rounded-xl bg-[#071324] border border-cyan-500/30">
+                  <div className="text-[10px] text-slate-400">累计总盈亏</div>
+                  <div
+                    className={`text-lg font-black font-mono mt-0.5 ${
+                      account.total_pnl >= 0 ? "text-rose-400" : "text-emerald-400"
+                    }`}
+                  >
+                    {account.total_pnl >= 0 ? "+" : ""}
+                    {account.total_pnl_pct}% ({account.total_pnl >= 0 ? "+" : ""}¥
+                    {account.total_pnl.toLocaleString()})
+                  </div>
+                </div>
+
+                <div className="p-2.5 px-3.5 rounded-xl bg-[#071324] border border-cyan-500/30">
+                  <div className="text-[10px] text-slate-400">今日实时盈亏</div>
+                  <div
+                    className={`text-lg font-black font-mono mt-0.5 ${
+                      account.today_pnl >= 0 ? "text-rose-400" : "text-emerald-400"
+                    }`}
+                  >
+                    {account.today_pnl >= 0 ? "+" : ""}
+                    {account.today_pnl_pct}% ({account.today_pnl >= 0 ? "+" : ""}¥
+                    {account.today_pnl.toLocaleString()})
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-slate-300/80 font-mono">
+              <div className="flex items-center gap-4 text-xs text-slate-300/80 font-mono pt-1">
                 <span>初始本金: ¥{account.initial_capital.toLocaleString()}</span>
                 <span>•</span>
                 <span>可用现金: ¥{account.cash.toLocaleString()}</span>
                 <span>•</span>
                 <span>持仓市值: ¥{account.market_value.toLocaleString()}</span>
-              </div>
-
-              <div className="text-[11px] text-cyan-200/70 pt-0.5">
-                风格打法: {account.style_desc}
               </div>
             </div>
 
@@ -196,18 +221,11 @@ export function PnlKlineChart({
               </div>
 
               <div className="p-3 rounded-2xl bg-[#0e192c]/80 border border-cyan-500/20 text-center">
-                <div className="text-[10px] text-slate-400">今日实时收益</div>
-                <div
-                  className={`text-xl font-black font-mono mt-0.5 ${
-                    account.today_pnl >= 0 ? "text-rose-400" : "text-emerald-400"
-                  }`}
-                >
-                  {account.today_pnl >= 0 ? "+" : ""}
-                  {account.today_pnl_pct}%
+                <div className="text-[10px] text-slate-400">当前总仓位</div>
+                <div className="text-xl font-black font-mono text-white mt-0.5">
+                  {account.position_ratio_pct}%
                 </div>
-                <div className="text-[9px] text-slate-400 mt-0.5">
-                  {account.today_pnl >= 0 ? "+" : ""}¥{account.today_pnl}
-                </div>
+                <div className="text-[9px] text-slate-400 mt-0.5">纪律化仓控</div>
               </div>
 
               <div className="p-3 rounded-2xl bg-[#0e192c]/80 border border-cyan-500/20 text-center">
@@ -220,57 +238,25 @@ export function PnlKlineChart({
             </div>
           </div>
 
-          {/* 选股与风控铁律规则栏（明确提示：不买ST、不买科创） */}
-          <div className="mt-4 pt-3.5 border-t border-cyan-900/50 flex flex-col gap-2 text-xs">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-slate-400">当前总仓位:</span>
-                <span className="font-mono font-bold text-white">{account.position_ratio_pct}%</span>
-                <div className="w-32 h-2 rounded-full bg-slate-900/80 overflow-hidden border border-cyan-900/40">
-                  <div
-                    className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-700"
-                    style={{ width: `${Math.min(100, account.position_ratio_pct)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="text-[11px] text-slate-400 flex items-center gap-2">
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  多源实时行情交叉比对 (无幻觉)
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                  5分钟自动轮询风控
-                </span>
-              </div>
-            </div>
-
-            {/* 规则胶囊勋章 */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[11px] font-semibold flex items-center gap-1">
-                <Ban className="w-3 h-3 text-rose-400" />
-                严禁买入 *ST / ST 股 (防范退市暴雷)
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-semibold flex items-center gap-1">
-                <ShieldAlert className="w-3 h-3 text-amber-400" />
-                严禁买入科创板 (剔除50万门槛与宽幅投机)
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-cyan-400" />
-                精选主板与创业板大流动性核心标的
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold flex items-center gap-1">
-                <Clock className="w-3 h-3 text-emerald-400" />
-                2026年9月7日建仓启动 (昨天开始)
-              </span>
-            </div>
+          {/* 选股与风控铁律规则栏 */}
+          <div className="mt-4 pt-3.5 border-t border-cyan-900/50 flex flex-wrap items-center gap-2 pt-1 text-xs">
+            <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[11px] font-semibold flex items-center gap-1">
+              <Ban className="w-3 h-3 text-rose-400" />
+              严禁买入 *ST / ST 股 (防范退市暴雷)
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-semibold flex items-center gap-1">
+              <ShieldAlert className="w-3 h-3 text-amber-400" />
+              严禁买入科创板 (剔除50万门槛与宽幅投机)
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3 text-cyan-400" />
+              精选主板与创业板大流动性核心标的
+            </span>
           </div>
         </div>
       )}
 
-      {/* 2. 当前账户模拟持仓明细 (真实价格展示) */}
+      {/* 2. 当前账户模拟持仓明细 */}
       {account?.holdings && account.holdings.length > 0 && (
         <div className="p-5 rounded-3xl bg-[#0c1626]/80 border border-cyan-500/20 shadow-xl backdrop-blur-xl space-y-3">
           <div className="flex items-center justify-between">
@@ -347,7 +333,7 @@ export function PnlKlineChart({
               【{account?.account_name || "模拟盘"}】收益率日 K 蜡烛走势 (从昨天 09-07 启动)
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              以日 K 为单位，时间和盈利为坐标轴，打标 🟢B(买入) 与 🔴S(卖出) 真实事件点，鼠标悬浮查看日内表现
+              鼠标悬浮柱体即时查看当日操作；点击柱体锁定并在底部查看操作原因
             </p>
           </div>
 
@@ -441,17 +427,25 @@ export function PnlKlineChart({
               const candleW = 32;
 
               const isHovered = hoveredIndex === idx;
+              const isSelected = selectedIndex === idx;
 
               return (
-                <g key={`candle-${d.date}`} className="cursor-pointer group">
-                  {/* 悬浮列背景高亮柱 */}
-                  {isHovered && (
+                <g
+                  key={`candle-${d.date}`}
+                  className="cursor-pointer group"
+                  onClick={() => setSelectedIndex(isSelected ? null : idx)}
+                >
+                  {/* 悬浮或选中列背景高亮柱 */}
+                  {(isHovered || isSelected) && (
                     <rect
-                      x={x - candleW - 4}
+                      x={x - candleW - 6}
                       y={padding.top}
-                      width={candleW * 2 + 8}
+                      width={candleW * 2 + 12}
                       height={innerH}
-                      fill="rgba(6, 182, 212, 0.08)"
+                      fill={isSelected ? "rgba(34, 211, 238, 0.16)" : "rgba(6, 182, 212, 0.08)"}
+                      stroke={isSelected ? "rgba(34, 211, 238, 0.6)" : "transparent"}
+                      strokeWidth="1"
+                      strokeDasharray={isSelected ? "3 3" : "none"}
                       rx="8"
                     />
                   )}
@@ -473,8 +467,8 @@ export function PnlKlineChart({
                     width={candleW}
                     height={candleH}
                     fill={isBull ? "#f43f5e" : "#10b981"}
-                    stroke={isBull ? "#fb7185" : "#34d399"}
-                    strokeWidth="1"
+                    stroke={isSelected ? "#38bdf8" : isBull ? "#fb7185" : "#34d399"}
+                    strokeWidth={isSelected ? "2" : "1"}
                     rx="3"
                     className="transition-transform duration-200 group-hover:scale-105"
                   />
@@ -518,12 +512,12 @@ export function PnlKlineChart({
                     x={x}
                     y={height - padding.bottom + 20}
                     textAnchor="middle"
-                    fill={isHovered ? "#22d3ee" : "#94a3b8"}
+                    fill={isSelected ? "#38bdf8" : isHovered ? "#22d3ee" : "#94a3b8"}
                     fontSize="10"
                     fontFamily="monospace"
-                    fontWeight={isHovered ? "bold" : "normal"}
+                    fontWeight={isHovered || isSelected ? "bold" : "normal"}
                   >
-                    {d.date}
+                    {d.date} {isSelected ? "★" : ""}
                   </text>
 
                   {/* 鼠标全区域交互热区 */}
@@ -534,21 +528,67 @@ export function PnlKlineChart({
                     height={innerH + 30}
                     fill="transparent"
                     onMouseEnter={() => setHoveredIndex(idx)}
+                    onMouseLeave={() => setHoveredIndex(null)}
                   />
+
+                  {/* 鼠标悬浮时即时浮动 Tooltip：展示当天的操作 */}
+                  {isHovered && (
+                    <g
+                      transform={`translate(${
+                        x > width - 190 ? x - 175 : x + 15
+                      }, ${Math.max(padding.top + 5, yHigh - 35)})`}
+                      className="pointer-events-none"
+                    >
+                      <rect
+                        width="165"
+                        height={d.events && d.events.length > 0 ? 32 + d.events.length * 20 : 38}
+                        fill="rgba(9, 19, 36, 0.95)"
+                        stroke="#22d3ee"
+                        strokeWidth="1.2"
+                        rx="8"
+                        className="drop-shadow-2xl"
+                      />
+                      <text x="10" y="18" fill="#22d3ee" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                        {d.date} 当日买卖操作:
+                      </text>
+                      {d.events && d.events.length > 0 ? (
+                        d.events.map((ev, i) => (
+                          <text
+                            key={ev.id}
+                            x="10"
+                            y={35 + i * 18}
+                            fill="#ffffff"
+                            fontSize="9.5"
+                            fontWeight="bold"
+                            fontFamily="sans-serif"
+                          >
+                            {ev.type === "BUY" ? "🟢买入" : "🔴卖出"} {ev.stock_name} {ev.shares}股 @¥{ev.price.toFixed(2)}
+                          </text>
+                        ))
+                      ) : (
+                        <text x="10" y="32" fill="#94a3b8" fontSize="9.5" fontFamily="sans-serif">
+                          当日无调仓买卖记录
+                        </text>
+                      )}
+                    </g>
+                  )}
                 </g>
               );
             })}
           </svg>
         </div>
 
-        {/* 4. 悬浮点 / 当日事件交互详情卡 */}
+        {/* 4. 点击某日柱体锁定的归因明细卡片（展示操作原因，无操作时不渲染冗余套话） */}
         {activeCandle && (
           <div className="p-4 rounded-2xl bg-[#0f1d35]/90 border border-cyan-500/30 shadow-lg space-y-3 animate-in fade-in duration-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-900/40 pb-2">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-cyan-400" />
                 <span className="text-sm font-bold text-white font-mono">
-                  {activeCandle.date} 日内量化推演表现
+                  {activeCandle.date} 日内量化表现
+                  {selectedIndex !== null && selectedIndex === activeIdx && (
+                    <span className="text-[11px] text-cyan-400 font-normal ml-1.5">(已锁定明细)</span>
+                  )}
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-mono font-bold">
                   累计收益: +{activeCandle.close_pnl_pct}%
@@ -565,6 +605,14 @@ export function PnlKlineChart({
                 <span className="text-emerald-400 font-bold">
                   超额Alpha: +{activeCandle.alpha_pct}%
                 </span>
+                {selectedIndex !== null && (
+                  <button
+                    onClick={() => setSelectedIndex(null)}
+                    className="px-2 py-0.5 rounded bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 text-[10px] border border-cyan-700/40 cursor-pointer"
+                  >
+                    恢复最新
+                  </button>
+                )}
               </div>
             </div>
 
@@ -588,12 +636,14 @@ export function PnlKlineChart({
               </div>
             </div>
 
-            {/* 当天触发的买卖事件 */}
-            {activeCandle.events && activeCandle.events.length > 0 ? (
+            {/* 当天触发的买卖事件（展示具体操作原因；若无操作则干净利落不渲染无意义套话） */}
+            {activeCandle.events && activeCandle.events.length > 0 && (
               <div className="space-y-2 pt-1">
-                <div className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-400" />
-                  当日买卖决策执行记录 ({activeCandle.events.length} 笔)
+                <div className="text-xs font-bold text-cyan-300 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    当日买卖决策与核心操作原因 ({activeCandle.events.length} 笔)
+                  </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {activeCandle.events.map((ev) => {
@@ -602,7 +652,7 @@ export function PnlKlineChart({
                     return (
                       <div
                         key={ev.id}
-                        className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/20 space-y-1.5"
+                        className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/30 space-y-1.5 shadow-md"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -636,23 +686,19 @@ export function PnlKlineChart({
                                 ev.pnl_pct >= 0 ? "text-rose-400" : "text-emerald-400"
                               }`}
                             >
-                              {ev.pnl_pct >= 0 ? `+${ev.pnl_pct}%` : `${ev.pnl_pct}%`} (
-                              {ev.pnl_amount && ev.pnl_amount >= 0 ? `+¥${ev.pnl_amount}` : `¥${ev.pnl_amount}`}
-                              )
+                              {ev.pnl_pct >= 0 ? `+${ev.pnl_pct}%` : `${ev.pnl_pct}%`}
                             </span>
                           )}
                         </div>
 
-                        <p className="text-[11px] text-slate-300 leading-snug">{ev.reason}</p>
+                        <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-[11px] text-slate-300 leading-snug">
+                          <span className="text-cyan-400 font-semibold">操作原因: </span>
+                          {ev.reason}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
-            ) : (
-              <div className="text-xs text-slate-400 flex items-center gap-1.5 py-1">
-                <Info className="w-3.5 h-3.5 text-cyan-400" />
-                当日持仓标的稳步持有与动态跟踪，未触发止盈或止损阈值。
               </div>
             )}
           </div>
