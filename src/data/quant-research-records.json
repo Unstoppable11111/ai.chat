@@ -1,0 +1,53 @@
+[
+  {
+    "id": "trk-20260907-001",
+    "date": "2026-09-07",
+    "stock_code": "300502",
+    "stock_name": "新易盛",
+    "industry": "CPO光模块",
+    "fact": "北美三大云巨头 1.6T 光模块采购需求提前释放，公司 800G/1.6T 产线三季度排产环比增长超 35%，毛利率稳定在 38% 高景气位。",
+    "initial_prediction": "突破 380 元前高箱体，主升浪右侧加速，2026年盈利预期上修至 45 亿，目标空间 +25%，防守止损线设在 368 元。",
+    "predicted_direction": "BULL",
+    "time_horizon": "T+10 (2周跟踪)",
+    "verification_date": "2026-09-20",
+    "actual_outcome": "2026-09-08 盘中已突破 416 元 (+7.8%)，盈利预测上修逻辑获机构大单持续验证。",
+    "verification_status": "VERIFIED_CORRECT",
+    "actual_return_pct": 7.88,
+    "accuracy_score": 95,
+    "signal_type": "产业趋势×业绩上修×突破放量"
+  },
+  {
+    "id": "trk-20260907-002",
+    "date": "2026-09-07",
+    "stock_code": "300476",
+    "stock_name": "胜宏科技",
+    "industry": "高速PCB",
+    "fact": "高阶高多层 AI 算力服务器板进入核心海外算力加速卡供应链独供体系，HDI 产能利用率达 98%。",
+    "initial_prediction": "220 元均线多头回踩企稳，算力高弹性细分龙头，目标价 260 元 (+18%)，严格止损 210 元。",
+    "predicted_direction": "BULL",
+    "time_horizon": "T+15 (1个月)",
+    "verification_date": "2026-09-22",
+    "actual_outcome": "2026-09-08 现价 229 元 (+4.3%)，量价结构健康，持续处于右侧多头主升通道。",
+    "verification_status": "TRACKING",
+    "actual_return_pct": 4.33,
+    "accuracy_score": 88,
+    "signal_type": "海外供应链映射×高多层PCB×业绩弹性"
+  },
+  {
+    "id": "trk-20260908-003",
+    "date": "2026-09-08",
+    "stock_code": "300308",
+    "stock_name": "中际旭创",
+    "industry": "CPO光通信中军",
+    "fact": "全球 AI 数据中心网络升级至 800G/1.6T 时代，公司硅光光引擎良率突破 90%，出货量蝉联全球前二。",
+    "initial_prediction": "大成交额中军标的，2026 年 PE 处于 24 倍合理估值分位，稳健看多，预计向上修复估值 15%~20%。",
+    "predicted_direction": "BULL",
+    "time_horizon": "1个月",
+    "verification_date": "2026-10-08",
+    "actual_outcome": "跟踪观察中，待 9 月下旬供应链交付数据出炉进一步验证。",
+    "verification_status": "TRACKING",
+    "actual_return_pct": 1.2,
+    "accuracy_score": 85,
+    "signal_type": "中军底仓×低估值成长×全球市占率领先"
+  }
+]

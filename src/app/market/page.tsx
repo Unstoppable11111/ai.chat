@@ -38,6 +38,8 @@ import { StrategyArenaCards } from "@/components/market/strategy-arena-cards";
 import { SignalCenterView } from "@/components/market/signal-center-view";
 import { RiskCenterView } from "@/components/market/risk-center-view";
 import { StrategyExperimentsView } from "@/components/market/strategy-experiments-view";
+import { MorningBriefingHero } from "@/components/market/morning-briefing-hero";
+import { checkAShareTradingTime, AShareTradingStatus } from "@/lib/trading-hours";
 import {
   ArenaAccount,
   StrategyType,
@@ -120,7 +122,16 @@ export default function MarketDashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [tradingStatus, setTradingStatus] = useState<AShareTradingStatus>(() => checkAShareTradingTime());
   const [toastMsg, setToastMsg] = useState<{ text: string; type: "info" | "success" | "warning" } | null>(null);
+
+  // 严格核验 A 股交易时钟：每 10 秒评估一次开盘/闭市状态
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTradingStatus(checkAShareTradingTime());
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
 
   // 股票模糊联想搜索状态
   const [searchQuery, setSearchQuery] = useState("");
@@ -212,6 +223,10 @@ export default function MarketDashboardPage() {
 
   const loadAll = useCallback(
     async (manual = false) => {
+      if (manual && !tradingStatus.isTrading) {
+        showToast(`当前处于【${tradingStatus.statusText}】，${tradingStatus.detail}，无法刷新`, "warning");
+        return;
+      }
       setIsRefreshing(true);
       if (manual) showToast("正在拉取全市场实时分时、量能与三大策略账户...", "info");
       await Promise.all([fetchMarketData(), fetchArenaData(), fetchPortfolioData()]);
@@ -219,7 +234,7 @@ export default function MarketDashboardPage() {
       setIsRefreshing(false);
       if (manual) showToast("全景市场与策略竞技场已同步更新！", "success");
     },
-    [fetchMarketData, fetchArenaData, fetchPortfolioData, showToast]
+    [fetchMarketData, fetchArenaData, fetchPortfolioData, showToast, tradingStatus]
   );
 
   useEffect(() => {
@@ -230,7 +245,10 @@ export default function MarketDashboardPage() {
     }
     init();
 
-    if (!autoRefresh) return;
+    // 严格规则：仅在开盘交易时段 (isTrading === true) 且 autoRefresh 为 true 时才启动 5 分钟轮询
+    // 非开盘时间自动停止，杜绝无效刷新
+    if (!autoRefresh || !tradingStatus.isTrading) return;
+
     const timer = setInterval(() => {
       fetchMarketData();
       fetchArenaData();
@@ -241,7 +259,7 @@ export default function MarketDashboardPage() {
       ignore = true;
       clearInterval(timer);
     };
-  }, [fetchMarketData, fetchArenaData, fetchPortfolioData, autoRefresh]);
+  }, [fetchMarketData, fetchArenaData, fetchPortfolioData, autoRefresh, tradingStatus.isTrading]);
 
   // 股票模糊联想搜索防抖
   useEffect(() => {
@@ -417,26 +435,70 @@ export default function MarketDashboardPage() {
           </div>
 
           <div className="flex items-center flex-wrap gap-2">
+            {/* A股交易时钟状态胶囊 */}
+            <div
+              className={`text-xs font-mono px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${
+                tradingStatus.isTrading
+                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/40 shadow-[0_0_10px_rgba(52,211,153,0.2)]"
+                  : "bg-slate-800/80 text-slate-400 border-slate-700"
+              }`}
+              title={tradingStatus.detail}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  tradingStatus.isTrading ? "bg-emerald-400 animate-pulse" : "bg-slate-500"
+                }`}
+              />
+              <span className="font-bold">{tradingStatus.statusText}</span>
+              <span className="text-[10px] text-slate-400 hidden sm:inline">({tradingStatus.cstTimeStr})</span>
+            </div>
+
             <button
               onClick={() => {
+                if (!tradingStatus.isTrading) {
+                  showToast(`非开盘时段自动停刷：${tradingStatus.detail}`, "info");
+                  return;
+                }
                 const next = !autoRefresh;
                 setAutoRefresh(next);
                 showToast(next ? "已开启 5 分钟自动轮询" : "已暂停 5 分钟自动轮询", "info");
               }}
-              className={`text-xs font-mono px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer ${
-                autoRefresh
-                  ? "bg-cyan-500/20 text-cyan-200 border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.25)] font-bold"
-                  : "bg-[#0c1626]/70 text-cyan-400/50 border-cyan-950"
+              disabled={!tradingStatus.isTrading}
+              className={`text-xs font-mono px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
+                !tradingStatus.isTrading
+                  ? "bg-slate-900/60 text-slate-500 border-slate-800 cursor-not-allowed opacity-60"
+                  : autoRefresh
+                  ? "bg-cyan-500/20 text-cyan-200 border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.25)] font-bold cursor-pointer"
+                  : "bg-[#0c1626]/70 text-cyan-400/50 border-cyan-950 cursor-pointer"
               }`}
             >
               <Clock className="w-3.5 h-3.5 text-cyan-400" />
-              {autoRefresh ? "5分轮询: 开启" : "5分轮询: 关闭"}
+              {!tradingStatus.isTrading
+                ? "5分轮询: 自动停刷"
+                : autoRefresh
+                ? "5分轮询: 开启"
+                : "5分轮询: 关闭"}
             </button>
 
             <button
-              onClick={() => loadAll(true)}
-              disabled={isRefreshing}
-              className="text-xs font-mono px-3 py-1.5 rounded-xl bg-[#0c1626] hover:bg-cyan-950/50 text-cyan-200 border border-cyan-800/40 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              onClick={() => {
+                if (!tradingStatus.isTrading) {
+                  showToast(`当前处于【${tradingStatus.statusText}】，${tradingStatus.detail}，无法刷新`, "warning");
+                  return;
+                }
+                loadAll(true);
+              }}
+              disabled={!tradingStatus.isTrading || isRefreshing}
+              title={
+                !tradingStatus.isTrading
+                  ? `非交易时间无法刷新：${tradingStatus.detail}`
+                  : "即时同步全盘分时与持仓数据"
+              }
+              className={`text-xs font-mono px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-sm ${
+                !tradingStatus.isTrading
+                  ? "bg-slate-900/40 text-slate-500 border-slate-800 cursor-not-allowed opacity-50"
+                  : "bg-[#0c1626] hover:bg-cyan-950/50 text-cyan-200 border-cyan-800/40 cursor-pointer"
+              }`}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-cyan-300" : "text-cyan-400"}`} />
               刷新
@@ -459,6 +521,14 @@ export default function MarketDashboardPage() {
             </button>
           </div>
         </div>
+
+        {/* ========================================================================= */}
+        {/* AI 科技成长每日投研内参 · 机构晨会级 (头部醒目黄金位) */}
+        {/* ========================================================================= */}
+        <MorningBriefingHero
+          onOpenReportTab={() => setActiveTab("reports")}
+          showToast={showToast}
+        />
 
         {/* 多维导航选项卡 (Tabs) */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#09111e]/90 border border-cyan-500/30 w-full overflow-x-auto no-scrollbar shadow-lg">
