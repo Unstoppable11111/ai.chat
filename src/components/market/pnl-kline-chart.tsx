@@ -467,10 +467,10 @@ export function PnlKlineChart({
                     width={candleW}
                     height={candleH}
                     fill={isBull ? "#f43f5e" : "#10b981"}
-                    stroke={isSelected ? "#38bdf8" : isBull ? "#fb7185" : "#34d399"}
-                    strokeWidth={isSelected ? "2" : "1"}
+                    stroke={isSelected ? "#38bdf8" : isHovered ? "#ffffff" : isBull ? "#fb7185" : "#34d399"}
+                    strokeWidth={isSelected ? "2" : isHovered ? "1.5" : "1"}
                     rx="3"
-                    className="transition-transform duration-200 group-hover:scale-105"
+                    className="transition-colors duration-150"
                   />
 
                   {/* 交易事件打标徽章 */}
