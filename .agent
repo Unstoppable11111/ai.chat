@@ -1,0 +1,116 @@
+# CHEN TECH STUDIO ｜ A股 QUANT STRATEGY LAB
+# Agent 上下文与项目执行元配置文件 (.agent)
+
+> 本文件为本项目的全景上下文与 AI Agent 指令锚点。用于后续对话中快速读取系统架构、三大策略模型、A股交易规则、数据流向及服务器运维规程，确保回答精准、严谨且不偏离业务主线。
+
+---
+
+## 一、项目核心使命与定位
+
+* **项目名称**：CHEN TECH STUDIO ｜ A股 QUANT STRATEGY LAB (三策略模拟交易实验室)
+* **线上生产地址**：https://chenyc.chat/market
+* **本地工作区路径**：
+  * Web 主工程：`E:\codex\ai.chat-main`
+  * 投研与复盘工程：`E:\codex\a-share`
+* **项目核心定位**：
+  * **不是**“AI 拍脑袋推荐股票的黑盒网站”；
+  * **而是**“基于真实全市场客观数据驱动的个人量化策略研发 + 回测 + Paper Trading + 实验验证平台”。
+* **最高铁律**：
+  * ❌ **严禁使用虚假/编造/Mock 数据欺骗判断**。接口失败直接报 `数据获取失败` 或 `--`；
+  * ❌ **严禁未来函数 (Lookahead Bias)**。T 日收盘产生信号，必须在次日开盘以开盘价+滑点撮合；
+  * ❌ **严禁买入 *ST / ST 风险警示股**（规避退市与财务暴雷）；
+  * ❌ **严禁买入科创板 (688)**（规避高门槛与宽幅流动性折价）。
+
+---
+
+## 二、技术栈与系统架构
+
+* **前端框架**：Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS
+* **可视化引擎**：Three.js (`QuantumRadar3D`), SVG Sparkline, 自适应多曲线净值/K线走势图
+* **后端/API 路由**：Next.js Route Handlers (`src/app/api-market/*`, `src/app/api-portfolio/*`)
+* **Python 微服务 (备选辅助)**：`quant_service` (FastAPI, 端口 8100)
+* **真实多源数据通道**：
+  1. **实时行情**：腾讯财经 (`qt.gtimg.cn`) + 新浪财经 (`hq.sinajs.cn`) 实时双通道交叉校验；
+  2. **情绪与资金**：东方财富 Push 接口（涨停池、跌停池、炸板池、主力超大单净流向）；
+  3. **行业板块**：新浪行业分类接口 (`newSinaHy.php`) 动态追踪领涨领跌；
+  4. **宏观外盘**：富时 A50 期指、USD/CNH 汇率、COMEX 黄金、WTI 原油、华尔街见闻 7x24 全球快讯。
+* **数据持久化层**：
+  * 账户账本：`src/data/arena-accounts.json` (内存缓存 + 本地自愈同步)
+  * 私人持仓：MySQL `user_portfolios` 表 + `src/data/user-portfolios.json` 本地灾备
+  * 量化研报：`src/data/quant-daily-reports.json`
+
+---
+
+## 三、9 层页面信息层级架构
+
+1. **MARKET REGIME (首屏环境)**：BULL / NEUTRAL / BEAR / PANIC 状态、评分、两市量能、涨跌广度、连板动量、4条核心证据链、`QuantumRadar3D` 视觉锚点。
+2. **STRATEGY ARENA (策略竞技场)**：三大 10 万元独立账户 HUD 卡片（NAV、今日盈亏、总收益、MDD、Sharpe、Calmar、仓位、版本）。
+3. **PERFORMANCE (同图多曲线PK)**：激进、均衡、保守三大策略与沪深 300 基准同屏净值走势，支持 NAV / Alpha / MDD 模式切换及 1D~1Y 周期。
+4. **SIGNAL CENTER (信号中心)**：BUY / SELL / HOLD / WATCH 信号卡，全透明 100 分量化评分拆解 + Decision Trace 决策链路穿透。
+5. **PORTFOLIO (组合持仓穿透)**：用户私有实战持仓 + 三大账户真实持仓明细（严格 A 股 T+1 可用股份展示）。
+6. **RISK CENTER (风控中心)**：三级阶梯熔断（>10% 减仓、>15% 深降、>20% Protection Mode）、VaR/CVaR 与 Brinson 收益归因。
+7. **RESEARCH (研报中心)**：晨间全球量化内参 + 收盘全景量化复盘。
+8. **EXPERIMENT (实验中心)**：平行策略对抗赛 #001 记录与月度策略复盘报告。
+9. **AI COPILOT (贾维斯量化副驾)**：右下角悬浮 `JARVIS QUANT COPILOT`，自动注入全景实时盘面与三大账户事实进行精准推演。
+
+---
+
+## 四、三大独立量化策略模型 (Three Distinct Strategies)
+
+| 策略维度 | 激进策略 (AGGRESSIVE v1.0) | 均衡策略 (BALANCED v1.0) | 保守策略 (CONSERVATIVE v1.0) |
+| :--- | :--- | :--- | :--- |
+| **投资哲学** | High Growth + Momentum + Breakout | Fundamental + Growth + Valuation + Trend (GARP) | Quality + Valuation + Stability + Low Volatility |
+| **赛道偏好** | CPO光模块、PCB算力板、先进封装、半导体设备 | 半导体封测中军、消费电子龙头、核心零部件 | 高股息水电、核电公用、低估农业粮食安全 |
+| **100分评分卡** | 行业25 + 成长25 + 趋势25 + 动量15 + 估值10 | 基本面30 + 成长25 + 行业15 + 趋势15 + 估值10 + 流动5 | 基本面35 + 质量25 + 估值20 + 趋势10 + 低波10 |
+| **买入触发** | 20D/60D突破、放量突破箱体、评分 >= 75 | MA60上方企稳、均线温和向上、GARP分批建仓 (5%-3%-2%) | 估值历史低位、大级别支撑回踩、股息率 > 4% |
+| **仓位与单票** | 仓位 80%~100%，最多 5 只，单票上限 25% | 仓位 60%~90%，最多 8 只，单票上限 20% | 仓位 30%~70%，最多 10 只，单票上限 15% |
+| **止损与卖出** | 成本 **-5.0%** 硬止损或破 10 日均线清仓 | 成本 **-7.0%** 或破 30 日生命线止损；估值透支止盈 | 仅在分红承诺破坏、现金流恶化时逻辑止损 |
+| **环境仓位映射**| BULL: 90~100% / NEUTRAL: 60~80% / BEAR: 20~40% | BULL: 80~90% / NEUTRAL: 60~75% / BEAR: 30~50% | BULL: 60~70% / NEUTRAL: 40~60% / BEAR: 20~40% |
+
+---
+
+## 五、A 股交易仿真器与决策链路 (Execution & Decision Trace)
+
+* **交易摩擦成本模型**：
+  * 佣金率：万分之 2.5 (`0.00025`)，单笔最低 5.0 元；
+  * 印花税：仅卖出单边收取千分之 0.5 (`0.0005`)；
+  * 滑点模型：买入上浮 0.02% (`0.0002`)，卖出下浮 0.02%；
+  * 交易单位：严格整百股（100 股一手）买入。
+* **T+1 交收限制**：
+  * 当日买入股份计入 `shares`，但 `available_shares` 为 0，日内严禁卖出；次日自动解锁。
+* **Decision Trace 决策链路标准格式**：
+  * `Data Input`：输入现价、涨跌幅、估值及财务指标；
+  * `Factors`：行业、成长、趋势、动量各因子细分得分；
+  * `Score Eval`：综合评分与阈值比对；
+  * `Signal Eval`：具体动作触发原因与时点；
+  * `Risk Check`：单票仓位上限与止损线校验；
+  * `Execution Plan`：隔日集合竞价撮合计划与 A 股规章符合度。
+
+---
+
+## 六、服务器环境与运维操作规程 (Operations & Deployment)
+
+* **生产环境配置**：
+  * 架构：Linux 云服务器 + Node.js (v24+) + PM2 进程守护 + Nginx 反向代理 + Cloudflare CDN
+  * Git 仓库：`https://github.com/Unstoppable11111/ai.chat.git` (分支：`main`)
+* **零停机部署 3 步命令**：
+  ```bash
+  cd /path/to/ai.chat-main
+  git pull origin main
+  npm run build
+  pm2 reload all
+  ```
+* **服务器修改约束**：
+  * ❌ 严禁修改 Nginx 反代配置（新增 API 走原有端口，无需改动）；
+  * ❌ 严禁执行危险 SQL 或删除数据库字段；
+  * ❌ 严禁新增无必要的系统级依赖；
+  * ✅ 遇到非预期异常执行回滚：`git reset --hard HEAD~1 && npm run build && pm2 reload all`。
+
+---
+
+## 七、AI 助理协同准则 (Agent Directives)
+
+在后续所有对话中，AI 助理必须严格遵守：
+1. **沟通风格**：始终使用中文；**先给结论，再说明原因和步骤**；避免无关理论套话，直接给出可执行方案。
+2. **数据实事求是**：所有推演与分析必须从系统当前真实数据源提取，回答“为什么买”、“为什么卖”必须严格对应决策链路与策略规则。
+3. **架构稳定性**：任何新功能扩展必须遵循增量原则，不得破坏现有 `/market` 看板中的任何已有模块。
