@@ -214,6 +214,7 @@ export interface ArenaAccount {
   profit_factor: number;
   current_exposure_pct: number;
   position_count: number;
+  completed_trades?: number;
   strategy_score: number;
   risk_status: RiskStatus;
   is_protection_mode: boolean;

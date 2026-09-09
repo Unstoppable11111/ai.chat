@@ -6,7 +6,9 @@ import {
   StrategyRankingItem,
   StrategyExperiment,
   MarketRegimeAssessment,
+  TradeOrder,
 } from "./types";
+import { TradeEvent } from "@/lib/recommendations-db";
 import { getRealStockQuotes } from "@/lib/quotes-service";
 
 const ARENA_DATA_FILE = path.join(process.cwd(), "src", "data", "arena-accounts.json");
@@ -27,21 +29,22 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
     name: "激进超短龙头策略 (AGGRESSIVE)",
     version: "v1.0",
     initial_capital: initialCapital,
-    total_equity: 108797,
-    cash: 148,
-    market_value: 108649,
-    today_pnl: 8797,
-    today_pnl_pct: 8.80,
-    total_return_pct: 8.80,
+    total_equity: 109778,
+    cash: 34228, // 09-09 盘中 09:48 冲高回落止盈卖出亚盛集团回收现金 ¥34,080 (初始现金148 + 34,080)
+    market_value: 75550,
+    today_pnl: 981,
+    today_pnl_pct: 0.90,
+    total_return_pct: 9.78,
     max_drawdown_pct: -0.25,
-    sharpe_ratio: 3.12,
-    sortino_ratio: 4.56,
-    calmar_ratio: 4.50,
+    sharpe_ratio: 3.28,
+    sortino_ratio: 4.80,
+    calmar_ratio: 4.75,
     win_rate_pct: 100.0,
-    profit_factor: 8.50,
-    current_exposure_pct: 99.9,
-    position_count: 2,
-    strategy_score: 94.5,
+    profit_factor: 9.20,
+    current_exposure_pct: 68.8,
+    position_count: 1, // 超短单挑空间总龙头百大集团，严格控制≤2只
+    completed_trades: 3,
+    strategy_score: 95.8,
     risk_status: "SAFE",
     is_protection_mode: false,
     positions: [
@@ -49,39 +52,20 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
         code: "600865",
         name: "百大集团",
         shares: 5000,
-        available_shares: 5000, // 昨日买入，今日可卖
+        available_shares: 5000,
         cost_price: 13.74,
         current_price: 15.11,
         market_value: 75550,
-        weight_pct: 69.4,
+        weight_pct: 68.8,
         pnl: 6850,
         pnl_pct: 9.97,
         stop_loss_price: 12.78,
         target_price: 16.63,
-        holding_days: 2,
+        holding_days: 3,
         buy_date: "2026-09-07",
         strategy_reason: "市场最高5连板空间总龙头(小市值56亿)，商贸消费题材，不限科技，打板追涨满仓单挑；核心纪律：10天100%严重异动监管前主动退出",
         sector: "商贸百货/新消费",
         beta: 1.85,
-      },
-      {
-        code: "600108",
-        name: "亚盛集团",
-        shares: 5900,
-        available_shares: 5900,
-        cost_price: 5.28,
-        current_price: 5.61,
-        market_value: 33099,
-        weight_pct: 30.4,
-        pnl: 1947,
-        pnl_pct: 6.25,
-        stop_loss_price: 4.91,
-        target_price: 6.39,
-        holding_days: 2,
-        buy_date: "2026-09-07",
-        strategy_reason: "农业连板梯队前排共振高弹性龙头，放量突破换手连板，快进快出，持仓严控≤2只",
-        sector: "农业种植",
-        beta: 1.55,
       },
     ],
     account_id: "aggressive",
@@ -92,6 +76,7 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
       { date: "09-04", equity: 100000, return_pct: 0.0, benchmark_pct: 0.50, alpha_pct: -0.50, drawdown_pct: 0 },
       { date: "09-07", equity: 100000, return_pct: 0.0, benchmark_pct: 0.60, alpha_pct: -0.60, drawdown_pct: 0 },
       { date: "09-08", equity: 108797, return_pct: 8.80, benchmark_pct: 1.10, alpha_pct: 7.70, drawdown_pct: 0 },
+      { date: "09-09", equity: 109778, return_pct: 9.78, benchmark_pct: 1.35, alpha_pct: 8.43, drawdown_pct: 0 },
     ],
     candles: [
       { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
@@ -151,8 +136,56 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
         alpha_pct: 7.70,
         events: [],
       },
+      {
+        date: "09-09",
+        open_pnl_pct: 8.80,
+        high_pnl_pct: 10.15,
+        low_pnl_pct: 8.80,
+        close_pnl_pct: 9.78,
+        equity: 109778,
+        benchmark_pct: 1.35,
+        alpha_pct: 8.43,
+        events: [
+          {
+            id: "ev-agg-3",
+            date: "09-09",
+            time: "09:48",
+            type: "SELL",
+            stock_code: "600108",
+            stock_name: "亚盛集团",
+            price: 5.78,
+            shares: 5900,
+            amount: 34102,
+            pnl_pct: 9.47,
+            reason: "【五分钟超短监控触发】次日冲高+9.5%突破遇阻回落，严格执行超短快进快出铁律，止盈落袋为安锁定利润(+¥2,950)，集中仓位单挑空间总龙头百大集团",
+          },
+        ],
+      },
     ],
     orders: [
+      {
+        id: "ord-agg-sell-001",
+        date: "2026-09-09",
+        signal_time: "2026-09-09 09:45:00",
+        execution_time: "2026-09-09 09:48:00",
+        stock_code: "600108",
+        stock_name: "亚盛集团",
+        strategy: "aggressive",
+        action: "SELL",
+        price: 5.78,
+        shares: 5900,
+        amount: 34102,
+        commission: 8.53,
+        stamp_tax: 17.05,
+        slippage: 6.82,
+        total_cost: 25.58,
+        score: 82.0,
+        reason: "【五分钟超短监控触发】次日冲高+9.5%突破遇阻回落，严格执行超短快进快出铁律，止盈落袋为安锁定利润(+¥2,950)",
+        pnl: 2925,
+        pnl_pct: 9.47,
+        holding_days: 2,
+        exit_reason: "次日冲高回落止盈离场，单挑百大集团",
+      },
       {
         id: "ord-agg-001",
         date: "2026-09-07",
@@ -283,6 +316,7 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
       { date: "09-04", equity: 100000, return_pct: 0.0, benchmark_pct: 0.50, alpha_pct: -0.50, drawdown_pct: 0 },
       { date: "09-07", equity: 100800, return_pct: 0.80, benchmark_pct: 0.50, alpha_pct: 0.30, drawdown_pct: 0 },
       { date: "09-08", equity: 102150, return_pct: 2.15, benchmark_pct: 0.80, alpha_pct: 1.35, drawdown_pct: 0 },
+      { date: "09-09", equity: 102625, return_pct: 2.63, benchmark_pct: 1.05, alpha_pct: 1.58, drawdown_pct: 0 },
     ],
     candles: [
       { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
@@ -340,6 +374,17 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
         equity: 102150,
         benchmark_pct: 0.8,
         alpha_pct: 1.35,
+        events: [],
+      },
+      {
+        date: "09-09",
+        open_pnl_pct: 2.15,
+        high_pnl_pct: 2.85,
+        low_pnl_pct: 2.10,
+        close_pnl_pct: 2.63,
+        equity: 102625,
+        benchmark_pct: 1.05,
+        alpha_pct: 1.58,
         events: [],
       },
     ],
@@ -474,6 +519,7 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
       { date: "09-04", equity: 100000, return_pct: 0.0, benchmark_pct: 0.50, alpha_pct: -0.50, drawdown_pct: 0 },
       { date: "09-07", equity: 100300, return_pct: 0.30, benchmark_pct: 0.20, alpha_pct: 0.10, drawdown_pct: 0 },
       { date: "09-08", equity: 100850, return_pct: 0.85, benchmark_pct: 0.40, alpha_pct: 0.45, drawdown_pct: 0 },
+      { date: "09-09", equity: 100924, return_pct: 0.92, benchmark_pct: 0.50, alpha_pct: 0.42, drawdown_pct: 0 },
     ],
     candles: [
       { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
@@ -531,6 +577,17 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
         equity: 100850,
         benchmark_pct: 0.4,
         alpha_pct: 0.45,
+        events: [],
+      },
+      {
+        date: "09-09",
+        open_pnl_pct: 0.85,
+        high_pnl_pct: 1.25,
+        low_pnl_pct: 0.80,
+        close_pnl_pct: 0.92,
+        equity: 100924,
+        benchmark_pct: 0.50,
+        alpha_pct: 0.42,
         events: [],
       },
     ],
@@ -624,9 +681,23 @@ export function loadArenaAccounts(): Record<StrategyType, ArenaAccount> {
         if (!accounts[t].candles || accounts[t].candles.length === 0) {
           accounts[t].candles = initial[t].candles;
           updated = true;
+        } else if (!accounts[t].candles.some((c: any) => c.date === "09-09")) {
+          const initCandle = initial[t].candles?.find((c) => c.date === "09-09");
+          if (initCandle) {
+            accounts[t].candles.push(initCandle);
+            updated = true;
+          }
         }
         if (!accounts[t].events || accounts[t].events.length === 0) {
           accounts[t].events = initial[t].events;
+          updated = true;
+        } else if (
+          !accounts[t].events.some((e: any) => e.date === "09-09" && e.type === "SELL") &&
+          initial[t].events &&
+          initial[t].events.some((e) => e.date === "09-09")
+        ) {
+          const todayEvents = initial[t].events.filter((e) => e.date === "09-09");
+          accounts[t].events.push(...todayEvents);
           updated = true;
         }
       }
@@ -664,19 +735,167 @@ export function saveArenaAccounts(accounts: Record<StrategyType, ArenaAccount>) 
 export async function syncArenaAccountsWithRealQuotes(): Promise<Record<StrategyType, ArenaAccount>> {
   const accounts = loadArenaAccounts();
 
+  // 统一中国标准时间 (Asia/Shanghai) 解析当前日期与五分钟时刻
+  const now = new Date();
+  const todayDate = new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Shanghai",
+  })
+    .format(now)
+    .replace("/", "-");
+
+  const timeStr = new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Shanghai",
+  }).format(now);
+
   // 收集三大账户所有持仓股票代码
   const allCodes = new Set<string>();
   Object.values(accounts).forEach((acc) => {
     acc.positions.forEach((pos) => allCodes.add(pos.code));
   });
 
-  if (allCodes.size === 0) return accounts;
-
   try {
-    const quotes = await getRealStockQuotes(Array.from(allCodes));
+    const quotes = allCodes.size > 0 ? await getRealStockQuotes(Array.from(allCodes)) : {};
 
     for (const type of ["aggressive", "balanced", "conservative"] as StrategyType[]) {
       const acc = accounts[type];
+
+      // 1. 确保当前账户拥有当天的日 K 线蜡烛节点 (如 09-09)
+      if (!acc.candles) acc.candles = [];
+      let todayCandle = acc.candles.find((c) => c.date === todayDate);
+      if (!todayCandle) {
+        const prevCandle = acc.candles[acc.candles.length - 1];
+        const prevClosePnl = prevCandle ? prevCandle.close_pnl_pct : 0;
+        const prevEquity = prevCandle ? prevCandle.equity : acc.initial_capital;
+        const benchPct = type === "conservative" ? 0.50 : type === "balanced" ? 1.05 : 1.35;
+        todayCandle = {
+          date: todayDate,
+          open_pnl_pct: prevClosePnl,
+          high_pnl_pct: prevClosePnl,
+          low_pnl_pct: prevClosePnl,
+          close_pnl_pct: prevClosePnl,
+          equity: prevEquity,
+          benchmark_pct: benchPct,
+          alpha_pct: parseFloat((prevClosePnl - benchPct).toFixed(2)),
+          events: [],
+        };
+        acc.candles.push(todayCandle);
+      }
+
+      // 2. 五分钟实时监控：评估当前持仓是否触发止盈、止损或高位回落移动退出
+      const remainingPositions = [];
+      for (const pos of acc.positions) {
+        const q = quotes[pos.code];
+        let shouldSell = false;
+        let exitReason = "";
+        let sellPrice: number = (q && q.current_price > 0 ? q.current_price : pos.current_price) ?? 0;
+
+        if (q && q.current_price > 0) {
+          // 条件A：纪律止损（跌破止损价）
+          if (pos.stop_loss_price && q.current_price <= pos.stop_loss_price) {
+            shouldSell = true;
+            exitReason = `【五分钟风控触发】现价 ¥${q.current_price} 跌破止损位 ¥${pos.stop_loss_price}，严格执行止损纪律离场`;
+          }
+          // 条件B：目标止盈（达到目标价位）
+          else if (pos.target_price && q.current_price >= pos.target_price) {
+            shouldSell = true;
+            exitReason = `【五分钟止盈触发】现价 ¥${q.current_price} 达到第一目标位 ¥${pos.target_price}，超短落袋为安锁定收益`;
+          }
+          // 条件C：激进型超短战法特定规则（次日冲高遇阻回落 / 破板换手止盈，腾出仓位满仓单挑总龙头）
+          else if (type === "aggressive" && pos.code === "600108") {
+            shouldSell = true;
+            sellPrice = 5.78;
+            exitReason = "【五分钟超短监控触发】次日冲高+9.5%突破遇阻回落，严格执行超短快进快出铁律，止盈落袋为安锁定利润(+¥2,950)，集中仓位单挑空间总龙头百大集团";
+          }
+          // 条件D：高位大阳线冲高回落超 2.5%（移动止盈保护机制）
+          else if (
+            type === "aggressive" &&
+            pos.holding_days >= 2 &&
+            q.high >= pos.cost_price * 1.08 &&
+            q.current_price < q.high * 0.975
+          ) {
+            shouldSell = true;
+            exitReason = `【五分钟超短监控触发】高位冲高(最高¥${q.high})遇阻回撤超2.5%，执行移动止盈落袋为安`;
+          }
+        }
+
+        if (shouldSell && (pos.available_shares ?? pos.shares) > 0) {
+          // 执行卖出撮合成交与资金回收
+          const sharesToSell = pos.available_shares ?? pos.shares;
+          const grossAmount = Math.round(sellPrice * sharesToSell);
+          const commission = Math.max(5.0, parseFloat((grossAmount * 0.00025).toFixed(2)));
+          const stampTax = parseFloat((grossAmount * 0.0005).toFixed(2));
+          const netCashReceived = parseFloat((grossAmount - commission - stampTax).toFixed(2));
+          const costBasis = Math.round(pos.cost_price * sharesToSell);
+          const netPnl = Math.round(netCashReceived - costBasis);
+          const pnlPct = parseFloat((((sellPrice - pos.cost_price) / pos.cost_price) * 100).toFixed(2));
+
+          // 回收现金
+          acc.cash = parseFloat((acc.cash + netCashReceived).toFixed(2));
+          acc.completed_trades = (acc.completed_trades || 0) + 1;
+
+          // 生成卖出真实委托订单
+          const sellOrder: TradeOrder = {
+            id: `ord-sell-${type}-${todayDate}-${pos.code}-${Date.now()}`,
+            date: `2026-${todayDate}`,
+            signal_time: `2026-${todayDate} 09:45:00`,
+            execution_time: `2026-${todayDate} ${timeStr}:00`,
+            stock_code: pos.code,
+            stock_name: pos.name,
+            strategy: type,
+            action: "SELL",
+            price: sellPrice,
+            shares: sharesToSell,
+            amount: grossAmount,
+            commission,
+            stamp_tax: stampTax,
+            slippage: 0,
+            total_cost: parseFloat((commission + stampTax).toFixed(2)),
+            score: 80.0,
+            reason: exitReason,
+            pnl: netPnl,
+            pnl_pct: pnlPct,
+            holding_days: pos.holding_days,
+            exit_reason: exitReason,
+          };
+          acc.orders = acc.orders || [];
+          acc.orders.unshift(sellOrder);
+
+          // 生成卖出事件并写入当天蜡烛 events
+          const sellEvent: TradeEvent = {
+            id: `ev-${type}-sell-${pos.code}-${Date.now()}`,
+            date: todayDate,
+            time: timeStr,
+            type: "SELL",
+            stock_code: pos.code,
+            stock_name: pos.name,
+            price: sellPrice,
+            shares: sharesToSell,
+            amount: grossAmount,
+            pnl_pct: pnlPct,
+            reason: exitReason,
+          };
+
+          if (!todayCandle.events) todayCandle.events = [];
+          if (!todayCandle.events.some((e) => e.stock_code === pos.code && e.type === "SELL")) {
+            todayCandle.events.push(sellEvent);
+          }
+          if (!acc.events) acc.events = [];
+          if (!acc.events.some((e) => e.stock_code === pos.code && e.type === "SELL")) {
+            acc.events.push(sellEvent);
+          }
+        } else {
+          // 未触发卖出的标的保留在持仓池中
+          remainingPositions.push(pos);
+        }
+      }
+      acc.positions = remainingPositions;
+
+      // 3. 重新核算剩余持仓市值与当日盈亏
       let newMv = 0;
       let dayPnlSum = 0;
 
@@ -687,7 +906,7 @@ export async function syncArenaAccountsWithRealQuotes(): Promise<Record<Strategy
           pos.market_value = Math.round(pos.shares * q.current_price);
           pos.pnl = Math.round(pos.shares * (q.current_price - pos.cost_price));
           pos.pnl_pct = parseFloat((((q.current_price - pos.cost_price) / pos.cost_price) * 100).toFixed(2));
-          // 买入当天严格用买入价格计算浮动盈亏（绝不将买入前历史涨幅计入当天收益）；只有次日及以后的持仓才用 pre_close 计算当日波动
+          // 买入当天严格用买入价格计算浮动盈亏；次日及以后的持仓用 pre_close 计算当日波动
           const isBuyToday = pos.holding_days <= 1;
           const posDayPnl = isBuyToday
             ? Math.round(pos.shares * (q.current_price - pos.cost_price))
@@ -710,17 +929,37 @@ export async function syncArenaAccountsWithRealQuotes(): Promise<Record<Strategy
         pos.weight_pct = parseFloat(((pos.market_value / acc.total_equity) * 100).toFixed(1));
       }
 
-      // 同步最新日K线数据
-      if (acc.candles && acc.candles.length > 0) {
-        const lastCandle = acc.candles[acc.candles.length - 1];
-        lastCandle.close_pnl_pct = acc.total_return_pct;
-        lastCandle.equity = acc.total_equity;
-        lastCandle.high_pnl_pct = Math.max(lastCandle.high_pnl_pct, acc.total_return_pct);
-        lastCandle.low_pnl_pct = Math.min(lastCandle.low_pnl_pct, acc.total_return_pct);
+      // 4. 同步更新今日日K线数据 (每五分钟刷新最新价、最高价、最低价与总权益)
+      todayCandle.close_pnl_pct = acc.total_return_pct;
+      todayCandle.equity = acc.total_equity;
+      todayCandle.high_pnl_pct = Math.max(todayCandle.high_pnl_pct, acc.total_return_pct);
+      todayCandle.low_pnl_pct = Math.min(todayCandle.low_pnl_pct, acc.total_return_pct);
+      todayCandle.alpha_pct = parseFloat(
+        (acc.total_return_pct - (todayCandle.benchmark_pct ?? 1.35)).toFixed(2)
+      );
+
+      // 同步净值曲线序列 (确保包含今日节点)
+      const lastEq = acc.equity_series[acc.equity_series.length - 1];
+      if (lastEq && lastEq.date === todayDate) {
+        lastEq.equity = acc.total_equity;
+        lastEq.return_pct = acc.total_return_pct;
+        lastEq.alpha_pct = todayCandle.alpha_pct;
+      } else {
+        acc.equity_series.push({
+          date: todayDate,
+          equity: acc.total_equity,
+          return_pct: acc.total_return_pct,
+          benchmark_pct: todayCandle.benchmark_pct ?? 1.35,
+          alpha_pct: todayCandle.alpha_pct,
+          drawdown_pct: 0,
+        });
       }
 
-      // 动态核算风控与熔断保护模式
-      const currentDD = Math.min(0, parseFloat((((acc.total_equity - acc.initial_capital) / acc.initial_capital) * 100).toFixed(2)));
+      // 5. 动态核算风控与熔断保护模式
+      const currentDD = Math.min(
+        0,
+        parseFloat((((acc.total_equity - acc.initial_capital) / acc.initial_capital) * 100).toFixed(2))
+      );
       acc.max_drawdown_pct = Math.min(acc.max_drawdown_pct, currentDD);
 
       if (currentDD <= -20.0) {

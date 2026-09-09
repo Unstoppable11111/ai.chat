@@ -90,6 +90,31 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
       alpha_pct: 7.70,
       events: [],
     },
+    {
+      date: "09-09",
+      open_pnl_pct: 8.80,
+      high_pnl_pct: 10.15,
+      low_pnl_pct: 8.80,
+      close_pnl_pct: 9.78,
+      equity: 109778,
+      benchmark_pct: 1.35,
+      alpha_pct: 8.43,
+      events: [
+        {
+          id: "ev-agg-3",
+          date: "09-09",
+          time: "09:48",
+          type: "SELL",
+          stock_code: "600108",
+          stock_name: "亚盛集团",
+          price: 5.78,
+          shares: 5900,
+          amount: 34102,
+          pnl_pct: 9.47,
+          reason: "【五分钟超短监控触发】次日冲高+9.5%突破遇阻回落，严格执行超短快进快出铁律，止盈落袋为安锁定利润(+¥2,950)，集中仓位单挑空间总龙头百大集团",
+        },
+      ],
+    },
   ],
   balanced: [
     { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
@@ -149,6 +174,17 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
       alpha_pct: 1.35,
       events: [],
     },
+    {
+      date: "09-09",
+      open_pnl_pct: 2.15,
+      high_pnl_pct: 2.85,
+      low_pnl_pct: 2.10,
+      close_pnl_pct: 2.63,
+      equity: 102625,
+      benchmark_pct: 1.05,
+      alpha_pct: 1.58,
+      events: [],
+    },
   ],
   conservative: [
     { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
@@ -206,6 +242,17 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
       equity: 100850,
       benchmark_pct: 0.4,
       alpha_pct: 0.45,
+      events: [],
+    },
+    {
+      date: "09-09",
+      open_pnl_pct: 0.85,
+      high_pnl_pct: 1.25,
+      low_pnl_pct: 0.80,
+      close_pnl_pct: 0.92,
+      equity: 100924,
+      benchmark_pct: 0.50,
+      alpha_pct: 0.42,
       events: [],
     },
   ],
@@ -832,76 +879,77 @@ export function PnlKlineChart({
 
             {/* 当日详细操作逻辑分析展示 */}
             {activeCandle.events && activeCandle.events.length > 0 ? (
-              /* 情况1：有交易操作日 (如 09-07) */
+              /* 情况1：有交易操作日 (如 09-07 买入, 09-09 卖出) */
               <div className="space-y-2 pt-1">
                 <div className="text-xs font-bold text-cyan-300 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <span className="flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    ⚡ 当日调仓买卖记录与量化决策逻辑 ({activeCandle.events.length} 笔交易)
+                    ⚡ {activeCandle.date === "09-09" ? "今日实时调仓买卖记录与五分钟量化决策" : "当日调仓买卖记录与量化决策逻辑"} ({activeCandle.events.length} 笔交易)
                   </span>
                   <span className="text-[10px] text-amber-300 font-normal">
-                    📌 真实撮合纪律：未开一字板默认未买入 · 买入日严格按成交价核算收益(0.00%)
+                    📌 真实撮合纪律：未开一字板默认未买入 · 买入日按成本价核算 · 冲高回落/达标严格止盈止损
                   </span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {activeCandle.events.map((ev, i) => {
-                    const isBuy = ev.type === "BUY";
-                    const isWin = ev.type === "SELL_TAKE_PROFIT";
-                    return (
-                      <div
-                        key={ev.id || i}
-                        className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/30 space-y-1.5 shadow-md"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                                isBuy
-                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                                  : isWin
-                                  ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                                  : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                              }`}
-                            >
-                              {isBuy ? "🟢 买入建仓" : isWin ? "🎯 目标止盈" : "🛑 纪律止损"}
-                            </span>
-                            <span className="text-xs font-bold text-white">{ev.stock_name}</span>
-                            <span className="text-[11px] font-mono text-cyan-400">
-                              {ev.stock_code}
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-slate-400 font-mono">{ev.time}</span>
-                        </div>
-
-                        <div className="flex items-baseline justify-between text-xs font-mono">
-                          <span className="text-slate-300">
-                            成交: ¥{ev.price.toFixed(2)} × {ev.shares}股 (¥
-                            {ev.amount.toLocaleString()})
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {activeCandle.events.map((ev, i) => {
+                  const isBuy = ev.type === "BUY";
+                  const isWin = ev.type === "SELL_TAKE_PROFIT" || (ev.type === "SELL" && (ev.pnl_pct ?? 0) >= 0);
+                  return (
+                    <div
+                      key={ev.id || i}
+                      className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/30 space-y-1.5 shadow-md"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                              isBuy
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                : isWin
+                                ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                                : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                            }`}
+                          >
+                            {isBuy ? "🟢 买入建仓" : isWin ? "🎯 止盈卖出" : "🛑 纪律止损"}
                           </span>
-                          {ev.pnl_pct !== undefined && (
-                            <span
-                              className={`font-bold ${
-                                ev.pnl_pct > 0
-                                  ? "text-rose-400"
-                                  : ev.pnl_pct < 0
-                                  ? "text-emerald-400"
-                                  : "text-slate-400"
-                              }`}
-                            >
-                              当日盈亏: {ev.pnl_pct > 0 ? `+${ev.pnl_pct}%` : `${ev.pnl_pct}%`}
-                            </span>
-                          )}
+                          <span className="text-xs font-bold text-white">{ev.stock_name}</span>
+                          <span className="text-[11px] font-mono text-cyan-400">
+                            {ev.stock_code}
+                          </span>
                         </div>
-
-                        <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-[11px] text-slate-300 leading-snug">
-                          <span className="text-cyan-400 font-semibold">量化决策依据: </span>
-                          {ev.reason}
-                        </div>
+                        <span className="text-[10px] text-slate-400 font-mono">{ev.time}</span>
                       </div>
-                    );
-                  })}
-                </div>
+
+                      <div className="flex items-baseline justify-between text-xs font-mono">
+                        <span className="text-slate-300">
+                          成交: ¥{ev.price.toFixed(2)} × {ev.shares}股 (¥
+                          {ev.amount.toLocaleString()})
+                        </span>
+                        {ev.pnl_pct !== undefined && (
+                          <span
+                            className={`font-bold ${
+                              ev.pnl_pct > 0
+                                ? "text-rose-400"
+                                : ev.pnl_pct < 0
+                                ? "text-emerald-400"
+                                : "text-slate-400"
+                            }`}
+                          >
+                            {isBuy ? "当日盈亏: " : "实现盈亏: "}
+                            {ev.pnl_pct > 0 ? `+${ev.pnl_pct}%` : `${ev.pnl_pct}%`}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-[11px] text-slate-300 leading-snug">
+                        <span className="text-cyan-400 font-semibold">量化决策依据: </span>
+                        {ev.reason}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+            </div>
             ) : activeCandle.equity > 100000 || activeCandle.close_pnl_pct !== 0 ? (
               /* 情况2：无调仓但有持股待涨日 (如 09-08) */
               <div className="space-y-2 pt-1">

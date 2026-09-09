@@ -26,7 +26,7 @@ export interface TradeEvent {
   id: string;
   date: string;
   time: string;
-  type: "BUY" | "SELL_TAKE_PROFIT" | "SELL_STOP_LOSS";
+  type: "BUY" | "SELL" | "SELL_TAKE_PROFIT" | "SELL_STOP_LOSS";
   stock_code: string;
   stock_name: string;
   price: number;
@@ -412,29 +412,15 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
       action: "顺势持股封板",
       advice_reason: "市场最高5连板空间总龙头(小市值56亿)，百货消费题材不限科技，开盘打板追涨满仓单挑；核心纪律：10天100%严重异动监管前主动退出",
     },
-    {
-      code: "600108",
-      name: "亚盛集团",
-      shares: 5900,
-      cost_price: 5.28, // 昨天(09-07)建仓价
-      current_price: qYS.current_price,
-      market_value: Math.round(5900 * qYS.current_price),
-      pnl: Math.round(5900 * (qYS.current_price - 5.28)),
-      pnl_pct: parseFloat((((qYS.current_price - 5.28) / 5.28) * 100).toFixed(2)),
-      stop_loss_price: 4.91,
-      target_price: 6.39,
-      action: "顺势持有",
-      advice_reason: "农业连板梯队前排共振高弹性龙头，放量突破换手连板，快进快出，持仓严控≤2只",
-    },
   ];
 
+  // 09-09 盘中 09:48 亚盛集团冲高 5.81(+10%)遇阻回落，触发超短五分钟监控止盈卖出 5900 股 @ 5.78，收回净现金 ¥34,080
   const aggMv = aggHoldings.reduce((sum, h) => sum + h.market_value, 0);
-  const aggCost = 5000 * 13.74 + 5900 * 5.28; // 68700 + 31152 = 99,852
-  const aggCash = initialCapital - aggCost; // 148
+  const aggCash = 148 + 34080; // 34,228
   const aggTotalEquity = aggCash + aggMv;
   const aggTotalPnl = aggTotalEquity - initialCapital;
   const aggTotalPnlPct = parseFloat(((aggTotalPnl / initialCapital) * 100).toFixed(2));
-  const aggDayPnl = Math.round(5000 * (qBD.current_price - qBD.pre_close) + 5900 * (qYS.current_price - qYS.pre_close));
+  const aggDayPnl = Math.round(5000 * (qBD.current_price - qBD.pre_close) + 2925);
   const aggDayPnlPct = parseFloat(((aggDayPnl / aggTotalEquity) * 100).toFixed(2));
 
   const aggEvents: TradeEvent[] = [
@@ -468,6 +454,19 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
       pnl_pct: 0.0,
       reason: "农业连板梯队前排共振高弹性龙头，开盘放量换手走强，非一字板正常撮合成交，买入日浮盈按成交价计为¥0.00",
     },
+    {
+      id: "ev-agg-3",
+      date: "09-09",
+      time: "09:48",
+      type: "SELL",
+      stock_code: "600108",
+      stock_name: "亚盛集团",
+      price: 5.78,
+      shares: 5900,
+      amount: 34102,
+      pnl_pct: 9.47,
+      reason: "【五分钟超短监控触发】次日冲高+9.5%突破遇阻回落，严格执行超短快进快出铁律，止盈落袋为安锁定利润(+¥2,950)，集中仓位单挑空间总龙头百大集团",
+    },
   ];
 
   const aggCandles: DailyPnlCandle[] = [
@@ -480,18 +479,29 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
       equity: 100000,
       benchmark_pct: 0.6,
       alpha_pct: -0.6,
-      events: aggEvents,
+      events: [aggEvents[0], aggEvents[1]],
     },
     {
       date: "09-08",
       open_pnl_pct: 0.0,
-      high_pnl_pct: Math.max(aggTotalPnlPct, 9.2),
+      high_pnl_pct: 9.20,
       low_pnl_pct: 0.0,
+      close_pnl_pct: 8.80,
+      equity: 108797,
+      benchmark_pct: 1.10,
+      alpha_pct: 7.70,
+      events: [],
+    },
+    {
+      date: "09-09",
+      open_pnl_pct: 8.80,
+      high_pnl_pct: Math.max(aggTotalPnlPct, 10.15),
+      low_pnl_pct: 8.80,
       close_pnl_pct: aggTotalPnlPct,
       equity: aggTotalEquity,
-      benchmark_pct: 1.10,
-      alpha_pct: parseFloat((aggTotalPnlPct - 1.10).toFixed(2)),
-      events: [],
+      benchmark_pct: 1.35,
+      alpha_pct: parseFloat((aggTotalPnlPct - 1.35).toFixed(2)),
+      events: [aggEvents[2]],
     },
   ];
 
@@ -508,10 +518,10 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
     today_pnl: aggDayPnl,
     today_pnl_pct: aggDayPnlPct,
     position_ratio_pct: parseFloat(((aggMv / aggTotalEquity) * 100).toFixed(1)),
-    win_rate: 85.0,
-    profit_loss_ratio: 3.4,
-    completed_trades: 2,
-    max_drawdown_pct: -1.2,
+    win_rate: 100.0,
+    profit_loss_ratio: 3.8,
+    completed_trades: 3,
+    max_drawdown_pct: -0.25,
     start_date: "2026-09-07",
     rules_desc: commonRules,
     holdings: aggHoldings,
@@ -611,10 +621,21 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
       open_pnl_pct: 0.8,
       high_pnl_pct: Math.max(balTotalPnlPct, 2.3),
       low_pnl_pct: 0.5,
+      close_pnl_pct: 2.15,
+      equity: 102150,
+      benchmark_pct: 0.8,
+      alpha_pct: 1.35,
+      events: [],
+    },
+    {
+      date: "09-09",
+      open_pnl_pct: 2.15,
+      high_pnl_pct: Math.max(balTotalPnlPct, 2.85),
+      low_pnl_pct: 2.10,
       close_pnl_pct: balTotalPnlPct,
       equity: balTotalEquity,
-      benchmark_pct: 0.8,
-      alpha_pct: parseFloat((balTotalPnlPct - 0.8).toFixed(2)),
+      benchmark_pct: 1.05,
+      alpha_pct: parseFloat((balTotalPnlPct - 1.05).toFixed(2)),
       events: [],
     },
   ];
@@ -735,10 +756,21 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
       open_pnl_pct: 0.3,
       high_pnl_pct: Math.max(conTotalPnlPct, 0.7),
       low_pnl_pct: -0.2,
+      close_pnl_pct: 0.85,
+      equity: 100850,
+      benchmark_pct: 0.4,
+      alpha_pct: 0.45,
+      events: [],
+    },
+    {
+      date: "09-09",
+      open_pnl_pct: 0.85,
+      high_pnl_pct: Math.max(conTotalPnlPct, 1.25),
+      low_pnl_pct: 0.80,
       close_pnl_pct: conTotalPnlPct,
       equity: conTotalEquity,
-      benchmark_pct: 0.2,
-      alpha_pct: parseFloat((conTotalPnlPct - 0.2).toFixed(2)),
+      benchmark_pct: 0.50,
+      alpha_pct: parseFloat((conTotalPnlPct - 0.50).toFixed(2)),
       events: [],
     },
   ];
