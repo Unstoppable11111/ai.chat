@@ -173,6 +173,9 @@ const BASELINE_REAL_QUOTES: Record<string, Omit<RealQuote, "source" | "timestamp
   "002085": { code: "002085", name: "万丰奥威", current_price: 15.48, pre_close: 14.20, open: 14.35, high: 15.62, low: 14.30, change_pct: 9.01, volume: 1880000, amount: 2840000000 },
   "001696": { code: "001696", name: "宗申动力", current_price: 16.93, pre_close: 15.80, open: 15.95, high: 17.38, low: 15.88, change_pct: 7.15, volume: 1420000, amount: 2360000000 },
   "000099": { code: "000099", name: "中信海直", current_price: 21.60, pre_close: 20.30, open: 20.50, high: 22.33, low: 20.45, change_pct: 6.40, volume: 890000, amount: 1910000000 },
+  "600865": { code: "600865", name: "百大集团", current_price: 15.11, pre_close: 13.74, open: 14.10, high: 15.11, low: 13.82, change_pct: 9.97, volume: 691081, amount: 1014800000 },
+  "600108": { code: "600108", name: "亚盛集团", current_price: 5.61, pre_close: 5.28, open: 5.78, high: 5.81, low: 5.56, change_pct: 6.25, volume: 6412264, amount: 3681860000 },
+  "002403": { code: "002403", name: "爱仕达", current_price: 12.60, pre_close: 13.65, open: 13.65, high: 13.70, low: 12.29, change_pct: -7.69, volume: 436163, amount: 558700000 },
 };
 
 export async function getRealStockQuotes(codes: string[]): Promise<Record<string, RealQuote>> {
@@ -275,8 +278,8 @@ export async function getRealMarketSentiment(dateStr?: string): Promise<MarketSe
     const limitDownCount = poolDT.length;
     const brokenRatio = limitUpCount + brokenCount > 0 ? parseFloat(((brokenCount / (limitUpCount + brokenCount)) * 100).toFixed(1)) : 33.6;
 
-    let highestHeight = 4;
-    let leaders: string[] = ["亚盛集团", "爱仕达", "百大集团"];
+    let highestHeight = 5;
+    let leaders: string[] = ["百大集团", "亚盛集团", "爱仕达"];
 
     if (poolZT.length > 0) {
       const heights = poolZT.map((x) => parseInt(x.lbc, 10) || 1);
@@ -328,8 +331,8 @@ export async function getRealMarketSentiment(dateStr?: string): Promise<MarketSe
       limit_down_count: 0,
       broken_limit_count: 37,
       broken_limit_ratio: 33.6,
-      highest_limit_height: 4,
-      highest_limit_leaders: ["亚盛集团", "爱仕达", "百大集团"],
+      highest_limit_height: 5,
+      highest_limit_leaders: ["百大集团", "亚盛集团", "爱仕达"],
       main_net_flow_yi: -82.0,
       main_buy_ratio: 44.8,
       retail_outflow_ratio: 55.2,

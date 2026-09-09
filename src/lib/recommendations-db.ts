@@ -380,11 +380,11 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
 }> {
   // 获取关键标的最新真实行情 (多源校验)
   // 获取关键标的最新真实行情 (多源校验)
-  const trackCodes = ["002085", "001696", "000099", "600584", "002475", "000998", "600900", "300476"];
+  const trackCodes = ["600865", "600108", "002403", "600584", "002475", "000998", "600900", "300476"];
   const quotes = await getRealStockQuotes(trackCodes);
 
-  const qWF = quotes["002085"] || { current_price: 15.48, pre_close: 14.20, name: "万丰奥威" };
-  const qZS = quotes["001696"] || { current_price: 16.93, pre_close: 15.80, name: "宗申动力" };
+  const qBD = quotes["600865"] || { current_price: 15.11, pre_close: 13.74, name: "百大集团" };
+  const qYS = quotes["600108"] || { current_price: 5.61, pre_close: 5.28, name: "亚盛集团" };
   const qCD = quotes["600584"] || { current_price: 69.00, pre_close: 67.36, name: "长电科技" };
   const qLX = quotes["002475"] || { current_price: 55.93, pre_close: 54.30, name: "立讯精密" };
   const qLP = quotes["000998"] || { current_price: 9.68, pre_close: 9.39, name: "隆平高科" };
@@ -395,46 +395,46 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
 
   // -------------------------------------------------------------
   // 账户 1：短线激进型 (Aggressive)
-  // 风格：中小市值题材最强龙头 · 无持仓限制满仓单挑 · 标的数量≤2只 · 快进快出打板
+  // 风格：连板高度最强龙头 · 无持仓限制满仓单挑 · 标的数量≤2只 · 10天100%异动前退出
   // -------------------------------------------------------------
   const aggHoldings: PaperHolding[] = [
     {
-      code: "002085",
-      name: "万丰奥威",
-      shares: 4000,
-      cost_price: 14.20, // 昨天(09-07)建仓价
-      current_price: qWF.current_price,
-      market_value: Math.round(4000 * qWF.current_price),
-      pnl: Math.round(4000 * (qWF.current_price - 14.20)),
-      pnl_pct: parseFloat((((qWF.current_price - 14.20) / 14.20) * 100).toFixed(2)),
-      stop_loss_price: 13.21,
-      target_price: 17.50,
-      action: qWF.current_price >= 17.0 ? "冲高止盈" : "积极持股",
-      advice_reason: "低空经济核心总龙头，缩量回踩5日线放量突破涨停，游资合力换手龙，超短满仓主攻",
+      code: "600865",
+      name: "百大集团",
+      shares: 5000,
+      cost_price: 13.74, // 昨天(09-07)建仓价
+      current_price: qBD.current_price,
+      market_value: Math.round(5000 * qBD.current_price),
+      pnl: Math.round(5000 * (qBD.current_price - 13.74)),
+      pnl_pct: parseFloat((((qBD.current_price - 13.74) / 13.74) * 100).toFixed(2)),
+      stop_loss_price: 12.78,
+      target_price: 16.63,
+      action: "顺势持股封板",
+      advice_reason: "市场最高5连板空间总龙头(小市值56亿)，百货消费题材不限科技，开盘打板追涨满仓单挑；核心纪律：10天100%严重异动监管前主动退出",
     },
     {
-      code: "001696",
-      name: "宗申动力",
-      shares: 2500,
-      cost_price: 15.80, // 昨天(09-07)建仓价
-      current_price: qZS.current_price,
-      market_value: Math.round(2500 * qZS.current_price),
-      pnl: Math.round(2500 * (qZS.current_price - 15.80)),
-      pnl_pct: parseFloat((((qZS.current_price - 15.80) / 15.80) * 100).toFixed(2)),
-      stop_loss_price: 14.69,
-      target_price: 19.20,
+      code: "600108",
+      name: "亚盛集团",
+      shares: 5900,
+      cost_price: 5.28, // 昨天(09-07)建仓价
+      current_price: qYS.current_price,
+      market_value: Math.round(5900 * qYS.current_price),
+      pnl: Math.round(5900 * (qYS.current_price - 5.28)),
+      pnl_pct: parseFloat((((qYS.current_price - 5.28) / 5.28) * 100).toFixed(2)),
+      stop_loss_price: 4.91,
+      target_price: 6.39,
       action: "顺势持有",
-      advice_reason: "低空经济前排强共振龙头，小市值高换手超短突破打板，不恐高快进快出",
+      advice_reason: "农业连板梯队前排共振高弹性龙头，放量突破换手连板，快进快出，持仓严控≤2只",
     },
   ];
 
   const aggMv = aggHoldings.reduce((sum, h) => sum + h.market_value, 0);
-  const aggCost = 4000 * 14.20 + 2500 * 15.80; // 96,300
-  const aggCash = initialCapital - aggCost; // 3,700
+  const aggCost = 5000 * 13.74 + 5900 * 5.28; // 68700 + 31152 = 99,852
+  const aggCash = initialCapital - aggCost; // 148
   const aggTotalEquity = aggCash + aggMv;
   const aggTotalPnl = aggTotalEquity - initialCapital;
   const aggTotalPnlPct = parseFloat(((aggTotalPnl / initialCapital) * 100).toFixed(2));
-  const aggDayPnl = Math.round(4000 * (qWF.current_price - qWF.pre_close) + 2500 * (qZS.current_price - qZS.pre_close));
+  const aggDayPnl = Math.round(5000 * (qBD.current_price - qBD.pre_close) + 5900 * (qYS.current_price - qYS.pre_close));
   const aggDayPnlPct = parseFloat(((aggDayPnl / aggTotalEquity) * 100).toFixed(2));
 
   const aggEvents: TradeEvent[] = [
@@ -443,28 +443,28 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
       date: "09-07",
       time: "09:30",
       type: "BUY",
-      stock_code: "002085",
-      stock_name: "万丰奥威",
-      price: 14.20,
-      shares: 4000,
-      amount: 56800,
-      target_price: 17.50,
-      stop_loss_price: 13.21,
-      reason: "低空经济核心总龙头，突破平台放量打板，超短满仓重拳出击",
+      stock_code: "600865",
+      stock_name: "百大集团",
+      price: 13.74,
+      shares: 5000,
+      amount: 68700,
+      target_price: 16.63,
+      stop_loss_price: 12.78,
+      reason: "市场最高5连板空间总龙头(小市值56亿)，打板突破追涨满仓单挑，10天100%异动监管前退出",
     },
     {
       id: "ev-agg-2",
       date: "09-07",
       time: "09:30",
       type: "BUY",
-      stock_code: "001696",
-      stock_name: "宗申动力",
-      price: 15.80,
-      shares: 2500,
-      amount: 39500,
-      target_price: 19.20,
-      stop_loss_price: 14.69,
-      reason: "低空动力中小盘高弹性龙头，换手连板强势介入，快进快出",
+      stock_code: "600108",
+      stock_name: "亚盛集团",
+      price: 5.28,
+      shares: 5900,
+      amount: 31152,
+      target_price: 6.39,
+      stop_loss_price: 4.91,
+      reason: "农业连板梯队前排共振高弹性龙头，换手连板强势介入，快进快出",
     },
   ];
 

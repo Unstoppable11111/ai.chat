@@ -639,7 +639,7 @@ export default function MarketDashboardPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
                       <Flame className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                      两市成交量能
+                      两市成交额
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-medium">
                       {marketData?.volume_metrics?.status_label || "充沛活跃区间"}
@@ -660,7 +660,7 @@ export default function MarketDashboardPage() {
                     ) : (
                       <span className="text-[11px] font-mono font-bold text-cyan-300">
                         {marketData?.volume_metrics?.diff_ma5_pct != null
-                          ? `较5日均量 ${marketData.volume_metrics.diff_ma5_pct >= 0 ? "+" : ""}${marketData.volume_metrics.diff_ma5_pct}%`
+                          ? `较5日均额 ${marketData.volume_metrics.diff_ma5_pct >= 0 ? "+" : ""}${marketData.volume_metrics.diff_ma5_pct}%`
                           : "收盘量能锁定"}
                       </span>
                     )}
@@ -839,7 +839,7 @@ export default function MarketDashboardPage() {
                   </span>
                 </div>
                 <div className="text-[10px] text-cyan-300 font-mono">
-                  两市量能 {marketRegime?.liquidity.total_turnover_text || "1.96万亿"} · 涨跌家数比 {marketRegime?.breadth.up_ratio_pct ?? 63.8}% 多头
+                  两市成交额 {marketRegime?.liquidity.total_turnover_text || "1.96万亿"} · 涨跌家数比 {marketRegime?.breadth.up_ratio_pct ?? 63.8}% 多头
                 </div>
               </div>
 

@@ -116,13 +116,13 @@ export function evaluateAggressive(
     factors: `题材=${p.sector}(+${indScore})，中小盘=${p.market_cap_yi}亿(+${capScore})，突破=${ind.is_60d_breakout ? "60D新高" : "放量突破"}(+${trScore})，动量=Beta ${p.beta}(+${moScore})`,
     score_eval: `激进超短评分 ${totalScore} / 100（突破入选阈值 78分）`,
     signal_eval: action === "BUY" ? "触发【中小市值最强龙头 + 满仓打板突破】买入信号" : action === "HOLD" ? "超短龙头主升浪锁仓，紧盯分时换手" : "观望或止损",
-    risk_check: "超短极致风控铁律：持仓数量严格≤2只，单票持仓比例无任何限制（支持单票50%~100%满仓单挑），坚决剔除大市值权重股，破除科技板块偏向，全市场唯最强龙头是瞻",
-    sizing_rationale: "行情火热时直接满仓干，甚至单挑一只总龙头满仓100%；次日冲高开板择机止盈，快进快出，不恐高但严守纪律",
-    execution_plan: "支持打板/排板挂单撮合：需日内有开板换手时间点，若全天一字封死未开板默认未买入；次日冲高加速开板即锁定利润",
-    rule_compliance: "严格契合超短游资战法：中小市值高弹性、无科技垄断限制、持仓绝不超过2只、行情好直接满仓单挑",
+    risk_check: "超短极致风控铁律：持仓数量严格≤2只，单票持仓比例无任何限制（支持单票50%~100%满仓单挑），坚决剔除大市值权重股，破除科技板块偏向，全市场唯最强连板高度龙头是瞻；核心纪律：严格监控10个交易日累计偏离度，在10天100%严重异动监管前夕（约6~7板临界点）主动止盈离场，绝不参与特停核查风险",
+    sizing_rationale: "行情火热时直接满仓干，甚至单挑一只总龙头满仓100%；次日冲高开板择机止盈，快进快出，不恐高但严守纪律；连板触及严重异动监控线前坚决撤退",
+    execution_plan: "支持打板/排板挂单撮合：需日内有开板换手时间点，若全天一字封死未开板默认未买入；次日冲高加速开板或逼近10天100%异动警戒即兑现落袋",
+    rule_compliance: "严格契合超短游资战法：连板高度龙头、中小市值高弹性、无科技垄断限制、持仓绝不超过2只、行情好直接满仓单挑、10天100%异动前退出",
   };
 
-  return { score: totalScore, detail, signal: action, reason: `${p.sector}高弹性中小市值龙头(${p.market_cap_yi}亿)，超短打板突破，行情好单挑满仓进攻`, trace };
+  return { score: totalScore, detail, signal: action, reason: `${p.sector}连板高度龙头(${p.market_cap_yi}亿)，超短打板追涨，行情好单挑满仓进攻，10天100%异动前主动退出`, trace };
 }
 
 /**
@@ -350,8 +350,8 @@ export function generateStrategyRecommendations(
     const factors = calculateStockFactors(code, quote);
     if (!factors) continue;
 
-    // 激进策略候选池评估 (中小市值高弹性题材龙头，破除行业限制，支持满仓单挑)
-    if (["002085", "001696", "000099", "300476", "000158"].includes(code)) {
+    // 激进策略候选池评估 (市场最高连板梯队龙头，不限题材，支持满仓单挑，10天100%异动前退出)
+    if (["600865", "600108", "002403", "000158", "002085"].includes(code)) {
       const agg = evaluateAggressive(factors, dateStr, timeStr);
       result.aggressive.push({
         id: `sig-agg-${code}`,

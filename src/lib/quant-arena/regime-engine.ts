@@ -112,16 +112,18 @@ export function evaluateMarketRegime(input: MarketRawInput | null): MarketRegime
   const shChange = shIndex ? shIndex.change_pct : 0;
   const cybChange = cybIndex ? cybIndex.change_pct : 0;
 
-  // 2. 量能定性 (以1.5万亿、2.0万亿为分界，结合ma5对比)
-  let liquidityStatus = "中等量能";
-  if (total_turnover >= 22000) {
-    liquidityStatus = "极度充沛 (增量超2.2万亿)";
-  } else if (total_turnover >= 18000) {
-    liquidityStatus = "充沛活跃 (1.8万亿~2.2万亿)";
-  } else if (total_turnover >= 12000) {
-    liquidityStatus = "存量博弈 (1.2万亿~1.8万亿)";
+  // 2. 量能定性 (以1.0万亿、1.5万亿、2.0万亿为分界，科学客观契合A股实际)
+  let liquidityStatus = "万亿活跃";
+  if (total_turnover >= 20000) {
+    liquidityStatus = "天量亢奋 (2.0万亿以上)";
+  } else if (total_turnover >= 15000) {
+    liquidityStatus = "极度充沛 (1.5万亿~2.0万亿)";
+  } else if (total_turnover >= 10000) {
+    liquidityStatus = "万亿活跃 (1.0万亿~1.5万亿)";
+  } else if (total_turnover >= 7500) {
+    liquidityStatus = "温和存量 (7500亿~1.0万亿)";
   } else {
-    liquidityStatus = "地量收缩 (低于1.2万亿)";
+    liquidityStatus = "地量收缩 (低于7500亿)";
   }
 
   // 3. 广度定性
@@ -157,8 +159,9 @@ export function evaluateMarketRegime(input: MarketRawInput | null): MarketRegime
 
   // 量能评分 (0-25)
   if (total_turnover >= 20000) score += 10;
-  else if (total_turnover >= 16000) score += 5;
-  else if (total_turnover < 10000) score -= 10;
+  else if (total_turnover >= 15000) score += 7;
+  else if (total_turnover >= 10000) score += 4;
+  else if (total_turnover < 7500) score -= 8;
 
   // 指数表现 (0-20)
   const avgIdxChange = (shChange + cybChange) / 2;
@@ -181,7 +184,7 @@ export function evaluateMarketRegime(input: MarketRawInput | null): MarketRegime
   if (down_count > 4200 || (limit_down_count >= 30 && avgIdxChange < -2.5)) {
     regime = "PANIC";
     regimeLabel = "极度恐慌 (PANIC)";
-  } else if (score >= 68 && upRatio >= 60 && total_turnover >= 15000) {
+  } else if (score >= 62 && upRatio >= 55 && total_turnover >= 10000) {
     regime = "BULL";
     regimeLabel = "进攻主升 (BULL)";
   } else if (score <= 38 || (down_count > 3400 && avgIdxChange < -1.0)) {
@@ -221,10 +224,11 @@ export function evaluateMarketRegime(input: MarketRawInput | null): MarketRegime
 
   // 证据 1: 量能支撑
   const turnoverStr = total_turnover >= 10000 ? `${(total_turnover / 10000).toFixed(2)}万亿` : `${total_turnover}亿`;
+  const isLiquiditySufficient = total_turnover >= 10000;
   whyEvidences.push(
-    `两市成交量达 ${turnoverStr}，处于${liquidityStatus}区间${
-      ma5_diff_pct != null ? `（较5日均量 ${ma5_diff_pct >= 0 ? "+" : ""}${ma5_diff_pct}%）` : ""
-    }，多空博弈流动性支撑${total_turnover >= 15000 ? "充足" : "偏弱"}`
+    `两市成交额达 ${turnoverStr}，处于【${liquidityStatus}】区间${
+      ma5_diff_pct != null ? `（较5日均额 ${ma5_diff_pct >= 0 ? "+" : ""}${ma5_diff_pct}%）` : ""
+    }，多空博弈流动性支撑${isLiquiditySufficient ? "充沛，短线承接与换手健康" : "偏弱，需注意存量分化"}`
   );
 
   // 证据 2: 多空广度

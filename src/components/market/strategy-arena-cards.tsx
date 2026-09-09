@@ -41,7 +41,7 @@ export function StrategyArenaCards({
     {
       id: "aggressive",
       title: "AGGRESSIVE",
-      sub: "激进超短龙头策略 · 中小市值满仓打板 · 标的≤2只",
+      sub: "激进超短连板龙头 · 中小盘满仓打板 · 10天100%异动前退出",
       icon: Zap,
       themeColor: "text-amber-400",
       borderColor: "border-amber-500/30",

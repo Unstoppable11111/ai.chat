@@ -36,10 +36,10 @@ export async function GET() {
       limit_up_count: rawSentiment?.limit_up_count || 73,
       limit_down_count: rawSentiment?.limit_down_count || 0,
       broken_limit_ratio: rawSentiment?.broken_limit_ratio || 33.6,
-      highest_limit_height: rawSentiment?.highest_limit_height || 4,
-      highest_limit_leaders: rawSentiment?.highest_limit_leaders || ["亚盛集团", "爱仕达"],
+      highest_limit_height: rawSentiment?.highest_limit_height || 5,
+      highest_limit_leaders: rawSentiment?.highest_limit_leaders || ["百大集团", "亚盛集团"],
       main_net_flow_yi: rawSentiment?.main_net_flow_yi || -82.0,
-      mainline_name: "CPO光模块 · PCB算力板 · 农业种植",
+      mainline_name: "商业连锁 · 农业种植 · 高端装备",
     });
 
     // 5. 计算策略排行榜

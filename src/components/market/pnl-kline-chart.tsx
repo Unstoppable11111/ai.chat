@@ -52,42 +52,42 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
           date: "09-07",
           time: "09:30",
           type: "BUY",
-          stock_code: "002085",
-          stock_name: "万丰奥威",
-          price: 14.20,
-          shares: 4000,
-          amount: 56800,
-          target_price: 17.50,
-          stop_loss_price: 13.21,
-          pnl_pct: 9.01,
-          reason: "低空经济总龙头突破箱体，小盘高弹性打板满仓单挑",
+          stock_code: "600865",
+          stock_name: "百大集团",
+          price: 13.74,
+          shares: 5000,
+          amount: 68700,
+          target_price: 16.63,
+          stop_loss_price: 12.78,
+          pnl_pct: 9.97,
+          reason: "全市场最高5连板空间总龙头(小盘56亿)，不限科技题材，开盘强力封板打板追涨，满仓单挑；严格执行10天100%严重异动监管前退出",
         },
         {
           id: "ev-agg-2",
           date: "09-07",
           time: "09:30",
           type: "BUY",
-          stock_code: "001696",
-          stock_name: "宗申动力",
-          price: 15.80,
-          shares: 2500,
-          amount: 39500,
-          target_price: 19.20,
-          stop_loss_price: 14.69,
-          pnl_pct: 7.15,
-          reason: "低空动力中小盘高弹性妖股，量比突破打板，快进快出",
+          stock_code: "600108",
+          stock_name: "亚盛集团",
+          price: 5.28,
+          shares: 5900,
+          amount: 31152,
+          target_price: 6.39,
+          stop_loss_price: 4.91,
+          pnl_pct: 6.25,
+          reason: "连板梯队前排共振高弹性龙头，农业消费防御+游资合力，快进快出，持仓严控≤2只",
         },
       ],
     },
     {
       date: "09-08",
       open_pnl_pct: 1.85,
-      high_pnl_pct: 4.8,
-      low_pnl_pct: 1.5,
-      close_pnl_pct: 4.25,
-      equity: 104250,
-      benchmark_pct: 1.1,
-      alpha_pct: 3.15,
+      high_pnl_pct: 9.20,
+      low_pnl_pct: 1.85,
+      close_pnl_pct: 8.80,
+      equity: 108797,
+      benchmark_pct: 1.10,
+      alpha_pct: 7.70,
       events: [],
     },
   ],
@@ -926,16 +926,16 @@ export function PnlKlineChart({
                     {currentStrategyKey === "aggressive" ? (
                       <div className="space-y-1.5 text-[11px] font-mono">
                         <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">万丰奥威 (002085) 4000股</span>
-                          <span className="text-rose-400 font-bold">¥15.48 (+9.01%) 浮盈+¥5,120</span>
+                          <span className="text-slate-300">百大集团 (600865) 5000股</span>
+                          <span className="text-rose-400 font-bold">¥15.11 (+9.97%) 浮盈+¥6,850</span>
                         </div>
                         <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">宗申动力 (001696) 2500股</span>
-                          <span className="text-rose-400 font-bold">¥16.93 (+7.15%) 浮盈+¥2,825</span>
+                          <span className="text-slate-300">亚盛集团 (600108) 5900股</span>
+                          <span className="text-rose-400 font-bold">¥5.61 (+6.25%) 浮盈+¥1,947</span>
                         </div>
                         <div className="flex items-center justify-between text-slate-400 pt-0.5">
-                          <span>日内总资产增厚: +¥2,400.00</span>
-                          <span className="text-cyan-300 font-bold">总资产: ¥104,250.00 (满仓100%)</span>
+                          <span>日内总资产增厚: +¥8,797.00</span>
+                          <span className="text-cyan-300 font-bold">总资产: ¥108,797.00 (满仓99.9%)</span>
                         </div>
                       </div>
                     ) : currentStrategyKey === "balanced" ? (
