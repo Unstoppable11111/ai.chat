@@ -7,6 +7,54 @@ import {
 import { calculateStockFactors, STOCK_FUNDAMENTAL_DB } from "./factor-engine";
 import { RealQuote } from "@/lib/quotes-service";
 
+export interface LimitUpExecutionCheck {
+  can_buy: boolean;
+  status: "NORMAL_LIQUIDITY" | "LIMIT_UP_OPENED_BOUGHT" | "LIMIT_UP_UNOPENED_REJECTED";
+  execution_price: number;
+  reason: string;
+}
+
+/**
+ * A股超短打板真实可买入性核验：
+ * 1. 如果全天一字涨停且从未开板(open == current_price && low == current_price && change_pct >= 9.8)，默认买不进去(资金保留为现金，不计入持仓)；
+ * 2. 如果是一字板排板，但日内中间开板换手(low < current_price)，当作涨停价买入成功；
+ * 3. 如果是普通实体换手板或分时追涨(open < current_price)，正常按当前买入价成交。
+ */
+export function checkLimitUpExecution(quote: RealQuote): LimitUpExecutionCheck {
+  const isLimitUp = quote.change_pct >= 9.8;
+  const isUnopenedBoard =
+    isLimitUp &&
+    quote.open > 0 &&
+    quote.low > 0 &&
+    quote.open >= quote.current_price &&
+    quote.low >= quote.current_price;
+
+  if (isUnopenedBoard) {
+    return {
+      can_buy: false,
+      status: "LIMIT_UP_UNOPENED_REJECTED",
+      execution_price: 0,
+      reason: "该标的全天一字死封涨停且未曾开板换手(最低价=开盘价=涨停价)，排板资金无法撮合成交，根据超短纪律默认未买入，资金保留为现金",
+    };
+  }
+
+  if (isLimitUp && quote.low < quote.current_price) {
+    return {
+      can_buy: true,
+      status: "LIMIT_UP_OPENED_BOUGHT",
+      execution_price: quote.current_price,
+      reason: "日内触及涨停但盘中出现分时开板换手回封(最低价低于涨停价)，排板挂单成功撮合成交，按涨停价确认买入",
+    };
+  }
+
+  return {
+    can_buy: true,
+    status: "NORMAL_LIQUIDITY",
+    execution_price: quote.current_price,
+    reason: "非一字板品种，盘中具备充分多空换手流动性，正常撮合成交买入",
+  };
+}
+
 /**
  * 激进策略评分引擎 (Aggressive: 中小市值超短龙头 + 打板突破 + 无行业偏见 + 满仓单挑)
  * 权重: 主线热度 25, 中小盘股性弹性 25, 突破与连板动量 25, 资金承接 15, 风险收益比 10
@@ -118,8 +166,8 @@ export function evaluateAggressive(
     signal_eval: action === "BUY" ? "触发【中小市值最强龙头 + 满仓打板突破】买入信号" : action === "HOLD" ? "超短龙头主升浪锁仓，紧盯分时换手" : "观望或止损",
     risk_check: "超短极致风控铁律：持仓数量严格≤2只，单票持仓比例无任何限制（支持单票50%~100%满仓单挑），坚决剔除大市值权重股，破除科技板块偏向，全市场唯最强连板高度龙头是瞻；核心纪律：严格监控10个交易日累计偏离度，在10天100%严重异动监管前夕（约6~7板临界点）主动止盈离场，绝不参与特停核查风险",
     sizing_rationale: "行情火热时直接满仓干，甚至单挑一只总龙头满仓100%；次日冲高开板择机止盈，快进快出，不恐高但严守纪律；连板触及严重异动监控线前坚决撤退",
-    execution_plan: "支持打板/排板挂单撮合：需日内有开板换手时间点，若全天一字封死未开板默认未买入；次日冲高加速开板或逼近10天100%异动警戒即兑现落袋",
-    rule_compliance: "严格契合超短游资战法：连板高度龙头、中小市值高弹性、无科技垄断限制、持仓绝不超过2只、行情好直接满仓单挑、10天100%异动前退出",
+    execution_plan: "打板/排板撮合严格执行开板核验：全天一字板未曾开板默认买不进去，资金保持现金；一字板排板若日内有开板换手时间点，按涨停价买入成交；买入当天严格以实际买入价格计算浮动盈亏（当天买入浮盈为0），绝不使用个股全天涨幅计算当天收益，次日及后续才计算连板溢价。",
+    rule_compliance: "严格契合A股超短战法：连板高度龙头追涨、未开一字板买不进默认不计入持仓、开板排板按涨停价成交、买入当天以成本价计算收益、10天100%严重异动前退出。",
   };
 
   return { score: totalScore, detail, signal: action, reason: `${p.sector}连板高度龙头(${p.market_cap_yi}亿)，超短打板追涨，行情好单挑满仓进攻，10天100%异动前主动退出`, trace };
@@ -352,28 +400,39 @@ export function generateStrategyRecommendations(
 
     // 激进策略候选池评估 (市场最高连板梯队龙头，不限题材，支持满仓单挑，10天100%异动前退出)
     if (["600865", "600108", "002403", "000158", "002085"].includes(code)) {
+      const execCheck = checkLimitUpExecution(quote);
       const agg = evaluateAggressive(factors, dateStr, timeStr);
+      const finalAction = execCheck.can_buy ? agg.signal : "WATCH";
+      const finalReason = execCheck.can_buy
+        ? `${agg.reason}【${execCheck.reason}】`
+        : execCheck.reason;
+
       result.aggressive.push({
         id: `sig-agg-${code}`,
         stock_code: code,
         stock_name: quote.name,
         strategy: "aggressive",
-        action: agg.signal,
+        action: finalAction,
         score: agg.score,
         score_detail: agg.detail,
         data_as_of: `${dateStr} 15:00:00`,
         signal_time: `${dateStr} ${timeStr}`,
-        execution_time: "次日 09:30:00 (支持日内开板换手回封撮合)",
+        execution_time: execCheck.status === "LIMIT_UP_OPENED_BOUGHT"
+          ? "日内分时开板换手点 (排板按涨停价撮合)"
+          : "次日 09:30:00 (开盘换手回封撮合)",
         current_price: quote.current_price,
-        suggested_entry: parseFloat((quote.current_price * 0.998).toFixed(2)),
+        suggested_entry: execCheck.can_buy ? execCheck.execution_price : 0,
         stop_loss: parseFloat((quote.current_price * 0.93).toFixed(2)), // 宽幅严格止损 -7.0%
         target_price: parseFloat((quote.current_price * 1.20).toFixed(2)), // 连板止盈目标 +20.0%
-        position_size_pct: 100, // 激进型持仓无限制，行情好直接满仓单挑
+        position_size_pct: execCheck.can_buy ? 100 : 0, // 无法成交默认保持现金
         risk_reward_ratio: 2.85,
-        confidence: "HIGH",
-        reason: agg.reason,
+        confidence: execCheck.can_buy ? "HIGH" : "LOW",
+        reason: finalReason,
         data_quality: quote.source === "cache" ? "MEDIUM" : "HIGH",
-        decision_trace: agg.trace,
+        decision_trace: {
+          ...agg.trace,
+          execution_plan: execCheck.reason,
+        },
       });
     }
 

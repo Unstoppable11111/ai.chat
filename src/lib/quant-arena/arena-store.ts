@@ -90,7 +90,7 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
       { date: "09-02", equity: 100000, return_pct: 0.0, benchmark_pct: 0.30, alpha_pct: -0.30, drawdown_pct: 0 },
       { date: "09-03", equity: 100000, return_pct: 0.0, benchmark_pct: 0.40, alpha_pct: -0.40, drawdown_pct: 0 },
       { date: "09-04", equity: 100000, return_pct: 0.0, benchmark_pct: 0.50, alpha_pct: -0.50, drawdown_pct: 0 },
-      { date: "09-07", equity: 101850, return_pct: 1.85, benchmark_pct: 0.60, alpha_pct: 1.25, drawdown_pct: 0 },
+      { date: "09-07", equity: 100000, return_pct: 0.0, benchmark_pct: 0.60, alpha_pct: -0.60, drawdown_pct: 0 },
       { date: "09-08", equity: 108797, return_pct: 8.80, benchmark_pct: 1.10, alpha_pct: 7.70, drawdown_pct: 0 },
     ],
     candles: [
@@ -101,17 +101,17 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
       {
         date: "09-07",
         open_pnl_pct: 0.0,
-        high_pnl_pct: 2.2,
+        high_pnl_pct: 0.0,
         low_pnl_pct: 0.0,
-        close_pnl_pct: 1.85,
-        equity: 101850,
+        close_pnl_pct: 0.0,
+        equity: 100000,
         benchmark_pct: 0.6,
-        alpha_pct: 1.25,
+        alpha_pct: -0.6,
         events: [
           {
             id: "ev-agg-1",
             date: "09-07",
-            time: "09:30",
+            time: "09:42",
             type: "BUY",
             stock_code: "600865",
             stock_name: "百大集团",
@@ -120,13 +120,13 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
             amount: 68700,
             target_price: 16.63,
             stop_loss_price: 12.78,
-            pnl_pct: 9.97,
-            reason: "全市场最高5连板空间总龙头(小盘56亿)，不限科技题材，开盘强力封板打板追涨，满仓单挑；严格执行10天100%异动监管前退出",
+            pnl_pct: 0.0,
+            reason: "全市场最高5连板空间总龙头(小盘56亿)，早盘一字涨停排板，09:42分时开板换手回封成功撮合成交，按涨停价买入；买入日浮盈严格按成交价核算为¥0.00，10天100%严重异动监管前退出",
           },
           {
             id: "ev-agg-2",
             date: "09-07",
-            time: "09:30",
+            time: "09:35",
             type: "BUY",
             stock_code: "600108",
             stock_name: "亚盛集团",
@@ -135,19 +135,19 @@ function createInitialArenaAccounts(): Record<StrategyType, ArenaAccount> {
             amount: 31152,
             target_price: 6.39,
             stop_loss_price: 4.91,
-            pnl_pct: 6.25,
-            reason: "连板梯队前排共振高弹性龙头，农业消费防御+游资合力，快进快出，持仓严控≤2只",
+            pnl_pct: 0.0,
+            reason: "农业连板梯队前排共振高弹性龙头，开盘放量换手走强，非一字板正常撮合成交，买入日浮盈按成交价计为¥0.00",
           },
         ],
       },
       {
         date: "09-08",
-        open_pnl_pct: 1.85,
+        open_pnl_pct: 0.0,
         high_pnl_pct: 9.20,
-        low_pnl_pct: 1.85,
+        low_pnl_pct: 0.0,
         close_pnl_pct: 8.80,
         equity: 108797,
-        benchmark_pct: 1.1,
+        benchmark_pct: 1.10,
         alpha_pct: 7.70,
         events: [],
       },
@@ -687,7 +687,12 @@ export async function syncArenaAccountsWithRealQuotes(): Promise<Record<Strategy
           pos.market_value = Math.round(pos.shares * q.current_price);
           pos.pnl = Math.round(pos.shares * (q.current_price - pos.cost_price));
           pos.pnl_pct = parseFloat((((q.current_price - pos.cost_price) / pos.cost_price) * 100).toFixed(2));
-          dayPnlSum += Math.round(pos.shares * (q.current_price - q.pre_close));
+          // 买入当天严格用买入价格计算浮动盈亏（绝不将买入前历史涨幅计入当天收益）；只有次日及以后的持仓才用 pre_close 计算当日波动
+          const isBuyToday = pos.holding_days <= 1;
+          const posDayPnl = isBuyToday
+            ? Math.round(pos.shares * (q.current_price - pos.cost_price))
+            : Math.round(pos.shares * (q.current_price - q.pre_close));
+          dayPnlSum += posDayPnl;
         }
         newMv += pos.market_value;
       }

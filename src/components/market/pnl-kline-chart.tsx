@@ -40,17 +40,17 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
     {
       date: "09-07",
       open_pnl_pct: 0.0,
-      high_pnl_pct: 2.5,
+      high_pnl_pct: 0.0,
       low_pnl_pct: 0.0,
-      close_pnl_pct: 1.85,
-      equity: 101850,
+      close_pnl_pct: 0.0,
+      equity: 100000,
       benchmark_pct: 0.6,
-      alpha_pct: 1.25,
+      alpha_pct: -0.6,
       events: [
         {
           id: "ev-agg-1",
           date: "09-07",
-          time: "09:30",
+          time: "09:42",
           type: "BUY",
           stock_code: "600865",
           stock_name: "百大集团",
@@ -59,13 +59,13 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
           amount: 68700,
           target_price: 16.63,
           stop_loss_price: 12.78,
-          pnl_pct: 9.97,
-          reason: "全市场最高5连板空间总龙头(小盘56亿)，不限科技题材，开盘强力封板打板追涨，满仓单挑；严格执行10天100%严重异动监管前退出",
+          pnl_pct: 0.0,
+          reason: "全市场最高5连板空间总龙头(小盘56亿)，早盘一字涨停排板，09:42分时开板换手回封成功撮合成交，按涨停价买入；买入日浮盈严格按成交价核算为¥0.00，10天100%严重异动监管前退出",
         },
         {
           id: "ev-agg-2",
           date: "09-07",
-          time: "09:30",
+          time: "09:35",
           type: "BUY",
           stock_code: "600108",
           stock_name: "亚盛集团",
@@ -74,16 +74,16 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
           amount: 31152,
           target_price: 6.39,
           stop_loss_price: 4.91,
-          pnl_pct: 6.25,
-          reason: "连板梯队前排共振高弹性龙头，农业消费防御+游资合力，快进快出，持仓严控≤2只",
+          pnl_pct: 0.0,
+          reason: "农业连板梯队前排共振高弹性龙头，开盘放量换手走强，非一字板正常撮合成交，买入日浮盈按成交价计为¥0.00",
         },
       ],
     },
     {
       date: "09-08",
-      open_pnl_pct: 1.85,
+      open_pnl_pct: 0.0,
       high_pnl_pct: 9.20,
-      low_pnl_pct: 1.85,
+      low_pnl_pct: 0.0,
       close_pnl_pct: 8.80,
       equity: 108797,
       benchmark_pct: 1.10,
@@ -834,10 +834,13 @@ export function PnlKlineChart({
             {activeCandle.events && activeCandle.events.length > 0 ? (
               /* 情况1：有交易操作日 (如 09-07) */
               <div className="space-y-2 pt-1">
-                <div className="text-xs font-bold text-cyan-300 flex items-center justify-between">
+                <div className="text-xs font-bold text-cyan-300 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <span className="flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
                     ⚡ 当日调仓买卖记录与量化决策逻辑 ({activeCandle.events.length} 笔交易)
+                  </span>
+                  <span className="text-[10px] text-amber-300 font-normal">
+                    📌 真实撮合纪律：未开一字板默认未买入 · 买入日严格按成交价核算收益(0.00%)
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -878,10 +881,14 @@ export function PnlKlineChart({
                           {ev.pnl_pct !== undefined && (
                             <span
                               className={`font-bold ${
-                                ev.pnl_pct >= 0 ? "text-rose-400" : "text-emerald-400"
+                                ev.pnl_pct > 0
+                                  ? "text-rose-400"
+                                  : ev.pnl_pct < 0
+                                  ? "text-emerald-400"
+                                  : "text-slate-400"
                               }`}
                             >
-                              {ev.pnl_pct >= 0 ? `+${ev.pnl_pct}%` : `${ev.pnl_pct}%`}
+                              当日盈亏: {ev.pnl_pct > 0 ? `+${ev.pnl_pct}%` : `${ev.pnl_pct}%`}
                             </span>
                           )}
                         </div>
