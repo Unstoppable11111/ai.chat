@@ -40,36 +40,26 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
   const [loading, setLoading] = useState(true);
   const [addingCode, setAddingCode] = useState<string | null>(null);
 
-  const fetchSignals = async (style: AccountStyle = activeAccountStyle, isInitial = false) => {
-    if (isInitial) setLoading(true);
-    try {
-      const res = await fetch(`/api-market/signals?account=${style}`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success) {
-          setTodayPicks(json.today_picks || []);
-          setHistory(json.history || []);
-          setStats(json.stats || null);
-          setPaperAccount(json.paper_account);
-          setAccounts(json.accounts || []);
-          setPnlKline(json.pnl_kline || []);
-          setTradeEvents(json.trade_events || []);
-        }
-      }
-    } catch (err) {
-      console.error("加载量化金股数据异常:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSignals("aggressive", true);
-  }, []);
+    const abort = new AbortController();
+    fetch(`/api-market/signals?account=${activeAccountStyle}`, {signal:abort.signal})
+      .then(async response => { if (!response.ok) throw new Error("Unavailable"); return response.json(); })
+      .then(json => {
+        if (abort.signal.aborted || !json.success) return;
+        setTodayPicks(json.today_picks || []);
+        setHistory(json.history || []);
+        setStats(json.stats || null);
+        setPaperAccount(json.paper_account);
+        setAccounts(json.accounts || []);
+        setPnlKline(json.pnl_kline || []);
+        setTradeEvents(json.trade_events || []);
+      }).catch(() => {}).finally(() => { if (!abort.signal.aborted) setLoading(false); });
+    return () => abort.abort();
+  }, [activeAccountStyle]);
 
   const handleSelectAccount = (style: AccountStyle) => {
     setActiveAccountStyle(style);
-    fetchSignals(style, false);
+    setLoading(true);
   };
 
   const handleQuickAdd = async (pick: StockRecommendation) => {

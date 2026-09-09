@@ -11,8 +11,8 @@ export const A_SHARE_COST_MODEL = {
  * 校验并规整为 A 股 100 股整数倍 (一手起买)
  */
 export function normalizeLotShares(rawShares: number): number {
-  const lots = Math.floor(rawShares / 100);
-  return Math.max(100, lots * 100);
+  if (!Number.isFinite(rawShares) || rawShares <= 0) return 0;
+  return Math.floor(rawShares / 100) * 100;
 }
 
 /**
@@ -30,7 +30,7 @@ export function calculateBuyExecution(nominalPrice: number, shares: number) {
     principal,
     commission,
     stamp_tax: 0,
-    slippage: parseFloat((principal * A_SHARE_COST_MODEL.slippage_rate).toFixed(2)),
+    slippage: parseFloat(((executionPrice - nominalPrice) * shares).toFixed(2)),
     total_cash_required: totalCost,
   };
 }
@@ -51,7 +51,7 @@ export function calculateSellExecution(nominalPrice: number, shares: number) {
     gross_amount: grossAmount,
     commission,
     stamp_tax: stampTax,
-    slippage: parseFloat((grossAmount * A_SHARE_COST_MODEL.slippage_rate).toFixed(2)),
+    slippage: parseFloat(((nominalPrice - executionPrice) * shares).toFixed(2)),
     net_cash_received: netCashReceived,
   };
 }

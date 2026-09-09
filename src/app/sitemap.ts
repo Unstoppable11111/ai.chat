@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next';
-import { getBuildLogs, getExperimentEntries, getProjects, getNews } from '@/lib/content';
+import { listPublishedPosts } from '@/lib/posts-repository';
 import { siteConfig } from '@/data/site';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = 'force-dynamic';
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url;
 
   // 基础静态路由
@@ -16,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/projects',
     '/prompts',
     '/stack',
+    '/privacy',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     changeFrequency: route === '' ? 'daily' : 'weekly',
@@ -23,32 +25,33 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   // 构建日志动态路由
-  const buildLogRoutes: MetadataRoute.Sitemap = getBuildLogs().map((entry) => ({
+  const buildLogRoutes: MetadataRoute.Sitemap = (await listPublishedPosts('build-log')).map((entry) => ({
     url: `${baseUrl}/build-log/${entry.slug}`,
-    lastModified: new Date(entry.date || Date.now()),
+    lastModified: entry.updatedAt || entry.publishedAt,
     changeFrequency: 'monthly',
     priority: 0.7,
   }));
 
   // 实验动态路由
-  const experimentRoutes: MetadataRoute.Sitemap = getExperimentEntries().map((entry) => ({
+  const experimentRoutes: MetadataRoute.Sitemap = (await listPublishedPosts('experiments')).map((entry) => ({
     url: `${baseUrl}/experiments/${entry.slug}`,
-    lastModified: new Date(entry.date || Date.now()),
+    lastModified: entry.updatedAt || entry.publishedAt,
     changeFrequency: 'monthly',
     priority: 0.7,
   }));
 
   // 项目动态路由
-  const projectRoutes: MetadataRoute.Sitemap = getProjects().map((entry) => ({
+  const projectRoutes: MetadataRoute.Sitemap = (await listPublishedPosts('projects')).map((entry) => ({
     url: `${baseUrl}/projects/${entry.slug}`,
+    lastModified: entry.updatedAt || entry.publishedAt,
     changeFrequency: 'monthly',
     priority: 0.7,
   }));
 
   // 资讯动态路由
-  const newsRoutes: MetadataRoute.Sitemap = getNews().map((entry) => ({
+  const newsRoutes: MetadataRoute.Sitemap = (await listPublishedPosts('news')).map((entry) => ({
     url: `${baseUrl}/news/${entry.slug}`,
-    lastModified: new Date(entry.date || Date.now()),
+    lastModified: entry.updatedAt || entry.publishedAt,
     changeFrequency: 'weekly',
     priority: 0.6,
   }));

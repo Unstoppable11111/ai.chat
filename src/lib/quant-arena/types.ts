@@ -195,6 +195,7 @@ export interface TradeOrder {
 }
 
 export interface ArenaAccount {
+  peak_equity?: number;
   id: StrategyType;
   account_id?: AccountStyle; // 兼容多组件接口
   name: string;

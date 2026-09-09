@@ -65,9 +65,9 @@ export function SiteHeader() {
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-1 lg:flex">
+          <nav className="hidden shrink-0 items-center gap-0 xl:flex" aria-label="主导航">
             {navigation
-              .filter((item) => item.href !== "/gesture-interactive.html")
+              .filter((item) => ["/", "/projects", "/build-log", "/news", "/chat"].includes(item.href))
               .map((item) => {
                 const active = pathname === item.href;
 
@@ -76,7 +76,7 @@ export function SiteHeader() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "inline-flex min-w-[84px] justify-center rounded-full px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground",
+                      "inline-flex shrink-0 whitespace-nowrap justify-center rounded-full px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground",
                       active && "bg-slate-900/[0.06] text-foreground shadow-sm",
                     )}
                   >
@@ -116,9 +116,11 @@ export function SiteHeader() {
 
             <button
               type="button"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 text-muted-foreground shadow-sm lg:hidden hover:text-foreground"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 text-muted-foreground shadow-sm hover:text-foreground"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-label={mobileMenuOpen ? "关闭导航" : "展开导航"}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="site-navigation"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -127,7 +129,7 @@ export function SiteHeader() {
 
         {/* 移动端下拉导航抽屉 */}
         {mobileMenuOpen && (
-          <div className="glass-panel mt-2 rounded-[20px] p-3 shadow-lg lg:hidden transition-all duration-300">
+          <div id="site-navigation" className="glass-panel mt-2 max-h-[70dvh] overflow-y-auto rounded-[20px] p-3 shadow-lg transition-all duration-300">
             <div className="grid grid-cols-2 gap-1.5">
               {navigation.map((item) => {
                 const active = pathname === item.href;

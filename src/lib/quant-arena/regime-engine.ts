@@ -1,5 +1,4 @@
 import { MarketRegime, MarketRegimeAssessment } from "./types";
-import { getRealMarketSentiment } from "@/lib/quotes-service";
 
 interface RawIndexQuote {
   code: string;

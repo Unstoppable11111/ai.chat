@@ -1,169 +1,23 @@
 "use client";
-
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Eye, Heart, Share2, Check } from "lucide-react";
-import { motion } from "motion/react";
-
-interface PostInteractionsProps {
-  postId?: number;
-  slug: string;
-  title: string;
-  initialViews?: number;
-  initialLikes?: number;
-}
-
-export function PostInteractions({
-  postId,
-  slug,
-  title,
-  initialViews = 0,
-  initialLikes = 0,
-}: PostInteractionsProps) {
-  const [currentPostId, setCurrentPostId] = useState<number | undefined>(postId);
-  const [views, setViews] = useState<number>(initialViews);
-  const [likes, setLikes] = useState<number>(initialLikes);
-  const [hasLiked, setHasLiked] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const hasRecordedView = useRef(false);
-
-  // 本地存储键优先采用数字主键 id
-  const storageKey = currentPostId ? `post_liked_id_${currentPostId}` : `post_liked_${slug}`;
-
-  useEffect(() => {
-    // 1. 同步可能更新的 postId
-    if (postId && postId !== currentPostId) {
-      setCurrentPostId(postId);
-    }
-
-    // 2. 读取本地点赞缓存
-    if (typeof window !== "undefined") {
-      const likedState = localStorage.getItem(storageKey) || localStorage.getItem(`post_liked_${slug}`);
-      if (likedState === "true") {
-        setHasLiked(true);
-      }
-    }
-
-    // 3. 页面挂载时自增阅读量并获取最新真实统计
-    if (!hasRecordedView.current) {
-      hasRecordedView.current = true;
-      fetch("/api-post-like", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          postId: currentPostId || postId,
-          slug,
-          action: "view",
-        }),
-      })
-        .then((res) => res.json())
-        .then((resJson) => {
-          const data = resJson?.data || resJson;
-          if (typeof data?.views === "number") {
-            setViews(data.views);
-          }
-          if (typeof data?.likes === "number") {
-            setLikes(data.likes);
-          }
-          if (typeof data?.id === "number") {
-            setCurrentPostId(data.id);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [postId, currentPostId, storageKey, slug]);
-
-  const handleToggleLike = async () => {
-    const isUnliking = hasLiked;
-    const action = isUnliking ? "unlike" : "like";
-
-    // 乐观更新 UI
-    setLikes((prev) => (isUnliking ? Math.max(0, prev - 1) : prev + 1));
-    setHasLiked(!isUnliking);
-
-    if (typeof window !== "undefined") {
-      if (isUnliking) {
-        localStorage.removeItem(storageKey);
-        localStorage.removeItem(`post_liked_${slug}`);
-      } else {
-        localStorage.setItem(storageKey, "true");
-      }
-    }
-
-    try {
-      // 严格以数字 postId 为主键进行唯一索引更新
-      const res = await fetch("/api-post-like", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          postId: currentPostId,
-          slug,
-          action,
-        }),
-      });
-
-      if (res.ok) {
-        const resJson = await res.json();
-        // 按照标准企业级规范从 data.data 中提取最新数据
-        const data = resJson?.data || resJson;
-        if (typeof data?.likes === "number") {
-          setLikes(data.likes);
-        }
-        if (typeof data?.id === "number" && !currentPostId) {
-          setCurrentPostId(data.id);
-        }
-      }
-    } catch {
-      // 容错处理
-    }
-  };
-
-  const handleShare = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-900/8 bg-slate-900/[0.02] p-5 backdrop-blur-sm">
-      {/* 浏览量与数据 */}
-      <div className="flex items-center gap-6 text-sm text-muted-foreground font-mono">
-        <div className="flex items-center gap-2">
-          <Eye className="h-4 w-4 text-brand-cyan" />
-          <span>{views !== null ? `${views} 次阅读` : "统计中..."}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Heart className={`h-4 w-4 ${hasLiked ? "fill-rose-500 text-rose-500" : "text-muted-foreground"}`} />
-          <span>{likes !== null ? `${likes} 人赞过` : "0 人赞过"}</span>
-        </div>
-      </div>
-
-      {/* 按钮组 */}
-      <div className="flex items-center gap-3">
-        <motion.button
-          onClick={handleToggleLike}
-          whileTap={{ scale: 0.94 }}
-          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition shadow-sm ${
-            hasLiked
-              ? "bg-rose-50 text-rose-600 border border-rose-300 hover:bg-rose-100/70"
-              : "bg-white hover:bg-rose-50/60 text-foreground border border-slate-900/10 hover:border-rose-200"
-          }`}
-          title={hasLiked ? "取消点赞" : "点赞本文"}
-        >
-          <Heart className={`h-4 w-4 transition-transform ${hasLiked ? "fill-rose-500 text-rose-500 scale-110" : "text-rose-500"}`} />
-          <span>{hasLiked ? "已赞" : "点赞"}</span>
-        </motion.button>
-
-        <button
-          onClick={handleShare}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white px-3.5 py-2.5 text-sm font-medium text-muted-foreground transition hover:border-slate-900/20 hover:text-foreground shadow-sm"
-          title="复制文章链接"
-        >
-          {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Share2 className="h-4 w-4" />}
-          <span>{copied ? "已复制" : "分享"}</span>
-        </button>
-      </div>
-    </div>
-  );
+type Props = { postId?:number;slug:string;title:string;initialViews?:number;initialLikes?:number };
+export function PostInteractions({slug,initialViews=0,initialLikes=0}:Props) {
+  const [stats,setStats]=useState({views:initialViews,likes:initialLikes,liked:false});
+  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[copied,setCopied]=useState(false);
+  useEffect(()=>{
+    let active=true;
+    fetch("/api-post-like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({slug,action:"view"})}).then(async response=>{if(!response.ok)throw new Error();return response.json();}).then(data=>{if(active)setStats(data.data);}).catch(()=>{if(active)setError("统计暂不可用");});
+    return()=>{active=false;};
+  },[slug]);
+  async function toggle() {
+    if(busy)return;setBusy(true);setError("");
+    try { const response=await fetch("/api-post-like",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({slug,action:stats.liked?"unlike":"like"})});if(!response.ok)throw new Error();setStats((await response.json()).data); }
+    catch {setError("点赞未保存，请重试");}finally{setBusy(false);}
+  }
+  return <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 p-5 text-sm">
+    <div className="flex items-center gap-4"><span className="inline-flex items-center gap-2"><Eye className="h-4 w-4"/>{stats.views} 次阅读</span><span>{stats.likes} 人赞过</span></div>
+    <div className="flex items-center gap-3"><button type="button" disabled={busy} aria-pressed={stats.liked} onClick={toggle} className="inline-flex items-center gap-2"><Heart className={`h-4 w-4 ${stats.liked?"fill-rose-500 text-rose-500":""}`}/>{stats.liked?"已赞":"点赞"}</button><button type="button" title="复制文章链接" aria-label="复制文章链接" onClick={async()=>{try{await navigator.clipboard.writeText(location.href);setCopied(true);}catch{setError("复制失败");}}}>{copied?<Check className="h-4 w-4"/>:<Share2 className="h-4 w-4"/>}</button></div>
+    {error&&<p role="status" className="w-full text-xs text-muted-foreground">{error}</p>}
+  </div>;
 }

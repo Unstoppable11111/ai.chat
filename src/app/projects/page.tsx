@@ -4,7 +4,8 @@ import { Reveal } from "@/components/shared/reveal";
 import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { getProjects } from "@/lib/content";
+import { listPublishedPosts, projectListItem } from "@/lib/posts-repository";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "项目案例",
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/projects" },
 };
 
-export default function ProjectsPage() {
-  const items = getProjects();
+export default async function ProjectsPage() {
+  const items = (await listPublishedPosts("projects")).map(projectListItem);
 
   return (
     <PageShell>

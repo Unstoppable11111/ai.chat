@@ -1,4 +1,5 @@
-"use client";
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "交互实验预览", robots: { index: false, follow: false } };
 
 /**
  * Isolated layout for /dev/intro — strips the global header, footer,

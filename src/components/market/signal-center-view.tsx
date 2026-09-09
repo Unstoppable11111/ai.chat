@@ -31,6 +31,7 @@ export function SignalCenterView({ onAddToPortfolio, showToast }: SignalCenterVi
     conservative: [],
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [selectedStrategyFilter, setSelectedStrategyFilter] = useState<"all" | StrategyType>("all");
   const [selectedActionFilter, setSelectedActionFilter] = useState<"all" | "BUY" | "SELL" | "HOLD" | "WATCH">("all");
   const [inspectingSignal, setInspectingSignal] = useState<StrategySignal | null>(null);
@@ -40,6 +41,7 @@ export function SignalCenterView({ onAddToPortfolio, showToast }: SignalCenterVi
       try {
         setLoading(true);
         const res = await fetch("/api-market/arena/signals");
+        if (!res.ok) { setError("尚无经过验证的策略信号，自动选股与交易暂停。"); return; }
         if (res.ok) {
           const json = await res.json();
           if (json.signals) {
@@ -92,6 +94,7 @@ export function SignalCenterView({ onAddToPortfolio, showToast }: SignalCenterVi
     }
   };
 
+  if (error) return <p role="status" className="py-12 text-center text-sm text-slate-300">{error}</p>;
   if (loading) {
     return (
       <div className="p-12 text-center text-cyan-400/80 space-y-3">
@@ -306,8 +309,8 @@ export function SignalCenterView({ onAddToPortfolio, showToast }: SignalCenterVi
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
                 {Object.entries(inspectingSignal.score_detail)
-                  .filter(([k]) => k !== "total")
-                  .map(([key, item]: any) => (
+                  .filter((entry): entry is [string, import("@/lib/quant-arena/types").FactorItemScore] => typeof entry[1] !== "number")
+                  .map(([key, item]) => (
                     <div key={key} className="p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
                       <div className="flex items-center justify-between text-[11px] text-slate-400">
                         <span>{item.label}</span>

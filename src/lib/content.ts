@@ -8,7 +8,7 @@ import type {
   ProjectEntry,
   TocItem,
 } from "@/lib/types";
-import { slugify } from "@/lib/utils";
+import { parseMarkdown } from "@/lib/markdown-core.mjs";
 
 const CONTENT_ROOT = path.join(process.cwd(), "content");
 
@@ -36,7 +36,7 @@ function readCollection(collection: CollectionName) {
         content,
         stats: readingTime(content),
       };
-    });
+    }).filter(entry => entry.frontmatter.status !== "draft" && entry.frontmatter.status !== "archived");
 }
 
 function sortByDate<T extends { frontmatter: { date?: string } }>(items: T[]) {
@@ -59,8 +59,8 @@ export function getExperimentEntries(): ExperimentEntry[] {
     promptPreview: String(frontmatter.promptPreview),
     date: String(frontmatter.date),
     featured: Boolean(frontmatter.featured),
-    views: Number(frontmatter.views) || 300,
-    likes: Number(frontmatter.likes) || 20,
+    views: Number(frontmatter.views) || 0,
+    likes: Number(frontmatter.likes) || 0,
     readingMinutes: Math.max(1, Math.round(stats.minutes)),
   }));
 }
@@ -74,7 +74,7 @@ export function calculateReadingMinutes(content: string, fallback = 12): number 
 
   // 中文约 420 字/分，英文约 220 词/分，代码块约 20 行/分，产生科学的自然梯度差异
   const minutes = (chineseChars / 420) + (englishWords / 220) + (codeLines / 20);
-  return Math.max(7, Math.round(minutes));
+  return Math.max(1, Math.round(minutes));
 }
 
 export function getBuildLogs(): BuildLogEntry[] {
@@ -86,8 +86,8 @@ export function getBuildLogs(): BuildLogEntry[] {
     tags: frontmatter.tags as string[],
     cover: String(frontmatter.cover),
     featured: Boolean(frontmatter.featured),
-    views: Number(frontmatter.views) || 500,
-    likes: Number(frontmatter.likes) || 45,
+    views: Number(frontmatter.views) || 0,
+    likes: Number(frontmatter.likes) || 0,
     readingMinutes: calculateReadingMinutes(content, 14),
   }));
 }
@@ -101,8 +101,8 @@ export function getNews(): BuildLogEntry[] {
     tags: frontmatter.tags as string[],
     cover: String(frontmatter.cover),
     featured: Boolean(frontmatter.featured),
-    views: Number(frontmatter.views) || 400,
-    likes: Number(frontmatter.likes) || 30,
+    views: Number(frontmatter.views) || 0,
+    likes: Number(frontmatter.likes) || 0,
     readingMinutes: Math.max(1, Math.round(stats.minutes)),
   }));
 }
@@ -137,22 +137,5 @@ export function getProjectBySlug(slug: string) {
 }
 
 export function getTableOfContents(source: string): TocItem[] {
-  return source
-    .split("\n")
-    .map((line) => {
-      const match = /^(##|###)\s+(.+)$/.exec(line.trim());
-
-      if (!match) {
-        return null;
-      }
-
-      const text = match[2].replace(/[*_`]/g, "").trim();
-
-      return {
-        level: match[1].length as 2 | 3,
-        text,
-        id: slugify(text),
-      };
-    })
-    .filter(Boolean) as TocItem[];
+  return parseMarkdown(source).headings.filter(item => item.level === 2 || item.level === 3).map(item => ({ level: item.level as 2 | 3, text: item.text, id: item.id }));
 }

@@ -31,6 +31,15 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
   deploy:
     name: Deploy to server
     runs-on: ubuntu-latest
@@ -41,8 +50,9 @@ jobs:
       DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
       DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/www/wwwroot/chenyc' }}
-      DEPLOY_BRANCH: main
-      PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      PM2_APP_NAME: ${{ secrets.PM2_APP_NAME || 'chenyc' }}
 
     steps:
       - name: Checkout
@@ -65,12 +75,13 @@ jobs:
           set -euo pipefail
           test -n "$DEPLOY_HOST"
           test -n "$DEPLOY_USER"
-          test -n "${{ secrets.DEPLOY_SSH_KEY }}"
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$DEPLOY_KNOWN_HOSTS"
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p "$DEPLOY_PORT" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
       - name: Pack source
         run: |
@@ -79,6 +90,8 @@ jobs:
             --exclude='./.git' \
             --exclude='./node_modules' \
             --exclude='./artifacts' \
+            --exclude='./.env*' \
+            --exclude='./.runtime' \
             -czf /tmp/chenyc-release.tar.gz .
           test -s /tmp/chenyc-release.tar.gz
           ls -lh /tmp/chenyc-release.tar.gz
@@ -97,6 +110,11 @@ jobs:
             nvm use 22 >/dev/null || nvm use node >/dev/null
           fi
           export PATH="$HOME/.nvm/current/bin:$PATH"
+          if ! command -v pm2 >/dev/null; then
+            pm2_binary="$(find "$NVM_DIR/versions/node" -path '*/bin/pm2' -type l | sort | tail -1)"
+            test -n "$pm2_binary"
+            export PATH="$PATH:$(dirname "$pm2_binary")"
+          fi
 
           command -v node
           command -v npm
@@ -105,25 +123,9 @@ jobs:
 
           test -s /tmp/chenyc-release.tar.gz
 
-          mkdir -p "$DEPLOY_PATH"
-          cd "$DEPLOY_PATH"
-
-          echo "Cleaning old source files..."
-          rm -rf src public content docs .github .next
-          rm -f AGENTS.md CLAUDE.md README.md eslint.config.mjs next-env.d.ts next.config.ts package.json package-lock.json postcss.config.mjs tsconfig.json
-
-          echo "Extracting release..."
-          tar -xzf /tmp/chenyc-release.tar.gz -C "$DEPLOY_PATH"
-          
-          echo "Installing dependencies..."
-          npm ci --no-audit --no-fund
-
-          echo "Restarting app..."
-          if [ -n "${PM2_APP_NAME:-}" ]; then
-            npx --yes pm2 restart "$PM2_APP_NAME" || true
-          else
-            npx --yes pm2 restart all || true
-          fi
-          npx --yes pm2 save || true
-          rm -f /tmp/chenyc-release.tar.gz
+          staging="$(mktemp -d)"
+          tar -xzf /tmp/chenyc-release.tar.gz -C "$staging" ./scripts/deploy-release.sh
+          export RELEASE_ARCHIVE=/tmp/chenyc-release.tar.gz
+          export DEPLOY_PATH PM2_APP_NAME
+          bash "$staging/scripts/deploy-release.sh"
           REMOTE

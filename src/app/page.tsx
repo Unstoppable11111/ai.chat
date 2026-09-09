@@ -8,18 +8,19 @@ import { PromptLibraryPreview } from "@/components/home/prompt-library-preview";
 import { StackingPanels } from "@/components/home/stacking-panels";
 import { PageIntro } from "@/components/shared/page-intro";
 import { promptLibrary } from "@/data/site";
-import { getBuildLogs, getExperimentEntries } from "@/lib/content";
+import { listPublishedPosts, postListItem, experimentListItem } from "@/lib/posts-repository";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function HomePage() {
-  const experimentEntries = getExperimentEntries().slice(0, 6);
-  const buildLogs = getBuildLogs().slice(0, 3);
+export const dynamic = "force-dynamic";
+export default async function HomePage() {
+  const experimentEntries = (await listPublishedPosts("experiments")).slice(0,6).map(experimentListItem);
+  const buildLogs = (await listPublishedPosts("build-log")).slice(0,3).map(postListItem);
 
   return (
-    <main className="page-flow pb-20 overflow-x-hidden">
+    <div className="page-flow pb-20 overflow-x-clip">
       <PageIntro>
         <HeroSection />
         <CurrentlyBuilding />
@@ -29,6 +30,6 @@ export default function HomePage() {
         <PromptLibraryPreview items={promptLibrary.slice(0, 3)} />
         <ManifestoSection />
       </PageIntro>
-    </main>
+    </div>
   );
 }

@@ -4,7 +4,8 @@ import { Reveal } from "@/components/shared/reveal";
 import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { getNews } from "@/lib/content";
+import { listPublishedPosts, postListItem } from "@/lib/posts-repository";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "科技资讯",
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/news" },
 };
 
-export default function NewsPage() {
-  const items = getNews();
+export default async function NewsPage() {
+  const items = (await listPublishedPosts("news")).map(postListItem);
 
   return (
     <PageShell>
@@ -22,7 +23,7 @@ export default function NewsPage() {
           level={1}
           eyebrow="新闻与动态"
           title="科技资讯"
-          description="每日自动抓取外网高质量 AI 和科技新闻，由大模型总结提炼。"
+          description="科技动态、原始来源与技术解读。"
         />
 
         <div className="grid gap-5 xl:grid-cols-2">

@@ -150,7 +150,7 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
 
     // 9. 动画渲染循环 (特技级脉冲与多维自转)
     let reqId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       reqId = requestAnimationFrame(animate);

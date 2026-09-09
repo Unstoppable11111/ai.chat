@@ -76,7 +76,7 @@ export default function AboutPage() {
                 如果你正在了解我的项目、学习记录和网站开发过程，这里基本就是最真实的切面。
               </p>
               <p className="mt-4 rounded-[20px] border border-slate-900/8 bg-slate-900/[0.03] p-4 text-sm leading-8 text-muted-foreground">
-                本网站为个人技术展示网站，不提供用户注册、评论、即时通讯、生成式人工智能服务或经营性互联网信息服务。
+                本网站展示个人技术项目，并提供 AI 对话与需要登录的个人投研工作台。账户数据和外部模型处理范围见<a href="/privacy" className="underline">隐私与数据说明</a>。
               </p>
               <div className="mt-8 grid gap-4 md:grid-cols-3">
                 {highlights.map((item, index) => {

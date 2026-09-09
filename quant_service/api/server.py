@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime, time as dtime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -58,7 +59,7 @@ state = SystemState()
 
 def is_in_trading_hours() -> bool:
     """判断当前时间是否处于 A 股交易时段"""
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Shanghai"))
     t = now.time()
     # 上午 09:25 ~ 11:31，下午 12:59 ~ 15:05
     morning = (t >= dtime(9, 25)) and (t <= dtime(11, 31))
@@ -71,14 +72,14 @@ async def background_market_scheduler():
     logger.info("启动盘中 5 分钟市场轮询后台调度器...")
     while True:
         try:
-            today_str = datetime.now().strftime("%Y-%m-%d")
+            today_str = datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d")
             is_trade_day = state.calendar.is_trading_day(today_str) if state.calendar else True
             
             if is_trade_day and is_in_trading_hours():
                 logger.info("处于交易时段，触发盘中 5 分钟行情推演...")
                 await refresh_market_snapshot()
             else:
-                logger.debug(f"非交易时段 ({datetime.now().strftime('%H:%M:%S')})，调度器待机...")
+                logger.debug(f"非交易时段 ({datetime.now(ZoneInfo("Asia/Shanghai")).strftime('%H:%M:%S')})，调度器待机...")
         except Exception as e:
             logger.error(f"后台调度器异常: {e}")
             
@@ -87,12 +88,16 @@ async def background_market_scheduler():
 
 
 async def refresh_market_snapshot():
+    await asyncio.to_thread(_refresh_market_snapshot)
+
+
+def _refresh_market_snapshot():
     """抓取核心行情并推演大盘与决策卡"""
     if state.is_updating:
         return
     state.is_updating = True
     try:
-        now_dt = datetime.now()
+        now_dt = datetime.now(ZoneInfo("Asia/Shanghai"))
         date_str = now_dt.strftime("%Y-%m-%d")
         time_str = now_dt.strftime("%H:%M:%S")
         
@@ -140,51 +145,21 @@ async def refresh_market_snapshot():
         turnover_yi = round(total_turnover / 1e8, 2) if total_turnover > 0 else 0.0
         turnover_label = f"{round(turnover_yi / 10000, 2)}万亿" if turnover_yi >= 10000 else f"{turnover_yi}亿"
 
-        # 2. 调用市场综合评分器
-        analysis = state.market_scorer.analyze(
-            index_df=idx_df,
-            all_stocks_df=None,
-            sector_df=None,
-            date=date_str,
-            mode="intraday"
-        )
-        
-        # 3. 读取本地生成的最新决策卡内容（如果有）
-        decision_card_file = ROOT / "reports_output" / f"decision_card_{date_str}.txt"
-        card_content = ""
-        if decision_card_file.exists():
-            try:
-                with open(decision_card_file, "r", encoding="utf-8") as f:
-                    card_content = f.read()
-            except Exception:
-                pass
+        if idx_df.empty:
+            raise ValueError("No index quotes available")
 
-        def compute_dynamic_mainline(sec_df=None) -> str:
-            try:
-                if sec_df is not None and not sec_df.empty:
-                    sorted_df = sec_df.sort_values("change_pct", ascending=False)
-                    top1 = str(sorted_df.iloc[0]["name"]).replace("行业", "").replace("概念", "").replace("板块", "").strip()
-                    top2 = str(sorted_df.iloc[1]["name"]).replace("行业", "").replace("概念", "").replace("板块", "").strip() if len(sorted_df) > 1 else "PCB算力板"
-                    chg = float(sorted_df.iloc[0].get("change_pct", 0.0))
-                    days = 3 if chg > 2.0 else 2
-                    return f"{top1} (持续{days}天) · {top2}"
-            except Exception:
-                pass
-            return "农业种植 (持续2天) · PCB算力板"
-
-        dynamic_style = analysis.market_style if (analysis.market_style and analysis.market_style not in ("科技趋势", "未知")) else compute_dynamic_mainline()
-                
+        # Partial index quotes cannot substantiate a market-wide score or recommendation.
         # 4. 组装缓存
         state.latest_market_data = {
             "market_date": date_str,
             "snapshot_time": time_str,
-            "market_score": round(analysis.market_score, 1),
-            "market_state": analysis.market_state,
-            "market_style": dynamic_style,
-            "suggested_position": analysis.suggested_position or "30%~50%",
-            "confidence": analysis.confidence or "high",
+            "market_score": None,
+            "market_state": "暂不评估",
+            "market_style": None,
+            "suggested_position": None,
+            "confidence": "unknown",
             "indices": idx_df.to_dict(orient="records") if not idx_df.empty else [],
-            "decision_card_text": card_content,
+            "decision_card_text": "",
             "total_turnover": turnover_yi,
             "total_turnover_text": turnover_label,
             "up_count": up_count,
@@ -193,7 +168,7 @@ async def refresh_market_snapshot():
             "last_updated": f"{date_str} {time_str}"
         }
         state.last_update_time = f"{date_str} {time_str}"
-        logger.info(f"5分钟市场快照推演成功 | 评分: {analysis.market_score} | 状态: {analysis.market_state} | 量能: {turnover_label}")
+        logger.info("指数行情快照已更新")
     except Exception as e:
         logger.error(f"5分钟行情推演异常: {e}")
     finally:
@@ -237,7 +212,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -248,10 +223,10 @@ app.add_middleware(
 # -------------------------------------------------------------
 class HoldingItemReq(BaseModel):
     id: Optional[int] = None
-    code: str = Field(..., description="6位股票代码")
+    code: str = Field(..., pattern=r"^\d{6}$", description="6位股票代码")
     name: Optional[str] = Field(None, description="股票名称")
-    quantity: int = Field(100, description="持股数量")
-    cost_price: float = Field(0.0, description="成本价")
+    quantity: int = Field(..., gt=0, le=1000000000, description="持股数量")
+    cost_price: float = Field(..., gt=0, le=1000000, allow_inf_nan=False, description="成本价")
     hold_type: str = Field("core", description="仓位类别: core/trend/attack/trial")
     notes: Optional[str] = Field(None, description="个人备注")
 
@@ -281,7 +256,7 @@ def health_check():
         "status": "ok",
         "service": "a_stock_review_api",
         "version": "3.0.0",
-        "server_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "server_time": datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
     }
 
 
@@ -289,19 +264,7 @@ def health_check():
 def get_latest_market():
     """获取当前最新一期的 5 分钟市场评分、状态与决策卡"""
     if not state.latest_market_data:
-        today_str = datetime.now().strftime("%Y-%m-%d")
-        return {
-            "market_date": today_str,
-            "snapshot_time": datetime.now().strftime("%H:%M:%S"),
-            "market_score": 50.0,
-            "market_state": "弱势震荡",
-            "market_style": "农业种植 (持续2天) · PCB算力板",
-            "suggested_position": "30%~50%",
-            "confidence": "medium",
-            "indices": [],
-            "decision_card_text": "正在计算盘中推演快照...",
-            "last_updated": "初始化中"
-        }
+        raise HTTPException(status_code=503, detail="行情快照尚不可用")
     return state.latest_market_data
 
 
@@ -309,7 +272,7 @@ def get_latest_market():
 async def manual_refresh(bg: BackgroundTasks):
     """手动立即触发一次行情推演"""
     bg.add_task(refresh_market_snapshot)
-    return {"message": "已触发即时刷新任务", "timestamp": datetime.now().strftime("%H:%M:%S")}
+    return {"message": "已触发即时刷新任务", "timestamp": datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%H:%M:%S")}
 
 
 @app.get("/api/v1/stock/quote/{code}")
@@ -367,7 +330,10 @@ def diagnose_portfolio(req: PortfolioDiagnoseReq):
             chg_map[c] = float(r.get('change_pct', 0.0))
             
     # 获取当前大盘状态
-    curr_state = state.latest_market_data.get("market_state", "弱势震荡")
+    if any(code not in price_map or not (price_map[code] > 0) for code in codes):
+        return {"success": False, "data_status": "UNAVAILABLE", "summary": None,
+                "diagnosed_holdings": [], "error": "部分持仓缺少有效行情，暂停估值与风险判断"}
+    curr_state = state.latest_market_data.get("market_state", "暂不评估")
     
     total_cost = 0.0
     total_mv = 0.0
@@ -387,31 +353,11 @@ def diagnose_portfolio(req: PortfolioDiagnoseReq):
         total_cost += cost_val
         total_mv += mv
         
-        # 决策推演逻辑
-        # 动态止损线：默认浮亏 -7% 或基于成本计算
-        stop_loss = round(h.cost_price * 0.92, 2)
-        
-        action = "继续持有"
-        advice_reason = "股价运行平稳，与大盘节奏保持一致。"
-        risk_level = "低"
-        
-        if pnl_pct <= -8.0 or (curr_price > 0 and curr_price <= stop_loss):
-            action = "纪律止损"
-            advice_reason = f"已击穿关键止损位（成本回撤 {pnl_pct:.1f}%），触及 -8% 预警线，建议果断减仓防守。"
-            risk_level = "高"
-        elif pnl_pct >= 15.0:
-            action = "分批止盈"
-            advice_reason = f"累计盈利达到 {pnl_pct:.1f}%，高位出现放量震荡可逢高兑现部分浮盈。"
-            risk_level = "中"
-        elif day_chg <= -4.0 and curr_state in ("退潮", "极端退潮"):
-            action = "主动减仓"
-            advice_reason = "标的日内跌幅较大，且大盘处于退潮周期，建议控制仓位防守。"
-            risk_level = "中"
-        elif pnl_pct >= 3.0 and day_chg >= 2.0:
-            action = "顺势持有"
-            advice_reason = "主升动能完好，量价配合健康，坚定持股享受趋势红利。"
-            risk_level = "低"
-            
+        stop_loss = None
+        action = "仅展示估值"
+        advice_reason = "行情可能延迟；未生成交易建议或风险评级。"
+        risk_level = "未评估"
+
         diagnosed_list.append({
             "id": h.id,
             "code": c,
@@ -434,15 +380,12 @@ def diagnose_portfolio(req: PortfolioDiagnoseReq):
     total_pnl = total_mv - total_cost
     total_pnl_pct = (total_pnl / total_cost * 100.0) if total_cost > 0 else 0.0
     
-    # 组合综合诊断
-    overall_action = "控制仓位，防守反击"
-    if curr_state in ("极强主升", "主升"):
-        overall_action = "趋势向好，主线重仓持股"
-    elif curr_state in ("退潮", "极端退潮"):
-        overall_action = "市场退潮，严控风险与防守"
-        
+    overall_action = "仅展示持仓估值，未生成交易建议"
+
     return {
         "user_id": req.user_id,
+        "success": True,
+        "data_status": "QUOTED",
         "summary": {
             "total_market_value": round(total_mv, 2),
             "total_cost": round(total_cost, 2),
@@ -451,7 +394,7 @@ def diagnose_portfolio(req: PortfolioDiagnoseReq):
             "holdings_count": len(diagnosed_list),
             "market_state": curr_state,
             "overall_action": overall_action,
-            "diagnose_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "diagnose_time": datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
         },
         "diagnosed_holdings": diagnosed_list
     }

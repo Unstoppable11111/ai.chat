@@ -8,6 +8,7 @@ import { ChatWidget } from "@/components/shared/chat-widget";
 import { BackToTop } from "@/components/shared/back-to-top";
 import { siteConfig } from "@/data/site";
 import "./globals.css";
+import { ChatProvider } from "@/components/chat/chat-provider";
 
 const geistSans = { variable: "--font-geist-sans" };
 const geistMono = { variable: "--font-geist-mono" };
@@ -61,6 +62,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full bg-background text-foreground">
+        <ChatProvider>
         <AnimatedBackground />
         <InteractiveEffects />
         <div className="relative z-10 flex min-h-screen flex-col">
@@ -71,6 +73,7 @@ export default function RootLayout({
         <ChatWidget />
         <BackToTop />
         <CommandMenu />
+        </ChatProvider>
       </body>
     </html>
   );

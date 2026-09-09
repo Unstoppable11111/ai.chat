@@ -32,7 +32,7 @@ export function StrategyArenaCards({
     id: StrategyType;
     title: string;
     sub: string;
-    icon: any;
+    icon: typeof Zap;
     themeColor: string;
     borderColor: string;
     activeBorder: string;
@@ -41,7 +41,7 @@ export function StrategyArenaCards({
     {
       id: "aggressive",
       title: "AGGRESSIVE",
-      sub: "激进超短连板龙头 · 中小盘满仓打板 · 10天100%异动前退出",
+      sub: "激进实验账户 · 手动记录",
       icon: Zap,
       themeColor: "text-amber-400",
       borderColor: "border-amber-500/30",
@@ -51,7 +51,7 @@ export function StrategyArenaCards({
     {
       id: "balanced",
       title: "BALANCED",
-      sub: "均衡配置策略 · GARP价值成长中军",
+      sub: "均衡实验账户 · 手动记录",
       icon: Scale,
       themeColor: "text-cyan-400",
       borderColor: "border-cyan-500/30",
@@ -61,7 +61,7 @@ export function StrategyArenaCards({
     {
       id: "conservative",
       title: "CONSERVATIVE",
-      sub: "保守防御策略 · 高股息低波压舱石",
+      sub: "保守实验账户 · 手动记录",
       icon: ShieldCheck,
       themeColor: "text-emerald-400",
       borderColor: "border-emerald-500/30",
@@ -90,7 +90,7 @@ export function StrategyArenaCards({
             </span>
           </div>
           <p className="text-xs text-cyan-200/70 mt-0.5">
-            三个10万元账户，同一市场，不同策略 · 独立仓位与盈亏，共享行情与真实费率
+            三个独立模拟账户 · 初始资金各10万元 · 参考价手动录入，费用采用实验预设
           </p>
         </div>
 
@@ -132,6 +132,10 @@ export function StrategyArenaCards({
           return (
             <div
               key={card.id}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
+              onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelectStrategy(card.id); } }}
               onClick={() => onSelectStrategy(card.id)}
               className={`p-5 rounded-2xl bg-gradient-to-b ${
                 card.glowColor
@@ -201,16 +205,16 @@ export function StrategyArenaCards({
                 </div>
                 <div className="p-2 rounded-xl bg-black/30 border border-white/5">
                   <div className="text-[10px] text-slate-400">Sharpe</div>
-                  <div className="text-cyan-300 font-bold font-mono">{acc.sharpe_ratio}</div>
+                  <div className="text-cyan-300 font-bold font-mono">--</div>
                 </div>
                 <div className="p-2 rounded-xl bg-black/30 border border-white/5">
                   <div className="text-[10px] text-slate-400">Calmar</div>
-                  <div className="text-slate-200 font-bold font-mono">{acc.calmar_ratio}</div>
+                  <div className="text-slate-200 font-bold font-mono">--</div>
                 </div>
                 <div className="p-2 rounded-xl bg-black/30 border border-white/5">
                   <div className="text-[10px] text-slate-400">胜率 / 盈亏比</div>
                   <div className="text-slate-200 font-mono">
-                    {acc.win_rate_pct}% / {acc.profit_factor}
+                    -- / --
                   </div>
                 </div>
                 <div className="p-2 rounded-xl bg-black/30 border border-white/5">
@@ -228,7 +232,7 @@ export function StrategyArenaCards({
               {/* 底部交互提示 */}
               <div className="pt-2 border-t border-cyan-950/60 flex items-center justify-between text-[11px]">
                 <span className="text-slate-400 font-mono">
-                  初始: ¥100k · 评分 {acc.strategy_score}/100
+                  初始: ¥100k · 已记录 {acc.orders.length} 笔
                 </span>
                 <span className="text-cyan-400 flex items-center gap-0.5 font-medium group">
                   {isSelected ? "当前监控" : "切换视角"}

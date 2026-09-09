@@ -5,12 +5,14 @@ export type Message = {
   content: string;
   reasoning_content?: string;
   isThinking?: boolean;
+  sources?: { id: string; title: string; heading: string; url: string; excerpt: string; version?: string }[];
+  error?: boolean;
 };
 
 export const CHAT_MODELS = [
-  { id: 'jarvis-balanced', name: 'Jarvis-Omni 均衡', desc: '智力与速度黄金平衡，全栈工程与架构首选' },
-  { id: 'jarvis-speed', name: 'Jarvis-Speed 极速', desc: '极致低延迟，毫秒级快速答疑与灵感交互' },
-  { id: 'jarvis-ultra', name: 'Jarvis-Ultra 极致', desc: '深度逻辑推导，长上下文与复杂系统攻坚' },
+  { id: 'jarvis-balanced', name: '均衡', desc: '日常问答' },
+  { id: 'jarvis-speed', name: '快速', desc: '简短问题' },
+  { id: 'jarvis-ultra', name: '深入', desc: '复杂问题' },
 ] as const;
 
 export type ChatModelId = typeof CHAT_MODELS[number]['id'];

@@ -120,7 +120,7 @@ export interface MorningPromptContext {
  * 构建注入了实时时间与外部数据的完整 Prompt
  */
 export function buildMorningResearchPrompt(ctx: MorningPromptContext): string {
-  let prompt = MORNING_RESEARCH_MASTER_PROMPT.replace(/\{\{REPORT_DATE\}\}/g, ctx.dateStr).replace(
+  const prompt = MORNING_RESEARCH_MASTER_PROMPT.replace(/\{\{REPORT_DATE\}\}/g, ctx.dateStr).replace(
     /\{\{REPORT_TIME\}\}/g,
     ctx.timeStr
   );

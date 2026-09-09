@@ -21,242 +21,16 @@ import {
 } from "lucide-react";
 import { DailyPnlCandle, PaperAccount, TradeEvent, AccountStyle } from "@/lib/recommendations-db";
 
+type ChartAccount = Partial<PaperAccount> & { id?: AccountStyle; name?: string; total_return_pct?: number };
+
 interface PnlKlineChartProps {
-  account?: any;
-  accounts?: any[];
+  account?: ChartAccount;
+  accounts?: ChartAccount[];
   activeAccountId?: string;
   onSelectAccount?: (id: AccountStyle) => void;
   pnlKline?: DailyPnlCandle[];
   events?: TradeEvent[];
 }
-
-// 预置默认蜡烛序列基准 (杜绝任何情况下的图表空白)
-const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
-  aggressive: [
-    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
-    { date: "09-02", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.3, alpha_pct: -0.3, events: [] },
-    { date: "09-03", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.4, alpha_pct: -0.4, events: [] },
-    { date: "09-04", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.5, alpha_pct: -0.5, events: [] },
-    {
-      date: "09-07",
-      open_pnl_pct: 0.0,
-      high_pnl_pct: 0.0,
-      low_pnl_pct: 0.0,
-      close_pnl_pct: 0.0,
-      equity: 100000,
-      benchmark_pct: 0.6,
-      alpha_pct: -0.6,
-      events: [
-        {
-          id: "ev-agg-1",
-          date: "09-07",
-          time: "09:42",
-          type: "BUY",
-          stock_code: "600865",
-          stock_name: "百大集团",
-          price: 13.74,
-          shares: 5000,
-          amount: 68700,
-          target_price: 16.63,
-          stop_loss_price: 12.78,
-          pnl_pct: 0.0,
-          reason: "全市场最高5连板空间总龙头(小盘56亿)，早盘一字涨停排板，09:42分时开板换手回封成功撮合成交，按涨停价买入；买入日浮盈严格按成交价核算为¥0.00，10天100%严重异动监管前退出",
-        },
-        {
-          id: "ev-agg-2",
-          date: "09-07",
-          time: "09:35",
-          type: "BUY",
-          stock_code: "600108",
-          stock_name: "亚盛集团",
-          price: 5.28,
-          shares: 5900,
-          amount: 31152,
-          target_price: 6.39,
-          stop_loss_price: 4.91,
-          pnl_pct: 0.0,
-          reason: "农业连板梯队前排共振高弹性龙头，开盘放量换手走强，非一字板正常撮合成交，买入日浮盈按成交价计为¥0.00",
-        },
-      ],
-    },
-    {
-      date: "09-08",
-      open_pnl_pct: 0.0,
-      high_pnl_pct: 9.20,
-      low_pnl_pct: 0.0,
-      close_pnl_pct: 8.80,
-      equity: 108797,
-      benchmark_pct: 1.10,
-      alpha_pct: 7.70,
-      events: [],
-    },
-    {
-      date: "09-09",
-      open_pnl_pct: 8.80,
-      high_pnl_pct: 10.15,
-      low_pnl_pct: 8.80,
-      close_pnl_pct: 9.78,
-      equity: 109778,
-      benchmark_pct: 1.35,
-      alpha_pct: 8.43,
-      events: [
-        {
-          id: "ev-agg-3",
-          date: "09-09",
-          time: "09:48",
-          type: "SELL",
-          stock_code: "600108",
-          stock_name: "亚盛集团",
-          price: 5.78,
-          shares: 5900,
-          amount: 34102,
-          pnl_pct: 9.47,
-          reason: "【五分钟超短监控触发】次日冲高+9.5%突破遇阻回落，严格执行超短快进快出铁律，止盈落袋为安锁定利润(+¥2,950)，集中仓位单挑空间总龙头百大集团",
-        },
-      ],
-    },
-  ],
-  balanced: [
-    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
-    { date: "09-02", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.3, alpha_pct: -0.3, events: [] },
-    { date: "09-03", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.4, alpha_pct: -0.4, events: [] },
-    { date: "09-04", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.5, alpha_pct: -0.5, events: [] },
-    {
-      date: "09-07",
-      open_pnl_pct: 0.0,
-      high_pnl_pct: 1.2,
-      low_pnl_pct: 0.0,
-      close_pnl_pct: 0.8,
-      equity: 100800,
-      benchmark_pct: 0.5,
-      alpha_pct: 0.3,
-      events: [
-        {
-          id: "ev-bal-1",
-          date: "09-07",
-          time: "09:35",
-          type: "BUY",
-          stock_code: "600584",
-          stock_name: "长电科技",
-          price: 67.36,
-          shares: 500,
-          amount: 33680,
-          target_price: 74.1,
-          stop_loss_price: 64.33,
-          pnl_pct: 2.43,
-          reason: "半导体封测中军，MA60支撑扎实，PEG估值合理，均衡底仓配置",
-        },
-        {
-          id: "ev-bal-2",
-          date: "09-07",
-          time: "09:35",
-          type: "BUY",
-          stock_code: "002475",
-          stock_name: "立讯精密",
-          price: 54.3,
-          shares: 400,
-          amount: 21720,
-          target_price: 59.73,
-          stop_loss_price: 51.86,
-          pnl_pct: 3.0,
-          reason: "消费电子龙头，估值处于合理分位，业绩持续成长，稳健加仓",
-        },
-      ],
-    },
-    {
-      date: "09-08",
-      open_pnl_pct: 0.8,
-      high_pnl_pct: 2.6,
-      low_pnl_pct: 0.6,
-      close_pnl_pct: 2.15,
-      equity: 102150,
-      benchmark_pct: 0.8,
-      alpha_pct: 1.35,
-      events: [],
-    },
-    {
-      date: "09-09",
-      open_pnl_pct: 2.15,
-      high_pnl_pct: 2.85,
-      low_pnl_pct: 2.10,
-      close_pnl_pct: 2.63,
-      equity: 102625,
-      benchmark_pct: 1.05,
-      alpha_pct: 1.58,
-      events: [],
-    },
-  ],
-  conservative: [
-    { date: "09-01", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.1, alpha_pct: -0.1, events: [] },
-    { date: "09-02", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.3, alpha_pct: -0.3, events: [] },
-    { date: "09-03", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.4, alpha_pct: -0.4, events: [] },
-    { date: "09-04", open_pnl_pct: 0.0, high_pnl_pct: 0.0, low_pnl_pct: 0.0, close_pnl_pct: 0.0, equity: 100000, benchmark_pct: 0.5, alpha_pct: -0.5, events: [] },
-    {
-      date: "09-07",
-      open_pnl_pct: 0.0,
-      high_pnl_pct: 0.5,
-      low_pnl_pct: -0.1,
-      close_pnl_pct: 0.3,
-      equity: 100300,
-      benchmark_pct: 0.2,
-      alpha_pct: 0.1,
-      events: [
-        {
-          id: "ev-con-1",
-          date: "09-07",
-          time: "09:30",
-          type: "BUY",
-          stock_code: "000998",
-          stock_name: "隆平高科",
-          price: 9.39,
-          shares: 2000,
-          amount: 18780,
-          target_price: 9.95,
-          stop_loss_price: 9.11,
-          pnl_pct: 3.09,
-          reason: "种业安全压舱石，低位防御建仓，抗跌低波动",
-        },
-        {
-          id: "ev-con-2",
-          date: "09-07",
-          time: "09:35",
-          type: "BUY",
-          stock_code: "600900",
-          stock_name: "长江电力",
-          price: 28.42,
-          shares: 800,
-          amount: 22736,
-          target_price: 30.13,
-          stop_loss_price: 27.57,
-          pnl_pct: -2.01,
-          reason: "高股息特许垄断核心压舱石，现金流极佳，抗波动首选",
-        },
-      ],
-    },
-    {
-      date: "09-08",
-      open_pnl_pct: 0.3,
-      high_pnl_pct: 1.1,
-      low_pnl_pct: 0.1,
-      close_pnl_pct: 0.85,
-      equity: 100850,
-      benchmark_pct: 0.4,
-      alpha_pct: 0.45,
-      events: [],
-    },
-    {
-      date: "09-09",
-      open_pnl_pct: 0.85,
-      high_pnl_pct: 1.25,
-      low_pnl_pct: 0.80,
-      close_pnl_pct: 0.92,
-      equity: 100924,
-      benchmark_pct: 0.50,
-      alpha_pct: 0.42,
-      events: [],
-    },
-  ],
-};
 
 export function PnlKlineChart({
   account,
@@ -289,16 +63,18 @@ export function PnlKlineChart({
   const conAcc = accounts.find((a) => (a.account_id || a.id) === "conservative");
 
   // 获取当前账户的日K蜡烛数据 (多重安全保底，确保绝不为空)
-  const resolveCandles = (acc: any, key: string): DailyPnlCandle[] => {
+  const resolveCandles = (acc: ChartAccount | undefined, key: string): DailyPnlCandle[] => {
     if (acc?.candles && acc.candles.length > 0) return acc.candles;
     if (pnlKline && pnlKline.length > 0 && key === currentStrategyKey) return pnlKline;
-    return DEFAULT_CANDLES_BY_STRATEGY[key] || DEFAULT_CANDLES_BY_STRATEGY.aggressive;
+    return [];
   };
 
   const currentCandles = resolveCandles(currentAccount, currentStrategyKey);
   const aggCandles = resolveCandles(aggAcc, "aggressive");
   const balCandles = resolveCandles(balAcc, "balanced");
   const conCandles = resolveCandles(conAcc, "conservative");
+
+  if (!currentCandles.length) return <p className="border-y border-cyan-900/40 py-12 text-center text-sm text-slate-300">暂无收益历史，完成模拟交易后开始积累。</p>;
 
   const dates = currentCandles.map((c) => c.date);
 
@@ -488,7 +264,7 @@ export function PnlKlineChart({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
-                  <span className="text-amber-300">沪深300基准</span>
+                  <span className="text-amber-300">零收益参考线</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -513,7 +289,7 @@ export function PnlKlineChart({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
-                  <span className="text-amber-300">沪深300基准 (+1.10%)</span>
+                  <span className="text-amber-300">零收益参考线 (0%)</span>
                 </div>
               </>
             )}
@@ -560,7 +336,7 @@ export function PnlKlineChart({
               );
             })}
 
-            {/* 沪深300基准线 */}
+            {/* 零收益参考线线 */}
             {dates.length > 1 && (
               <path
                 d={benchmarkLinePath}
@@ -833,7 +609,7 @@ export function PnlKlineChart({
                   账户总资产: ¥{activeCandle.equity.toLocaleString()}
                 </span>
                 <span className="text-amber-300">
-                  沪深300基准: {activeCandle.benchmark_pct > 0 ? `+${activeCandle.benchmark_pct}%` : `${activeCandle.benchmark_pct}%`}
+                  零收益参考线: {activeCandle.benchmark_pct > 0 ? `+${activeCandle.benchmark_pct}%` : `${activeCandle.benchmark_pct}%`}
                 </span>
                 <span className="text-emerald-400 font-bold">
                   超额收益: {activeCandle.alpha_pct > 0 ? `+${activeCandle.alpha_pct}%` : `${activeCandle.alpha_pct}%`}
