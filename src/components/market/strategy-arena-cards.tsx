@@ -41,7 +41,7 @@ export function StrategyArenaCards({
     {
       id: "aggressive",
       title: "AGGRESSIVE",
-      sub: "激进主升浪策略 · 动量突破高弹性",
+      sub: "激进超短龙头策略 · 中小市值满仓打板 · 标的≤2只",
       icon: Zap,
       themeColor: "text-amber-400",
       borderColor: "border-amber-500/30",

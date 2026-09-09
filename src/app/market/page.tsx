@@ -903,19 +903,19 @@ export default function MarketDashboardPage() {
               </div>
 
               {/* 持仓列表表格 */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-200">
+              <div className="overflow-x-auto no-scrollbar">
+                <table className="w-full text-left text-xs text-slate-200 min-w-[780px] whitespace-nowrap">
                   <thead className="bg-[#091322]/90 text-cyan-300/80 font-semibold border-b border-cyan-500/30">
                     <tr>
-                      <th className="py-3 px-4 rounded-l-xl">标的代码/名称</th>
-                      <th className="py-3 px-4">仓位类别</th>
-                      <th className="py-3 px-4 text-right">持股数</th>
-                      <th className="py-3 px-4 text-right">成本价</th>
-                      <th className="py-3 px-4 text-right">当前现价</th>
-                      <th className="py-3 px-4 text-right">浮动盈亏</th>
-                      <th className="py-3 px-4 text-right">动态止损线</th>
-                      <th className="py-3 px-4 text-center">系统决策指令</th>
-                      <th className="py-3 px-4 rounded-r-xl text-center">管理</th>
+                      <th className="py-3 px-4 rounded-l-xl whitespace-nowrap">标的代码/名称</th>
+                      <th className="py-3 px-4 whitespace-nowrap">仓位类别</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">持股数</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">成本价</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">当前现价</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">浮动盈亏</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">动态止损线</th>
+                      <th className="py-3 px-4 text-center whitespace-nowrap">系统决策指令</th>
+                      <th className="py-3 px-4 rounded-r-xl text-center whitespace-nowrap">管理</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-cyan-900/30">
@@ -923,32 +923,32 @@ export default function MarketDashboardPage() {
                       const isProfit = item.pnl >= 0;
                       return (
                         <tr key={item.id || item.code} className="hover:bg-cyan-950/20 transition-colors">
-                          <td className="py-3.5 px-4 font-medium">
-                            <div className="flex items-center gap-2">
+                          <td className="py-3.5 px-4 font-medium whitespace-nowrap">
+                            <div className="flex items-center gap-2 whitespace-nowrap">
                               <span className="font-mono text-cyan-400 font-semibold">{item.code}</span>
-                              <span className="text-white font-bold">{item.name}</span>
+                              <span className="text-white font-bold whitespace-nowrap">{item.name}</span>
                             </div>
                           </td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] border border-cyan-500/30">
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] border border-cyan-500/30 whitespace-nowrap inline-block">
                               {item.hold_type === "core" ? "核心底仓" : "短线进攻"}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono">{item.quantity}</td>
-                          <td className="py-3.5 px-4 text-right font-mono">¥ {item.cost_price.toFixed(2)}</td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-white">¥ {item.current_price.toFixed(2)}</td>
-                          <td className="py-3.5 px-4 text-right font-mono">
-                            <span className={`font-bold ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
+                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">{item.quantity}</td>
+                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">¥ {item.cost_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-right font-mono font-bold text-white whitespace-nowrap">¥ {item.current_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">
+                            <span className={`font-bold whitespace-nowrap ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
                               {isProfit ? "+" : ""}{item.pnl.toFixed(2)} ({isProfit ? "+" : ""}{item.pnl_pct.toFixed(2)}%)
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono text-amber-300 font-bold">¥ {item.stop_loss_price.toFixed(2)}</td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${getActionBadgeClass(item.action)}`}>
+                          <td className="py-3.5 px-4 text-right font-mono text-amber-300 font-bold whitespace-nowrap">¥ {item.stop_loss_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border whitespace-nowrap ${getActionBadgeClass(item.action)}`}>
                               {item.action}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-center">
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
                             <button
                               onClick={() => handleDeleteHolding(item.id)}
                               className="p-1 text-slate-400 hover:text-rose-400 cursor-pointer"
@@ -1044,19 +1044,19 @@ export default function MarketDashboardPage() {
               </div>
 
               {/* 持仓表格 */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-200">
+              <div className="overflow-x-auto no-scrollbar">
+                <table className="w-full text-left text-xs text-slate-200 min-w-[780px] whitespace-nowrap">
                   <thead className="bg-[#091322]/90 text-cyan-300/80 font-semibold border-b border-cyan-500/30">
                     <tr>
-                      <th className="py-3 px-4 rounded-l-xl">标的代码/名称</th>
-                      <th className="py-3 px-4">仓位类别</th>
-                      <th className="py-3 px-4 text-right">持股数</th>
-                      <th className="py-3 px-4 text-right">成本价</th>
-                      <th className="py-3 px-4 text-right">当前现价</th>
-                      <th className="py-3 px-4 text-right">浮动盈亏</th>
-                      <th className="py-3 px-4 text-right">动态止损线</th>
-                      <th className="py-3 px-4 text-center">系统决策指令</th>
-                      <th className="py-3 px-4 rounded-r-xl text-center">管理</th>
+                      <th className="py-3 px-4 rounded-l-xl whitespace-nowrap">标的代码/名称</th>
+                      <th className="py-3 px-4 whitespace-nowrap">仓位类别</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">持股数</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">成本价</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">当前现价</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">浮动盈亏</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">动态止损线</th>
+                      <th className="py-3 px-4 text-center whitespace-nowrap">系统决策指令</th>
+                      <th className="py-3 px-4 rounded-r-xl text-center whitespace-nowrap">管理</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-cyan-900/30">
@@ -1064,32 +1064,32 @@ export default function MarketDashboardPage() {
                       const isProfit = item.pnl >= 0;
                       return (
                         <tr key={item.id || item.code} className="hover:bg-cyan-950/20 transition-colors">
-                          <td className="py-3.5 px-4 font-medium">
-                            <div className="flex items-center gap-2">
+                          <td className="py-3.5 px-4 font-medium whitespace-nowrap">
+                            <div className="flex items-center gap-2 whitespace-nowrap">
                               <span className="font-mono text-cyan-400 font-semibold">{item.code}</span>
-                              <span className="text-white font-bold">{item.name}</span>
+                              <span className="text-white font-bold whitespace-nowrap">{item.name}</span>
                             </div>
                           </td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] border border-cyan-500/30">
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] border border-cyan-500/30 whitespace-nowrap inline-block">
                               {item.hold_type === "core" ? "核心底仓" : "短线进攻"}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono">{item.quantity}</td>
-                          <td className="py-3.5 px-4 text-right font-mono">¥ {item.cost_price.toFixed(2)}</td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-white">¥ {item.current_price.toFixed(2)}</td>
-                          <td className="py-3.5 px-4 text-right font-mono">
-                            <span className={`font-bold ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
+                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">{item.quantity}</td>
+                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">¥ {item.cost_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-right font-mono font-bold text-white whitespace-nowrap">¥ {item.current_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">
+                            <span className={`font-bold whitespace-nowrap ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
                               {isProfit ? "+" : ""}{item.pnl.toFixed(2)} ({isProfit ? "+" : ""}{item.pnl_pct.toFixed(2)}%)
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-right font-mono text-amber-300 font-bold">¥ {item.stop_loss_price.toFixed(2)}</td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${getActionBadgeClass(item.action)}`}>
+                          <td className="py-3.5 px-4 text-right font-mono text-amber-300 font-bold whitespace-nowrap">¥ {item.stop_loss_price.toFixed(2)}</td>
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border whitespace-nowrap ${getActionBadgeClass(item.action)}`}>
                               {item.action}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-center">
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
                             <button
                               onClick={() => handleDeleteHolding(item.id)}
                               className="p-1 text-slate-400 hover:text-rose-400"
@@ -1118,19 +1118,19 @@ export default function MarketDashboardPage() {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-200">
+                <div className="overflow-x-auto no-scrollbar">
+                  <table className="w-full text-left text-xs text-slate-200 min-w-[880px] whitespace-nowrap">
                     <thead className="bg-[#091322]/90 text-cyan-300/80 font-semibold border-b border-cyan-500/30">
                       <tr>
-                        <th className="py-3 px-4 rounded-l-xl">标的代码/名称</th>
-                        <th className="py-3 px-4">行业赛道</th>
-                        <th className="py-3 px-4 text-right">总持仓 / T+1可用</th>
-                        <th className="py-3 px-4 text-right">建仓成本</th>
-                        <th className="py-3 px-4 text-right">最新现价</th>
-                        <th className="py-3 px-4 text-right">市值 / 仓位占比</th>
-                        <th className="py-3 px-4 text-right">持仓盈亏</th>
-                        <th className="py-3 px-4 text-right">止损 / 目标</th>
-                        <th className="py-3 px-4 rounded-r-xl text-left">策略建仓逻辑</th>
+                        <th className="py-3 px-4 rounded-l-xl whitespace-nowrap">标的代码/名称</th>
+                        <th className="py-3 px-4 whitespace-nowrap">行业赛道</th>
+                        <th className="py-3 px-4 text-right whitespace-nowrap">总持仓 / T+1可用</th>
+                        <th className="py-3 px-4 text-right whitespace-nowrap">建仓成本</th>
+                        <th className="py-3 px-4 text-right whitespace-nowrap">最新现价</th>
+                        <th className="py-3 px-4 text-right whitespace-nowrap">市值 / 仓位占比</th>
+                        <th className="py-3 px-4 text-right whitespace-nowrap">持仓盈亏</th>
+                        <th className="py-3 px-4 text-right whitespace-nowrap">止损 / 目标</th>
+                        <th className="py-3 px-4 rounded-r-xl text-left whitespace-nowrap">策略建仓逻辑</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-cyan-900/30 font-mono">
@@ -1138,29 +1138,29 @@ export default function MarketDashboardPage() {
                         const isUp = pos.pnl >= 0;
                         return (
                           <tr key={pos.code} className="hover:bg-cyan-950/20">
-                            <td className="py-3 px-4 font-sans">
-                              <span className="font-bold text-white">{pos.name}</span>
-                              <span className="ml-1 text-cyan-400 text-[11px] font-mono">({pos.code})</span>
+                            <td className="py-3 px-4 font-sans whitespace-nowrap">
+                              <span className="font-bold text-white whitespace-nowrap">{pos.name}</span>
+                              <span className="ml-1 text-cyan-400 text-[11px] font-mono whitespace-nowrap">({pos.code})</span>
                             </td>
-                            <td className="py-3 px-4 font-sans">{pos.sector}</td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-3 px-4 font-sans whitespace-nowrap">{pos.sector}</td>
+                            <td className="py-3 px-4 text-right whitespace-nowrap">
                               <span className="text-white font-bold">{pos.shares}</span> /{" "}
                               <span className="text-emerald-400">{pos.available_shares}</span>
                             </td>
-                            <td className="py-3 px-4 text-right">¥{pos.cost_price.toFixed(2)}</td>
-                            <td className="py-3 px-4 text-right text-white font-bold">
+                            <td className="py-3 px-4 text-right whitespace-nowrap">¥{pos.cost_price.toFixed(2)}</td>
+                            <td className="py-3 px-4 text-right text-white font-bold whitespace-nowrap">
                               {pos.current_price ? `¥${pos.current_price.toFixed(2)}` : "--"}
                             </td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-3 px-4 text-right whitespace-nowrap">
                               ¥{pos.market_value.toLocaleString()} ({pos.weight_pct}%)
                             </td>
-                            <td className={`py-3 px-4 text-right font-bold ${isUp ? "text-rose-400" : "text-emerald-400"}`}>
+                            <td className={`py-3 px-4 text-right font-bold whitespace-nowrap ${isUp ? "text-rose-400" : "text-emerald-400"}`}>
                               {isUp ? "+" : ""}{pos.pnl} ({isUp ? "+" : ""}{pos.pnl_pct}%)
                             </td>
-                            <td className="py-3 px-4 text-right text-amber-300">
+                            <td className="py-3 px-4 text-right text-amber-300 whitespace-nowrap">
                               ¥{pos.stop_loss_price} / ¥{pos.target_price}
                             </td>
-                            <td className="py-3 px-4 font-sans text-slate-300 text-[11px]">
+                            <td className="py-3 px-4 font-sans text-slate-300 text-[11px] whitespace-nowrap">
                               {pos.strategy_reason}
                             </td>
                           </tr>

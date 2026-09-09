@@ -52,30 +52,30 @@ const DEFAULT_CANDLES_BY_STRATEGY: Record<string, DailyPnlCandle[]> = {
           date: "09-07",
           time: "09:30",
           type: "BUY",
-          stock_code: "300502",
-          stock_name: "新易盛",
-          price: 386.0,
-          shares: 100,
-          amount: 38600,
-          target_price: 463.2,
-          stop_loss_price: 358.98,
-          pnl_pct: 8.08,
-          reason: "CPO光模块龙头，突破前高箱体，主升浪高弹性打板建仓",
+          stock_code: "002085",
+          stock_name: "万丰奥威",
+          price: 14.20,
+          shares: 4000,
+          amount: 56800,
+          target_price: 17.50,
+          stop_loss_price: 13.21,
+          pnl_pct: 9.01,
+          reason: "低空经济总龙头突破箱体，小盘高弹性打板满仓单挑",
         },
         {
           id: "ev-agg-2",
           date: "09-07",
           time: "09:30",
           type: "BUY",
-          stock_code: "300476",
-          stock_name: "胜宏科技",
-          price: 219.5,
-          shares: 100,
-          amount: 21950,
-          target_price: 263.4,
-          stop_loss_price: 204.14,
-          pnl_pct: 6.36,
-          reason: "PCB算力板独供龙头，量比突破平台，快进快出打板进攻",
+          stock_code: "001696",
+          stock_name: "宗申动力",
+          price: 15.80,
+          shares: 2500,
+          amount: 39500,
+          target_price: 19.20,
+          stop_loss_price: 14.69,
+          pnl_pct: 7.15,
+          reason: "低空动力中小盘高弹性妖股，量比突破打板，快进快出",
         },
       ],
     },
@@ -340,7 +340,7 @@ export function PnlKlineChart({
         {/* 账户切换 */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           {[
-            { id: "aggressive" as AccountStyle, name: "🚀 激进主升浪", desc: "高弹性最强龙头 · 快进快出打板" },
+            { id: "aggressive" as AccountStyle, name: "🚀 激进超短龙头", desc: "中小市值打板 · 满仓单挑1~2只" },
             { id: "balanced" as AccountStyle, name: "⚖️ 均衡配置型", desc: "GARP主线中军+成长" },
             { id: "conservative" as AccountStyle, name: "🛡️ 稳健持仓型", desc: "低波红利+种业防守" },
           ].map((tab) => {
@@ -926,16 +926,16 @@ export function PnlKlineChart({
                     {currentStrategyKey === "aggressive" ? (
                       <div className="space-y-1.5 text-[11px] font-mono">
                         <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">新易盛 (300502) 100股</span>
-                          <span className="text-rose-400 font-bold">¥416.42 (+7.88%) 浮盈+¥3,042</span>
+                          <span className="text-slate-300">万丰奥威 (002085) 4000股</span>
+                          <span className="text-rose-400 font-bold">¥15.48 (+9.01%) 浮盈+¥5,120</span>
                         </div>
                         <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">胜宏科技 (300476) 100股</span>
-                          <span className="text-rose-400 font-bold">¥229.02 (+4.33%) 浮盈+¥952</span>
+                          <span className="text-slate-300">宗申动力 (001696) 2500股</span>
+                          <span className="text-rose-400 font-bold">¥16.93 (+7.15%) 浮盈+¥2,825</span>
                         </div>
                         <div className="flex items-center justify-between text-slate-400 pt-0.5">
                           <span>日内总资产增厚: +¥2,400.00</span>
-                          <span className="text-cyan-300 font-bold">总资产: ¥104,250.00</span>
+                          <span className="text-cyan-300 font-bold">总资产: ¥104,250.00 (满仓100%)</span>
                         </div>
                       </div>
                     ) : currentStrategyKey === "balanced" ? (

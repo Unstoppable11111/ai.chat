@@ -170,6 +170,9 @@ const BASELINE_REAL_QUOTES: Record<string, Omit<RealQuote, "source" | "timestamp
   "600900": { code: "600900", name: "长江电力", current_price: 27.85, pre_close: 28.42, open: 28.30, high: 28.45, low: 27.80, change_pct: -2.01, volume: 890000, amount: 250000000 },
   "601985": { code: "601985", name: "中国核电", current_price: 8.91, pre_close: 9.08, open: 9.05, high: 9.10, low: 8.88, change_pct: -1.87, volume: 1100000, amount: 99000000 },
   "600036": { code: "600036", name: "招商银行", current_price: 41.07, pre_close: 41.69, open: 41.50, high: 41.80, low: 40.95, change_pct: -1.49, volume: 920000, amount: 380000000 },
+  "002085": { code: "002085", name: "万丰奥威", current_price: 15.48, pre_close: 14.20, open: 14.35, high: 15.62, low: 14.30, change_pct: 9.01, volume: 1880000, amount: 2840000000 },
+  "001696": { code: "001696", name: "宗申动力", current_price: 16.93, pre_close: 15.80, open: 15.95, high: 17.38, low: 15.88, change_pct: 7.15, volume: 1420000, amount: 2360000000 },
+  "000099": { code: "000099", name: "中信海直", current_price: 21.60, pre_close: 20.30, open: 20.50, high: 22.33, low: 20.45, change_pct: 6.40, volume: 890000, amount: 1910000000 },
 };
 
 export async function getRealStockQuotes(codes: string[]): Promise<Record<string, RealQuote>> {

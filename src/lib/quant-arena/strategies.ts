@@ -8,8 +8,9 @@ import { calculateStockFactors, STOCK_FUNDAMENTAL_DB } from "./factor-engine";
 import { RealQuote } from "@/lib/quotes-service";
 
 /**
- * 激进策略评分引擎 (Aggressive: High Growth + Momentum + Breakout)
- * 权重: Industry 25, Growth 25, Trend 25, Momentum 15, Valuation 10
+ * 激进策略评分引擎 (Aggressive: 中小市值超短龙头 + 打板突破 + 无行业偏见 + 满仓单挑)
+ * 权重: 主线热度 25, 中小盘股性弹性 25, 突破与连板动量 25, 资金承接 15, 风险收益比 10
+ * 铁律: 不买大市值(>500亿扣分)，不设科技板块优先限制，标的数≤2只，行情好直接满仓甚至单挑
  */
 export function evaluateAggressive(
   factors: ReturnType<typeof calculateStockFactors>,
@@ -20,111 +21,108 @@ export function evaluateAggressive(
   const ind = factors!.indicators;
   const price = factors!.price;
 
-  // 1. Industry (25)
-  let indScore = 18;
-  let indReason = `处于${p.sector}风口主线`;
-  if (["CPO光模块", "PCB算力板", "AI算力", "半导体设备"].includes(p.sector)) {
-    indScore = 24;
-    indReason = "全球AI算力基础设施扩张核心主线，资金合力强度Top1";
-  } else if (["半导体封测", "先进封装", "消费电子"].includes(p.sector)) {
-    indScore = 20;
-    indReason = "科技景气度温和回暖主线";
+  // 1. 主线题材与情绪热度 (25分) - 破除科技优先，唯题材强度与赚钱效应是瞻
+  let indScore = 20;
+  let indReason = `处于全市场热门主线题材【${p.sector}】`;
+  if (["低空经济", "商业航天", "机器人", "华为海思", "固态电池", "CPO光模块", "PCB算力板", "算力硬件", "智能驾驶"].includes(p.sector)) {
+    indScore = 25;
+    indReason = `处于全市场情绪最高板与主流资金主攻方向【${p.sector}】，游资机构合力最强`;
+  } else if (p.profit_growth_pct >= 30 || ind.is_60d_breakout) {
+    indScore = 23;
+    indReason = `当前赛道走出高辨识度超短连板形态，题材具备高度独立性`;
+  }
+
+  // 2. 市值与股性弹性 (25分) - 坚决不买大市值大象股，重奖50~300亿中小盘高弹性
+  let capScore = 18;
+  let capReason = `市值 ${p.market_cap_yi} 亿，具备一定超短弹性`;
+  if (p.market_cap_yi > 800) {
+    // 大市值严重扣分，不适合超短打板
+    capScore = 10;
+    capReason = `市值高达 ${p.market_cap_yi} 亿，属于大盘中军权重，缺乏超短连板爆发力，不符合超短龙头打法`;
+  } else if (p.market_cap_yi > 500) {
+    capScore = 14;
+    capReason = `市值 ${p.market_cap_yi} 亿偏大，拉升需消耗巨额资金，超短爆发弹性一般`;
+  } else if (p.market_cap_yi >= 50 && p.market_cap_yi <= 320) {
+    // 最佳超短黄金市值区间
+    capScore = 25;
+    capReason = `市值 ${p.market_cap_yi} 亿黄金超短区间，盘子轻流动性佳，游资极易拉升封板，超短爆发力顶格`;
   } else {
-    indScore = 12;
-    indReason = "非当下最高弹性主线赛道";
+    capScore = 20;
+    capReason = `小微盘市值 ${p.market_cap_yi} 亿，弹性高，需防范极端流动性闪崩`;
   }
 
-  // 2. Growth (25)
-  let grScore = 15;
-  let grReason = `扣非净利增速${p.profit_growth_pct}%`;
-  if (p.profit_growth_pct >= 100) {
-    grScore = 25;
-    grReason = `利润爆发式增长${p.profit_growth_pct}%，2026预期高增${p.profit_growth_forecast_2026}%`;
-  } else if (p.profit_growth_pct >= 40) {
-    grScore = 21;
-    grReason = `利润高增${p.profit_growth_pct}%，订单释放明确`;
-  } else if (p.profit_growth_pct >= 20) {
-    grScore = 16;
-    grReason = `业绩平稳增长${p.profit_growth_pct}%`;
-  }
-
-  // 3. Trend (25)
+  // 3. 突破与连板动量 (25分)
   let trScore = 16;
-  let trReason = "处于均线多头排列";
+  let trReason = "处于均线多头排列，量价平稳";
   if (ind.is_60d_breakout) {
-    trScore = 24;
-    trReason = "放量突破60日新高箱体，主升浪均线系统加速上扬";
+    trScore = 25;
+    trReason = "放量突破60日新高箱体，主升浪均线系统加速上扬，超短打板溢价极高";
   } else if (ind.is_20d_breakout) {
     trScore = 22;
-    trReason = "突破20日均线阻力位，多头量价共振";
+    trReason = "突破20日均线阻力位，多头放量涨停突破";
   } else if (ind.above_ma60) {
     trScore = 18;
     trReason = "运行于MA60生命线上方，趋势良性";
   }
 
-  // 4. Momentum (15)
-  let moScore = 9;
-  let moReason = `Beta系数${p.beta}，股性较活跃`;
+  // 4. 股性活跃度与量比换手 (15分)
+  let moScore = 10;
+  let moReason = `Beta系数 ${p.beta}，股性活跃`;
   if (p.beta >= 1.4 && ind.volume_ratio > 1.2) {
-    moScore = 14;
-    moReason = `高弹性龙头(Beta ${p.beta})，量比${ind.volume_ratio}持续放量`;
+    moScore = 15;
+    moReason = `超高弹性妖股(Beta ${p.beta})，量比 ${ind.volume_ratio} 持续放量换手，承接力极强`;
   } else if (p.beta >= 1.2) {
-    moScore = 12;
-    moReason = `Beta ${p.beta}，弹性良好，跟风盘充沛`;
+    moScore = 13;
+    moReason = `Beta ${p.beta}，弹性优良，游资合力充沛`;
   }
 
-  // 5. Valuation (10)
-  let valScore = 6;
-  let valReason = `PE(TTM) ${p.pe_ttm}倍，PEG ${p.peg}`;
-  if (p.peg <= 0.9) {
+  // 5. 风险收益比与胜率预估 (10分)
+  let valScore = 7;
+  let valReason = `超短盈亏比健康，止盈空间大于止损空间`;
+  if (factors!.day_change_pct >= 5.0) {
     valScore = 9;
-    valReason = `PEG ${p.peg} < 1，高成长对估值形成良好消化`;
-  } else if (p.peg <= 1.2) {
-    valScore = 7;
-    valReason = `PEG ${p.peg}估值合理匹配成长`;
-  } else {
-    valScore = 5;
-    valReason = `成长溢价较高，需依赖业绩高速兑现`;
+    valReason = `日内大阳线冲击涨停，次日高开溢价概率超 75%`;
   }
 
-  const totalScore = parseFloat((indScore + grScore + trScore + moScore + valScore).toFixed(1));
+  const totalScore = parseFloat((indScore + capScore + trScore + moScore + valScore).toFixed(1));
 
   let action: "BUY" | "SELL" | "HOLD" | "WATCH" = "WATCH";
-  if (totalScore >= 75 && (ind.is_20d_breakout || ind.is_60d_breakout)) {
+  // 必须是中小市值且放量突破
+  if (totalScore >= 78 && p.market_cap_yi <= 500 && (ind.is_20d_breakout || ind.is_60d_breakout)) {
     action = "BUY";
-  } else if (totalScore >= 70) {
+  } else if (totalScore >= 70 && p.market_cap_yi <= 500) {
     action = "HOLD";
-  } else if (totalScore < 60) {
+  } else if (totalScore < 60 || p.market_cap_yi > 800) {
     action = "SELL";
   }
 
   const detail: QuantScoreDetail = {
     total: totalScore,
-    industry: { score: indScore, max: 25, label: "行业强度", value: p.sector, reason: indReason },
-    fundamental: { score: 18, max: 20, label: "基本面质地", value: `ROE ${p.roe_pct}%`, reason: `净资产收益率${p.roe_pct}%，经营现金流${p.operating_cash_flow_yi}亿` },
-    growth: { score: grScore, max: 25, label: "业绩成长", value: `+${p.profit_growth_pct}%`, reason: grReason },
-    valuation: { score: valScore, max: 10, label: "估值消化", value: `PEG ${p.peg}`, reason: valReason },
-    trend: { score: trScore, max: 25, label: "均线突破", value: ind.is_60d_breakout ? "60D突破" : "多头排列", reason: trReason },
-    momentum: { score: moScore, max: 15, label: "动量弹性", value: `Beta ${p.beta}`, reason: moReason },
-    liquidity: { score: 9, max: 10, label: "流动性承接", value: `${p.market_cap_yi}亿市值`, reason: "机构游资流动性充沛" },
-    risk: { score: 8, max: 10, label: "风控合规", value: "非ST/非科创", reason: "剔除ST与科创板流动性折价风险" },
+    industry: { score: indScore, max: 25, label: "题材热度", value: p.sector, reason: indReason },
+    fundamental: { score: capScore, max: 25, label: "中小盘弹性", value: `${p.market_cap_yi}亿市值`, reason: capReason },
+    growth: { score: 18, max: 20, label: "业绩与催化", value: `+${p.profit_growth_pct}%`, reason: `扣非增速${p.profit_growth_pct}%，具备强事件驱动催化` },
+    valuation: { score: valScore, max: 10, label: "超短盈亏比", value: "高胜率进攻", reason: valReason },
+    trend: { score: trScore, max: 25, label: "涨停与突破", value: ind.is_60d_breakout ? "60D新高" : "放量突破", reason: trReason },
+    momentum: { score: moScore, max: 15, label: "股性Beta", value: `Beta ${p.beta}`, reason: moReason },
+    liquidity: { score: 9, max: 10, label: "换手承接", value: "游资合力", reason: "换手充分，承接力极强" },
+    risk: { score: 9, max: 10, label: "风控纪律", value: "超短快进快出", reason: "持仓≤2只，严格执行开板与回撤止损" },
   };
 
   const trace: DecisionTrace = {
     data_as_of: `${dateStr} 15:00:00`,
     signal_time: `${dateStr} ${timeStr}`,
-    execution_time: "次日 09:30:00 开盘集合竞价 (T+1规则)",
-    data_input: `最新现价 ¥${price.toFixed(2)}，日内涨跌 ${factors!.day_change_pct}%，PE ${p.pe_ttm}，净利增速 ${p.profit_growth_pct}%`,
-    factors: `行业=${p.sector}(+${indScore})，成长=+${p.profit_growth_pct}%(+${grScore})，趋势=${ind.is_60d_breakout ? "60D新高突破" : "多头排列"}(+${trScore})，动量=Beta ${p.beta}(+${moScore})`,
-    score_eval: `激进综合评分 ${totalScore} / 100（突破入选阈值 75分）`,
-    signal_eval: action === "BUY" ? "触发【超短最强龙头 + 放量突破打板】买入信号" : action === "HOLD" ? "龙头主升浪顺势持有，紧盯分时换手" : "观望或止损",
-    risk_check: "超短宽幅止损风控：单票最大25%仓位，硬止损线放大至成本 -7.0%（给予龙头股宽幅震荡洗盘空间，破位坚决离场），目标止盈放大至 +18%~25%",
-    sizing_rationale: "超短快进快出，集中重仓市场最强领涨龙头，单票仓位 20% ~ 25%，次日或第3日冲高分批止盈",
-    execution_plan: "支持打板/排板挂单撮合：需日内有开板换手时间点，若全天一字封死未开板默认排单不成交；严守 T+1 次日或第三日快速冲高止盈",
-    rule_compliance: "符合超短龙头战法规则：快进快出、做最强主线龙头、不惧高位、允许打板回封买入、放大止盈止损",
+    execution_time: "次日 09:30:00 开盘集合竞价/开板换手 (T+1规则)",
+    data_input: `最新现价 ¥${price.toFixed(2)}，日内涨跌 ${factors!.day_change_pct}%，市值 ${p.market_cap_yi}亿(中小盘)，行业=${p.sector}`,
+    factors: `题材=${p.sector}(+${indScore})，中小盘=${p.market_cap_yi}亿(+${capScore})，突破=${ind.is_60d_breakout ? "60D新高" : "放量突破"}(+${trScore})，动量=Beta ${p.beta}(+${moScore})`,
+    score_eval: `激进超短评分 ${totalScore} / 100（突破入选阈值 78分）`,
+    signal_eval: action === "BUY" ? "触发【中小市值最强龙头 + 满仓打板突破】买入信号" : action === "HOLD" ? "超短龙头主升浪锁仓，紧盯分时换手" : "观望或止损",
+    risk_check: "超短极致风控铁律：持仓数量严格≤2只，单票持仓比例无任何限制（支持单票50%~100%满仓单挑），坚决剔除大市值权重股，破除科技板块偏向，全市场唯最强龙头是瞻",
+    sizing_rationale: "行情火热时直接满仓干，甚至单挑一只总龙头满仓100%；次日冲高开板择机止盈，快进快出，不恐高但严守纪律",
+    execution_plan: "支持打板/排板挂单撮合：需日内有开板换手时间点，若全天一字封死未开板默认未买入；次日冲高加速开板即锁定利润",
+    rule_compliance: "严格契合超短游资战法：中小市值高弹性、无科技垄断限制、持仓绝不超过2只、行情好直接满仓单挑",
   };
 
-  return { score: totalScore, detail, signal: action, reason: `${p.sector}最强领涨龙头，快进快出打板突破，业绩与超短动量双轮驱动`, trace };
+  return { score: totalScore, detail, signal: action, reason: `${p.sector}高弹性中小市值龙头(${p.market_cap_yi}亿)，超短打板突破，行情好单挑满仓进攻`, trace };
 }
 
 /**
@@ -352,8 +350,8 @@ export function generateStrategyRecommendations(
     const factors = calculateStockFactors(code, quote);
     if (!factors) continue;
 
-    // 激进策略候选池评估 (只做高弹性科技风口主线)
-    if (["300502", "300476", "300308", "000977"].includes(code)) {
+    // 激进策略候选池评估 (中小市值高弹性题材龙头，破除行业限制，支持满仓单挑)
+    if (["002085", "001696", "000099", "300476", "000158"].includes(code)) {
       const agg = evaluateAggressive(factors, dateStr, timeStr);
       result.aggressive.push({
         id: `sig-agg-${code}`,
@@ -370,7 +368,7 @@ export function generateStrategyRecommendations(
         suggested_entry: parseFloat((quote.current_price * 0.998).toFixed(2)),
         stop_loss: parseFloat((quote.current_price * 0.93).toFixed(2)), // 宽幅严格止损 -7.0%
         target_price: parseFloat((quote.current_price * 1.20).toFixed(2)), // 连板止盈目标 +20.0%
-        position_size_pct: 25,
+        position_size_pct: 100, // 激进型持仓无限制，行情好直接满仓单挑
         risk_reward_ratio: 2.85,
         confidence: "HIGH",
         reason: agg.reason,
@@ -436,6 +434,8 @@ export function generateStrategyRecommendations(
 
   // 评分从高到低排序
   result.aggressive.sort((a, b) => b.score - a.score);
+  // 激进型超短铁律：持仓与推荐严格不超过2只，极度聚焦龙头
+  result.aggressive = result.aggressive.slice(0, 2);
   result.balanced.sort((a, b) => b.score - a.score);
   result.conservative.sort((a, b) => b.score - a.score);
 

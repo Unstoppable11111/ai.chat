@@ -379,11 +379,12 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
   paper_account: PaperAccount;
 }> {
   // 获取关键标的最新真实行情 (多源校验)
-  const trackCodes = ["300502", "300476", "600584", "002475", "000998", "600900", "300308", "000977"];
+  // 获取关键标的最新真实行情 (多源校验)
+  const trackCodes = ["002085", "001696", "000099", "600584", "002475", "000998", "600900", "300476"];
   const quotes = await getRealStockQuotes(trackCodes);
 
-  const qXYS = quotes["300502"] || { current_price: 417.20, pre_close: 386.00, name: "新易盛" };
-  const qSH = quotes["300476"] || { current_price: 233.46, pre_close: 219.50, name: "胜宏科技" };
+  const qWF = quotes["002085"] || { current_price: 15.48, pre_close: 14.20, name: "万丰奥威" };
+  const qZS = quotes["001696"] || { current_price: 16.93, pre_close: 15.80, name: "宗申动力" };
   const qCD = quotes["600584"] || { current_price: 69.00, pre_close: 67.36, name: "长电科技" };
   const qLX = quotes["002475"] || { current_price: 55.93, pre_close: 54.30, name: "立讯精密" };
   const qLP = quotes["000998"] || { current_price: 9.68, pre_close: 9.39, name: "隆平高科" };
@@ -394,76 +395,76 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
 
   // -------------------------------------------------------------
   // 账户 1：短线激进型 (Aggressive)
-  // 风格：聚焦高弹性主线进攻（CPO光模块龙头新易盛 + 算力板龙头胜宏科技）
+  // 风格：中小市值题材最强龙头 · 无持仓限制满仓单挑 · 标的数量≤2只 · 快进快出打板
   // -------------------------------------------------------------
   const aggHoldings: PaperHolding[] = [
     {
-      code: "300502",
-      name: "新易盛",
-      shares: 100,
-      cost_price: 386.00, // 昨天(09-07)建仓价
-      current_price: qXYS.current_price,
-      market_value: Math.round(100 * qXYS.current_price),
-      pnl: Math.round(100 * (qXYS.current_price - 386.00)),
-      pnl_pct: parseFloat((((qXYS.current_price - 386.00) / 386.00) * 100).toFixed(2)),
-      stop_loss_price: 368.0,
-      target_price: 460.0,
-      action: qXYS.current_price >= 450 ? "逢高止盈" : "积极持股",
-      advice_reason: "CPO光模块高弹性进攻龙头，海外AI订单加速放量，主升浪持有",
+      code: "002085",
+      name: "万丰奥威",
+      shares: 4000,
+      cost_price: 14.20, // 昨天(09-07)建仓价
+      current_price: qWF.current_price,
+      market_value: Math.round(4000 * qWF.current_price),
+      pnl: Math.round(4000 * (qWF.current_price - 14.20)),
+      pnl_pct: parseFloat((((qWF.current_price - 14.20) / 14.20) * 100).toFixed(2)),
+      stop_loss_price: 13.21,
+      target_price: 17.50,
+      action: qWF.current_price >= 17.0 ? "冲高止盈" : "积极持股",
+      advice_reason: "低空经济核心总龙头，缩量回踩5日线放量突破涨停，游资合力换手龙，超短满仓主攻",
     },
     {
-      code: "300476",
-      name: "胜宏科技",
-      shares: 100,
-      cost_price: 219.50, // 昨天(09-07)建仓价
-      current_price: qSH.current_price,
-      market_value: Math.round(100 * qSH.current_price),
-      pnl: Math.round(100 * (qSH.current_price - 219.50)),
-      pnl_pct: parseFloat((((qSH.current_price - 219.50) / 219.50) * 100).toFixed(2)),
-      stop_loss_price: 210.0,
-      target_price: 260.0,
+      code: "001696",
+      name: "宗申动力",
+      shares: 2500,
+      cost_price: 15.80, // 昨天(09-07)建仓价
+      current_price: qZS.current_price,
+      market_value: Math.round(2500 * qZS.current_price),
+      pnl: Math.round(2500 * (qZS.current_price - 15.80)),
+      pnl_pct: parseFloat((((qZS.current_price - 15.80) / 15.80) * 100).toFixed(2)),
+      stop_loss_price: 14.69,
+      target_price: 19.20,
       action: "顺势持有",
-      advice_reason: "高多层PCB算力板核心独供商，放量突破前期平台，持仓待涨",
+      advice_reason: "低空经济前排强共振龙头，小市值高换手超短突破打板，不恐高快进快出",
     },
   ];
 
   const aggMv = aggHoldings.reduce((sum, h) => sum + h.market_value, 0);
-  const aggCost = 100 * 386.00 + 100 * 219.50; // 60,550
-  const aggCash = initialCapital - aggCost; // 39,450
+  const aggCost = 4000 * 14.20 + 2500 * 15.80; // 96,300
+  const aggCash = initialCapital - aggCost; // 3,700
   const aggTotalEquity = aggCash + aggMv;
   const aggTotalPnl = aggTotalEquity - initialCapital;
   const aggTotalPnlPct = parseFloat(((aggTotalPnl / initialCapital) * 100).toFixed(2));
-  const aggDayPnl = Math.round(100 * (qXYS.current_price - qXYS.pre_close) + 100 * (qSH.current_price - qSH.pre_close));
+  const aggDayPnl = Math.round(4000 * (qWF.current_price - qWF.pre_close) + 2500 * (qZS.current_price - qZS.pre_close));
   const aggDayPnlPct = parseFloat(((aggDayPnl / aggTotalEquity) * 100).toFixed(2));
 
   const aggEvents: TradeEvent[] = [
     {
       id: "ev-agg-1",
       date: "09-07",
-      time: "09:35",
+      time: "09:30",
       type: "BUY",
-      stock_code: "300502",
-      stock_name: "新易盛",
-      price: 386.00,
-      shares: 100,
-      amount: 38600,
-      target_price: 460.0,
-      stop_loss_price: 368.0,
-      reason: "创业板CPO光模块龙头，突破前高箱体，激进仓位进攻建仓",
+      stock_code: "002085",
+      stock_name: "万丰奥威",
+      price: 14.20,
+      shares: 4000,
+      amount: 56800,
+      target_price: 17.50,
+      stop_loss_price: 13.21,
+      reason: "低空经济核心总龙头，突破平台放量打板，超短满仓重拳出击",
     },
     {
       id: "ev-agg-2",
       date: "09-07",
-      time: "09:40",
+      time: "09:30",
       type: "BUY",
-      stock_code: "300476",
-      stock_name: "胜宏科技",
-      price: 219.50,
-      shares: 100,
-      amount: 21950,
-      target_price: 260.0,
-      stop_loss_price: 210.0,
-      reason: "高阶算力PCB独供核心，三季度业绩超预期，顺势加仓",
+      stock_code: "001696",
+      stock_name: "宗申动力",
+      price: 15.80,
+      shares: 2500,
+      amount: 39500,
+      target_price: 19.20,
+      stop_loss_price: 14.69,
+      reason: "低空动力中小盘高弹性龙头，换手连板强势介入，快进快出",
     },
   ];
 
@@ -494,8 +495,8 @@ export async function getPaperTradingAccounts(records: StockRecommendation[]): P
 
   const accountAggressive: PaperAccount = {
     account_id: "aggressive",
-    account_name: "短线激进型",
-    style_desc: "紧跟市场最强风口龙头 · 集中高弹性仓位 · 严格快进快出止盈止损",
+    account_name: "激进超短龙头型",
+    style_desc: "中小市值题材最强龙头 · 无持仓限制满仓单挑 · 标的数量≤2只 · 快进快出打板",
     initial_capital: initialCapital,
     total_equity: aggTotalEquity,
     cash: aggCash,

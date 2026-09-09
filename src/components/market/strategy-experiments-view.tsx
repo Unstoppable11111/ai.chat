@@ -12,7 +12,7 @@ export function StrategyExperimentsView({ experiment, accounts }: StrategyExperi
   const getStrategyName = (type: StrategyType) => {
     switch (type) {
       case "aggressive":
-        return "激进主升浪策略 (AGGRESSIVE)";
+        return "激进超短龙头策略 (AGGRESSIVE)";
       case "balanced":
         return "均衡价值成长策略 (BALANCED)";
       case "conservative":

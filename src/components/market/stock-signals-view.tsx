@@ -292,46 +292,46 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
         </div>
 
         {/* 桌面端表格 */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-200">
+        <div className="hidden md:block overflow-x-auto no-scrollbar">
+          <table className="w-full text-left text-xs text-slate-200 min-w-[800px] whitespace-nowrap">
             <thead className="bg-[#0e1a2f]/80 text-slate-400 font-semibold border-b border-cyan-900/40">
               <tr>
-                <th className="py-3 px-4 rounded-l-xl">推荐日期</th>
-                <th className="py-3 px-4">标的代码/名称</th>
-                <th className="py-3 px-4">策略分类</th>
-                <th className="py-3 px-4 text-right">入选价</th>
-                <th className="py-3 px-4 text-right">最新现价</th>
-                <th className="py-3 px-4 text-right">T+1 收益</th>
-                <th className="py-3 px-4 text-right">T+3 收益</th>
-                <th className="py-3 px-4 text-right">T+5 最高涨幅</th>
-                <th className="py-3 px-4 rounded-r-xl text-center">状态定性</th>
+                <th className="py-3 px-4 rounded-l-xl whitespace-nowrap">推荐日期</th>
+                <th className="py-3 px-4 whitespace-nowrap">标的代码/名称</th>
+                <th className="py-3 px-4 whitespace-nowrap">策略分类</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">入选价</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">最新现价</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">T+1 收益</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">T+3 收益</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">T+5 最高涨幅</th>
+                <th className="py-3 px-4 rounded-r-xl text-center whitespace-nowrap">状态定性</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-cyan-950/60">
               {history.map((rec) => (
                 <tr key={rec.id} className="hover:bg-cyan-950/20 transition-colors">
-                  <td className="py-3.5 px-4 font-mono text-slate-400">{rec.recommend_date}</td>
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-1.5">
+                  <td className="py-3.5 px-4 font-mono text-slate-400 whitespace-nowrap">{rec.recommend_date}</td>
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
                       <span className="font-mono text-cyan-400 font-semibold">{rec.stock_code}</span>
-                      <span className="text-white font-bold">{rec.stock_name}</span>
+                      <span className="text-white font-bold whitespace-nowrap">{rec.stock_name}</span>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4 text-slate-300">{rec.category}</td>
-                  <td className="py-3.5 px-4 text-right font-mono text-slate-300">¥ {rec.entry_price.toFixed(2)}</td>
-                  <td className="py-3.5 px-4 text-right font-mono font-bold text-white">¥ {rec.current_price.toFixed(2)}</td>
-                  <td className={`py-3.5 px-4 text-right font-mono font-bold ${rec.t1_return >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                  <td className="py-3.5 px-4 text-slate-300 whitespace-nowrap">{rec.category}</td>
+                  <td className="py-3.5 px-4 text-right font-mono text-slate-300 whitespace-nowrap">¥ {rec.entry_price.toFixed(2)}</td>
+                  <td className="py-3.5 px-4 text-right font-mono font-bold text-white whitespace-nowrap">¥ {rec.current_price.toFixed(2)}</td>
+                  <td className={`py-3.5 px-4 text-right font-mono font-bold whitespace-nowrap ${rec.t1_return >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
                     {rec.t1_return > 0 ? `+${rec.t1_return}%` : `${rec.t1_return}%`}
                   </td>
-                  <td className={`py-3.5 px-4 text-right font-mono font-bold ${rec.t3_return >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                  <td className={`py-3.5 px-4 text-right font-mono font-bold whitespace-nowrap ${rec.t3_return >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
                     {rec.t3_return > 0 ? `+${rec.t3_return}%` : `${rec.t3_return}%`}
                   </td>
-                  <td className="py-3.5 px-4 text-right font-mono font-extrabold text-rose-400">
+                  <td className="py-3.5 px-4 text-right font-mono font-extrabold text-rose-400 whitespace-nowrap">
                     +{rec.t5_max_return}%
                   </td>
-                  <td className="py-3.5 px-4 text-center">
+                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
                     <span
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold border whitespace-nowrap ${
                         rec.status === "win"
                           ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
                           : rec.status === "stopped"
