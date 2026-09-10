@@ -46,12 +46,23 @@ export async function POST(request: Request) {
   }
 }
 export async function DELETE(request: Request) {
-  if (!sameOrigin(request)) return NextResponse.json({ error: "请求来源不允许" }, { status: 403 });
   try {
     const token = sessionToken(request);
-    if (token) await revokeSession(token);
-    const response = NextResponse.json({ success: true });
-    response.cookies.set(SESSION_COOKIE, "", { httpOnly: true, sameSite: "strict", maxAge: 0, path: "/" });
-    return response;
-  } catch { return NextResponse.json({ error: "退出失败，请重试" }, { status: 503 }); }
+    if (token) {
+      await revokeSession(token).catch(() => {});
+    }
+  } catch {}
+  const response = NextResponse.json({ success: true });
+  try {
+    response.cookies.delete(SESSION_COOKIE);
+  } catch {}
+  response.cookies.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.COOKIE_SECURE !== "false" && process.env.NODE_ENV === "production",
+    maxAge: 0,
+    expires: new Date(0),
+    path: "/",
+  });
+  return response;
 }

@@ -161,6 +161,8 @@ export function SiteHeader() {
                           await logout();
                           if (pathname.startsWith("/market")) {
                             window.location.assign("/market");
+                          } else {
+                            window.location.reload();
                           }
                         }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
@@ -266,6 +268,8 @@ export function SiteHeader() {
                       await logout();
                       if (pathname.startsWith("/market")) {
                         window.location.assign("/market");
+                      } else {
+                        window.location.reload();
                       }
                     }}
                     className="text-xs text-rose-600 flex items-center gap-1 hover:underline cursor-pointer"

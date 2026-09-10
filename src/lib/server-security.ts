@@ -16,7 +16,16 @@ export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return request.headers.get("sec-fetch-site") !== "cross-site";
   const origins = [new URL(request.url).origin];
-  if (process.env.SITE_URL) origins.push(new URL(process.env.SITE_URL).origin);
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") || (request.url.startsWith("https") ? "https" : "http");
+  if (host) {
+    origins.push(`${proto}://${host}`);
+    origins.push(`http://${host}`);
+    origins.push(`https://${host}`);
+  }
+  if (process.env.SITE_URL) {
+    try { origins.push(new URL(process.env.SITE_URL).origin); } catch {}
+  }
   return origins.includes(origin);
 }
 export async function readJsonBody(request: Request, maxBytes = 65536): Promise<Record<string, unknown>> {

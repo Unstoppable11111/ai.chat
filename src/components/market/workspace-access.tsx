@@ -193,12 +193,9 @@ export function WorkspaceLogout({ className }: { className?: string }) {
       onClick={async () => {
         setBusy(true);
         try {
-          const response = await fetch("/api-workspace-session", { method: "DELETE" });
-          if (response.ok) {
-            window.location.assign("/market");
-          }
+          await fetch("/api-workspace-session", { method: "DELETE" });
         } finally {
-          setBusy(false);
+          window.location.assign("/market");
         }
       }}
       className={

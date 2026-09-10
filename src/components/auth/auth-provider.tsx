@@ -114,16 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async (): Promise<boolean> => {
     try {
-      const res = await fetch("/api-workspace-session", { method: "DELETE" });
-      if (res.ok) {
-        setUser(null);
-        window.dispatchEvent(new CustomEvent("auth-state-changed"));
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
+      await fetch("/api-workspace-session", { method: "DELETE" });
+    } catch {}
+    setUser(null);
+    window.dispatchEvent(new CustomEvent("auth-state-changed"));
+    return true;
   }, []);
 
   return (
