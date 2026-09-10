@@ -83,23 +83,25 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
-      - name: Pack source
-        run: |
-          set -euo pipefail
-          tar \
-            --exclude='./.git' \
-            --exclude='./node_modules' \
-            --exclude='./artifacts' \
-            --exclude='./.env*' \
-            --exclude='./.runtime' \
-            -czf /tmp/chenyc-release.tar.gz .
-          test -s /tmp/chenyc-release.tar.gz
-          ls -lh /tmp/chenyc-release.tar.gz
-
       - name: Upload and deploy
         run: |
           set -euo pipefail
-          scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" /tmp/chenyc-release.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:/tmp/chenyc-release.tar.gz"
+          [[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9_./-]+$ && "$DEPLOY_PATH" != / ]]
+          [[ "$DEPLOY_PORT" =~ ^[0-9]+$ ]]
+          incoming="/tmp/chenyc-incoming-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$incoming' && command -v rsync"
+          rsync -rclz \
+            --copy-dest="$DEPLOY_PATH/current" \
+            --exclude='/.git/' \
+            --exclude='/node_modules/' \
+            --exclude='/artifacts/' \
+            --exclude='/.env*' \
+            --exclude='/.runtime/' \
+            --exclude='/.next/cache/' \
+            --exclude='/.next/dev/' \
+            -e "ssh -i $HOME/.ssh/deploy_key -p $DEPLOY_PORT" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$incoming/"
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "tar -czf /tmp/chenyc-release.tar.gz -C '$incoming' ."
           ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
             "DEPLOY_PATH='$DEPLOY_PATH' PM2_APP_NAME='$PM2_APP_NAME' bash -s" <<'REMOTE'
           set -euo pipefail

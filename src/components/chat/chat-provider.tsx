@@ -17,11 +17,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
   const abort = useRef<AbortController | null>(null);
   const storageKey = useRef("");
+  const storageScope = useRef("");
   useEffect(() => {
     let active = true;
     fetch("/api-workspace-session").then(response => response.json()).then(async data => {
       if (!active) return;
       storageKey.current = data.authenticated ? "server" : "studio-chat-v2:anonymous";
+      storageScope.current = data.authenticated ? data.scope : "";
       try {
         const raw = data.authenticated ? JSON.stringify((await fetch("/api-chat-history").then(response => { if (!response.ok) throw new Error("History unavailable"); return response.json(); })).history) : localStorage.getItem(storageKey.current);
         if (!active) return;
@@ -33,14 +35,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
       } catch { storageKey.current = "";setStorageError("历史记录暂不可用，本次对话不会自动保存"); }
       setReady(true);
-    }).catch(()=>{ if(active) setReady(true); });
+    }).catch(()=>{ if(active) { setReady(true); setStorageError("账户状态暂不可用，本次对话不会自动保存"); } });
     return () => { active = false; abort.current?.abort(); };
   },[]);
   useEffect(() => {
     if (!ready || !storageKey.current) return;
     if (loading) return;
     const timer = setTimeout(()=>{try {
-      if (storageKey.current === "server") saveQueue.current=saveQueue.current.catch(()=>{}).then(async()=>{const response=await fetch("/api-chat-history", { method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(history) });if(!response.ok)throw new Error();setStorageError("");}).catch(()=>setStorageError("最新对话尚未保存，请检查连接"));
+      if (storageKey.current === "server") saveQueue.current=saveQueue.current.catch(()=>{}).then(async()=>{
+        if (storageKey.current !== "server") return;
+        const response=await fetch("/api-chat-history", { method:"PUT",headers:{"Content-Type":"application/json","X-Workspace-Scope":storageScope.current},body:JSON.stringify(history) });
+        if (response.status === 401 || response.status === 409) {
+          storageKey.current="";setHistory(initial);setReady(false);setStorageError("账户已变化或登录已过期，请刷新页面后继续");return;
+        }
+        if(!response.ok)throw new Error();setStorageError("");
+      }).catch(()=>setStorageError("最新对话尚未保存，请检查连接"));
       else localStorage.setItem(storageKey.current,JSON.stringify(history));
     } catch { setStorageError("浏览器存储不可用，本次对话不会自动保存"); }},500);
     return ()=>clearTimeout(timer);

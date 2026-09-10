@@ -14,6 +14,7 @@ export async function PUT(request: Request) {
   const userId = await requestOwner(request);
   if (!userId) return NextResponse.json({ error: "请先登录" }, { status: 401 });
   if (!sameOrigin(request)) return NextResponse.json({ error: "请求来源不受信任" }, { status: 403 });
+  if (request.headers.get("x-workspace-scope") !== userId) return NextResponse.json({ error: "账户已变化，请刷新页面后继续" }, { status: 409 });
   try {
     const body = await readJsonBody(request, 1000000);
     if (typeof body.current !== "string" || !Array.isArray(body.threads) || !body.threads.length || body.threads.length > 10) throw new Error("Invalid history");
