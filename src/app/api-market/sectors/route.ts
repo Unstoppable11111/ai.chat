@@ -10,6 +10,14 @@ export async function GET() {
       const p=row.split(",");return {code:p[0],name:p[1],change_pct:Number(p[5]),amount:Number(p[7]),leader_name:p[12]||"--",leader_change:Number(p[9])};
     }).filter(row=>row.code&&row.name&&Number.isFinite(row.change_pct)&&Number.isFinite(row.amount)).sort((a,b)=>b.change_pct-a.change_pct);
     if(!sectors.length)throw new Error("No sectors");
-    return NextResponse.json({success:true,source:"sina",data_status:"DELAYED",top_sectors:sectors.slice(0,6),lagging_sectors:sectors.slice(-3).reverse(),total_sectors_tracked:sectors.length});
+    return NextResponse.json({
+      success: true,
+      source: "sina",
+      data_status: "DELAYED",
+      sectors: sectors,
+      top_sectors: sectors.slice(0, 8),
+      lagging_sectors: sectors.slice(-5).reverse(),
+      total_sectors_tracked: sectors.length,
+    });
   } catch {return NextResponse.json({success:false,error:"行业行情暂不可用",top_sectors:[]},{status:503});}
 }

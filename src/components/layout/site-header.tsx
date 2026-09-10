@@ -10,7 +10,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { user, openAuthModal, logout } = useAuth();
+  const { user, isLoading, openAuthModal, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -156,7 +156,8 @@ export function SiteHeader() {
                       </Link>
                       <button
                         type="button"
-                        onClick={async () => {
+                        onClick={async (e) => {
+                          e.stopPropagation();
                           setUserMenuOpen(false);
                           await logout();
                           if (pathname.startsWith("/market")) {
@@ -174,6 +175,8 @@ export function SiteHeader() {
                   </div>
                 )}
               </div>
+            ) : isLoading ? (
+              <div className="h-8 w-20 rounded-full bg-slate-200/40 animate-pulse border border-slate-200/40 shrink-0" />
             ) : (
               <button
                 type="button"
@@ -263,7 +266,8 @@ export function SiteHeader() {
                   </div>
                   <button
                     type="button"
-                    onClick={async () => {
+                    onClick={async (e) => {
+                      e.stopPropagation();
                       setMobileMenuOpen(false);
                       await logout();
                       if (pathname.startsWith("/market")) {
@@ -278,6 +282,8 @@ export function SiteHeader() {
                     <span>退出</span>
                   </button>
                 </div>
+              ) : isLoading ? (
+                <div className="h-9 w-full rounded-xl bg-slate-200/40 animate-pulse" />
               ) : (
                 <button
                   type="button"

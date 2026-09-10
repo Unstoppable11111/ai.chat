@@ -7,7 +7,6 @@ import {
   ArrowUpRight,
   Award,
   Bot,
-  CheckCircle2,
   Clock,
   FileText,
   Flame,
@@ -18,16 +17,12 @@ import {
   Scale,
   Search,
   ShieldAlert,
-  Sliders,
   Sparkles,
   Trash2,
   TrendingUp,
   Zap,
   Beaker,
-  ShieldCheck,
-  ChevronRight,
   Target,
-  AlertTriangle,
 } from "lucide-react";
 import { QuantumRadar3D } from "@/components/market/quantum-radar-3d";
 import { SparklineChart } from "@/components/market/sparkline-chart";
@@ -49,6 +44,10 @@ import {
   StrategyRankingItem,
   StrategyExperiment,
 } from "@/lib/quant-arena/types";
+import {
+  evaluateHoldingAiAdvice,
+  type SectorItem,
+} from "@/lib/quant-arena/holding-ai-advisor";
 
 interface StockSearchItem { code:string; name:string; current_price?:number; day_change_pct?:number; market?:string }
 
@@ -70,6 +69,7 @@ interface HoldingDiagnosed {
   advice_reason: string;
   risk_level: string;
   notes?: string;
+  sector?: string;
 }
 
 interface PortfolioSummary {
@@ -118,6 +118,7 @@ export default function MarketDashboardPage() {
   const [marketData, setMarketData] = useState<MarketSnapshot | null>(null);
   const [diagnoseSummary, setDiagnoseSummary] = useState<PortfolioSummary | null>(null);
   const [holdings, setHoldings] = useState<HoldingDiagnosed[]>([]);
+  const [sectors, setSectors] = useState<SectorItem[]>([]);
   const [arenaAccounts, setArenaAccounts] = useState<Record<StrategyType, ArenaAccount> | null>(null);
   const [marketRegime, setMarketRegime] = useState<MarketRegimeAssessment | null>(null);
   const [strategyRankings, setStrategyRankings] = useState<StrategyRankingItem[]>([]);
@@ -229,22 +230,37 @@ export default function MarketDashboardPage() {
     }
   }, []);
 
+  // 拉取全市场行业板块实时行情
+  const fetchSectorsData = useCallback(async () => {
+    try {
+      const res = await fetch("/api-market/sectors");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          setSectors(json.sectors || json.top_sectors || []);
+        }
+      }
+    } catch (err) {
+      console.error("加载行业板块行情失败:", err);
+    }
+  }, []);
+
   const loadAll = useCallback(
     async (manual = false) => {
       setIsRefreshing(true);
-      if (manual) showToast("正在拉取全市场实时分时、量能与三大策略账户...", "info");
-      await Promise.all([fetchMarketData(), fetchArenaData(), fetchPortfolioData()]);
+      if (manual) showToast("正在拉取全市场实时分时、量能、行业板块与三大策略账户...", "info");
+      await Promise.all([fetchMarketData(), fetchArenaData(), fetchPortfolioData(), fetchSectorsData()]);
       setIsLoading(false);
       setIsRefreshing(false);
       if (manual) showToast("刷新请求已结束，请查看各项数据状态", "info");
     },
-    [fetchMarketData, fetchArenaData, fetchPortfolioData, showToast, tradingStatus]
+    [fetchMarketData, fetchArenaData, fetchPortfolioData, fetchSectorsData, showToast]
   );
 
   useEffect(() => {
     let ignore = false;
     async function init() {
-      await Promise.all([fetchMarketData(), fetchArenaData(), fetchPortfolioData()]);
+      await Promise.all([fetchMarketData(), fetchArenaData(), fetchPortfolioData(), fetchSectorsData()]);
       if (!ignore) setIsLoading(false);
     }
     init();
@@ -257,13 +273,14 @@ export default function MarketDashboardPage() {
       fetchMarketData();
       fetchArenaData();
       fetchPortfolioData();
+      fetchSectorsData();
     }, 300000);
 
     return () => {
       ignore = true;
       clearInterval(timer);
     };
-  }, [fetchMarketData, fetchArenaData, fetchPortfolioData, autoRefresh, tradingStatus.isTrading]);
+  }, [fetchMarketData, fetchArenaData, fetchPortfolioData, fetchSectorsData, autoRefresh, tradingStatus.isTrading]);
 
   // 股票模糊联想搜索防抖
   useEffect(() => {
@@ -361,18 +378,13 @@ export default function MarketDashboardPage() {
     new Intl.NumberFormat("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
 
   const getActionBadgeClass = (action: string) => {
-    if (action.includes("止损")) return "bg-rose-500/15 text-rose-400 border-rose-500/30";
-    if (action.includes("减仓")) return "bg-amber-500/15 text-amber-400 border-amber-500/30";
-    if (action.includes("止盈")) return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-    if (action.includes("持有")) return "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
+    if (action.includes("止损") || action.includes("触线")) return "bg-rose-500/15 text-rose-400 border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.15)]";
+    if (action.includes("减仓") || action.includes("防守")) return "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.15)]";
+    if (action.includes("止盈")) return "bg-purple-500/15 text-purple-300 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.15)]";
+    if (action.includes("低吸")) return "bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-[0_0_10px_rgba(6,182,212,0.15)]";
+    if (action.includes("持有") || action.includes("顺势")) return "bg-emerald-500/15 text-emerald-400 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.15)]";
     return "bg-slate-500/15 text-slate-300 border-slate-500/30";
   };
-
-  const copilotChips = [
-    { label: "🎯 为什么激进今天买了这只？", prompt: "请对比激进策略与均衡策略的入选打分规则，解释为什么新易盛与胜宏科技入选了激进策略，而没有进入保守策略？" },
-    { label: "⚖️ 哪个策略最适合当前市场？", prompt: "结合目前两市成交额突破1.9万亿、超3000只个股上涨的多空事实，评估当前到底应该相信激进、均衡还是保守策略？并说明背后的量价原因。" },
-    { label: "📉 如果大盘跳水如何防守？", prompt: "如果明日市场突发缩量变盘下杀，三个账户的动态止损线与二级熔断机制将分别如何触发？请测算潜在回撤并给出应对方案。" },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0f1d] via-[#070b16] to-[#0a1122] text-slate-100 pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative">
@@ -454,15 +466,14 @@ export default function MarketDashboardPage() {
 
             <button
               onClick={() => loadAll(true)}
-              disabled={isRefreshing}
-              title="刷新行情与当前账户持仓"
-              className={`text-xs font-mono px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 shadow-sm ${
-                isRefreshing
-                  ? "bg-slate-900/40 text-slate-500 border-slate-800 cursor-not-allowed opacity-50"
-                  : "bg-[#0c1626] hover:bg-cyan-950/50 text-cyan-200 border-cyan-800/40 cursor-pointer"
+              disabled={isRefreshing || isLoading}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                isRefreshing || isLoading
+                  ? "bg-cyan-950/40 text-cyan-300/60 border-cyan-800/40 cursor-not-allowed"
+                  : "bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.15)]"
               }`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-cyan-300" : "text-cyan-400"}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isLoading ? "animate-spin text-cyan-300" : "text-cyan-400"}`} />
               刷新
             </button>
 
@@ -840,7 +851,7 @@ export default function MarketDashboardPage() {
                     <span className="text-xs font-normal text-slate-400">(已录入 {holdings.length} 只标的)</span>
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    按可用行情查看持仓盈亏与集中度
+                    实时结合全市场大盘多空得分与个股所属行业板块强度，提供智能化仓位跟踪研判建议
                   </p>
                 </div>
 
@@ -862,64 +873,195 @@ export default function MarketDashboardPage() {
                 )}
               </div>
 
+              {/* AI 持仓共振与大盘研判监控看板 */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#081528]/95 via-[#0c1c34]/95 to-[#09182d]/95 border border-cyan-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                    <Bot className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-white flex items-center gap-2">
+                      <span>AI 智投共振监控中心</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-cyan-500/20 text-cyan-300 font-mono border border-cyan-500/40">
+                        实时全景演算
+                      </span>
+                    </div>
+                    <p className="text-slate-400 text-[11px] mt-0.5">
+                      系统穿透【大盘多空评分({marketData?.market_score ?? 60}分·{marketData?.market_state || "震荡"})】与所属行业板块强弱动量，动态输出最佳操作动作
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="px-3 py-1.5 rounded-xl bg-[#060e1a] border border-cyan-900/50">
+                    <span className="text-[10px] text-slate-400 block">大盘多空环境</span>
+                    <span className="font-bold text-cyan-300 font-mono">
+                      {marketData?.market_score ?? 60}分 · {marketData?.market_state || "震荡整理"}
+                    </span>
+                  </div>
+                  <div className="px-3 py-1.5 rounded-xl bg-[#060e1a] border border-cyan-900/50">
+                    <span className="text-[10px] text-slate-400 block">跟踪赛道数</span>
+                    <span className="font-bold text-slate-200 font-mono">
+                      {Array.from(new Set(holdings.map((h) => evaluateHoldingAiAdvice(h, marketData, sectors).sectorName))).length} 个板块
+                    </span>
+                  </div>
+                  <div className="px-3 py-1.5 rounded-xl bg-[#060e1a] border border-cyan-900/50">
+                    <span className="text-[10px] text-slate-400 block">AI 状态研判</span>
+                    <span className="font-bold text-emerald-400 font-mono">
+                      {holdings.filter((h) => evaluateHoldingAiAdvice(h, marketData, sectors).badge === "顺势持有").length} 顺势 /{" "}
+                      <span className="text-rose-400">
+                        {holdings.filter((h) => evaluateHoldingAiAdvice(h, marketData, sectors).badge === "破位止损").length} 止损预警
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* 持仓表格 */}
               <div className="overflow-x-auto no-scrollbar">
-                <table className="w-full text-left text-xs text-slate-200 min-w-[780px] whitespace-nowrap">
+                <table className="w-full text-left text-xs text-slate-200 min-w-[980px]">
                   <thead className="bg-[#091322]/90 text-cyan-300/80 font-semibold border-b border-cyan-500/30">
                     <tr>
                       <th className="py-3 px-4 rounded-l-xl whitespace-nowrap">标的代码/名称</th>
+                      <th className="py-3 px-4 whitespace-nowrap">所属板块 / 强度</th>
                       <th className="py-3 px-4 whitespace-nowrap">仓位类别</th>
                       <th className="py-3 px-4 text-right whitespace-nowrap">持股数</th>
                       <th className="py-3 px-4 text-right whitespace-nowrap">成本价</th>
                       <th className="py-3 px-4 text-right whitespace-nowrap">当前现价</th>
                       <th className="py-3 px-4 text-right whitespace-nowrap">浮动盈亏</th>
                       <th className="py-3 px-4 text-right whitespace-nowrap">动态止损线</th>
-                      <th className="py-3 px-4 text-center whitespace-nowrap">估值状态</th>
+                      <th className="py-3 px-4 text-left min-w-[340px]">AI 智投建议（大盘+板块共振）</th>
                       <th className="py-3 px-4 rounded-r-xl text-center whitespace-nowrap">管理</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-cyan-900/30">
-                    {holdings.map((item) => {
-                      const isProfit = item.pnl >= 0;
-                      return (
-                        <tr key={item.id || item.code} className="hover:bg-cyan-950/20 transition-colors">
-                          <td className="py-3.5 px-4 font-medium whitespace-nowrap">
-                            <div className="flex items-center gap-2 whitespace-nowrap">
-                              <span className="font-mono text-cyan-400 font-semibold">{item.code}</span>
-                              <span className="text-white font-bold whitespace-nowrap">{item.name}</span>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] border border-cyan-500/30 whitespace-nowrap inline-block">
-                              {({core:"核心底仓",trend:"趋势持仓",attack:"短线进攻",trial:"试验持仓"} as Record<string,string>)[item.hold_type] || item.hold_type}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">{item.quantity}</td>
-                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">¥ {item.cost_price.toFixed(2)}</td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-white whitespace-nowrap">{item.quote_available === false ? "--" : `¥ ${item.current_price.toFixed(2)}`}</td>
-                          <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">
-                            <span className={`font-bold whitespace-nowrap ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
-                              {item.quote_available === false ? "--" : `${isProfit ? "+" : ""}${item.pnl.toFixed(2)} (${isProfit ? "+" : ""}${item.pnl_pct.toFixed(2)}%)`}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-mono text-amber-300 font-bold whitespace-nowrap">{item.stop_loss_price > 0 ? `¥ ${item.stop_loss_price.toFixed(2)}` : "--"}</td>
-                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border whitespace-nowrap ${getActionBadgeClass(item.action)}`}>
-                              {item.action}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                            <button
-                              aria-label={`删除${item.name}持仓`}
-                              onClick={() => handleDeleteHolding(item.id)}
-                              className="p-1 text-slate-400 hover:text-rose-400"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {holdings.length === 0 ? (
+                      <tr>
+                        <td colSpan={10} className="py-12 text-center text-slate-400 space-y-2">
+                          <p className="text-sm">暂未录入任何持仓标的</p>
+                          <p className="text-xs text-slate-500">
+                            请在上方【模拟记账与持仓管理】面板中添加股票，系统将自动结合大盘得分与所属板块强度进行 AI 演算
+                          </p>
+                        </td>
+                      </tr>
+                    ) : (
+                      holdings.map((item) => {
+                        const isProfit = item.pnl >= 0;
+                        const aiAdvice = evaluateHoldingAiAdvice(item, marketData, sectors);
+                        return (
+                          <tr key={item.id || item.code} className="hover:bg-cyan-950/25 transition-colors align-top">
+                            {/* 标的代码/名称 */}
+                            <td className="py-3.5 px-4 font-medium whitespace-nowrap">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono text-cyan-400 font-semibold">{item.code}</span>
+                                  <span className="text-white font-bold">{item.name}</span>
+                                </div>
+                                {item.notes && (
+                                  <p className="text-[10px] text-slate-400 truncate max-w-[140px]" title={item.notes}>
+                                    {item.notes}
+                                  </p>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* 所属板块 / 强度 */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <div className="space-y-1">
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#071324] border border-cyan-500/30 text-xs text-cyan-200">
+                                  <span className="font-semibold">{aiAdvice.sectorName}</span>
+                                  <span className={`font-mono text-[10px] font-bold ${aiAdvice.sectorChangePct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                                    {aiAdvice.sectorChangePct >= 0 ? "+" : ""}{aiAdvice.sectorChangePct.toFixed(2)}%
+                                  </span>
+                                </span>
+                                <div className="text-[10px] text-slate-400 pl-0.5">
+                                  {aiAdvice.sectorStrength}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* 仓位类别 */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] border border-cyan-500/30 whitespace-nowrap inline-block">
+                                {({ core: "核心底仓", trend: "趋势持仓", attack: "短线进攻", trial: "试验持仓" } as Record<string, string>)[item.hold_type] || item.hold_type}
+                              </span>
+                            </td>
+
+                            {/* 持股数 */}
+                            <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap text-white font-medium">
+                              {item.quantity.toLocaleString()}
+                            </td>
+
+                            {/* 成本价 */}
+                            <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap text-slate-300">
+                              ¥ {item.cost_price.toFixed(2)}
+                            </td>
+
+                            {/* 当前现价 */}
+                            <td className="py-3.5 px-4 text-right font-mono font-bold text-white whitespace-nowrap">
+                              {item.quote_available === false ? (
+                                "--"
+                              ) : (
+                                <div>
+                                  <div>¥ {item.current_price.toFixed(2)}</div>
+                                  {typeof item.day_change_pct === "number" && (
+                                    <div className={`text-[10px] ${item.day_change_pct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                                      {item.day_change_pct >= 0 ? "+" : ""}{item.day_change_pct.toFixed(2)}%
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+
+                            {/* 浮动盈亏 */}
+                            <td className="py-3.5 px-4 text-right font-mono whitespace-nowrap">
+                              <span className={`font-bold ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
+                                {item.quote_available === false ? "--" : `${isProfit ? "+" : ""}${item.pnl.toFixed(2)} (${isProfit ? "+" : ""}${item.pnl_pct.toFixed(2)}%)`}
+                              </span>
+                            </td>
+
+                            {/* 动态止损线 */}
+                            <td className="py-3.5 px-4 text-right font-mono text-amber-300 font-bold whitespace-nowrap">
+                              {item.stop_loss_price > 0 ? `¥ ${item.stop_loss_price.toFixed(2)}` : "--"}
+                            </td>
+
+                            {/* AI 智投建议（大盘+板块共振） */}
+                            <td className="py-3.5 px-4 min-w-[340px] max-w-[440px]">
+                              <div className="p-3 rounded-2xl bg-gradient-to-r from-[#071324]/90 to-[#0c1e38]/90 border border-cyan-500/30 space-y-1.5 shadow-[0_0_15px_rgba(6,182,212,0.05)]">
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 animate-pulse" />
+                                    <span className={`px-2 py-0.5 rounded-lg text-xs font-bold border ${getActionBadgeClass(aiAdvice.badge)}`}>
+                                      {aiAdvice.badge}
+                                    </span>
+                                    <span className="text-[10px] text-cyan-300/80 font-mono">
+                                      共振 {aiAdvice.resonanceScore}分
+                                    </span>
+                                  </div>
+                                  <span className="text-[10px] text-slate-400 truncate">
+                                    大盘{marketData?.market_score ?? 60}分·{marketData?.market_state || "多空拉锯"}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-300 leading-relaxed font-normal">
+                                  {aiAdvice.detail}
+                                </p>
+                              </div>
+                            </td>
+
+                            {/* 管理 */}
+                            <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                              <button
+                                aria-label={`删除${item.name}持仓`}
+                                onClick={() => handleDeleteHolding(item.id)}
+                                className="p-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -943,26 +1085,50 @@ export default function MarketDashboardPage() {
                     <thead className="bg-[#091322]/90 text-cyan-300/80 font-semibold border-b border-cyan-500/30">
                       <tr>
                         <th className="py-3 px-4 rounded-l-xl whitespace-nowrap">标的代码/名称</th>
-                        <th className="py-3 px-4 whitespace-nowrap">行业赛道</th>
+                        <th className="py-3 px-4 whitespace-nowrap">行业赛道 / 强度</th>
                         <th className="py-3 px-4 text-right whitespace-nowrap">总持仓 / T+1可用</th>
                         <th className="py-3 px-4 text-right whitespace-nowrap">建仓成本</th>
                         <th className="py-3 px-4 text-right whitespace-nowrap">最新现价</th>
                         <th className="py-3 px-4 text-right whitespace-nowrap">市值 / 仓位占比</th>
                         <th className="py-3 px-4 text-right whitespace-nowrap">持仓盈亏</th>
                         <th className="py-3 px-4 text-right whitespace-nowrap">止损 / 目标</th>
-                        <th className="py-3 px-4 rounded-r-xl text-left whitespace-nowrap">策略建仓逻辑</th>
+                        <th className="py-3 px-4 rounded-r-xl text-left min-w-[280px]">AI 实时研判（大盘+板块共振）</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-cyan-900/30 font-mono">
                       {arenaAccounts[activeStrategy]?.positions.map((pos) => {
                         const isUp = pos.pnl >= 0;
+                        const posAi = evaluateHoldingAiAdvice(
+                          {
+                            code: pos.code,
+                            name: pos.name,
+                            quantity: pos.shares,
+                            cost_price: pos.cost_price,
+                            current_price: pos.current_price || pos.cost_price,
+                            pnl: pos.pnl,
+                            pnl_pct: pos.pnl_pct,
+                            day_change_pct: 0,
+                            hold_type: "trend",
+                            stop_loss_price: pos.stop_loss_price,
+                            sector: pos.sector,
+                          },
+                          marketData,
+                          sectors
+                        );
                         return (
-                          <tr key={pos.code} className="hover:bg-cyan-950/20">
+                          <tr key={pos.code} className="hover:bg-cyan-950/20 align-top">
                             <td className="py-3 px-4 font-sans whitespace-nowrap">
                               <span className="font-bold text-white whitespace-nowrap">{pos.name}</span>
                               <span className="ml-1 text-cyan-400 text-[11px] font-mono whitespace-nowrap">({pos.code})</span>
                             </td>
-                            <td className="py-3 px-4 font-sans whitespace-nowrap">{pos.sector}</td>
+                            <td className="py-3 px-4 font-sans whitespace-nowrap">
+                              <span className="inline-flex items-center gap-1 text-cyan-200">
+                                <span>{pos.sector}</span>
+                                <span className={`text-[10px] font-bold ${posAi.sectorChangePct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                                  ({posAi.sectorChangePct >= 0 ? "+" : ""}{posAi.sectorChangePct.toFixed(1)}%)
+                                </span>
+                              </span>
+                            </td>
                             <td className="py-3 px-4 text-right whitespace-nowrap">
                               <span className="text-white font-bold">{pos.shares}</span> /{" "}
                               <span className="text-emerald-400">{pos.available_shares}</span>
@@ -980,8 +1146,23 @@ export default function MarketDashboardPage() {
                             <td className="py-3 px-4 text-right text-amber-300 whitespace-nowrap">
                               ¥{pos.stop_loss_price} / ¥{pos.target_price}
                             </td>
-                            <td className="py-3 px-4 font-sans text-slate-300 text-[11px] whitespace-nowrap">
-                              {pos.strategy_reason}
+                            <td className="py-3 px-4 font-sans text-slate-300 text-[11px] min-w-[280px] max-w-[360px]">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getActionBadgeClass(posAi.badge)}`}>
+                                    {posAi.badge}
+                                  </span>
+                                  <span className="text-[10px] text-cyan-300/80">
+                                    共振{posAi.resonanceScore}分 · {posAi.sectorStrength}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-200 leading-snug">
+                                  {posAi.summary}
+                                </p>
+                                <p className="text-[10px] text-slate-400 line-clamp-1">
+                                  建仓逻辑: {pos.strategy_reason}
+                                </p>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -1048,8 +1229,11 @@ export default function MarketDashboardPage() {
                   placeholder="输入股票代码、中文名称或拼音缩写..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#070e18] border border-cyan-900/50 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
+                  className="w-full pl-9 pr-8 py-2 rounded-xl bg-[#070e18] border border-cyan-900/50 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
                 />
+                {isSearching && (
+                  <RefreshCw className="w-3 h-3 text-cyan-400 absolute right-3 animate-spin pointer-events-none" />
+                )}
               </div>
 
               {searchResults.length > 0 && (

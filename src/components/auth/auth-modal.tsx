@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LockKeyhole, User, KeyRound, Sparkles, ArrowRight, X, ShieldCheck } from "lucide-react";
+import { LockKeyhole, User, KeyRound, Sparkles, ArrowRight, X, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "./auth-provider";
 
 function AuthModalDialog({
@@ -18,6 +18,7 @@ function AuthModalDialog({
   const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -161,18 +162,29 @@ function AuthModalDialog({
               </span>
               <span className="text-[10px] text-cyan-400/80">至少 6 位字符</span>
             </label>
-            <input
-              type="password"
-              minLength={6}
-              maxLength={128}
-              placeholder="输入密码"
-              autoComplete={mode === "register" ? "new-password" : "current-password"}
-              required
-              disabled={!configured || busy}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-cyan-900/60 bg-[#070e18] text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all font-mono"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                minLength={6}
+                maxLength={128}
+                placeholder="输入密码"
+                autoComplete={mode === "register" ? "new-password" : "current-password"}
+                required
+                disabled={!configured || busy}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-cyan-900/60 bg-[#070e18] text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-300 transition-colors p-1 cursor-pointer"
+                aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           {!configured && (

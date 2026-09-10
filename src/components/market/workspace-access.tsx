@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { LockKeyhole, LogOut, User, KeyRound, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
+import { LockKeyhole, LogOut, User, KeyRound, ShieldCheck, Sparkles, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export function WorkspaceLogin({ configured }: { configured: boolean }) {
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [register, setRegister] = useState(false);
   const [error, setError] = useState("");
@@ -120,18 +121,29 @@ export function WorkspaceLogin({ configured }: { configured: boolean }) {
               </span>
               <span className="text-[10px] text-cyan-400/80">仅需 6 位密码（无需复杂字符）</span>
             </label>
-            <input
-              type="password"
-              minLength={6}
-              maxLength={128}
-              placeholder="输入至少 6 位密码"
-              autoComplete={register ? "new-password" : "current-password"}
-              required
-              disabled={!configured || busy}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-cyan-900/60 bg-[#070e18] text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all font-mono"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                minLength={6}
+                maxLength={128}
+                placeholder="输入至少 6 位密码"
+                autoComplete={register ? "new-password" : "current-password"}
+                required
+                disabled={!configured || busy}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-cyan-900/60 bg-[#070e18] text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-300 transition-colors p-1 cursor-pointer"
+                aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           {!configured && (

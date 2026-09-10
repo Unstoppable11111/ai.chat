@@ -7,6 +7,8 @@ export interface AuthUser {
   username: string;
 }
 
+const USER_CACHE_KEY = "studio_user_cache";
+
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
@@ -23,7 +25,17 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  // 首次渲染直接读取本地乐观缓存，彻底杜绝刷新页面时的登录状态闪烁
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const cached = localStorage.getItem(USER_CACHE_KEY);
+      return cached ? (JSON.parse(cached) as AuthUser) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [isLoading, setIsLoading] = useState(true);
   const [configured, setConfigured] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -33,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api-workspace-session", { cache: "no-store" });
       if (!res.ok) {
+        try { localStorage.removeItem(USER_CACHE_KEY); } catch {}
         setUser(null);
         return null;
       }
@@ -40,14 +53,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setConfigured(data.configured ?? true);
       if (data.authenticated && data.userId && data.username) {
         const authUser: AuthUser = { id: data.userId, username: data.username };
+        try { localStorage.setItem(USER_CACHE_KEY, JSON.stringify(authUser)); } catch {}
         setUser(authUser);
         return authUser;
       } else {
+        try { localStorage.removeItem(USER_CACHE_KEY); } catch {}
         setUser(null);
         return null;
       }
     } catch {
-      setUser(null);
       return null;
     } finally {
       setIsLoading(false);
@@ -62,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await fetch("/api-workspace-session", { cache: "no-store" });
         if (!res.ok) {
           if (!ignore) {
+            try { localStorage.removeItem(USER_CACHE_KEY); } catch {}
             setUser(null);
             setIsLoading(false);
           }
@@ -71,15 +86,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!ignore) {
           setConfigured(data.configured ?? true);
           if (data.authenticated && data.userId && data.username) {
-            setUser({ id: data.userId, username: data.username });
+            const authUser: AuthUser = { id: data.userId, username: data.username };
+            try { localStorage.setItem(USER_CACHE_KEY, JSON.stringify(authUser)); } catch {}
+            setUser(authUser);
           } else {
+            try { localStorage.removeItem(USER_CACHE_KEY); } catch {}
             setUser(null);
           }
           setIsLoading(false);
         }
       } catch {
         if (!ignore) {
-          setUser(null);
           setIsLoading(false);
         }
       }
@@ -114,10 +131,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async (): Promise<boolean> => {
     try {
-      await fetch("/api-workspace-session", { method: "DELETE" });
+      localStorage.removeItem(USER_CACHE_KEY);
     } catch {}
     setUser(null);
     window.dispatchEvent(new CustomEvent("auth-state-changed"));
+    try {
+      await fetch("/api-workspace-session", { method: "DELETE" });
+    } catch {}
     return true;
   }, []);
 
