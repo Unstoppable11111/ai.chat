@@ -41,8 +41,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // 当当前登录用户 ID 变更时（登录/登出/换账号），重新初始化加载专属记忆
   useEffect(() => {
     let active = true;
-    setReady(false);
-    setStorageError("");
     abort.current?.abort();
 
     const loadHistory = async () => {

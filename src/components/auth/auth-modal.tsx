@@ -4,31 +4,32 @@ import { useState, useEffect } from "react";
 import { LockKeyhole, User, KeyRound, Sparkles, ArrowRight, X, ShieldCheck } from "lucide-react";
 import { useAuth } from "./auth-provider";
 
-export function AuthModal() {
-  const { isAuthModalOpen, authModalMode, closeAuthModal, configured, refreshSession } = useAuth();
-  const [mode, setMode] = useState<"login" | "register">(authModalMode);
+function AuthModalDialog({
+  initialMode,
+  closeAuthModal,
+  configured,
+  refreshSession,
+}: {
+  initialMode: "login" | "register";
+  closeAuthModal: () => void;
+  configured: boolean;
+  refreshSession: () => Promise<unknown>;
+}) {
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    setMode(authModalMode);
-    setError("");
-    setPassword("");
-  }, [authModalMode, isAuthModalOpen]);
-
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isAuthModalOpen) {
+      if (e.key === "Escape") {
         closeAuthModal();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isAuthModalOpen, closeAuthModal]);
-
-  if (!isAuthModalOpen) return null;
+  }, [closeAuthModal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +55,6 @@ export function AuthModal() {
       await refreshSession();
       window.dispatchEvent(new CustomEvent("auth-state-changed"));
       closeAuthModal();
-      // 如果当前正好在 /market 页面，刷新以加载工作台内容
       if (typeof window !== "undefined" && window.location.pathname.startsWith("/market")) {
         window.location.reload();
       }
@@ -79,7 +79,7 @@ export function AuthModal() {
         <button
           type="button"
           onClick={closeAuthModal}
-          className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           aria-label="关闭弹窗"
         >
           <X className="w-4 h-4" />
@@ -219,5 +219,20 @@ export function AuthModal() {
         </form>
       </div>
     </div>
+  );
+}
+
+export function AuthModal() {
+  const { isAuthModalOpen, authModalMode, closeAuthModal, configured, refreshSession } = useAuth();
+  if (!isAuthModalOpen) return null;
+
+  return (
+    <AuthModalDialog
+      key={`${authModalMode}-${isAuthModalOpen}`}
+      initialMode={authModalMode}
+      closeAuthModal={closeAuthModal}
+      configured={configured}
+      refreshSession={refreshSession}
+    />
   );
 }

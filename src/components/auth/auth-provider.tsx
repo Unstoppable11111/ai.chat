@@ -55,22 +55,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refreshSession();
+    let ignore = false;
+
+    const syncSession = async () => {
+      try {
+        const res = await fetch("/api-workspace-session", { cache: "no-store" });
+        if (!res.ok) {
+          if (!ignore) {
+            setUser(null);
+            setIsLoading(false);
+          }
+          return;
+        }
+        const data = await res.json();
+        if (!ignore) {
+          setConfigured(data.configured ?? true);
+          if (data.authenticated && data.userId && data.username) {
+            setUser({ id: data.userId, username: data.username });
+          } else {
+            setUser(null);
+          }
+          setIsLoading(false);
+        }
+      } catch {
+        if (!ignore) {
+          setUser(null);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void syncSession();
 
     const handleFocus = () => {
-      void refreshSession();
+      void syncSession();
     };
     const handleAuthChange = () => {
-      void refreshSession();
+      void syncSession();
     };
 
     window.addEventListener("focus", handleFocus);
     window.addEventListener("auth-state-changed", handleAuthChange);
     return () => {
+      ignore = true;
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("auth-state-changed", handleAuthChange);
     };
-  }, [refreshSession]);
+  }, []);
 
   const openAuthModal = useCallback((mode: "login" | "register" = "login") => {
     setAuthModalMode(mode);

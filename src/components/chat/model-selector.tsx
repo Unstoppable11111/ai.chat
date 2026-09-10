@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check, Sparkles, Zap, BrainCircuit } from "lucide-react";
-import { CHAT_MODELS, type ChatModelId } from "./chat-types";
+import { CHAT_MODELS } from "./chat-types";
 import { cn } from "@/lib/utils";
 
 interface ModelSelectorProps {
