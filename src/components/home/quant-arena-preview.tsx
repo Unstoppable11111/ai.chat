@@ -111,27 +111,27 @@ export function QuantArenaPreview() {
           <div>
             <span className="text-xs text-slate-500 block mb-0.5">两市成交总额</span>
             <span className="text-base font-bold text-slate-900">
-              {pulse?.turnover_label || "1.92万亿"}
+              {pulse?.turnover_label || "--"}
             </span>
-            <span className="text-[11px] text-slate-500 block">放量主升通道</span>
+            <span className="text-[11px] text-slate-500 block">{pulse?.state || "实时大盘动态"}</span>
           </div>
 
           <div>
             <span className="text-xs text-slate-500 block mb-0.5">多空比 (上涨/下跌)</span>
             <div className="text-base font-bold text-slate-900">
-              <span className="text-emerald-600">{pulse?.up_count || 3305}</span>
+              <span className="text-emerald-600">{pulse?.up_count != null ? pulse.up_count : "--"}</span>
               <span className="text-slate-500 mx-1">/</span>
-              <span className="text-rose-600">{pulse?.down_count || 1877}</span>
+              <span className="text-rose-600">{pulse?.down_count != null ? pulse.down_count : "--"}</span>
             </div>
             <span className="text-[11px] text-slate-500 block">
-              涨停 {pulse?.limit_up_count || 73} 家
+              {pulse?.limit_up_count != null ? `涨停 ${pulse.limit_up_count} 家` : "情绪监测中"}
             </span>
           </div>
 
           <div className="col-span-2 md:col-span-2 flex flex-col justify-center">
             <span className="text-xs text-slate-500 block mb-1">当前核心主线聚焦</span>
             <div className="flex flex-wrap gap-1.5">
-              {(pulse?.mainlines || ["CPO光模块", "连板龙头", "半导体中军"]).map((m) => (
+              {(pulse?.mainlines || ["热点轮动监测中"]).map((m) => (
                 <span
                   key={m}
                   className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200/50"

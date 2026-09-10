@@ -35,17 +35,19 @@ export async function GET(request: Request) {
     const regime = evaluateMarketRegime({
       indices: indicesData,
       total_turnover: turnoverYi,
-      up_count: marketSnapshot.up_count || 3305,
-      down_count: marketSnapshot.down_count || 1877,
-      flat_count: marketSnapshot.flat_count || 102,
-      ma5_diff_pct: -6.4,
-      limit_up_count: rawSentiment?.limit_up_count || 73,
-      limit_down_count: rawSentiment?.limit_down_count || 0,
-      broken_limit_ratio: rawSentiment?.broken_limit_ratio || 33.6,
-      highest_limit_height: rawSentiment?.highest_limit_height || 5,
-      highest_limit_leaders: rawSentiment?.highest_limit_leaders || ["百大集团", "亚盛集团"],
-      main_net_flow_yi: rawSentiment?.main_net_flow_yi || -82.0,
-      mainline_name: "商业连锁 · 农业种植 · 高端装备",
+      up_count: marketSnapshot.up_count || 0,
+      down_count: marketSnapshot.down_count || 0,
+      flat_count: marketSnapshot.flat_count || 0,
+      ma5_diff_pct: null,
+      limit_up_count: rawSentiment?.limit_up_count ?? 0,
+      limit_down_count: rawSentiment?.limit_down_count ?? 0,
+      broken_limit_ratio: rawSentiment?.broken_limit_ratio ?? 0,
+      highest_limit_height: rawSentiment?.highest_limit_height ?? 0,
+      highest_limit_leaders: rawSentiment?.highest_limit_leaders ?? [],
+      main_net_flow_yi: rawSentiment?.main_net_flow_yi ?? 0,
+      mainline_name: rawSentiment?.highest_limit_leaders?.length
+        ? `${rawSentiment.highest_limit_leaders.join(" · ")} 领衔`
+        : "盘面热点轮动中",
     });
 
     // 5. 计算策略排行榜

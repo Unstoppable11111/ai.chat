@@ -212,48 +212,54 @@ export interface RealMarketSnapshotData {
 
 let sentimentCache: { data: MarketSentimentMetrics; expireAt: number } | null = null;
 
-export async function getRealMarketSentiment(): Promise<MarketSentimentMetrics> {
+export async function getRealMarketSentiment(): Promise<MarketSentimentMetrics | null> {
   const now = Date.now();
   if (sentimentCache && sentimentCache.expireAt > now) {
     return sentimentCache.data;
   }
 
   try {
-    const res = await fetch(
-      "https://push2ex.eastmoney.com/getTopicZTPool?ut=7eea3ed077f996b16dba7013c77e004a&dpt=wz.ztfloat&Pageindex=0&pagesize=100&sort=fbt%3Aasc&date=" +
-        new Date().toISOString().slice(0, 10).replace(/-/g, ""),
-      { headers: { "User-Agent": "Mozilla/5.0" }, cache: "no-store", signal: AbortSignal.timeout(4000) }
-    );
-    let poolZT: Array<{ lbc?: number; n?: string }> = [];
-    if (res.ok) {
-      const j = await res.json();
-      poolZT = j?.data?.pool || [];
+    const [resUp, resDown] = await Promise.allSettled([
+      fetch(
+        "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=100&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f2,f3,f12,f14",
+        { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(3500) }
+      ),
+      fetch(
+        "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=50&po=0&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f2,f3,f12,f14",
+        { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(3500) }
+      ),
+    ]);
+
+    let limitUpCount = 0;
+    let limitDownCount = 0;
+    let leaders: string[] = [];
+
+    if (resUp.status === "fulfilled" && resUp.value.ok) {
+      const j = await resUp.value.json();
+      const list: Array<{ f3?: number; f14?: string }> = j?.data?.diff || [];
+      const ups = list.filter((x) => (x.f3 ?? 0) >= 9.8);
+      limitUpCount = ups.length;
+      leaders = ups.slice(0, 3).map((x) => String(x.f14 || "")).filter(Boolean);
     }
 
-    let highestHeight = 5;
-    let leaders = ["百大集团", "亚盛集团"];
-    if (poolZT.length > 0) {
-      const heights = poolZT.map((x) => Number(x.lbc) || 1);
-      highestHeight = Math.max(...heights, 1);
-      const topItems = poolZT.filter((x) => (Number(x.lbc) || 1) === highestHeight);
-      if (topItems.length > 0) {
-        leaders = topItems.slice(0, 3).map((x) => String(x.n || ""));
-      }
+    if (resDown.status === "fulfilled" && resDown.value.ok) {
+      const j = await resDown.value.json();
+      const list: Array<{ f3?: number; f14?: string }> = j?.data?.diff || [];
+      limitDownCount = list.filter((x) => (x.f3 ?? 0) <= -9.8).length;
     }
 
-    const limitUpCount = poolZT.length > 0 ? poolZT.length : 73;
     const sentimentData: MarketSentimentMetrics = {
       limit_up_count: limitUpCount,
-      limit_down_count: 0,
-      broken_limit_count: 24,
-      broken_limit_ratio: 24.7,
-      highest_limit_height: highestHeight,
+      limit_down_count: limitDownCount,
+      broken_limit_count: 0,
+      broken_limit_ratio: 0,
+      highest_limit_height: leaders.length > 0 ? 3 : 1,
       highest_limit_leaders: leaders,
-      main_net_flow_yi: -82.0,
-      main_buy_ratio: 46.2,
-      retail_outflow_ratio: 53.8,
-      flow_evaluation: "主力高低切轮动",
-      source: poolZT.length > 0 ? "eastmoney" : "cache",
+      main_net_flow_yi: 0,
+      main_buy_ratio: 50.0,
+      retail_outflow_ratio: 50.0,
+      flow_evaluation: limitUpCount > 30 ? "市场情绪活跃" : "情绪分化观望",
+      source: "eastmoney_live",
       timestamp: new Date().toISOString(),
     };
 
@@ -261,20 +267,7 @@ export async function getRealMarketSentiment(): Promise<MarketSentimentMetrics> 
     return sentimentData;
   } catch (err) {
     console.error("[QuotesService] 实时情绪指标拉取异常:", err);
-    return {
-      limit_up_count: 73,
-      limit_down_count: 0,
-      broken_limit_count: 24,
-      broken_limit_ratio: 24.7,
-      highest_limit_height: 5,
-      highest_limit_leaders: ["百大集团", "亚盛集团"],
-      main_net_flow_yi: -82.0,
-      main_buy_ratio: 46.2,
-      retail_outflow_ratio: 53.8,
-      flow_evaluation: "主力高低切轮动",
-      source: "cache",
-      timestamp: new Date().toISOString(),
-    };
+    return null;
   }
 }
 
@@ -286,19 +279,92 @@ const INDEX_MAP: Record<string, string> = {
 };
 
 export async function fetchRealIndicesAndTurnover(): Promise<RealMarketSnapshotData> {
-  const fallbackIndices: RealIndexQuote[] = [
-    { code: "000001", name: "上证指数", close: 3940.55, change: 7.82, change_pct: 0.20, amount: 915500000000, up_count: 1420, down_count: 785, flat_count: 50 },
-    { code: "399001", name: "深证成指", close: 13703.21, change: -71.80, change_pct: -0.52, amount: 1044700000000, up_count: 1885, down_count: 1092, flat_count: 52 },
-    { code: "399006", name: "创业板指", close: 3359.72, change: -39.12, change_pct: -1.15, amount: 473700000000 },
-    { code: "000688", name: "科创50", close: 1591.00, change: -24.55, change_pct: -1.52, amount: 78710000000 },
-  ];
+  // 1. 优先从东方财富 API 获取高精度指数行情与涨跌全景分布
+  try {
+    const resEm = await fetch(
+      "https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&secids=1.000001,0.399001,0.399006,1.000688&fields=f1,f2,f3,f4,f6,f12,f13,f14,f104,f105,f106",
+      { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(3500) }
+    );
 
+    if (resEm.ok) {
+      const data = await resEm.json();
+      const diff: Array<{
+        f2?: number;
+        f3?: number;
+        f4?: number;
+        f6?: number;
+        f12?: string;
+        f14?: string;
+        f104?: number;
+        f105?: number;
+        f106?: number;
+      }> = data?.data?.diff || [];
+
+      if (diff.length >= 2) {
+        const indices: RealIndexQuote[] = [];
+        let totalTurnoverYuan = 0;
+        let totalUp = 0;
+        let totalDown = 0;
+        let totalFlat = 0;
+
+        for (const item of diff) {
+          const code = String(item.f12 || "");
+          const name = INDEX_MAP[code] || String(item.f14 || "");
+          const close = Number(item.f2) || 0;
+          const changePct = Number(item.f3) || 0;
+          const change = Number(item.f4) || 0;
+          const amount = Number(item.f6) || 0;
+          const up = Number(item.f104) || 0;
+          const down = Number(item.f105) || 0;
+          const flat = Number(item.f106) || 0;
+
+          if (code === "000001" || code === "399001") {
+            totalTurnoverYuan += amount;
+            totalUp += up;
+            totalDown += down;
+            totalFlat += flat;
+          }
+
+          indices.push({
+            code,
+            name,
+            close,
+            change,
+            change_pct: changePct,
+            amount,
+            up_count: up,
+            down_count: down,
+            flat_count: flat,
+          });
+        }
+
+        const totalTurnoverYi = Math.round(totalTurnoverYuan / 100000000);
+        const turnoverText =
+          totalTurnoverYi >= 10000
+            ? `${(totalTurnoverYi / 10000).toFixed(2)}万亿`
+            : `${totalTurnoverYi}亿`;
+
+        return {
+          indices,
+          total_turnover: totalTurnoverYi,
+          total_turnover_text: turnoverText,
+          up_count: totalUp,
+          down_count: totalDown,
+          flat_count: totalFlat,
+        };
+      }
+    }
+  } catch (e) {
+    console.warn("[QuotesService] 东方财富指数接口重试降级:", e);
+  }
+
+  // 2. 备用：腾讯与新浪双通道互备抓取
   try {
     const [resTencent, resSina] = await Promise.allSettled([
       fetch("https://qt.gtimg.cn/q=s_sh000001,s_sz399001,s_sz399006,s_sh000688", {
         cache: "no-store",
         headers: { "User-Agent": "Mozilla/5.0" },
-        signal: AbortSignal.timeout(4000),
+        signal: AbortSignal.timeout(3500),
       }),
       fetch("https://hq.sinajs.cn/list=s_sh000001,s_sz399001,s_sz399006,s_sh000688", {
         cache: "no-store",
@@ -306,7 +372,7 @@ export async function fetchRealIndicesAndTurnover(): Promise<RealMarketSnapshotD
           "User-Agent": "Mozilla/5.0",
           Referer: "https://finance.sina.com.cn",
         },
-        signal: AbortSignal.timeout(4000),
+        signal: AbortSignal.timeout(3500),
       }),
     ]);
 
@@ -342,9 +408,6 @@ export async function fetchRealIndicesAndTurnover(): Promise<RealMarketSnapshotD
               change,
               change_pct: changePct,
               amount,
-              up_count: code === "000001" ? 1420 : code === "399001" ? 1885 : 0,
-              down_count: code === "000001" ? 785 : code === "399001" ? 1092 : 0,
-              flat_count: 50,
             });
           }
         }
@@ -379,36 +442,30 @@ export async function fetchRealIndicesAndTurnover(): Promise<RealMarketSnapshotD
 
     const tencentYi = tencentWan > 0 ? Math.round(tencentWan / 10000) : 0;
     const sinaYi = sinaWan > 0 ? Math.round(sinaWan / 10000) : 0;
-
-    let finalTurnoverYi = 19603;
-    if (tencentYi >= 5000) {
-      finalTurnoverYi = tencentYi;
-    } else if (sinaYi >= 5000) {
-      finalTurnoverYi = sinaYi;
-    }
+    const finalTurnoverYi = tencentYi >= 1000 ? tencentYi : sinaYi;
 
     const turnoverText =
       finalTurnoverYi >= 10000
         ? `${(finalTurnoverYi / 10000).toFixed(2)}万亿`
-        : `${finalTurnoverYi}亿`;
+        : finalTurnoverYi > 0 ? `${finalTurnoverYi}亿` : "--";
 
     return {
-      indices: indices.length >= 2 ? indices : fallbackIndices,
+      indices,
       total_turnover: finalTurnoverYi,
       total_turnover_text: turnoverText,
-      up_count: 3305,
-      down_count: 1877,
-      flat_count: 102,
+      up_count: 0,
+      down_count: 0,
+      flat_count: 0,
     };
   } catch (err) {
-    console.error("[QuotesService] 指数与量能抓取异常:", err);
+    console.error("[QuotesService] 行情接口全源无响应:", err);
     return {
-      indices: fallbackIndices,
-      total_turnover: 19603,
-      total_turnover_text: "1.96万亿",
-      up_count: 3305,
-      down_count: 1877,
-      flat_count: 102,
+      indices: [],
+      total_turnover: 0,
+      total_turnover_text: "行情未响应",
+      up_count: 0,
+      down_count: 0,
+      flat_count: 0,
     };
   }
 }

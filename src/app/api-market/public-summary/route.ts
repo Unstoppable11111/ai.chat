@@ -6,20 +6,23 @@ export async function GET() {
   try {
     const arenaSummary = await getPublicArenaSummary();
 
-    let turnoverYi = 19200;
-    let turnoverLabel = "1.92万亿";
-    let upCount = 3305;
-    let downCount = 1877;
-    let limitUp = 73;
-    let limitDown = 0;
+    let turnoverYi: number | null = null;
+    let turnoverLabel = "--";
+    let upCount: number | null = null;
+    let downCount: number | null = null;
+    let limitUp: number | null = null;
+    let limitDown: number | null = null;
+    let leaders: string[] = [];
 
     try {
       const marketSnapshot = await fetchRealIndicesAndTurnover();
       if (marketSnapshot.total_turnover > 0) {
         turnoverYi = marketSnapshot.total_turnover;
-        turnoverLabel = marketSnapshot.total_turnover >= 10000 
-          ? `${(marketSnapshot.total_turnover / 10000).toFixed(2)}万亿`
-          : `${marketSnapshot.total_turnover.toFixed(0)}亿`;
+        turnoverLabel = marketSnapshot.total_turnover_text || (
+          marketSnapshot.total_turnover >= 10000 
+            ? `${(marketSnapshot.total_turnover / 10000).toFixed(2)}万亿`
+            : `${marketSnapshot.total_turnover.toFixed(0)}亿`
+        );
       }
       if (marketSnapshot.up_count) upCount = marketSnapshot.up_count;
       if (marketSnapshot.down_count) downCount = marketSnapshot.down_count;
@@ -29,8 +32,13 @@ export async function GET() {
 
     try {
       const sentiment = await getRealMarketSentiment();
-      if (sentiment?.limit_up_count) limitUp = sentiment.limit_up_count;
-      if (sentiment?.limit_down_count) limitDown = sentiment.limit_down_count;
+      if (sentiment) {
+        limitUp = sentiment.limit_up_count;
+        limitDown = sentiment.limit_down_count;
+        if (sentiment.highest_limit_leaders?.length) {
+          leaders = sentiment.highest_limit_leaders;
+        }
+      }
     } catch {
       // 容错
     }
@@ -38,16 +46,16 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       market_pulse: {
-        state: "主升攻坚",
-        style: "科技成长 · 游资龙头",
-        suggested_position: "65%~85%",
+        state: upCount && downCount ? (upCount > downCount ? "偏多震荡攻坚" : "结构分化整固") : "大盘评估中",
+        style: "科技成长 · 核心资产",
+        suggested_position: "动态仓位评估",
         turnover_label: turnoverLabel,
         turnover_yi: turnoverYi,
         up_count: upCount,
         down_count: downCount,
         limit_up_count: limitUp,
         limit_down_count: limitDown,
-        mainlines: ["CPO光模块", "连板龙头", "半导体中军"],
+        mainlines: leaders.length > 0 ? leaders : ["热点轮动监测中"],
       },
       strategies: arenaSummary.accounts,
       rankings: arenaSummary.rankings,
