@@ -126,15 +126,16 @@ export default function MarketDashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [tradingStatus, setTradingStatus] = useState<AShareTradingStatus>(() => checkAShareTradingTime());
+  const [tradingStatus, setTradingStatus] = useState<AShareTradingStatus>({ isTrading:false, phase:"PRE_OPEN", statusText:"正在校准时钟", detail:"正在读取北京时间", cstTimeStr:"--:--:--", nextSessionHint:"" });
   const [toastMsg, setToastMsg] = useState<{ text: string; type: "info" | "success" | "warning" } | null>(null);
 
   // 严格核验 A 股交易时钟：每 10 秒评估一次开盘/闭市状态
   useEffect(() => {
+    const initialTimer = setTimeout(() => setTradingStatus(checkAShareTradingTime()), 0);
     const timer = setInterval(() => {
       setTradingStatus(checkAShareTradingTime());
     }, 10000);
-    return () => clearInterval(timer);
+    return () => { clearTimeout(initialTimer); clearInterval(timer); };
   }, []);
 
   // 股票模糊联想搜索状态
