@@ -34,7 +34,9 @@ import { SignalCenterView } from "@/components/market/signal-center-view";
 import { RiskCenterView } from "@/components/market/risk-center-view";
 import { StrategyExperimentsView } from "@/components/market/strategy-experiments-view";
 import { MorningBriefingHero } from "@/components/market/morning-briefing-hero";
+import { MarketSentimentMetricsBar } from "@/components/market/market-sentiment-metrics-bar";
 import { checkAShareTradingTime, AShareTradingStatus } from "@/lib/trading-hours";
+import type { MarketSentimentMetrics } from "@/lib/quotes-service";
 import { PaperTradeForm } from "@/components/market/paper-trade-form";
 import { WorkspaceLogout } from "@/components/market/workspace-access";
 import {
@@ -105,6 +107,7 @@ interface MarketSnapshot {
   down_count?: number;
   flat_count?: number;
   volume_metrics?: Record<string, unknown>;
+  sentiment_metrics?: MarketSentimentMetrics | null;
   last_updated: string;
 }
 
@@ -539,6 +542,9 @@ export default function MarketDashboardPage() {
         {/* ========================================================================= */}
         {activeTab === "cockpit" && (
           <div className="space-y-6 animate-in fade-in duration-300">
+            {/* 全市场短线量化盘口与独家特色指标大屏 (黄金首屏呈现，一目了然) */}
+            <MarketSentimentMetricsBar initialMetrics={marketData?.sentiment_metrics} />
+
             {/* 全景核心 4 联指标看板 */}
             {marketData || marketRegime ? (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

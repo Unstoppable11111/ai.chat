@@ -32,6 +32,15 @@ export interface TradeEvent {
   pnl_pct?: number;
   pnl_amount?: number;
   reason: string;
+  // 穿透式量化决策与明细字段
+  entry_price?: number;          // 买入价格/成本价
+  entry_time?: string;           // 买入确切时间 (如 "09-07 09:42")
+  entry_reason?: string;         // 买入量化决策依据
+  exit_reason?: string;          // 卖出量化决策依据
+  position_before_pct?: number;  // 调仓前仓位比例 (如 68.8%)
+  position_after_pct?: number;   // 调仓后仓位比例 (如 0.0%)
+  strategy_win_rate?: number;    // 策略整体历史胜率 (如 77.8%)
+  selection_win_rate?: number;   // 该战法/标的历史选股胜率 (如 77.8%)
 }
 
 export interface DailyPnlCandle {
