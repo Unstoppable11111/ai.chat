@@ -41,6 +41,7 @@ import { StrategyExperimentsView } from "@/components/market/strategy-experiment
 import { MorningBriefingHero } from "@/components/market/morning-briefing-hero";
 import { checkAShareTradingTime, AShareTradingStatus } from "@/lib/trading-hours";
 import { PaperTradeForm } from "@/components/market/paper-trade-form";
+import { WorkspaceLogout } from "@/components/market/workspace-access";
 import {
   ArenaAccount,
   StrategyType,
@@ -480,6 +481,8 @@ export default function MarketDashboardPage() {
               <Bot className="w-3.5 h-3.5 text-cyan-400 group-hover:text-white transition-colors" />
               JARVIS COPILOT
             </button>
+
+            <WorkspaceLogout />
           </div>
         </div>
 

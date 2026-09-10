@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: "投研工作台", description: "独�
 export default async function MarketLayout({ children }: { children: React.ReactNode }) {
   const owner = await verifySession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!owner) return <WorkspaceLogin configured={authConfigured()} />;
-  return <><div className="container-shell flex justify-end pt-4"><WorkspaceLogout /></div>{children}</>;
+  return <>{children}</>;
 }
