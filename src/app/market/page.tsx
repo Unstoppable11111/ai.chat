@@ -344,7 +344,7 @@ export default function MarketDashboardPage() {
     if (!id) return;
     if (!confirm("确定要删除这笔持仓吗？")) return;
     try {
-      const res = await fetch(`/api-portfolio?id=${id}&userId=default_user`, {
+      const res = await fetch(`/api-portfolio?id=${id}`, {
         method: "DELETE",
       });
       if (res.ok) {

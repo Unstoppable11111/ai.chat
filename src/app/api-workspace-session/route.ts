@@ -12,18 +12,22 @@ export async function POST(request: Request) {
   try {
     if (!await takeQuota(`login:${clientKey(request)}`, 8, 15 * 60 * 1000)) return NextResponse.json({ error: "尝试过于频繁，请稍后再试" }, { status: 429 });
     const body = await readJsonBody(request, 4096);
-    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const identifier = typeof body.username === "string" && body.username.trim() 
+      ? body.username.trim() 
+      : (typeof body.email === "string" ? body.email.trim() : "");
     const password = body.password;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || typeof password !== "string" || password.length < 12 || password.length > 128) return NextResponse.json({ error: "请输入有效邮箱和 12–128 位密码" }, { status: 400 });
+    if (!identifier || identifier.length < 2 || identifier.length > 64 || typeof password !== "string" || password.length < 6 || password.length > 128) {
+      return NextResponse.json({ error: "请输入有效账号（2–64 位）和至少 6 位密码" }, { status: 400 });
+    }
     let userId: string;
     if (body.action === "register") {
       if (process.env.ALLOW_REGISTRATION === "false") return NextResponse.json({ error: "当前未开放注册" }, { status: 403 });
-      userId = await registerUser(email, password);
+      userId = await registerUser(identifier, password);
     } else {
-      const user = await findUser(email);
+      const user = await findUser(identifier);
       // Run the password derivation even when the account does not exist.
       const hash = user?.password_hash || `${"0".repeat(32)}:${"0".repeat(128)}`;
-      if (!await checkPassword(password, hash) || !user) return NextResponse.json({ error: "邮箱或密码不正确" }, { status: 401 });
+      if (!await checkPassword(password, hash) || !user) return NextResponse.json({ error: "账号或密码不正确" }, { status: 401 });
       userId = user.id;
     }
     const response = NextResponse.json({ success: true });
@@ -31,7 +35,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     const duplicate = (error as { code?: string }).code === "ER_DUP_ENTRY";
-    return NextResponse.json({ error: duplicate ? "无法注册该邮箱，请登录或联系站点管理员" : "账户服务暂不可用，请稍后重试" }, { status: duplicate ? 409 : 503 });
+    return NextResponse.json({ error: duplicate ? "该账号已被注册，请直接登录" : "账户服务暂不可用，请稍后重试" }, { status: duplicate ? 409 : 503 });
   }
 }
 export async function DELETE(request: Request) {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CurrentlyBuilding } from "@/components/home/currently-building";
+import { QuantArenaPreview } from "@/components/home/quant-arena-preview";
 import { FeaturedExperiments } from "@/components/home/featured-experiments";
 import { HeroSection } from "@/components/home/hero-section";
 import { LatestBuildLogs } from "@/components/home/latest-build-logs";
@@ -24,6 +25,7 @@ export default async function HomePage() {
       <PageIntro>
         <HeroSection />
         <CurrentlyBuilding />
+        <QuantArenaPreview />
         <StackingPanels />
         <FeaturedExperiments items={experimentEntries} />
         <LatestBuildLogs items={buildLogs} />
