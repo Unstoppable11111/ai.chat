@@ -16,6 +16,7 @@ if [ -e "$DEPLOY_PATH/current" ] && [ ! -L "$DEPLOY_PATH/current" ]; then
   exit 1
 fi
 old_link="$(readlink "$DEPLOY_PATH/current" || true)"
+old_release="$(readlink -f "$DEPLOY_PATH/current" || true)"
 old_cwd="$(pm2 jlist | node -e 'let raw="";process.stdin.on("data",d=>raw+=d);process.stdin.on("end",()=>{const p=JSON.parse(raw).find(p=>p.name===process.argv[1]);process.stdout.write(p?.pm2_env?.pm_cwd||"")})' "$PM2_APP_NAME")"
 release_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 release="$DEPLOY_PATH/releases/$release_id"
@@ -87,6 +88,10 @@ if [ "$live_ready" = true ]; then
   mv -Tf "$DEPLOY_PATH/current.next-$$" "$DEPLOY_PATH/current"
   pm2 save
   echo "Release $release_id is healthy"
+  # Retain the actual previous process directory, not merely the newest timestamp.
+  if ! node "$release/scripts/prune-releases.mjs" "$DEPLOY_PATH" "$release" "${old_cwd:-$old_release}"; then
+    echo "Warning: release cleanup failed; the healthy deployment remains active" >&2
+  fi
   exit 0
 fi
 echo "New process failed health checks; restoring the previous application" >&2
