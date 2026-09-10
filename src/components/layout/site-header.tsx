@@ -1,17 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Hand, Menu, Sparkles, X } from "lucide-react";
+import { Command, Hand, Menu, Sparkles, X, User, LogOut, ChevronDown, TrendingUp, Bot } from "lucide-react";
 import { navigation, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth/auth-provider";
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const { user, openAuthModal, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -101,6 +117,72 @@ export function SiteHeader() {
               <span>手势互动</span>
             </a>
 
+            {/* 全局账户登录 / 用户状态胶囊 */}
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-800 shadow-sm hover:bg-cyan-500/20 transition-all cursor-pointer"
+                >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-[10px] font-bold text-white uppercase shadow-xs">
+                    {user.username.slice(0, 1)}
+                  </span>
+                  <span className="max-w-[70px] sm:max-w-[110px] truncate font-mono text-xs">{user.username}</span>
+                  <ChevronDown className={cn("h-3.5 w-3.5 text-slate-500 transition-transform duration-200", userMenuOpen && "rotate-180")} />
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl p-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
+                    <div className="px-3 py-2 border-b border-slate-100">
+                      <p className="text-[10px] text-muted-foreground">当前已登录账号</p>
+                      <p className="font-semibold text-slate-800 truncate font-mono text-sm mt-0.5">{user.username}</p>
+                    </div>
+                    <div className="py-1 space-y-0.5">
+                      <Link
+                        href="/market"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                      >
+                        <TrendingUp className="h-3.5 w-3.5 text-cyan-600" />
+                        <span>量化投研工作台</span>
+                      </Link>
+                      <Link
+                        href="/chat"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                      >
+                        <Bot className="h-3.5 w-3.5 text-cyan-600" />
+                        <span>贾维斯专属 AI 记忆</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setUserMenuOpen(false);
+                          await logout();
+                          if (pathname.startsWith("/market")) {
+                            window.location.assign("/market");
+                          }
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="h-3.5 w-3.5" />
+                        <span>退出当前账号</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-slate-900/8 bg-white/70 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 shadow-sm hover:border-cyan-500/40 hover:text-cyan-700 transition-all cursor-pointer"
+              >
+                <User className="h-3.5 w-3.5 text-slate-500" />
+                <span>登录 / 注册</span>
+              </button>
+            )}
+
             <button
               type="button"
               className="flex shrink-0 items-center gap-2 rounded-full border border-slate-900/8 bg-white/70 px-3 py-2 text-sm text-muted-foreground shadow-sm hover:text-foreground"
@@ -165,6 +247,46 @@ export function SiteHeader() {
                   </Link>
                 );
               })}
+            </div>
+
+            {/* 移动端账户快捷面板 */}
+            <div className="mt-3 pt-3 border-t border-slate-900/8 px-1">
+              {user ? (
+                <div className="flex items-center justify-between px-3 py-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-600 text-white text-[11px] font-bold">
+                      {user.username.slice(0, 1)}
+                    </span>
+                    <span className="font-mono text-xs text-slate-800 truncate max-w-[140px]">{user.username}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setMobileMenuOpen(false);
+                      await logout();
+                      if (pathname.startsWith("/market")) {
+                        window.location.assign("/market");
+                      }
+                    }}
+                    className="text-xs text-rose-600 flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>退出</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    openAuthModal("login");
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium text-xs shadow-sm cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>登录 / 注册账号</span>
+                </button>
+              )}
             </div>
           </div>
         )}

@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
-import { authConfigured, clientKey, readJsonBody, requestOwner, sameOrigin, sessionToken, SESSION_COOKIE, SESSION_SECONDS, takeQuota } from "@/lib/server-security";
-import { checkPassword, findUser, issueSession, registerUser, revokeSession } from "@/lib/auth-db";
+import { authConfigured, clientKey, readJsonBody, sameOrigin, sessionToken, SESSION_COOKIE, SESSION_SECONDS, takeQuota } from "@/lib/server-security";
+import { checkPassword, findUser, issueSession, registerUser, revokeSession, sessionUserDetails } from "@/lib/auth-db";
 
 export async function GET(request: Request) {
-  const userId = await requestOwner(request);
-  return NextResponse.json({ authenticated: !!userId, scope: userId || "anonymous", configured: authConfigured() }, { headers: { "Cache-Control": "no-store" } });
+  const token = sessionToken(request);
+  const details = await sessionUserDetails(token);
+  return NextResponse.json({
+    authenticated: !!details,
+    userId: details?.userId ?? null,
+    username: details?.username ?? null,
+    scope: details?.userId || "anonymous",
+    configured: authConfigured()
+  }, { headers: { "Cache-Control": "no-store" } });
 }
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return NextResponse.json({ error: "请求来源不允许" }, { status: 403 });

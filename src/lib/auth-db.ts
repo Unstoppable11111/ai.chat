@@ -36,6 +36,14 @@ export async function sessionUser(token: string | undefined) {
     return (await executeQuery<{ user_id: string }>("SELECT s.user_id FROM studio_sessions s JOIN studio_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>NOW() AND u.disabled=0 LIMIT 1", [tokenHash(token)]))?.[0]?.user_id ?? null;
   } catch { return null; }
 }
+export async function sessionUserDetails(token: string | undefined) {
+  if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
+  try {
+    const row = (await executeQuery<{ user_id: string; email: string }>("SELECT s.user_id, u.email FROM studio_sessions s JOIN studio_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>NOW() AND u.disabled=0 LIMIT 1", [tokenHash(token)]))?.[0];
+    return row ? { userId: row.user_id, username: row.email } : null;
+  } catch { return null; }
+}
 export async function revokeSession(token: string) {
   await executeWrite("DELETE FROM studio_sessions WHERE token_hash=?", [tokenHash(token)]);
 }
+

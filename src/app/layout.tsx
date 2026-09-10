@@ -9,6 +9,8 @@ import { BackToTop } from "@/components/shared/back-to-top";
 import { siteConfig } from "@/data/site";
 import "./globals.css";
 import { ChatProvider } from "@/components/chat/chat-provider";
+import { AuthProvider } from "@/components/auth/auth-provider";
+import { AuthModal } from "@/components/auth/auth-modal";
 
 const geistSans = { variable: "--font-geist-sans" };
 const geistMono = { variable: "--font-geist-mono" };
@@ -62,18 +64,21 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full bg-background text-foreground">
-        <ChatProvider>
-        <AnimatedBackground />
-        <InteractiveEffects />
-        <div className="relative z-10 flex min-h-screen flex-col">
-          <SiteHeader />
-          <main className="flex-1 pt-24">{children}</main>
-          <SiteFooter />
-        </div>
-        <ChatWidget />
-        <BackToTop />
-        <CommandMenu />
-        </ChatProvider>
+        <AuthProvider>
+          <ChatProvider>
+            <AnimatedBackground />
+            <InteractiveEffects />
+            <div className="relative z-10 flex min-h-screen flex-col">
+              <SiteHeader />
+              <main className="flex-1 pt-24">{children}</main>
+              <SiteFooter />
+            </div>
+            <ChatWidget />
+            <BackToTop />
+            <CommandMenu />
+            <AuthModal />
+          </ChatProvider>
+        </AuthProvider>
       </body>
     </html>
   );
