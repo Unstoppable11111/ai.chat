@@ -36,15 +36,13 @@ export async function GET() {
     const downCount = directData.down_count || 0;
     const flatCount = directData.flat_count || 0;
 
-    const baseMa5 = 15200;
-    const diffMa5Pct = realSentiment?.volume_diff_pct ?? (totalTurnover > 0 ? parseFloat((((totalTurnover - baseMa5) / baseMa5) * 100).toFixed(1)) : 15.9);
+    const multiVol = realSentiment?.multi_day_volume;
+    const diffMa5Pct = multiVol?.ma5_diff_pct ?? realSentiment?.volume_diff_pct ?? 0;
     const volumeMetrics = {
       today: totalTurnover,
-      volume_ma5: baseMa5,
-      volume_ma5_ratio: realSentiment?.volume_ma5_ratio ?? 1.16,
-      volume_ma20: 14800,
+      volume_ma5_ratio: multiVol?.ma5_ratio ?? realSentiment?.volume_ma5_ratio ?? 1.0,
       diff_ma5_pct: diffMa5Pct,
-      percentile: 82,
+      multi_day_volume: multiVol,
       is_trading_hours: isTradingHours,
       status_label: isTradingHours ? "盘中交投动态累积中" : (diffMa5Pct >= 0 ? `放量 +${diffMa5Pct}%` : `缩量 ${diffMa5Pct}%`),
       status_detail: isTradingHours 
