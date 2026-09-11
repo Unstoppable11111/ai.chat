@@ -6,7 +6,7 @@ import { PelicanArena } from "@/components/experiments/pelican-arena";
 
 export const metadata: Metadata = {
   title: "鹈鹕骑车 · AI 跨模型趣味盲测竞技场",
-  description: "同一个高难度 SVG 动画 Prompt『鹈鹕骑车』下，国内外 5 大顶尖大模型（DeepSeek、Kimi、GPT-4o、Gemini、Grok）的代码与动效大乱斗。",
+  description: "同一个高难度 SVG 动画 Prompt『鹈鹕骑车』下，国内外 5 大顶尖大模型（DeepSeek、Kimi、GPT、Gemini、Grok）的代码与动效大乱斗。",
   alternates: { canonical: "/experiments/pelican" },
 };
 

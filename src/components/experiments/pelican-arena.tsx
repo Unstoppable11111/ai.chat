@@ -41,7 +41,7 @@ export interface ModelEntry {
 export const MODELS: ModelEntry[] = [
   {
     id: "deepseek",
-    name: "DeepSeek-V3",
+    name: "DeepSeek",
     provider: "深度求索 (DeepSeek)",
     country: "CN",
     flag: "🇨🇳",
@@ -58,7 +58,7 @@ export const MODELS: ModelEntry[] = [
   },
   {
     id: "kimi",
-    name: "Kimi k1.5",
+    name: "Kimi",
     provider: "月之暗面 (Moonshot AI)",
     country: "CN",
     flag: "🇨🇳",
@@ -75,7 +75,7 @@ export const MODELS: ModelEntry[] = [
   },
   {
     id: "gpt",
-    name: "GPT-4o",
+    name: "GPT",
     provider: "OpenAI",
     country: "US",
     flag: "🇺🇸",
@@ -92,8 +92,8 @@ export const MODELS: ModelEntry[] = [
   },
   {
     id: "gemini",
-    name: "Gemini 2.5 Pro",
-    provider: "Google DeepMind",
+    name: "Gemini",
+    provider: "Google",
     country: "US",
     flag: "🇺🇸",
     countryName: "国外模型",
@@ -109,7 +109,7 @@ export const MODELS: ModelEntry[] = [
   },
   {
     id: "grok",
-    name: "Grok-3",
+    name: "Grok",
     provider: "xAI",
     country: "US",
     flag: "🇺🇸",
