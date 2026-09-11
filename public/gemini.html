@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>鹈鹕骑自行车动画</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(180deg, #bbf2f6 0%, #e0f7fa 65%, #c8e6c9 65%, #a5d6a7 100%);
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 15px 15px rgba(0, 0, 0, 0.15));
+        }
+
+        /* ====== 动画定义 ====== */
+
+        /* 车轮与曲柄旋转动画 */
+        .wheel-spin {
+            transform-origin: center;
+            animation: spin 1.2s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 整体骑行颠簸起伏 */
+        .bike-bounce {
+            animation: bounce 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(-5px) rotate(-0.5deg);
+            }
+        }
+
+        /* 鹈鹕身体/头部节奏摆动 */
+        .pelican-body {
+            transform-origin: 390px 240px;
+            animation: body-nod 1.2s ease-in-out infinite;
+        }
+
+        @keyframes body-nod {
+
+            0%,
+            100% {
+                transform: rotate(0deg) translateY(0);
+            }
+
+            50% {
+                transform: rotate(2.5deg) translateY(3px);
+            }
+        }
+
+        /* 鹈鹕大喉囊微微晃动 */
+        .pouch-wobble {
+            transform-origin: 470px 145px;
+            animation: wobble 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes wobble {
+            0% {
+                transform: scaleY(1);
+            }
+
+            100% {
+                transform: scaleY(1.08) scaleX(0.98);
+            }
+        }
+
+        /* 背景云朵漂移 */
+        .cloud-slow {
+            animation: cloudMove 16s linear infinite;
+        }
+
+        .cloud-fast {
+            animation: cloudMove 10s linear infinite;
+        }
+
+        @keyframes cloudMove {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-400px);
+            }
+        }
+
+        /* 地面虚线疾驰效果 */
+        .road-line {
+            stroke-dasharray: 20, 20;
+            animation: roadDash 0.4s linear infinite;
+        }
+
+        @keyframes roadDash {
+            to {
+                stroke-dashoffset: -40;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- 车轮组件定义 -->
+                <g id="wheel">
+                    <!-- 轮胎外圈 -->
+                    <circle cx="0" cy="0" r="65" fill="none" stroke="#263238" stroke-width="12" />
+                    <circle cx="0" cy="0" r="59" fill="none" stroke="#eceff1" stroke-width="3" />
+                    <!-- 辐条 -->
+                    <line x1="-59" y1="0" x2="59" y2="0" stroke="#90a4ae" stroke-width="2.5" />
+                    <line x1="0" y1="-59" x2="0" y2="59" stroke="#90a4ae" stroke-width="2.5" />
+                    <line x1="-42" y1="-42" x2="42" y2="42" stroke="#90a4ae" stroke-width="2.5" />
+                    <line x1="-42" y1="42" x2="42" y2="-42" stroke="#90a4ae" stroke-width="2.5" />
+                    <!-- 轴心 -->
+                    <circle cx="0" cy="0" r="10" fill="#37474f" />
+                    <circle cx="0" cy="0" r="4" fill="#cfd8dc" />
+                </g>
+            </defs>
+
+            <!-- 背景装饰：飘动的白云 -->
+            <g opacity="0.8">
+                <g class="cloud-slow">
+                    <path d="M 680 90 q -20 -30 -50 -10 q -30 -15 -50 15 q -25 5 -15 30 h 125 q 15 -20 -10 -35 z"
+                        fill="#ffffff" />
+                    <path d="M 1080 90 q -20 -30 -50 -10 q -30 -15 -50 15 q -25 5 -15 30 h 125 q 15 -20 -10 -35 z"
+                        fill="#ffffff" />
+                </g>
+                <g class="cloud-fast">
+                    <path d="M 350 60 q -15 -20 -35 -5 q -20 -10 -35 10 q -18 5 -10 20 h 90 q 10 -15 -10 -25 z"
+                        fill="#ffffff" />
+                    <path d="M 750 60 q -15 -20 -35 -5 q -20 -10 -35 10 q -18 5 -10 20 h 90 q 10 -15 -10 -25 z"
+                        fill="#ffffff" />
+                </g>
+            </g>
+
+            <!-- 地面与骑行标线 -->
+            <line x1="0" y1="410" x2="800" y2="410" stroke="#37474f" stroke-width="4" />
+            <line class="road-line" x1="0" y1="430" x2="800" y2="430" stroke="#78909c" stroke-width="3" />
+
+            <!-- 主运动体：鹈鹕与自行车 -->
+            <g class="bike-bounce">
+
+                <!-- ===== 自行车部分 ===== -->
+
+                <!-- 后轮 (中心: 240, 360) -->
+                <g transform="translate(240, 360)">
+                    <use href="#wheel" class="wheel-spin" />
+                </g>
+
+                <!-- 前轮 (中心: 540, 360) -->
+                <g transform="translate(540, 360)">
+                    <use href="#wheel" class="wheel-spin" />
+                </g>
+
+                <!-- 车架组 -->
+                <!-- 后下叉 (后轴到中轴) -->
+                <line x1="240" y1="360" x2="380" y2="360" stroke="#e53935" stroke-width="9" stroke-linecap="round" />
+                <!-- 后上叉 (后轴到座管口) -->
+                <line x1="240" y1="360" x2="340" y2="260" stroke="#e53935" stroke-width="9" stroke-linecap="round" />
+                <!-- 立管 (中轴到座管口) -->
+                <line x1="380" y1="360" x2="340" y2="260" stroke="#e53935" stroke-width="9" stroke-linecap="round" />
+                <!-- 下管 (中轴到车头) -->
+                <line x1="380" y1="360" x2="490" y2="230" stroke="#e53935" stroke-width="9" stroke-linecap="round" />
+                <!-- 上管 (座管口到车头) -->
+                <line x1="340" y1="260" x2="490" y2="230" stroke="#e53935" stroke-width="9" stroke-linecap="round" />
+                <!-- 前叉 (车头到前轴) -->
+                <line x1="490" y1="230" x2="540" y2="360" stroke="#d32f2f" stroke-width="9" stroke-linecap="round" />
+
+                <!-- 车把立管与车把手 -->
+                <line x1="490" y1="230" x2="480" y2="190" stroke="#b0bec5" stroke-width="7" stroke-linecap="round" />
+                <path d="M 465 190 L 495 190 Q 515 190 510 215" fill="none" stroke="#37474f" stroke-width="6"
+                    stroke-linecap="round" />
+
+                <!-- 座管与车鞍座 -->
+                <line x1="340" y1="260" x2="335" y2="240" stroke="#b0bec5" stroke-width="7" />
+                <path d="M 305 240 Q 340 235 365 245 Q 345 255 305 240 Z" fill="#263238" />
+
+                <!-- 牙盘齿轮与曲柄脚踏 (中心: 380, 360) -->
+                <circle cx="380" cy="360" r="22" fill="#78909c" />
+                <circle cx="380" cy="360" r="15" fill="#455a64" />
+                <g transform="translate(380, 360)">
+                    <g class="wheel-spin">
+                        <!-- 上曲柄 -->
+                        <line x1="0" y1="0" x2="0" y2="-28" stroke="#cfd8dc" stroke-width="6" stroke-linecap="round" />
+                        <polygon points="-8,-28 8,-28 8,-33 -8,-33" fill="#263238" />
+                        <!-- 下曲柄 -->
+                        <line x1="0" y1="0" x2="0" y2="28" stroke="#cfd8dc" stroke-width="6" stroke-linecap="round" />
+                        <polygon points="-8,28 8,28 8,33 -8,33" fill="#263238" />
+                    </g>
+                </g>
+
+                <!-- ===== 鹈鹕角色部分 ===== -->
+                <g class="pelican-body">
+                    <!-- 尾羽 -->
+                    <polygon points="280,240 260,230 275,250 255,250 280,265" fill="#eceff1" />
+
+                    <!-- 身体躯干 -->
+                    <ellipse cx="360" cy="235" rx="65" ry="48" fill="#ffffff" stroke="#cfd8dc" stroke-width="3" />
+
+                    <!-- 伸向脚踏板的脚 -->
+                    <polyline points="370,265 375,310 380,332" fill="none" stroke="#f57c00" stroke-width="6"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <!-- 蹼足踩在踏板上 -->
+                    <polygon points="365,332 395,332 390,338 365,338" fill="#e65100" />
+
+                    <!-- 翅膀 -->
+                    <path d="M 330 220 C 340 260, 390 270, 405 225 C 385 210, 345 205, 330 220 Z" fill="#cfd8dc"
+                        stroke="#b0bec5" stroke-width="2" />
+
+                    <!-- 脖子与头部 -->
+                    <path
+                        d="M 390 230 C 420 220, 425 150, 435 125 C 442 105, 475 105, 475 125 C 475 145, 430 180, 415 245 Z"
+                        fill="#ffffff" />
+                    <!-- 头部微整圆润 -->
+                    <circle cx="455" cy="120" r="22" fill="#ffffff" />
+
+                    <!-- 眼睛 -->
+                    <circle cx="463" cy="115" r="5.5" fill="#263238" />
+                    <circle cx="465" cy="113" r="2" fill="#ffffff" />
+
+                    <!-- 鹈鹕标志性嘴与巨大喉囊 -->
+                    <!-- 上喙（长而尖） -->
+                    <path d="M 465 110 L 565 130 C 565 135, 555 138, 545 138 L 470 128 Z" fill="#ffa726"
+                        stroke="#f57c00" stroke-width="1.5" />
+                    <!-- 喙尖小勾 -->
+                    <path d="M 565 130 Q 568 135 562 137" fill="none" stroke="#e65100" stroke-width="2.5"
+                        stroke-linecap="round" />
+
+                    <!-- 下喉囊 (大口袋带晃动动画) -->
+                    <g class="pouch-wobble">
+                        <path d="M 470 128 L 555 138 C 540 185, 460 190, 442 142 Z" fill="#ffb74d" stroke="#f57c00"
+                            stroke-width="2" opacity="0.95" />
+                        <!-- 喉囊内部质感条纹 -->
+                        <path d="M 475 136 Q 485 170 510 162" fill="none" stroke="#ffa726" stroke-width="2" />
+                        <path d="M 495 138 Q 508 165 530 152" fill="none" stroke="#ffa726" stroke-width="2" />
+                    </g>
+
+                    <!-- 握住车把的手臂/翅尖 -->
+                    <path d="M 375 220 C 420 200, 460 215, 500 200" fill="none" stroke="#ffffff" stroke-width="10"
+                        stroke-linecap="round" />
+                    <!-- 握把羽毛小爪 -->
+                    <circle cx="498" cy="200" r="7" fill="#cfd8dc" />
+                </g>
+
+                <!-- 车轮中心装饰螺帽 (覆盖在上层) -->
+                <circle cx="240" cy="360" r="5" fill="#eceff1" />
+                <circle cx="540" cy="360" r="5" fill="#eceff1" />
+            </g>
+        </svg>
+    </div>
+
+</body>
+
+</html>
