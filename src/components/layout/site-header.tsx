@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Hand, Menu, Sparkles, X, User, LogOut, ChevronDown, TrendingUp, Bot } from "lucide-react";
+import { Command, Hand, Menu, Sparkles, X, User, LogOut, ChevronDown, TrendingUp, Bot, Trophy } from "lucide-react";
 import { navigation, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -116,6 +116,14 @@ export function SiteHeader() {
               <Hand className="h-3.5 w-3.5 animate-pulse text-brand-violet" />
               <span>手势互动</span>
             </a>
+
+            <Link
+              href="/experiments/pelican"
+              className="relative hidden items-center gap-1.5 overflow-hidden rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3.5 py-2 text-sm font-medium text-cyan-700 shadow-sm transition-all duration-300 hover:scale-105 hover:border-cyan-500/40 hover:bg-cyan-500/10 hover:shadow-md hover:shadow-cyan-500/5 lg:flex"
+            >
+              <Trophy className="h-3.5 w-3.5 text-cyan-600" />
+              <span>鹈鹕盲测</span>
+            </Link>
 
             {/* 全局账户登录 / 用户状态胶囊 */}
             {user ? (
