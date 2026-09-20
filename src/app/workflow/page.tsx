@@ -194,7 +194,7 @@ export default function WorkflowPage() {
     };
 
     try {
-      const response = await fetch("/api/workflow/novel", {
+      const response = await fetch("/api-workflow/novel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestPayload),
