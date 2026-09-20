@@ -1,0 +1,777 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Sparkles,
+  Sliders,
+  Play,
+  Square,
+  RotateCcw,
+  BookOpen,
+  Clapperboard,
+  FileSpreadsheet,
+  FileText,
+  Download,
+  AlertCircle,
+} from "lucide-react";
+import { WorkflowIntro } from "@/components/workflow/workflow-intro";
+import { ConfigModal } from "@/components/workflow/config-modal";
+import {
+  PipelineStepper,
+  type StepItem,
+  type StepStatus,
+} from "@/components/workflow/pipeline-stepper";
+import { NovelViewer } from "@/components/workflow/novel-viewer";
+import { VideoPromptBoard } from "@/components/workflow/video-prompt-board";
+import { PitchCard } from "@/components/workflow/pitch-card";
+import type {
+  BibleData,
+  ChapterData,
+  PitchNoteData,
+  VideoPromptItem,
+  WorkflowConfig,
+  WorkflowResult,
+  WorkflowSSEEvent,
+} from "@/types/workflow";
+
+const INITIAL_STEPS: StepItem[] = [
+  {
+    id: "step_1_bible",
+    name: "Step 1: 世界观与人物细纲 (Bible)",
+    description: "全局世界观、主要人物卡、核心伏笔清单与分章细纲",
+    status: "idle",
+  },
+  {
+    id: "step_2_chapters",
+    name: "Step 2: 逐章长文本正文 (Chapters)",
+    description: "大纲驱动 + 滚动事实摘要上下文连续推进",
+    status: "idle",
+  },
+  {
+    id: "step_3_video_prompts",
+    name: "Step 3: 电影级 AI 视频分镜 (Video Prompts)",
+    description: "提炼 3~4 个高潮镜头，适配 Kling / Runway 4K/24fps",
+    status: "idle",
+  },
+  {
+    id: "step_4_polish",
+    name: "Step 4: 去 AI 味短句化重构 (Polish)",
+    description: "剔除空洞套话，拆分为 15 字以内短句，增强对白攻击性",
+    status: "idle",
+  },
+  {
+    id: "step_5_pitch",
+    name: "Step 5: 商业投稿与卖点包装 (Pitch Note)",
+    description: "核心受众圈层、对标爆款、付费卡点与投稿提案",
+    status: "idle",
+  },
+];
+
+const LOCAL_STORAGE_KEY = "chen_ai_workflow_latest_v1";
+const LOCAL_CONFIG_KEY = "chen_ai_workflow_config_v1";
+
+export default function WorkflowPage() {
+  const [prompt, setPrompt] = useState("");
+  const [config, setConfig] = useState<WorkflowConfig>({
+    prompt: "",
+    genre: "都市异能",
+    style: "快节奏爽感、电影质感",
+    chapterCount: 3,
+    targetWordCount: 1200,
+    deAiLevel: "medium",
+    customSystemPrompt: "",
+    model: "deepseek-chat",
+  });
+
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [steps, setSteps] = useState<StepItem[]>(INITIAL_STEPS);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+  // 流水线产物状态
+  const [bible, setBible] = useState<BibleData | null>(null);
+  const [chapters, setChapters] = useState<ChapterData[]>([]);
+  const [pitch, setPitch] = useState<PitchNoteData | null>(null);
+
+  // 打字机流式文本
+  const [streamingText, setStreamingText] = useState("");
+  const [streamingChapter, setStreamingChapter] = useState(1);
+  const [activeTab, setActiveTab] = useState<"novel" | "video" | "pitch" | "bible">("novel");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 从本地缓存恢复历史记录和配置
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const savedConfig = localStorage.getItem(LOCAL_CONFIG_KEY);
+        if (savedConfig) {
+          setConfig((prev) => ({ ...prev, ...JSON.parse(savedConfig) }));
+        }
+        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedResult) {
+          const parsed: WorkflowResult = JSON.parse(savedResult);
+          setPrompt(parsed.prompt || "");
+          setBible(parsed.bible || null);
+          setChapters(parsed.chapters || []);
+          setPitch(parsed.pitch || null);
+          setSteps((prev) =>
+            prev.map((s) => ({ ...s, status: "completed" as StepStatus }))
+          );
+        }
+      } catch {
+        // 忽略缓存读取错误
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 更新配置项并保存
+  const handleConfigChange = (updated: Partial<WorkflowConfig>) => {
+    setConfig((prev) => {
+      const next = { ...prev, ...updated };
+      try {
+        localStorage.setItem(LOCAL_CONFIG_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  // 选择预设灵感
+  const handleSelectPreset = (p: string, g: string, s: string) => {
+    setPrompt(p);
+    handleConfigChange({ genre: g, style: s });
+  };
+
+  // 终止执行
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsRunning(false);
+    setSteps((prev) =>
+      prev.map((s) => (s.status === "running" ? { ...s, status: "idle" } : s))
+    );
+  };
+
+  // 重置工作流
+  const handleReset = () => {
+    if (isRunning) handleStop();
+    setPrompt("");
+    setBible(null);
+    setChapters([]);
+    setPitch(null);
+    setStreamingText("");
+    setErrorMessage(null);
+    setSteps(INITIAL_STEPS);
+    setCurrentStepIndex(0);
+    try {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    } catch {}
+  };
+
+  // 启动工业化流水线
+  const handleStartPipeline = async () => {
+    if (!prompt.trim()) {
+      setErrorMessage("请先输入小说的核心灵感或基础设定");
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsRunning(true);
+    setStreamingText("");
+    setSteps(INITIAL_STEPS.map((s) => ({ ...s, status: "idle" })));
+    setCurrentStepIndex(0);
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    const requestPayload: WorkflowConfig = {
+      ...config,
+      prompt: prompt.trim(),
+    };
+
+    try {
+      const response = await fetch("/api/workflow/novel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestPayload),
+        signal: abortController.signal,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP 异常: ${response.status}`);
+      }
+
+      if (!response.body) throw new Error("服务器未返回流数据");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith(":")) continue;
+          if (trimmed.startsWith("data: ")) {
+            try {
+              const event: WorkflowSSEEvent = JSON.parse(trimmed.slice(6));
+
+              // 处理 STEP_START
+              if (event.type === "STEP_START") {
+                const stepKey = event.step;
+                if (stepKey.startsWith("chapter_")) {
+                  const chNum = parseInt(stepKey.replace("chapter_", ""), 10);
+                  setStreamingChapter(chNum);
+                  setStreamingText("");
+                  setActiveTab("novel");
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === "step_2_chapters"
+                        ? { ...s, status: "running", detail: event.label }
+                        : s
+                    )
+                  );
+                } else if (stepKey.startsWith("video_ch_")) {
+                  setActiveTab("video");
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === "step_3_video_prompts"
+                        ? { ...s, status: "running", detail: event.label }
+                        : s
+                    )
+                  );
+                } else if (stepKey.startsWith("polish_ch_")) {
+                  setActiveTab("novel");
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === "step_4_polish"
+                        ? { ...s, status: "running", detail: event.label }
+                        : s
+                    )
+                  );
+                } else {
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === stepKey
+                        ? { ...s, status: "running", detail: event.label }
+                        : s
+                    )
+                  );
+                  const idx = INITIAL_STEPS.findIndex((s) => s.id === stepKey);
+                  if (idx !== -1) setCurrentStepIndex(idx);
+                }
+              }
+
+              // 处理 CHUNK
+              if (event.type === "CHUNK" && event.text) {
+                setStreamingText((prev) => prev + event.text);
+              }
+
+              // 处理 STEP_COMPLETE
+              if (event.type === "STEP_COMPLETE") {
+                const stepKey = event.step;
+                const data = event.data as Record<string, unknown> | undefined;
+
+                if (stepKey === "step_1_bible" && data?.bible) {
+                  setBible(data.bible as BibleData);
+                  setStreamingText("");
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === "step_1_bible"
+                        ? { ...s, status: "completed", detail: undefined }
+                        : s
+                    )
+                  );
+                } else if (stepKey.startsWith("chapter_") && data) {
+                  const chNum = Number(data.chapter_number) || 1;
+                  const chTitle = String(data.title || `第 ${chNum} 章`);
+                  const chContent = String(data.content || "");
+                  setChapters((prev) => {
+                    const existing = prev.findIndex(
+                      (c) => c.chapter_number === chNum
+                    );
+                    const newChapter: ChapterData = {
+                      chapter_number: chNum,
+                      title: chTitle,
+                      summary: "",
+                      raw_content: chContent,
+                      polished_content: "",
+                      video_prompts: [],
+                    };
+                    if (existing !== -1) {
+                      const updated = [...prev];
+                      updated[existing] = { ...updated[existing], ...newChapter };
+                      return updated;
+                    }
+                    return [...prev, newChapter];
+                  });
+                  setStreamingText("");
+                } else if (stepKey === "step_2_chapters" && data?.chapters) {
+                  setChapters(data.chapters as ChapterData[]);
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === "step_2_chapters"
+                        ? { ...s, status: "completed", detail: undefined }
+                        : s
+                    )
+                  );
+                } else if (stepKey.startsWith("video_ch_") && data) {
+                  const chNum = Number(data.chapter_number);
+                  const prompts = (data.video_prompts as VideoPromptItem[]) || [];
+                  setChapters((prev) =>
+                    prev.map((c) =>
+                      c.chapter_number === chNum
+                        ? { ...c, video_prompts: prompts }
+                        : c
+                    )
+                  );
+                } else if (stepKey === "step_3_video_prompts" && data?.chapters) {
+                  setChapters(data.chapters as ChapterData[]);
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === "step_3_video_prompts"
+                        ? { ...s, status: "completed", detail: undefined }
+                        : s
+                    )
+                  );
+                } else if (stepKey.startsWith("polish_ch_") && data) {
+                  const chNum = Number(data.chapter_number);
+                  const polished = String(data.polished_content || "");
+                  setChapters((prev) =>
+                    prev.map((c) =>
+                      c.chapter_number === chNum
+                        ? { ...c, polished_content: polished }
+                        : c
+                    )
+                  );
+                } else if (stepKey === "step_4_polish" && data?.chapters) {
+                  setChapters(data.chapters as ChapterData[]);
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === "step_4_polish"
+                        ? { ...s, status: "completed", detail: undefined }
+                        : s
+                    )
+                  );
+                } else if (stepKey === "step_5_pitch" && data?.pitch) {
+                  setPitch(data.pitch as PitchNoteData);
+                  setActiveTab("pitch");
+                  setSteps((prev) =>
+                    prev.map((s) =>
+                      s.id === "step_5_pitch"
+                        ? { ...s, status: "completed", detail: undefined }
+                        : s
+                    )
+                  );
+                }
+              }
+
+              // 处理 ALL_COMPLETE
+              if (event.type === "ALL_COMPLETE" && event.result) {
+                const finalResult = event.result;
+                setBible(finalResult.bible);
+                setChapters(finalResult.chapters);
+                setPitch(finalResult.pitch);
+                setSteps((prev) =>
+                  prev.map((s) => ({ ...s, status: "completed", detail: undefined }))
+                );
+                setIsRunning(false);
+                try {
+                  localStorage.setItem(
+                    LOCAL_STORAGE_KEY,
+                    JSON.stringify(finalResult)
+                  );
+                } catch {}
+              }
+
+              // 处理 ERROR
+              if (event.type === "ERROR") {
+                setErrorMessage(event.error || "执行出错");
+                setIsRunning(false);
+                setSteps((prev) =>
+                  prev.map((s) =>
+                    s.status === "running" ? { ...s, status: "error" } : s
+                  )
+                );
+              }
+            } catch (err) {
+              console.error("解析 SSE 事件错误:", err);
+            }
+          }
+        }
+      }
+    } catch (err: unknown) {
+      const isAbort =
+        err instanceof Error &&
+        (err.name === "AbortError" || err.message === "Client aborted");
+      if (!isAbort) {
+        const msg =
+          err instanceof Error ? err.message : "请求失败，请检查网络或配置";
+        setErrorMessage(msg);
+        setSteps((prev) =>
+          prev.map((s) =>
+            s.status === "running" ? { ...s, status: "error" } : s
+          )
+        );
+      }
+    } finally {
+      setIsRunning(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  // 导出全部工程为 JSON
+  const handleExportJson = () => {
+    if (!bible && !chapters.length) return;
+    const projectData = {
+      title: bible?.title || "Novel_Project",
+      exportTime: new Date().toISOString(),
+      prompt,
+      config,
+      bible,
+      chapters,
+      pitch,
+    };
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${bible?.title || "novel_project"}_full.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="container-shell mx-auto py-6 sm:py-8 space-y-6">
+      {/* 顶部介绍与赛道选择 */}
+      <WorkflowIntro onSelectPreset={handleSelectPreset} />
+
+      {/* 参数调优抽屉弹窗 */}
+      <ConfigModal
+        isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        config={config}
+        onChange={handleConfigChange}
+      />
+
+      {/* 错误提示横幅 */}
+      {errorMessage && (
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-rose-200 bg-rose-50/90 p-4 text-xs sm:text-sm text-rose-800 shadow-2xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setErrorMessage(null)}
+            className="rounded-lg px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+          >
+            关闭
+          </button>
+        </div>
+      )}
+
+      {/* 核心双栏栅格布局 */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* 左栏：创作输入与流水线控制器 (占 4 列) */}
+        <div className="lg:col-span-4 space-y-5">
+          {/* 输入控制台卡片 */}
+          <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-5 shadow-xs backdrop-blur-md space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">故事灵感与设定</h2>
+                  <p className="text-[11px] text-muted-foreground">
+                    {config.genre} · {config.chapterCount}章 · {config.style?.slice(0, 8)}...
+                  </p>
+                </div>
+              </div>
+
+              {/* 参数调优入口 */}
+              <button
+                type="button"
+                onClick={() => setIsConfigOpen(true)}
+                className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-cyan-500/40 hover:text-cyan-700 transition-all shadow-2xs cursor-pointer"
+              >
+                <Sliders className="h-3.5 w-3.5" />
+                <span>配置参数</span>
+              </button>
+            </div>
+
+            {/* 灵感输入框 */}
+            <div className="space-y-1.5">
+              <textarea
+                rows={5}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                disabled={isRunning}
+                placeholder="在此输入故事初始构思、核心悬念或反转设定...（例如：外科医生获得三秒时空回溯能力，在救女过程中卷入跨国活体长生阴谋）"
+                className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden disabled:bg-slate-50 transition-all resize-none shadow-2xs leading-relaxed"
+              />
+            </div>
+
+            {/* 动作按钮组 */}
+            <div className="flex items-center gap-2 pt-1">
+              {isRunning ? (
+                <button
+                  type="button"
+                  onClick={handleStop}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-sm cursor-pointer"
+                >
+                  <Square className="h-4 w-4 fill-current" />
+                  <span>中止流水线</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleStartPipeline}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-cyan-500/15 cursor-pointer"
+                >
+                  <Play className="h-4 w-4 fill-current" />
+                  <span>启动工业化流水线</span>
+                </button>
+              )}
+
+              {/* 重置按钮 */}
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={isRunning}
+                className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all disabled:opacity-40 shadow-2xs cursor-pointer"
+                title="重置当前工程"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </button>
+
+              {/* 导出 JSON 按钮 */}
+              {(bible || chapters.length > 0) && (
+                <button
+                  type="button"
+                  onClick={handleExportJson}
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all shadow-2xs cursor-pointer"
+                  title="导出全套工程 JSON"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 左侧五步流水线状态轴 */}
+          <PipelineStepper
+            steps={steps}
+            currentStepIndex={currentStepIndex}
+            onRetry={handleStartPipeline}
+            isRunning={isRunning}
+          />
+        </div>
+
+        {/* 右栏：多维视窗看板 (占 8 列) */}
+        <div className="lg:col-span-8 flex flex-col space-y-4">
+          {/* 右栏顶部 Tab 切换胶囊 */}
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 overflow-x-auto hide-scrollbar">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab("novel")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === "novel"
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-white"
+                }`}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                <span>小说正文打字机</span>
+                {chapters.length > 0 && (
+                  <span className="rounded-full bg-slate-700 px-1.5 py-0.2 text-[10px] font-mono">
+                    {chapters.length}章
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("video")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === "video"
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-white"
+                }`}
+              >
+                <Clapperboard className="h-3.5 w-3.5" />
+                <span>电影级分镜看板</span>
+                {chapters.some((c) => c.video_prompts?.length) && (
+                  <span className="rounded-full bg-blue-500 px-1.5 py-0.2 text-[10px] font-mono text-white">
+                    {chapters.reduce((a, c) => a + (c.video_prompts?.length || 0), 0)}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("pitch")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === "pitch"
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-white"
+                }`}
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                <span>商业投稿包装</span>
+                {pitch && (
+                  <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("bible")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === "bible"
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-white"
+                }`}
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                <span>设定集 Bible</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Tab 内容区 */}
+          <div className="flex-1 min-h-[480px]">
+            {activeTab === "novel" && (
+              <NovelViewer
+                bible={bible}
+                chapters={chapters}
+                streamingText={streamingText}
+                streamingChapter={streamingChapter}
+                isStreaming={isRunning && steps[1].status === "running"}
+              />
+            )}
+
+            {activeTab === "video" && <VideoPromptBoard chapters={chapters} />}
+
+            {activeTab === "pitch" && <PitchCard pitch={pitch} />}
+
+            {activeTab === "bible" && (
+              <div className="rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs backdrop-blur-md space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900">
+                      作品设定集与人物卡 (Bible)
+                    </h2>
+                    <p className="text-[11px] text-muted-foreground">
+                      世界观、角色卡、伏笔清单与分章细纲
+                    </p>
+                  </div>
+                  {bible && (
+                    <span className="text-xs font-bold text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded-xl border border-cyan-200">
+                      《{bible.title}》
+                    </span>
+                  )}
+                </div>
+
+                {bible ? (
+                  <div className="space-y-4 text-xs">
+                    {/* 一句话核心梗概 */}
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 space-y-1">
+                      <p className="font-bold text-slate-800">一句话核心钩子</p>
+                      <p className="text-slate-600">{bible.logline}</p>
+                    </div>
+
+                    {/* 世界观 */}
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 space-y-1">
+                      <p className="font-bold text-slate-800">底层世界观与规则</p>
+                      <p className="text-slate-600 leading-relaxed">{bible.worldview}</p>
+                    </div>
+
+                    {/* 人物卡 */}
+                    <div className="space-y-2">
+                      <p className="font-bold text-slate-800">主要人物卡 ({bible.characters.length})</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {bible.characters.map((char, idx) => (
+                          <div
+                            key={idx}
+                            className="rounded-xl border border-slate-100 bg-white p-3 space-y-1"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900">{char.name}</span>
+                              <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
+                                {char.role}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-600">
+                              <strong>性格：</strong>{char.personality}
+                            </p>
+                            <p className="text-[11px] text-slate-600">
+                              <strong>动机：</strong>{char.motivation}
+                            </p>
+                            {char.visual_traits && (
+                              <p className="text-[11px] text-slate-500">
+                                <strong>视觉：</strong>{char.visual_traits}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 章节细纲 */}
+                    <div className="space-y-2">
+                      <p className="font-bold text-slate-800">分章细纲 ({bible.outlines.length})</p>
+                      <div className="space-y-2">
+                        {bible.outlines.map((ot) => (
+                          <div
+                            key={ot.chapter_number}
+                            className="rounded-xl border border-slate-100 bg-white p-3 space-y-1"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900">
+                                第 {ot.chapter_number} 章：{ot.title}
+                              </span>
+                            </div>
+                            <p className="text-slate-600">
+                              <strong>目标：</strong>{ot.goal}
+                            </p>
+                            <p className="text-slate-600">
+                              <strong>冲突：</strong>{ot.conflict}
+                            </p>
+                            <p className="text-cyan-700">
+                              <strong>章末悬念：</strong>{ot.hook}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400">
+                    <BookOpen className="h-8 w-8 mb-2 opacity-50" />
+                    <p className="text-xs">等待流水线 Step 1 生成作品设定集...</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

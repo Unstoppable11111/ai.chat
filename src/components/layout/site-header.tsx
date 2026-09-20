@@ -83,7 +83,7 @@ export function SiteHeader() {
 
           <nav className="hidden shrink-0 items-center gap-0 xl:flex" aria-label="主导航">
             {navigation
-              .filter((item) => ["/", "/projects", "/build-log", "/news", "/chat"].includes(item.href))
+              .filter((item) => ["/", "/projects", "/build-log", "/news", "/chat", "/workflow"].includes(item.href))
               .map((item) => {
                 const active = pathname === item.href;
 
