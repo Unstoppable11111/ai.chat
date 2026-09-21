@@ -16,70 +16,93 @@ export const maxDuration = 300; // 支持长耗时处理
 import {
   resolveValidBaseUrl,
   generateFallbackSvgCover,
+  buildCinematicCoverPrompt,
+  buildFluxImageUrl,
 } from "@/lib/workflow-utils.mjs";
 
 const encoder = new TextEncoder();
 
 /**
- * 调用图片生成 API 为第一章生成小说封面，带全自动优雅降级 (结合主人公与主要场景)
+ * 根据全书大纲与核心冲突生成电影级商业海报封面 (DALL-E-3 HD / FLUX.1 双引擎高质感出图)
  */
 async function generateNovelCoverImage(options: {
   title: string;
   genre: string;
-  worldview: string;
-  firstChapterText: string;
+  style?: string;
+  worldview?: string;
   protagonist?: string;
   mainScene?: string;
+  coreConflict?: string;
   baseUrl: string;
   apiKey: string;
 }): Promise<string> {
   const protagonistDesc = options.protagonist || "沉着内敛的逆光探索者";
   const sceneDesc = options.mainScene || "破晓都市与深邃光影交织的核心场景";
 
-  const fallback = generateFallbackSvgCover(
-    options.title,
-    options.genre,
-    protagonistDesc,
-    sceneDesc
-  );
-  if (!options.apiKey) return fallback;
+  // 基于全书大纲、世界观与核心冲突提炼顶级电影海报 Prompt (8K 商业海报质感)
+  const cinematicPrompt = buildCinematicCoverPrompt({
+    title: options.title,
+    genre: options.genre,
+    style: options.style || "电影质感",
+    worldview: options.worldview || "",
+    protagonist: protagonistDesc,
+    mainScene: sceneDesc,
+    coreConflict: options.coreConflict || "",
+  });
 
-  try {
-    const prompt = `Epic cinematic blockbuster book cover poster for novel "${options.title}". Genre: ${options.genre}. Theme: ${options.worldview.slice(0, 120)}. Protagonist: ${protagonistDesc.slice(0, 100)}. Main setting: ${sceneDesc.slice(0, 100)}. Dramatic volumetric rim lighting, photorealistic 8k, Unreal Engine 5 render, cinematic composition, depth of field, hyper-detailed, award-winning illustration, masterpiece, no text on artwork.`;
-    const url = `${options.baseUrl.replace(/\/+$/, "")}/images/generations`;
+  // 1. 若配置了有效的第三方 API Key，优先向 upstream 发起 DALL-E-3 高清渲染请求 (quality: hd, style: vivid)
+  if (options.apiKey) {
+    try {
+      const url = `${options.baseUrl.replace(/\/+$/, "")}/images/generations`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000); // 20秒超时保底
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${options.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "dall-e-3",
+          prompt: cinematicPrompt,
+          n: 1,
+          size: "1024x1024",
+          quality: "hd",
+          style: "vivid",
+        }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeout));
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${options.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "dall-e-3",
-        prompt,
-        n: 1,
-        size: "1024x1024",
-      }),
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeout));
-
-    if (res.ok) {
-      const data = await res.json().catch(() => null);
-      const imageUrl = data?.data?.[0]?.url || data?.data?.[0]?.b64_json;
-      if (imageUrl) {
-        return imageUrl.startsWith("http")
-          ? imageUrl
-          : `data:image/png;base64,${imageUrl}`;
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        const imageUrl = data?.data?.[0]?.url || data?.data?.[0]?.b64_json;
+        if (imageUrl) {
+          return imageUrl.startsWith("http")
+            ? imageUrl
+            : `data:image/png;base64,${imageUrl}`;
+        }
       }
+    } catch {
+      // upstream 渠道不可用时，无缝由顶级开源 FLUX.1 电影级生图引擎接管
     }
-  } catch {
-    // 降级兜底
   }
 
-  return fallback;
+  // 2. 核心升级：接入全球顶级开源 FLUX.1 真实出图引擎 (768x1024 纯正电影海报画幅，告别纯文字 SVG)
+  try {
+    const fluxUrl = buildFluxImageUrl(cinematicPrompt, {
+      width: 768,
+      height: 1024,
+    });
+    return fluxUrl;
+  } catch {
+    return generateFallbackSvgCover(
+      options.title,
+      options.genre,
+      protagonistDesc,
+      sceneDesc
+    );
+  }
 }
 
 /**
@@ -519,27 +542,29 @@ ${lastChapterTail ? lastChapterTail : "（本章为全书开篇，无需衔接�
             },
           });
 
-          // 当生成第一章时，立即调用图片接口生成一张小说封面
+          // 当生成第一章时，立即调用图片接口生成一张小说封面 (基于全书大纲提炼电影海报)
           if (chapterNumber === 1 && !generatedCoverUrl) {
             sendEvent({
               type: "STEP_START",
               step: "cover_generation",
-              label: "正在为小说调用图片接口生成专属定制封面...",
+              label: "正在基于全书大纲与主角人设生成电影级精美海报封面...",
             });
 
             const firstHero = bible.characters?.[0];
             const protagonistInfo = firstHero
               ? `${firstHero.name} (${firstHero.role || "主角"}，${firstHero.personality || ""}，${firstHero.appearance || "英姿挺拔，眼神如炬"})`
               : "核心主角逆光前行";
+            const mainConflict = outline.conflict || bible.logline || "宿命交锋";
             const firstScene = outline.title || outline.goal || "核心高能发生地";
 
             generatedCoverUrl = await generateNovelCoverImage({
               title: bible.title,
               genre,
+              style,
               worldview: bible.worldview,
-              firstChapterText: chapterText,
               protagonist: protagonistInfo,
               mainScene: firstScene,
+              coreConflict: mainConflict,
               baseUrl,
               apiKey,
             });

@@ -8,15 +8,16 @@ interface WorkflowIntroProps {
   onSelectPreset?: (prompt: string, genre: string, style: string) => void;
 }
 
+const INITIAL_INSPIRATIONS = WORKFLOW_INSPIRATIONS.slice(0, 4);
+
 function getRandomInspirations(count = 4): WorkflowInspiration[] {
   const shuffled = [...WORKFLOW_INSPIRATIONS].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
 }
 
 export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
-  const [inspirations, setInspirations] = useState<WorkflowInspiration[]>(() =>
-    getRandomInspirations(4)
-  );
+  // 服务端与客户端初次渲染必须保持完全一致，严禁在初始状态中使用 Math.random() 造成水合错误 (React error #418)
+  const [inspirations, setInspirations] = useState<WorkflowInspiration[]>(INITIAL_INSPIRATIONS);
   const [isRotating, setIsRotating] = useState(false);
 
   const handleRefresh = () => {

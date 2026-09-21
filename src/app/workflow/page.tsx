@@ -117,8 +117,8 @@ export default function WorkflowPage() {
   // 统一加载单本小说的专属参数与数据
   const loadProjectIntoState = (proj: WorkflowProject) => {
     setCurrentProjectId(proj.id);
-    setPrompt(proj.prompt || "");
-    const cleanedConfig = { ...proj.config };
+    setPrompt(proj.prompt || proj.config?.prompt || "");
+    const cleanedConfig = { ...DEFAULT_CONFIG, ...proj.config };
     if (cleanedConfig.baseUrl && !/^https?:\/\//i.test(cleanedConfig.baseUrl)) {
       cleanedConfig.baseUrl = "";
     }
@@ -186,26 +186,30 @@ export default function WorkflowPage() {
     };
   }, []);
 
-  // 保存工程列表到本地缓存并异步同步至用户绑定的云端数据库
-  const persistProjects = (updatedList: WorkflowProject[], targetToSync?: WorkflowProject) => {
+  // 仅在本地持久化工程列表 (纯更新 state 与 localStorage，绝不隐式触发网络 POST)
+  const persistProjectsLocally = (updatedList: WorkflowProject[]) => {
     setProjects(updatedList);
     try {
       localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(updatedList));
     } catch {}
+  };
 
-    // 同步写入 MySQL 数据库（绑定到当前登录用户）
-    const itemToSync =
-      targetToSync ||
-      (currentProjectId ? updatedList.find((p) => p.id === currentProjectId) : null) ||
-      updatedList[0];
+  // 显式异步保存指定小说项目至云端 MySQL 数据库
+  const syncProjectToCloud = (project: WorkflowProject) => {
+    if (!project || !project.id) return;
+    fetch("/api-workflow/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(project),
+    }).catch((err) => console.warn("[Workflow] 云端单书保存失败:", err));
+  };
 
-    if (itemToSync) {
-      fetch("/api-workflow/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(itemToSync),
-      }).catch((err) => console.warn("[Workflow] 云端同步提醒:", err));
-    }
+  // 显式异步从云端 MySQL 数据库删除指定小说项目
+  const deleteProjectFromCloud = (projectId: string) => {
+    if (!projectId) return;
+    fetch(`/api-workflow/projects?id=${encodeURIComponent(projectId)}`, {
+      method: "DELETE",
+    }).catch((err) => console.warn("[Workflow] 云端单书删除失败:", err));
   };
 
   // 切换选中某部小说：左边加载原来绑定的专属参数，右边展示小说章节信息与资产
@@ -242,31 +246,35 @@ export default function WorkflowPage() {
       const updated = [...filtered, newAsset];
 
       if (currentProjectId) {
-        const nextProjects = projects.map((p) =>
-          p.id === currentProjectId
-            ? { ...p, visual_assets: updated, updatedAt: new Date().toISOString() }
-            : p
-        );
-        persistProjects(nextProjects);
+        const targetProj = projects.find((p) => p.id === currentProjectId);
+        if (targetProj) {
+          const updatedProj: WorkflowProject = {
+            ...targetProj,
+            visual_assets: updated,
+            updatedAt: new Date().toISOString(),
+          };
+          const nextProjects = projects.map((p) =>
+            p.id === currentProjectId ? updatedProj : p
+          );
+          persistProjectsLocally(nextProjects);
+          syncProjectToCloud(updatedProj);
+        }
       }
       return updated;
     });
   };
 
-  // 删除某部小说 (同步清理本地和云端数据库)
+  // 删除某部小说 (彻底解耦：本地即时过滤 + 异步云端删除 + 避免闭包竞态)
   const handleDeleteProject = (projectId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const nextList = projects.filter((p) => p.id !== projectId);
-    persistProjects(nextList);
+    persistProjectsLocally(nextList);
+    deleteProjectFromCloud(projectId);
 
-    // 从云端数据库删除
-    fetch(`/api-workflow/projects?id=${encodeURIComponent(projectId)}`, {
-      method: "DELETE",
-    }).catch(() => {});
-
+    // 如果删除的是当前选中的小说项目
     if (currentProjectId === projectId) {
       if (nextList.length > 0) {
-        handleSelectProject(nextList[0].id);
+        loadProjectIntoState(nextList[0]);
       } else {
         handleCreateNew();
       }
@@ -279,13 +287,42 @@ export default function WorkflowPage() {
       const next = { ...prev, ...updated };
       // 若当前已处于某个小说工程中，同步持久化到该小说的专属绑定配置中
       if (currentProjectId) {
-        const nextProjects = projects.map((p) =>
-          p.id === currentProjectId ? { ...p, config: next, updatedAt: new Date().toISOString() } : p
-        );
-        persistProjects(nextProjects);
+        const targetProj = projects.find((p) => p.id === currentProjectId);
+        if (targetProj) {
+          const updatedProj: WorkflowProject = {
+            ...targetProj,
+            config: next,
+            updatedAt: new Date().toISOString(),
+          };
+          const nextProjects = projects.map((p) =>
+            p.id === currentProjectId ? updatedProj : p
+          );
+          persistProjectsLocally(nextProjects);
+          syncProjectToCloud(updatedProj);
+        }
       }
       return next;
     });
+  };
+
+  // 当 Prompt 输入框失焦时，持久化同步到当前小说绑定中 (避免每个按键都发起网络请求)
+  const handlePromptBlur = () => {
+    if (currentProjectId && prompt.trim()) {
+      const targetProj = projects.find((p) => p.id === currentProjectId);
+      if (targetProj && targetProj.prompt !== prompt.trim()) {
+        const updatedProj: WorkflowProject = {
+          ...targetProj,
+          prompt: prompt.trim(),
+          config: { ...targetProj.config, prompt: prompt.trim() },
+          updatedAt: new Date().toISOString(),
+        };
+        const nextProjects = projects.map((p) =>
+          p.id === currentProjectId ? updatedProj : p
+        );
+        persistProjectsLocally(nextProjects);
+        syncProjectToCloud(updatedProj);
+      }
+    }
   };
 
   // 选择预设创作赛道
@@ -323,12 +360,19 @@ export default function WorkflowPage() {
 
       // 同步持久化到当前选中小说项目中
       if (currentProjectId) {
-        const nextProjects = projects.map((p) =>
-          p.id === currentProjectId
-            ? { ...p, chapters: nextChapters, updatedAt: new Date().toISOString() }
-            : p
-        );
-        persistProjects(nextProjects);
+        const targetProj = projects.find((p) => p.id === currentProjectId);
+        if (targetProj) {
+          const updatedProj: WorkflowProject = {
+            ...targetProj,
+            chapters: nextChapters,
+            updatedAt: new Date().toISOString(),
+          };
+          const nextProjects = projects.map((p) =>
+            p.id === currentProjectId ? updatedProj : p
+          );
+          persistProjectsLocally(nextProjects);
+          syncProjectToCloud(updatedProj);
+        }
       }
 
       return nextChapters;
@@ -613,9 +657,12 @@ export default function WorkflowPage() {
                   } else {
                     updatedList = [newProject, ...prev];
                   }
-                  persistProjects(updatedList);
+                  try {
+                    localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(updatedList));
+                  } catch {}
                   return updatedList;
                 });
+                syncProjectToCloud(newProject);
               }
 
               // 处理 ERROR
@@ -764,10 +811,9 @@ export default function WorkflowPage() {
                 rows={5}
                 value={prompt}
                 onChange={(e) => {
-                  const val = e.target.value;
-                  setPrompt(val);
-                  handleConfigChange({ prompt: val });
+                  setPrompt(e.target.value);
                 }}
+                onBlur={handlePromptBlur}
                 disabled={isRunning}
                 placeholder="在此输入故事初始构思、核心悬念或反转设定...（例如：外科医生获得三秒时空回溯能力，在救女过程中卷入跨国活体长生阴谋）"
                 className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden disabled:bg-slate-50 transition-all resize-none shadow-2xs leading-relaxed"

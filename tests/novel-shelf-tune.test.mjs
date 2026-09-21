@@ -97,3 +97,30 @@ test("WORKFLOW_INSPIRATIONS contains at least 100 high-concept story presets", a
   assert.ok(WORKFLOW_INSPIRATIONS.length >= 100, `Expected >= 100, got ${WORKFLOW_INSPIRATIONS.length}`);
 });
 
+test("buildCinematicCoverPrompt generates rich 8k movie poster prompt from story bible", async () => {
+  const { buildCinematicCoverPrompt, buildFluxImageUrl } = await import("../src/lib/workflow-utils.mjs");
+  const prompt = buildCinematicCoverPrompt({
+    title: "《微观时间倒流三秒》",
+    genre: "都市异能",
+    style: "电影质感",
+    worldview: "微观量子回溯，暴雨连绵的赛博都市",
+    protagonist: "林渊 (急诊外科医生，眼神深邃，手持纳米手术刀)",
+    mainScene: "暴雨倾盆的手术室天台",
+    coreConflict: "阻止跨国生物集团的活体实验",
+  });
+
+  assert.ok(prompt.includes("微观时间倒流三秒"));
+  assert.ok(prompt.includes("8k"));
+  assert.ok(prompt.includes("Unreal Engine 5"));
+  assert.ok(prompt.includes("Protagonist:"));
+
+  const fluxUrl = buildFluxImageUrl(prompt, { width: 768, height: 1024 });
+  assert.ok(fluxUrl.startsWith("https://image.pollinations.ai/prompt/"));
+  assert.ok(fluxUrl.includes("width=768"));
+  assert.ok(fluxUrl.includes("height=1024"));
+  assert.ok(fluxUrl.includes("model=flux"));
+  assert.ok(fluxUrl.includes("nologo=true"));
+  assert.ok(fluxUrl.includes("enhance=true"));
+});
+
+

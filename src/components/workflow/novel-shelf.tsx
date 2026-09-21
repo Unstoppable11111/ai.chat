@@ -109,7 +109,7 @@ export function NovelShelf({
                     </span>
                     <span className="flex items-center gap-0.5 text-muted-foreground">
                       <Clock className="h-2.5 w-2.5" />
-                      {new Date(proj.createdAt).toLocaleDateString()}
+                      {proj.createdAt ? new Date(proj.createdAt).toISOString().slice(0, 10) : "刚刚"}
                     </span>
                   </div>
                 </div>

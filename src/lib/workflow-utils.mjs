@@ -383,3 +383,39 @@ export function generateSceneConceptSvg(options = {}) {
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
+
+/**
+ * 根据全书大纲 Bible 智能提炼电影级商业海报 Prompt (对标 Midjourney v6 / FLUX.1)
+ */
+export function buildCinematicCoverPrompt(options = {}) {
+  const {
+    title = "未命名故事",
+    genre = "都市异能",
+    style = "电影质感",
+    worldview = "",
+    protagonist = "",
+    mainScene = "",
+    coreConflict = "",
+  } = options;
+
+  const cleanTitle = String(title).replace(/[《》]/g, "").trim();
+  const heroPart = protagonist ? `Protagonist: ${protagonist.slice(0, 120)}.` : "Protagonist: Charismatic main character with intense focused gaze and signature weapon or relic.";
+  const scenePart = mainScene ? `Setting: ${mainScene.slice(0, 120)}.` : "Setting: Epic panoramic cyberpunk metropolis under rainstorm and neon glow.";
+  const themePart = worldview ? `World concept: ${worldview.slice(0, 150)}.` : "";
+  const conflictPart = coreConflict ? `Climax confrontation: ${coreConflict.slice(0, 100)}.` : "";
+
+  return `Masterpiece cinematic official movie poster for novel "${cleanTitle}". Genre: ${genre}, ${style}. ${heroPart} ${scenePart} ${themePart} ${conflictPart} Low-angle dramatic framing, volumetric atmospheric rim lighting, deep contrast shadows, Unreal Engine 5 render, ray-tracing, photorealistic 8k, IMAX scale, hyper-detailed texture, depth of field, award-winning concept art, no text, no letters, no watermark.`.trim();
+}
+
+/**
+ * 构造全球顶尖 FLUX.1 开源出图引擎高清渲染 URL
+ */
+export function buildFluxImageUrl(prompt, options = {}) {
+  const width = options.width || 768;
+  const height = options.height || 1024;
+  const seed = options.seed || Math.floor(Math.random() * 10000000);
+  const safePrompt = String(prompt || "").replace(/[\r\n\t]+/g, " ").trim().slice(0, 1000);
+  const encoded = encodeURIComponent(safePrompt);
+  return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&model=flux&nologo=true&enhance=true&seed=${seed}`;
+}
+

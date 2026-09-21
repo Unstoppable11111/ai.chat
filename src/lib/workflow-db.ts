@@ -28,11 +28,47 @@ function parseJsonField<T>(value: unknown, fallback: T): T {
   }
 }
 
+let isTableEnsured = false;
+
+/**
+ * 确保 workflow_projects 表结构存在，若不存在则自愈建表
+ */
+async function ensureWorkflowTable(): Promise<void> {
+  if (isTableEnsured) return;
+  try {
+    const ddl = `
+      CREATE TABLE IF NOT EXISTS workflow_projects (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        cover_url TEXT,
+        prompt TEXT,
+        genre VARCHAR(64),
+        style VARCHAR(64),
+        config JSON,
+        bible JSON,
+        chapters JSON,
+        pitch JSON,
+        visual_assets JSON,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_user_id (user_id),
+        INDEX idx_updated_at (updated_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `;
+    await executeWrite(ddl);
+    isTableEnsured = true;
+  } catch (err) {
+    console.warn("[workflow-db] ensureWorkflowTable warning:", err);
+  }
+}
+
 /**
  * 获取指定登录用户的所有小说项目
  */
 export async function listUserProjects(userId: string): Promise<WorkflowProject[]> {
   try {
+    await ensureWorkflowTable();
     const rows = await executeQuery<WorkflowProjectRow>(
       "SELECT * FROM workflow_projects WHERE user_id = ? ORDER BY updated_at DESC LIMIT 100",
       [userId]
@@ -84,6 +120,7 @@ export async function saveUserProject(
   project: WorkflowProject
 ): Promise<boolean> {
   try {
+    await ensureWorkflowTable();
     const sql = `
       INSERT INTO workflow_projects (
         id, user_id, title, cover_url, prompt, genre, style,
@@ -130,6 +167,7 @@ export async function saveUserProject(
  */
 export async function deleteUserProject(userId: string, projectId: string): Promise<boolean> {
   try {
+    await ensureWorkflowTable();
     await executeWrite(
       "DELETE FROM workflow_projects WHERE id = ? AND user_id = ?",
       [projectId, userId]

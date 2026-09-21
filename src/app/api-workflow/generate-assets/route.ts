@@ -3,6 +3,7 @@ import {
   generateCharacterPortraitSvg,
   generateSceneConceptSvg,
   resolveValidBaseUrl,
+  buildFluxImageUrl,
 } from "@/lib/workflow-utils.mjs";
 
 export const dynamic = "force-dynamic";
@@ -43,19 +44,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "资产名称不能为空" }, { status: 400 });
   }
 
-  // 1. 如果配置了可用的第三方生图 Key，尝试调用生图 API
+  // 1. 如果配置了可用的第三方生图 Key，尝试调用生图 API (DALL-E-3 高清质量)
   const cleanKey = apiKey.trim();
   const safeBaseUrl = resolveValidBaseUrl(baseUrl);
 
+  const prompt =
+    type === "character"
+      ? `Cinematic character portrait photo of ${name}, ${role}. Personality: ${personality}. Appearance: ${appearance}. Genre: ${genre}. Masterpiece, hyper-detailed face, volumetric rim lighting, 8k resolution, photorealistic, character design concept art, neutral dark background, no text.`
+      : `Cinematic wide-angle environment concept art of scene "${name}". Details: ${description || appearance}. Atmosphere: ${personality}. Genre: ${genre}. Dramatic lighting, 8k, Unreal Engine 5 render, award-winning illustration, masterpiece, no text.`;
+
   if (cleanKey) {
     try {
-      const prompt =
-        type === "character"
-          ? `Cinematic character portrait photo of ${name}, ${role}. Personality: ${personality}. Appearance: ${appearance}. Genre: ${genre}. Masterpiece, hyper-detailed face, volumetric rim lighting, 8k resolution, photorealistic, character design concept art, neutral dark background, no text.`
-          : `Cinematic wide-angle environment concept art of scene "${name}". Details: ${description || appearance}. Atmosphere: ${personality}. Genre: ${genre}. Dramatic lighting, 8k, Unreal Engine 5 render, award-winning illustration, masterpiece, no text.`;
-
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+      const timeout = setTimeout(() => controller.abort(), 12000);
 
       const res = await fetch(`${safeBaseUrl.replace(/\/+$/, "")}/images/generations`, {
         method: "POST",
@@ -68,6 +69,8 @@ export async function POST(request: NextRequest) {
           prompt,
           n: 1,
           size: "1024x1024",
+          quality: "hd",
+          style: "vivid",
         }),
         signal: controller.signal,
       }).finally(() => clearTimeout(timeout));
@@ -83,31 +86,43 @@ export async function POST(request: NextRequest) {
         }
       }
     } catch {
-      // 优雅降级到本地艺术矢量图
+      // 优雅降级到 FLUX.1 真实引擎
     }
   }
 
-  // 2. 本地电影级专属视觉矢量图降级生成
-  let fallbackUrl = "";
-  if (type === "character") {
-    fallbackUrl = generateCharacterPortraitSvg({
-      name,
-      role,
-      personality,
-      appearance: appearance || description,
-      genre,
+  // 2. 核心升级：接入全球顶级开源 FLUX.1 真实出图引擎 (立绘/场景大片真实呈现)
+  try {
+    const fluxUrl = buildFluxImageUrl(prompt, {
+      width: type === "character" ? 768 : 1024,
+      height: type === "character" ? 1024 : 576,
     });
-  } else {
-    fallbackUrl = generateSceneConceptSvg({
-      sceneTitle: name,
-      atmosphere: personality || "暗夜暴雨，光影交错",
-      elements: appearance || description || "核心交锋地貌",
-      genre,
+    return NextResponse.json({
+      success: true,
+      image_url: fluxUrl,
+    });
+  } catch {
+    // 3. 本地电影级专属视觉矢量图终极保底
+    let fallbackUrl = "";
+    if (type === "character") {
+      fallbackUrl = generateCharacterPortraitSvg({
+        name,
+        role,
+        personality,
+        appearance: appearance || description,
+        genre,
+      });
+    } else {
+      fallbackUrl = generateSceneConceptSvg({
+        sceneTitle: name,
+        atmosphere: personality || "暗夜暴雨，光影交错",
+        elements: appearance || description || "核心交锋地貌",
+        genre,
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      image_url: fallbackUrl,
     });
   }
-
-  return NextResponse.json({
-    success: true,
-    image_url: fallbackUrl,
-  });
 }
