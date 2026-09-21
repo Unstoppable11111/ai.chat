@@ -40,7 +40,10 @@ export async function migrateDatabase(db) {
     if (!userCols.some(c => c.Field === "is_admin")) {
       await db.query("ALTER TABLE studio_users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0");
     }
-    await db.execute("UPDATE studio_users SET is_admin = 1 WHERE email = 'chen' OR email LIKE 'chen@%' OR email LIKE '%chen%'");
+    if (!userCols.some(c => c.Field === "isadmin")) {
+      await db.query("ALTER TABLE studio_users ADD COLUMN isadmin BOOLEAN NOT NULL DEFAULT 0");
+    }
+    await db.execute("UPDATE studio_users SET is_admin = 1, isadmin = 1 WHERE email = 'chen' OR email LIKE 'chen@%' OR email LIKE '%chen%'");
   } catch (err) {
     console.warn("[migrateDatabase] studio_users is_admin check warning:", err);
   }

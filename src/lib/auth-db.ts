@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual, createHash } from "node:crypto";
 import { promisify } from "node:util";
-import { executeQuery, executeWrite } from "./db";
+import { executeQuery, executeWrite, executeRawQuery, executeRawDdl } from "./db";
 
 const scrypt = promisify(scryptCallback);
 export interface StudioUser {
@@ -8,6 +8,7 @@ export interface StudioUser {
   email: string;
   password_hash: string;
   is_admin?: boolean;
+  isadmin?: boolean;
 }
 export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -53,19 +54,33 @@ export async function revokeSession(token: string) {
 }
 
 /**
- * 确保 studio_users 拥有 is_admin 字段，并将 chen 账户设置为超级管理员
+ * 确保 studio_users 拥有 is_admin 与 isadmin 字段，并将 chen 账户设置为超级管理员
  */
 let isAdminEnsured = false;
 export async function ensureAdminField(): Promise<void> {
   if (isAdminEnsured) return;
   try {
-    const cols = await executeQuery<{ Field: string }>("SHOW COLUMNS FROM studio_users");
-    if (cols && !cols.some((c) => c.Field === "is_admin")) {
-      await executeWrite("ALTER TABLE studio_users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0");
+    const cols = await executeRawQuery<{ Field: string }>("SHOW COLUMNS FROM studio_users");
+    if (cols && cols.length > 0) {
+      if (!cols.some((c) => c.Field === "is_admin")) {
+        await executeRawDdl("ALTER TABLE studio_users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0");
+      }
+      if (!cols.some((c) => c.Field === "isadmin")) {
+        await executeRawDdl("ALTER TABLE studio_users ADD COLUMN isadmin BOOLEAN NOT NULL DEFAULT 0");
+      }
+    } else {
+      // 容错直接尝试 DDL
+      try {
+        await executeRawDdl("ALTER TABLE studio_users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0");
+      } catch {}
+      try {
+        await executeRawDdl("ALTER TABLE studio_users ADD COLUMN isadmin BOOLEAN NOT NULL DEFAULT 0");
+      } catch {}
     }
-    // 自动将包含或名为 chen 的账户设为超级管理员
-    await executeWrite(
-      "UPDATE studio_users SET is_admin = 1 WHERE email = 'chen' OR email LIKE 'chen@%' OR email LIKE '%chen%'"
+
+    // 自动将包含或名为 chen 的账户设为超级管理员 (同时写入两个字段)
+    await executeRawDdl(
+      "UPDATE studio_users SET is_admin = 1, isadmin = 1 WHERE email = 'chen' OR email LIKE 'chen@%' OR email LIKE '%chen%'"
     );
     isAdminEnsured = true;
   } catch (err) {
@@ -80,13 +95,13 @@ export async function isSuperAdmin(userId: string | null | undefined): Promise<b
   if (!userId) return false;
   try {
     await ensureAdminField();
-    const rows = await executeQuery<{ is_admin: number; email: string }>(
-      "SELECT is_admin, email FROM studio_users WHERE id = ? AND disabled = 0 LIMIT 1",
+    const rows = await executeQuery<{ is_admin?: number; isadmin?: number; email: string }>(
+      "SELECT email, is_admin, isadmin FROM studio_users WHERE id = ? AND disabled = 0 LIMIT 1",
       [userId]
     );
     if (!rows || rows.length === 0) return false;
     const user = rows[0];
-    if (Number(user.is_admin) === 1) return true;
+    if (Number(user.is_admin) === 1 || Number(user.isadmin) === 1) return true;
     // 智能兜底：账号名称为 chen 或包含 chen 的享有超级管理员权限
     const email = (user.email || "").toLowerCase();
     if (email === "chen" || email.startsWith("chen@") || email.includes("chen")) {
@@ -94,6 +109,16 @@ export async function isSuperAdmin(userId: string | null | undefined): Promise<b
     }
     return false;
   } catch {
+    try {
+      const fallbackRows = await executeQuery<{ email: string }>(
+        "SELECT email FROM studio_users WHERE id = ? AND disabled = 0 LIMIT 1",
+        [userId]
+      );
+      const email = (fallbackRows?.[0]?.email || "").toLowerCase();
+      if (email === "chen" || email.startsWith("chen@") || email.includes("chen")) {
+        return true;
+      }
+    } catch {}
     return false;
   }
 }

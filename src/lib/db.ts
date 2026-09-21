@@ -48,3 +48,16 @@ export async function executeWrite(sql: string, values: (string | number | boole
   const [result] = await currentPool.execute<mysql.ResultSetHeader>(sql, values);
   return result;
 }
+
+export async function executeRawDdl(sql: string): Promise<void> {
+  const currentPool = getDbPool();
+  if (!currentPool) return;
+  await currentPool.query(sql);
+}
+
+export async function executeRawQuery<T = unknown>(sql: string): Promise<T[] | null> {
+  const currentPool = getDbPool();
+  if (!currentPool) return null;
+  const [results] = await currentPool.query(sql);
+  return results as T[];
+}

@@ -159,7 +159,11 @@ export async function POST(request: NextRequest) {
 
   // 8. 优先使用用户自定义 Key，若无则使用站长 Key 与网关 (支持本地生图中间件免密请求)
   const effectiveApiKey = apiKey.trim() || process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "";
-  const effectiveBaseUrl = baseUrl.trim() || process.env.IMAGE_API_BASE_URL || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
+  const effectiveBaseUrl =
+    process.env.IMAGE_API_BASE_URL ||
+    (baseUrl && baseUrl !== "https://api.openai.com/v1" && baseUrl !== process.env.OPENAI_BASE_URL ? baseUrl : "") ||
+    process.env.OPENAI_BASE_URL ||
+    "https://newapi.chenyc.chat/v1";
 
   if (!effectiveApiKey && !process.env.IMAGE_API_BASE_URL) {
     return NextResponse.json(
@@ -171,7 +175,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 9. 调用 gemini-3-pro-image 进行高质量无水印出图
+  // 9. 调用官方生图服务 (多模型自动兼容、本地落盘)
   try {
     const imageUrl = await callGeminiImageGeneration({
       prompt,
@@ -179,7 +183,8 @@ export async function POST(request: NextRequest) {
       baseUrl: effectiveBaseUrl,
       model: "gemini-3-pro-image",
       size: type === "character" ? "1024x1024" : "1024x1024",
-      timeoutMs: 20000,
+      timeoutMs: 50000,
+      prefix: type === "character" ? "character" : "scene",
     });
 
     // 成功出图，汇报健康状态

@@ -85,10 +85,13 @@ async function generateNovelCoverImage(options: {
     );
   }
 
-  // 2. 统一调用 gemini-3-pro-image 生图服务 (支持本地中间件免密或站长 Key)
+  // 2. 统一调用官方生图服务 (支持本地 4981 免密直连、站长 Key、多模型自动兼容轮询)
   const effectiveApiKey = options.apiKey?.trim() || process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "";
   const effectiveBaseUrl =
-    options.baseUrl?.trim() || process.env.IMAGE_API_BASE_URL || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
+    process.env.IMAGE_API_BASE_URL ||
+    (options.baseUrl && options.baseUrl !== "https://api.openai.com/v1" && options.baseUrl !== process.env.OPENAI_BASE_URL ? options.baseUrl : "") ||
+    process.env.OPENAI_BASE_URL ||
+    "https://newapi.chenyc.chat/v1";
 
   try {
     const coverUrl = await callGeminiImageGeneration({
@@ -97,7 +100,8 @@ async function generateNovelCoverImage(options: {
       baseUrl: effectiveBaseUrl,
       model: "gemini-3-pro-image",
       size: "1024x1024",
-      timeoutMs: 20000,
+      timeoutMs: 50000,
+      prefix: "novel",
     });
 
     if (coverUrl) {
