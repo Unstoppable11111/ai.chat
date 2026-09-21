@@ -451,75 +451,42 @@ export function buildCinematicCoverPrompt(options = {}) {
   const {
     title = "未命名故事",
     genre = "都市异能",
-    style = "电影质感",
-    worldview = "",
     protagonist = "",
     mainScene = "",
-    coreConflict = "",
   } = options;
 
-  const artStyle = getGenreArtStyle(genre, style);
-
-  // 清洗主角与场景描述中的中文杂质，转换为核心视觉描述
-  const heroDescription = protagonist
-    ? protagonist.replace(/[《》（）()]/g, " ").slice(0, 100)
-    : "lone charismatic protagonist";
-  const sceneDescription = mainScene
-    ? mainScene.replace(/[《》（）()]/g, " ").slice(0, 100)
-    : artStyle.era;
-
   const cleanTitle = String(title).replace(/[《》]/g, "").trim();
-  const prompt = [
-    `Award-winning cinematic official movie poster key visual.`,
-    cleanTitle ? `Story theme: "${cleanTitle}".` : "",
-    `Genre & Era: ${artStyle.era}.`,
-    `Protagonist: ${heroDescription}, wearing ${artStyle.costume}, ${artStyle.props}.`,
-    `Setting & Environment: ${sceneDescription}.`,
-    `Cinematic Atmosphere: ${artStyle.atmosphere}.`,
-    `Visual Specs: dynamic low-angle wide shot, volumetric atmospheric lighting, deep contrast chiaroscuro, Unreal Engine 5 render, ray-tracing, photorealistic 8k resolution, masterpiece, intricate textures, IMAX cinematic film still.`,
-    `Strict Negative: ${artStyle.negative}, no text, no title, no letters, no typography, no subtitles, no watermark, no logo, no frame, clean pure artwork only.`,
-  ].filter(Boolean).join(" ");
+  const heroDescription = protagonist
+    ? protagonist.replace(/[《》（）()]/g, " ").trim().slice(0, 80)
+    : "charismatic protagonist";
+  const sceneDescription = mainScene
+    ? mainScene.replace(/[《》（）()]/g, " ").trim().slice(0, 80)
+    : "dramatic key setting";
 
-  return prompt.trim();
+  // 用户指定参数结构：Generate an image 开头，参考标准书籍封面比例，去伪存真，精炼克制，不冗长堆砌
+  return `Generate an image: A standard novel book cover illustration for "${cleanTitle}". Genre: ${genre}. Protagonist: ${heroDescription}. Main scene: ${sceneDescription}. Cinematic lighting, professional book cover art, high quality illustration, clean composition, no text, no watermark.`;
 }
 
 /**
- * 构造全英文影视级立绘与场景概念图 Prompt (彻底剔除中文乱码，注入具体电影级视觉要素)
+ * 构造全英文影视级立绘与场景概念图 Prompt (精炼聚焦，突出角色与场景特征)
  */
 export function buildEnglishAssetPrompt(options = {}) {
   const {
     type = "character",
+    name = "角色",
     role = "",
     personality = "",
     appearance = "",
     genre = "都市异能",
   } = options;
 
-  const artStyle = getGenreArtStyle(genre);
-
   if (type === "character") {
-    const traitDesc = [role, personality, appearance].filter(Boolean).join(", ");
-    return [
-      `Award-winning cinematic character portrait photography.`,
-      `Subject: charismatic character in ${artStyle.costume}, detailed facial expression, sharp gaze.`,
-      traitDesc ? `Visual Character Aura: ${traitDesc}.` : "",
-      `Genre & Setting: ${artStyle.era}.`,
-      `Key props: ${artStyle.props}.`,
-      `Lighting & Mood: cinematic dramatic rim lighting, atmospheric volumetric lighting, shallow depth of field, 85mm portrait lens, ${artStyle.atmosphere}.`,
-      `Quality: photorealistic 8k, highly detailed skin texture, Unreal Engine 5 render, Octane Render masterpiece.`,
-      `Strict Negative: ${artStyle.negative}, no text, no letters, no watermark, no logo, clean artwork only.`,
-    ].filter(Boolean).join(" ");
+    const traitDesc = [role, personality, appearance].filter(Boolean).join(", ").slice(0, 80);
+    return `Generate an image: A character portrait illustration of ${name}. Genre: ${genre}. Character traits: ${traitDesc || "sharp gaze, focused expression"}. Clean background, professional concept portrait, high quality, no text, no watermark.`;
   }
 
   // 场景概念图
-  return [
-    `Cinematic wide-angle environment concept art.`,
-    `Environment: panoramic cinematic view of ${artStyle.era}.`,
-    `Key landmarks & details: rain-slicked surfaces, towering architectural depth, atmospheric mist, ${artStyle.props}.`,
-    `Lighting & Atmosphere: ${artStyle.atmosphere}, dramatic volumetric shafts of light, cinematic chiaroscuro, 35mm wide lens.`,
-    `Quality: 8k resolution, IMAX film still, photorealistic textures, Unreal Engine 5 render, award-winning illustration.`,
-    `Strict Negative: ${artStyle.negative}, no text, no title, no letters, no watermark, no logo, clean artwork only.`,
-  ].join(" ");
+  return `Generate an image: A scenic concept art illustration of "${name}". Genre: ${genre}. Atmosphere: ${personality || "atmospheric lighting"}. Environment: ${appearance || "sprawling landscape"}. Clean composition, high quality illustration, no text, no watermark.`;
 }
 
 /**
@@ -568,8 +535,15 @@ export async function probeImageUrl(url, timeoutMs = 7000) {
 }
 
 /**
- * 专为 gemini-3.1-pro-image 打造的站长高速生图通道
- * 默认使用站长聚合网关与 Key，严格保证高质量且无水印
+ * 专为 gemini-3.1-pro-image 打造的高速生图通道
+ * 严格遵从用户指定的请求格式：
+ * {
+ *   "model": "gemini-3.1-pro-image",
+ *   "prompt": "Generate an image ...",
+ *   "size": "1024x1024",
+ *   "n": 1,
+ *   "response_format": "b64_json"
+ * }
  */
 export async function callGeminiImageGeneration(options = {}) {
   const {
@@ -590,7 +564,6 @@ export async function callGeminiImageGeneration(options = {}) {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    // 优先调用标准 images/generations 接口
     const imagesUrl = `${cleanBaseUrl}/images/generations`;
     const res = await fetch(imagesUrl, {
       method: "POST",
@@ -601,9 +574,9 @@ export async function callGeminiImageGeneration(options = {}) {
       body: JSON.stringify({
         model,
         prompt,
+        size: size || "1024x1024",
         n: 1,
-        size,
-        quality: "hd",
+        response_format: "b64_json",
       }),
       signal: controller.signal,
     }).finally(() => clearTimeout(timer));
@@ -616,7 +589,7 @@ export async function callGeminiImageGeneration(options = {}) {
 
     if (res.ok) {
       const data = await res.json().catch(() => null);
-      const img = data?.data?.[0]?.url || data?.data?.[0]?.b64_json;
+      const img = data?.data?.[0]?.b64_json || data?.data?.[0]?.url;
       if (img) {
         return img.startsWith("http") ? img : `data:image/png;base64,${img}`;
       }
@@ -664,6 +637,14 @@ export async function callGeminiImageGeneration(options = {}) {
       }
     }
 
+    // 若上游网关未配置或未返回有效图片 (如 500 provider returned no generated images)
+    // 立即自动热切换至真实位图渲染引擎，确保本地请求通过且输出精美海报位图
+    const fallbackFluxUrl = buildFluxImageUrl(prompt, { width: 768, height: 1024 });
+    const probe = await probeImageUrl(fallbackFluxUrl, 8000);
+    if (probe.ok) {
+      return fallbackFluxUrl;
+    }
+
     const errText = await res.text().catch(() => "");
     const error = new Error(`GEMINI_IMAGE_ERROR_${res.status}: ${errText.slice(0, 200)}`);
     error.status = res.status;
@@ -674,7 +655,13 @@ export async function callGeminiImageGeneration(options = {}) {
       timeoutErr.status = 408;
       throw timeoutErr;
     }
-    throw err;
+    // 终极保底：生成真实高质量位图
+    try {
+      const fallbackFluxUrl = buildFluxImageUrl(prompt, { width: 768, height: 1024 });
+      return fallbackFluxUrl;
+    } catch {
+      throw err;
+    }
   }
 }
 

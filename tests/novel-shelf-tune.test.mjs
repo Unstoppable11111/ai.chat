@@ -110,8 +110,8 @@ test("buildCinematicCoverPrompt generates rich 8k movie poster prompt from story
   });
 
   assert.ok(prompt.includes("微观时间倒流三秒"));
-  assert.ok(prompt.includes("8k"));
-  assert.ok(prompt.includes("Unreal Engine 5"));
+  assert.ok(prompt.includes("Generate an image:"));
+  assert.ok(prompt.includes("book cover illustration"));
   assert.ok(prompt.includes("Protagonist:"));
 
   const fluxUrl = buildFluxImageUrl(prompt, { width: 768, height: 1024 });

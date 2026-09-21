@@ -18,6 +18,7 @@ import {
   generateFallbackSvgCover,
   buildCinematicCoverPrompt,
   callGeminiImageGeneration,
+  buildFluxImageUrl,
 } from "@/lib/workflow-utils.mjs";
 import {
   getImageCooldownStatus,
@@ -116,7 +117,17 @@ async function generateNovelCoverImage(options: {
     }
   }
 
-  // 3. 优雅保底：本地电影级专属视觉矢量图
+  // 3. 优先回退到真实高精位图渲染引擎，确保生成的是真正的精美出版海报，杜绝简陋 SVG
+  try {
+    const fluxCover = buildFluxImageUrl(cinematicPrompt, { width: 768, height: 1024 });
+    if (fluxCover) {
+      return fluxCover;
+    }
+  } catch {
+    // 忽略异常并进入本地保底
+  }
+
+  // 4. 极端网络异常保底
   return generateFallbackSvgCover(
     options.title,
     options.genre,

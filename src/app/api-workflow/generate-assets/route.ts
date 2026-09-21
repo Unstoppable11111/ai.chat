@@ -4,6 +4,7 @@ import {
   generateSceneConceptSvg,
   buildEnglishAssetPrompt,
   callGeminiImageGeneration,
+  buildFluxImageUrl,
 } from "@/lib/workflow-utils.mjs";
 import {
   getImageCooldownStatus,
@@ -220,7 +221,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 其它常规错误，优雅提供专属矢量保底
+    // 其它常规错误，优先回退到真实高质感位图渲染引擎，杜绝简陋 SVG 几何小人
+    try {
+      const fluxAssetUrl = buildFluxImageUrl(prompt, {
+        width: type === "character" ? 768 : 1024,
+        height: type === "character" ? 1024 : 576,
+      });
+      if (fluxAssetUrl) {
+        return NextResponse.json({
+          success: true,
+          image_url: fluxAssetUrl,
+          model: "flux-cinema",
+        });
+      }
+    } catch {
+      // 忽略并进入极端网络保底
+    }
+
+    // 极端网络情况下的保底
     let fallbackUrl = "";
     if (type === "character") {
       fallbackUrl = generateCharacterPortraitSvg({
