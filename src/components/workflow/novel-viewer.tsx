@@ -12,6 +12,9 @@ import {
   Loader2,
   ChevronDown,
   AlertCircle,
+  Pencil,
+  Edit3,
+  X,
 } from "lucide-react";
 import type { BibleData, ChapterData, WorkflowConfig } from "@/types/workflow";
 
@@ -23,6 +26,8 @@ interface NovelViewerProps {
   streamingChapter?: number;
   isStreaming?: boolean;
   onUpdateChapter?: (chapterNumber: number, updatedFields: Partial<ChapterData>) => void;
+  onUpdateTitle?: (newTitle: string) => void;
+  onUpdateChapterTitle?: (chapterNumber: number, newTitle: string) => void;
 }
 
 export function NovelViewer({
@@ -33,11 +38,25 @@ export function NovelViewer({
   streamingChapter = 1,
   isStreaming = false,
   onUpdateChapter,
+  onUpdateTitle,
+  onUpdateChapterTitle,
 }: NovelViewerProps) {
   const [manualChapterIndex, setManualChapterIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"polished" | "raw">("polished");
   const [copied, setCopied] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 书名手动编辑状态
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleInput, setTitleInput] = useState("");
+
+  // 章节标题编辑状态
+  const [isEditingChapterTitle, setIsEditingChapterTitle] = useState(false);
+  const [chapterTitleInput, setChapterTitleInput] = useState("");
+
+  // 章节正文手动编辑状态
+  const [isEditingContent, setIsEditingContent] = useState(false);
+  const [contentInput, setContentInput] = useState("");
 
   // 当处于推流撰写中时，自动追踪流式章节；非推流或手动点击后使用手动索引
   const selectedChapterIndex =
@@ -162,6 +181,33 @@ export function NovelViewer({
     }
   };
 
+  const handleSaveTitle = () => {
+    const trimmed = titleInput.trim();
+    if (trimmed && onUpdateTitle) {
+      onUpdateTitle(trimmed);
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleSaveChapterTitle = () => {
+    const trimmed = chapterTitleInput.trim();
+    if (trimmed && currentChapter) {
+      onUpdateChapterTitle?.(currentChapter.chapter_number, trimmed);
+      onUpdateChapter?.(currentChapter.chapter_number, { title: trimmed });
+    }
+    setIsEditingChapterTitle(false);
+  };
+
+  const handleSaveContent = () => {
+    if (!currentChapter) return;
+    if (viewMode === "polished" && currentChapter.polished_content) {
+      onUpdateChapter?.(currentChapter.chapter_number, { polished_content: contentInput });
+    } else {
+      onUpdateChapter?.(currentChapter.chapter_number, { raw_content: contentInput });
+    }
+    setIsEditingContent(false);
+  };
+
   return (
     <div className="flex flex-col h-full rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs backdrop-blur-md">
       {/* 顶部工具栏与统计 */}
@@ -171,9 +217,51 @@ export function NovelViewer({
             <BookOpen className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 truncate max-w-[200px] sm:max-w-xs">
-              {bible?.title || "小说正文创作视窗"}
-            </h2>
+            {isEditingTitle ? (
+              <div className="flex items-center gap-1.5 my-0.5">
+                <input
+                  type="text"
+                  value={titleInput}
+                  onChange={(e) => setTitleInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveTitle();
+                    if (e.key === "Escape") setIsEditingTitle(false);
+                  }}
+                  className="rounded-lg border border-cyan-500 bg-white px-2 py-0.5 text-xs font-bold text-slate-900 focus:outline-hidden"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveTitle}
+                  className="p-1 rounded-md bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
+                  title="保存书名"
+                >
+                  <Check className="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingTitle(false)}
+                  className="p-1 rounded-md bg-slate-200 text-slate-600 hover:bg-slate-300 cursor-pointer"
+                  title="取消"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <div
+                className="flex items-center gap-1.5 group cursor-pointer"
+                onClick={() => {
+                  setTitleInput(bible?.title || "");
+                  setIsEditingTitle(true);
+                }}
+                title="点击修改书名"
+              >
+                <h2 className="text-sm font-bold text-slate-900 truncate max-w-[200px] sm:max-w-xs group-hover:text-cyan-700 transition-colors">
+                  {bible?.title || "小说正文创作视窗"}
+                </h2>
+                <Pencil className="h-3 w-3 text-slate-400 group-hover:text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            )}
             <p className="text-[11px] text-muted-foreground flex items-center gap-2">
               <span>全书累计约 {totalWords} 字</span>
               {currentChapter && <span>· 本章 {currentContent.length} 字</span>}
@@ -183,6 +271,42 @@ export function NovelViewer({
 
         {/* 操作胶囊群 */}
         <div className="flex flex-wrap items-center gap-1.5">
+          {/* 手动自由修改正文入口 */}
+          {currentChapter && !isStreaming && (
+            isEditingContent ? (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleSaveContent}
+                  className="flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 shadow-2xs transition-all cursor-pointer"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                  <span>保存正文</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingContent(false)}
+                  className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  <span>取消</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setContentInput(currentContent);
+                  setIsEditingContent(true);
+                }}
+                className="flex items-center gap-1 rounded-xl border border-cyan-200 bg-cyan-50/80 px-2.5 py-1.5 text-xs font-semibold text-cyan-700 hover:bg-cyan-100 transition-all cursor-pointer"
+                title="手动自由修改本章正文"
+              >
+                <Edit3 className="h-3.5 w-3.5 text-cyan-600" />
+                <span>编辑正文</span>
+              </button>
+            )
+          )}
           {/* 单章按提示词调优入口 */}
           {currentChapter && (
             <button
@@ -382,9 +506,54 @@ export function NovelViewer({
             {/* 本章标题头 */}
             <div className="space-y-1 pb-3 border-b border-slate-100">
               <div className="flex items-center justify-between">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                  第 {selectedChapterIndex + 1} 章：{currentTitle}
-                </h3>
+                {isEditingChapterTitle ? (
+                  <div className="flex items-center gap-2 flex-1 max-w-md">
+                    <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">
+                      第 {selectedChapterIndex + 1} 章：
+                    </span>
+                    <input
+                      type="text"
+                      value={chapterTitleInput}
+                      onChange={(e) => setChapterTitleInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveChapterTitle();
+                        if (e.key === "Escape") setIsEditingChapterTitle(false);
+                      }}
+                      className="rounded-lg border border-cyan-500 bg-white px-2.5 py-1 text-sm font-bold text-slate-900 focus:outline-hidden flex-1"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveChapterTitle}
+                      className="p-1 rounded-md bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
+                      title="保存章节名"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingChapterTitle(false)}
+                      className="p-1 rounded-md bg-slate-200 text-slate-600 hover:bg-slate-300 cursor-pointer"
+                      title="取消"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    className="flex items-center gap-2 group cursor-pointer"
+                    onClick={() => {
+                      setChapterTitleInput(currentTitle);
+                      setIsEditingChapterTitle(true);
+                    }}
+                    title="点击修改章节标题"
+                  >
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-cyan-700 transition-colors">
+                      第 {selectedChapterIndex + 1} 章：{currentTitle}
+                    </h3>
+                    <Pencil className="h-3.5 w-3.5 text-slate-400 group-hover:text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                )}
                 {isCurrentStreaming && (
                   <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-cyan-700 bg-cyan-50 px-2.5 py-0.5 rounded-full border border-cyan-200 animate-pulse">
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-600 animate-ping" />
@@ -395,18 +564,48 @@ export function NovelViewer({
               {viewMode === "polished" && currentChapter?.polished_content && !isCurrentStreaming && (
                 <p className="text-[11px] text-violet-700 bg-violet-50 inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono">
                   <Sparkles className="h-3 w-3" />
-                  已应用去 AI 味冷硬短句精修与专项调优
+                  已应用文学精修版
                 </p>
               )}
             </div>
 
-            {/* 正文段落渲染 */}
-            <div className="text-sm sm:text-base leading-relaxed sm:leading-loose text-slate-800 whitespace-pre-wrap font-sans tracking-wide">
-              {currentContent}
-              {isCurrentStreaming && (
-                <span className="inline-block w-2 h-4 ml-1 bg-cyan-600 animate-pulse align-middle rounded-xs" />
-              )}
-            </div>
+            {/* 正文段落渲染 / 手动自由编辑 */}
+            {isEditingContent ? (
+              <div className="space-y-2.5">
+                <textarea
+                  value={contentInput}
+                  onChange={(e) => setContentInput(e.target.value)}
+                  className="w-full h-[450px] p-4 rounded-2xl border border-cyan-400 bg-white text-sm sm:text-base leading-relaxed text-slate-800 focus:outline-hidden font-sans tracking-wide resize-y shadow-inner"
+                  placeholder="在此自由修改、润色或增删章节正文内容..."
+                />
+                <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+                  <span>当前字数：{contentInput.length} 字</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingContent(false)}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
+                    >
+                      放弃修改
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveContent}
+                      className="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 cursor-pointer shadow-xs"
+                    >
+                      保存正文
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm sm:text-base leading-relaxed sm:leading-loose text-slate-800 whitespace-pre-wrap font-sans tracking-wide">
+                {currentContent}
+                {isCurrentStreaming && (
+                  <span className="inline-block w-2 h-4 ml-1 bg-cyan-600 animate-pulse align-middle rounded-xs" />
+                )}
+              </div>
+            )}
           </div>
         ) : (
           /* 空状态引导 */

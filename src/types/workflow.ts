@@ -99,6 +99,10 @@ export interface WorkflowConfig {
   apiKey?: string;
   baseUrl?: string;
   model?: string;
+  // 断点续写与恢复参数
+  resumeBible?: BibleData;
+  resumeChapters?: ChapterData[];
+  resumeFromChapter?: number;
 }
 
 /**
@@ -113,9 +117,9 @@ export interface WorkflowProject {
   updatedAt: string;
   prompt: string;
   config: WorkflowConfig; // 专属绑定的创作参数与上下文约束
-  bible: BibleData;
+  bible?: BibleData;
   chapters: ChapterData[];
-  pitch: PitchNoteData;
+  pitch?: PitchNoteData;
   visual_assets?: VisualAssetItem[];
 }
 

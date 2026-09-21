@@ -13,6 +13,10 @@ import {
   Download,
   Maximize2,
   Clock,
+  Upload,
+  Link as LinkIcon,
+  Check,
+  X,
 } from "lucide-react";
 import type { BibleData, CharacterCard, VisualAssetItem, WorkflowConfig } from "@/types/workflow";
 
@@ -23,6 +27,7 @@ interface VisualAssetsBoardProps {
   visualAssets: VisualAssetItem[];
   config: WorkflowConfig;
   onSaveVisualAsset: (asset: VisualAssetItem) => void;
+  onUpdateCover?: (newCoverUrl: string) => void;
   onQueueBusy?: (message?: string) => void;
   onSecurityAlert?: (message: string) => void;
   onQuotaLimit?: (message: string) => void;
@@ -37,6 +42,7 @@ export function VisualAssetsBoard({
   visualAssets = [],
   config,
   onSaveVisualAsset,
+  onUpdateCover,
   onQueueBusy,
   onSecurityAlert,
   onQuotaLimit,
@@ -44,6 +50,11 @@ export function VisualAssetsBoard({
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+
+  // 替换封面模态框与输入状态
+  const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
+  const [replaceUrlInput, setReplaceUrlInput] = useState("");
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // 初始化与轮询生图通道冷却倒计时
   useEffect(() => {
@@ -383,29 +394,40 @@ export function VisualAssetsBoard({
               <p>核心发生地：{scenes[0] || "高能剧情现场"}</p>
             </div>
 
-            {/* 封面操作区: 放大与保存本地 */}
-            {coverUrl && (
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setPreviewImage(coverUrl)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
-                >
-                  <Maximize2 className="w-3.5 h-3.5" />
-                  <span>放大查看封面</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleDownloadImage(coverUrl, `《${bible.title}》_出版级电影封面.png`)
-                  }
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>保存封面到本地</span>
-                </button>
-              </div>
-            )}
+            {/* 封面操作区: 替换封面、放大与保存本地 */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsReplaceModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-600 text-white hover:bg-cyan-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>替换封面 (与书架同步)</span>
+              </button>
+
+              {coverUrl && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewImage(coverUrl)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>放大查看封面</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleDownloadImage(coverUrl, `《${bible.title}》_出版级电影封面.png`)
+                    }
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>保存封面到本地</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -637,6 +659,137 @@ export function VisualAssetsBoard({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 替换封面交互模态框 */}
+      {isReplaceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-cyan-50 text-cyan-700">
+                  <RefreshCw className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">替换小说封面</h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    替换后与顶部书架封面实时联动双向同步入库
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsReplaceModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 途径 1: 本地图片文件上传 */}
+            <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5 text-cyan-600" />
+                  从本地电脑上传新封面
+                </span>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                      const res = evt.target?.result;
+                      if (typeof res === "string" && res) {
+                        onUpdateCover?.(res);
+                        setIsReplaceModalOpen(false);
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-2.5 px-4 rounded-xl border border-dashed border-cyan-400 bg-cyan-50/50 hover:bg-cyan-100/60 text-xs font-semibold text-cyan-800 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Upload className="w-4 h-4" />
+                <span>选择本地图片 (PNG / JPG / WEBP)</span>
+              </button>
+            </div>
+
+            {/* 途径 2: 输入网络图片链接 */}
+            <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <LinkIcon className="w-3.5 h-3.5 text-indigo-600" />
+                输入网络图片 URL
+              </span>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={replaceUrlInput}
+                  onChange={(e) => setReplaceUrlInput(e.target.value)}
+                  placeholder="https://example.com/cover.png"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-cyan-500 focus:outline-hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (replaceUrlInput.trim()) {
+                      onUpdateCover?.(replaceUrlInput.trim());
+                      setReplaceUrlInput("");
+                      setIsReplaceModalOpen(false);
+                    }
+                  }}
+                  disabled={!replaceUrlInput.trim()}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  应用
+                </button>
+              </div>
+            </div>
+
+            {/* 途径 3: 从已生成的视觉资产中选择 */}
+            {visualAssets && visualAssets.length > 0 && (
+              <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-2.5">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                  从已生成的人物画像或场景图中一键设为封面
+                </span>
+                <div className="grid grid-cols-3 gap-2.5 max-h-44 overflow-y-auto pr-1">
+                  {visualAssets.map((asset) => (
+                    <div
+                      key={asset.id}
+                      onClick={() => {
+                        onUpdateCover?.(asset.image_url);
+                        setIsReplaceModalOpen(false);
+                      }}
+                      className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-slate-300/80 hover:border-cyan-500 transition-all cursor-pointer shadow-2xs"
+                      title={`设为封面: ${asset.title}`}
+                    >
+                      <Image
+                        src={asset.image_url}
+                        alt={asset.title}
+                        fill
+                        unoptimized
+                        className="object-cover group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1 text-[10px] text-white text-center truncate">
+                        {asset.title}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

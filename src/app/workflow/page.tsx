@@ -14,6 +14,7 @@ import {
   Plus,
   Compass,
   Image as ImageIcon,
+  RefreshCw,
 } from "lucide-react";
 import { WorkflowIntro } from "@/components/workflow/workflow-intro";
 import { NovelShelf } from "@/components/workflow/novel-shelf";
@@ -241,6 +242,56 @@ export default function WorkflowPage() {
     setActiveTab("novel");
   };
 
+  // 手动修改书名并实时同步至本地和云端书架
+  const handleUpdateTitle = (newTitle: string) => {
+    const trimmed = newTitle.trim();
+    if (!trimmed) return;
+    setBible((prev) => (prev ? { ...prev, title: trimmed } : null));
+    if (currentProjectId) {
+      setProjects((prev) => {
+        const updated = prev.map((p) => {
+          if (p.id === currentProjectId) {
+            const updatedProj: WorkflowProject = {
+              ...p,
+              title: trimmed,
+              bible: p.bible ? { ...p.bible, title: trimmed } : undefined,
+              updatedAt: new Date().toISOString(),
+            };
+            syncProjectToCloud(updatedProj);
+            return updatedProj;
+          }
+          return p;
+        });
+        persistProjectsLocally(updated);
+        return updated;
+      });
+    }
+  };
+
+  // 手动替换或更新封面（视觉资产与书架封面联动公用，改了一个两个同步改）
+  const handleUpdateCover = (newCoverUrl: string) => {
+    if (!newCoverUrl) return;
+    setCoverUrl(newCoverUrl);
+    if (currentProjectId) {
+      setProjects((prev) => {
+        const updated = prev.map((p) => {
+          if (p.id === currentProjectId) {
+            const updatedProj: WorkflowProject = {
+              ...p,
+              cover_url: newCoverUrl,
+              updatedAt: new Date().toISOString(),
+            };
+            syncProjectToCloud(updatedProj);
+            return updatedProj;
+          }
+          return p;
+        });
+        persistProjectsLocally(updated);
+        return updated;
+      });
+    }
+  };
+
   // 保存新生成的视觉资产 (人物立绘或场景概念图)
   const handleSaveVisualAsset = (newAsset: VisualAssetItem) => {
     setVisualAssets((prev) => {
@@ -402,8 +453,57 @@ export default function WorkflowPage() {
     });
   };
 
-  // 启动工业化流水线
-  const handleStartPipeline = async () => {
+  // 手动修改章节名并实时同步
+  const handleUpdateChapterTitle = (chapterNumber: number, newTitle: string) => {
+    const trimmed = newTitle.trim();
+    if (!trimmed) return;
+    handleUpdateChapter(chapterNumber, { title: trimmed });
+  };
+
+  // 中间过程 Checkpoint 自动保存（杜绝中断丢失，支持断点续写与书架同步）
+  const saveCheckpoint = (
+    projId: string,
+    currentBible: BibleData | null,
+    currentChapters: ChapterData[],
+    currentPitch: PitchNoteData | null,
+    currentCoverUrl: string
+  ) => {
+    if (!projId) return;
+    const snapTitle =
+      currentBible?.title ||
+      (prompt.trim() ? prompt.trim().slice(0, 16) : "创作中小说");
+    const checkpointProj: WorkflowProject = {
+      id: projId,
+      title: snapTitle,
+      cover_url: currentCoverUrl,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      prompt: prompt.trim(),
+      config: { ...config, prompt: prompt.trim() },
+      bible: currentBible || undefined,
+      chapters: currentChapters,
+      pitch: currentPitch || undefined,
+      visual_assets: visualAssets,
+    };
+
+    setProjects((prev) => {
+      const existingIndex = prev.findIndex((p) => p.id === projId);
+      let updatedList: WorkflowProject[];
+      if (existingIndex !== -1) {
+        updatedList = [...prev];
+        updatedList[existingIndex] = { ...updatedList[existingIndex], ...checkpointProj };
+      } else {
+        updatedList = [checkpointProj, ...prev];
+      }
+      persistProjectsLocally(updatedList);
+      return updatedList;
+    });
+
+    syncProjectToCloud(checkpointProj);
+  };
+
+  // 启动工业化流水线 (支持全新的独立创作、覆盖重写、以及断点续写)
+  const handleStartPipeline = async (options?: { isNew?: boolean; isResume?: boolean }) => {
     if (isRunning) {
       handleBlockedAction("当前已有小说正在流水线工业化生产中，请勿重复启动或提交。");
       return;
@@ -413,11 +513,39 @@ export default function WorkflowPage() {
       return;
     }
 
+    const isNew = options?.isNew ?? (!currentProjectId);
+    const isResume = options?.isResume ?? false;
+
+    // 若为新建小说，分配全新工程 ID 并清空旧状态，彻底杜绝覆盖第一本书
+    let activeId = currentProjectId;
+    if (isNew || !activeId) {
+      activeId = `proj_${Date.now()}`;
+      setCurrentProjectId(activeId);
+      setBible(null);
+      setChapters([]);
+      setPitch(null);
+      setCoverUrl("");
+      setVisualAssets([]);
+    }
+
     setErrorMessage(null);
     setIsRunning(true);
     setStreamingText("");
-    setSteps(INITIAL_STEPS.map((s) => ({ ...s, status: "idle" })));
-    setCurrentStepIndex(0);
+
+    if (isResume) {
+      const resumeFrom = (chapters?.length || 0) + 1;
+      setSteps((prev) =>
+        prev.map((s) => {
+          if (s.id === "step_1_bible") return { ...s, status: "completed" as StepStatus };
+          if (s.id === "step_2_chapters") return { ...s, status: "running" as StepStatus, detail: `断点续写：第 ${resumeFrom} 章` };
+          return { ...s, status: "idle" as StepStatus, detail: undefined };
+        })
+      );
+      setCurrentStepIndex(1);
+    } else {
+      setSteps(INITIAL_STEPS.map((s) => ({ ...s, status: "idle" })));
+      setCurrentStepIndex(0);
+    }
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
@@ -432,17 +560,14 @@ export default function WorkflowPage() {
 
     const requestPayload: WorkflowConfig = {
       ...config,
-      projectId: currentProjectId || undefined,
+      projectId: activeId,
       baseUrl: safeBaseUrl,
       model: isCustom ? config.model?.trim() || "gpt-4o-mini" : "", // 非自定义 Key 留空，后端自动映射为站长 AI 对话后端模型
       prompt: prompt.trim(),
+      resumeBible: isResume && bible ? bible : undefined,
+      resumeChapters: isResume && chapters.length > 0 ? chapters : undefined,
+      resumeFromChapter: isResume ? (chapters.length + 1) : undefined,
     };
-
-    // 分配或沿用小说工程 ID
-    const activeId = currentProjectId || `proj_${Date.now()}`;
-    if (!currentProjectId) {
-      setCurrentProjectId(activeId);
-    }
 
     try {
       const response = await fetch("/api-workflow/novel", {
@@ -484,10 +609,10 @@ export default function WorkflowPage() {
       const decoder = new TextDecoder();
       let buffer = "";
 
-      let currentBible: BibleData | null = bible;
-      let currentChapters: ChapterData[] = [...chapters];
-      let currentPitch: PitchNoteData | null = pitch;
-      let currentCoverUrl: string = coverUrl;
+      let currentBible: BibleData | null = isResume ? bible : (isNew ? null : bible);
+      let currentChapters: ChapterData[] = isResume ? [...chapters] : (isNew ? [] : [...chapters]);
+      let currentPitch: PitchNoteData | null = isResume ? pitch : (isNew ? null : pitch);
+      let currentCoverUrl: string = isResume ? coverUrl : (isNew ? "" : coverUrl);
 
       while (true) {
         const { done, value } = await reader.read();
@@ -572,6 +697,7 @@ export default function WorkflowPage() {
                   currentBible = data.bible as BibleData;
                   setBible(currentBible);
                   setStreamingText("");
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                   setSteps((prev) =>
                     prev.map((s) =>
                       s.id === "step_1_bible"
@@ -582,6 +708,7 @@ export default function WorkflowPage() {
                 } else if (stepKey === "cover_generation" && data?.cover_url) {
                   currentCoverUrl = String(data.cover_url);
                   setCoverUrl(currentCoverUrl);
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                 } else if (stepKey.startsWith("chapter_") && data) {
                   const chNum = Number(data.chapter_number) || 1;
                   const chTitle = String(data.title || `第 ${chNum} 章`);
@@ -605,6 +732,8 @@ export default function WorkflowPage() {
 
                   setChapters([...currentChapters]);
                   setStreamingText("");
+                  // 关键点：单章写完立即存库入 Checkpoint！杜绝中断丢失！
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                 } else if (stepKey === "step_2_chapters" && data?.chapters) {
                   currentChapters = data.chapters as ChapterData[];
                   if (data.cover_url) {
@@ -612,6 +741,7 @@ export default function WorkflowPage() {
                     setCoverUrl(currentCoverUrl);
                   }
                   setChapters([...currentChapters]);
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                   setSteps((prev) =>
                     prev.map((s) =>
                       s.id === "step_2_chapters"
@@ -626,9 +756,11 @@ export default function WorkflowPage() {
                     c.chapter_number === chNum ? { ...c, video_prompts: prompts } : c
                   );
                   setChapters([...currentChapters]);
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                 } else if (stepKey === "step_3_video_prompts" && data?.chapters) {
                   currentChapters = data.chapters as ChapterData[];
                   setChapters([...currentChapters]);
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                   setSteps((prev) =>
                     prev.map((s) =>
                       s.id === "step_3_video_prompts"
@@ -643,9 +775,11 @@ export default function WorkflowPage() {
                     c.chapter_number === chNum ? { ...c, polished_content: polished } : c
                   );
                   setChapters([...currentChapters]);
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                 } else if (stepKey === "step_4_polish" && data?.chapters) {
                   currentChapters = data.chapters as ChapterData[];
                   setChapters([...currentChapters]);
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                   setSteps((prev) =>
                     prev.map((s) =>
                       s.id === "step_4_polish"
@@ -657,6 +791,7 @@ export default function WorkflowPage() {
                   currentPitch = data.pitch as PitchNoteData;
                   setPitch(currentPitch);
                   setActiveTab("pitch");
+                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                   setSteps((prev) =>
                     prev.map((s) =>
                       s.id === "step_5_pitch"
@@ -682,7 +817,7 @@ export default function WorkflowPage() {
                 );
                 setIsRunning(false);
 
-                // 将本小说持久化入库到 projects 书架中
+                // 将本小说最终完整持久化入库到 projects 书架中
                 const newProject: WorkflowProject = {
                   id: activeId,
                   title: finalResult.bible.title || "未命名小说",
@@ -706,9 +841,7 @@ export default function WorkflowPage() {
                   } else {
                     updatedList = [newProject, ...prev];
                   }
-                  try {
-                    localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(updatedList));
-                  } catch {}
+                  persistProjectsLocally(updatedList);
                   return updatedList;
                 });
                 syncProjectToCloud(newProject);
@@ -862,9 +995,24 @@ export default function WorkflowPage() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-slate-700">核心灵感与设定</label>
-                {currentProjectId && (
-                  <span className="text-[10px] text-cyan-700 bg-cyan-50 px-1.5 py-0.2 rounded font-mono">
-                    已绑定当前书目
+                {currentProjectId ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-cyan-700 bg-cyan-50 px-1.5 py-0.2 rounded font-mono">
+                      已绑定当前书目
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCreateNew}
+                      disabled={isRunning}
+                      className="text-[10px] text-blue-600 hover:text-blue-800 underline cursor-pointer disabled:opacity-50"
+                      title="清空当前书籍，创作一本全新的独立小说"
+                    >
+                      [新建新书]
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded font-medium">
+                    全新小说草稿
                   </span>
                 )}
               </div>
@@ -882,48 +1030,106 @@ export default function WorkflowPage() {
             </div>
 
             {/* 动作按钮组 */}
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex flex-col gap-2 pt-1">
               {isRunning ? (
                 <button
                   type="button"
                   onClick={handleStop}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-sm cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-sm cursor-pointer"
                 >
                   <Square className="h-4 w-4 fill-current" />
                   <span>中止流水线</span>
                 </button>
               ) : (
-                <button
-                  type="button"
-                  onClick={handleStartPipeline}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-cyan-500/15 cursor-pointer"
-                >
-                  <Play className="h-4 w-4 fill-current" />
-                  <span>{bible ? "重新生成本案" : "启动工业化流水线"}</span>
-                </button>
-              )}
+                <>
+                  {/* 若检测到未完成章节，优先展示【断点续写】按钮 */}
+                  {bible && chapters.length < (config.chapterCount || 3) ? (
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleStartPipeline({ isResume: true })}
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
+                      >
+                        <Play className="h-4 w-4 fill-current" />
+                        <span>⏩ 断点续写：继续生成第 {chapters.length + 1} 章</span>
+                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleStartPipeline({ isNew: true })}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-cyan-500 hover:text-cyan-700 shadow-2xs transition-all cursor-pointer"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          <span>创作全新小说</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleStartPipeline({ isResume: false, isNew: false })}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-amber-500 hover:text-amber-700 shadow-2xs transition-all cursor-pointer"
+                        >
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          <span>重写本案</span>
+                        </button>
+                        {(bible || chapters.length > 0) && (
+                          <button
+                            type="button"
+                            onClick={handleExportJson}
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 shadow-2xs cursor-pointer shrink-0"
+                            title="导出全套工程 JSON"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {/* 若已有作品，主按钮提供【创作全新小说】，副按钮提供【重写本案】，彻底杜绝误覆盖 */}
+                      {bible ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleStartPipeline({ isNew: true })}
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-cyan-500/15 cursor-pointer"
+                          >
+                            <Plus className="h-4 w-4" />
+                            <span>创作全新小说</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleStartPipeline({ isResume: false, isNew: false })}
+                            className="flex items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-semibold text-slate-700 hover:border-amber-500 hover:text-amber-700 shadow-2xs transition-all cursor-pointer"
+                            title="重新生成当前小说的所有设定与正文"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                            <span>重写本案</span>
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleStartPipeline({ isNew: true })}
+                          className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-cyan-500/15 cursor-pointer"
+                        >
+                          <Play className="h-4 w-4 fill-current" />
+                          <span>启动工业化流水线</span>
+                        </button>
+                      )}
 
-              {/* 新建/重置按钮 */}
-              <button
-                type="button"
-                onClick={handleReset}
-                disabled={isRunning}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all disabled:opacity-40 shadow-2xs cursor-pointer"
-                title="创作全新小说"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-
-              {/* 导出 JSON 按钮 */}
-              {(bible || chapters.length > 0) && (
-                <button
-                  type="button"
-                  onClick={handleExportJson}
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all shadow-2xs cursor-pointer"
-                  title="导出全套工程 JSON"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
+                      {/* 导出 JSON 按钮 */}
+                      {(bible || chapters.length > 0) && (
+                        <button
+                          type="button"
+                          onClick={handleExportJson}
+                          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all shadow-2xs cursor-pointer shrink-0"
+                          title="导出全套工程 JSON"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -1039,6 +1245,8 @@ export default function WorkflowPage() {
                 streamingChapter={streamingChapter}
                 isStreaming={isRunning && steps[1].status === "running"}
                 onUpdateChapter={handleUpdateChapter}
+                onUpdateTitle={handleUpdateTitle}
+                onUpdateChapterTitle={handleUpdateChapterTitle}
               />
             )}
 
@@ -1052,6 +1260,7 @@ export default function WorkflowPage() {
                 visualAssets={visualAssets}
                 config={config}
                 onSaveVisualAsset={handleSaveVisualAsset}
+                onUpdateCover={handleUpdateCover}
                 onQueueBusy={(msg) =>
                   setModalState({
                     type: "queue_busy",

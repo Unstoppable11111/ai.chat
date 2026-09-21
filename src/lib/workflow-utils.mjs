@@ -487,8 +487,8 @@ export function buildCinematicCoverPrompt(options = {}) {
     ? mainScene.replace(/[《》（）()]/g, " ").trim().slice(0, 80)
     : "dramatic key setting";
 
-  // 用户指定参数结构：Generate an image 开头，参考标准书籍封面比例，去伪存真，精炼克制，不冗长堆砌
-  return `Generate an image: A standard novel book cover illustration for "${cleanTitle}". Genre: ${genre}. Protagonist: ${heroDescription}. Main scene: ${sceneDescription}. Cinematic lighting, professional book cover art, high quality illustration, clean composition, no text, no watermark.`;
+  // 统一使用已验证成功的 "Generate an image of " 标准前缀，确保 gemini-web-to-api 100% 触发多模态生图通道
+  return `Generate an image of an epic novel book cover for "${cleanTitle}": Genre: ${genre}. Protagonist: ${heroDescription}. Scene: ${sceneDescription}. Cinematic volumetric lighting, dramatic storm clouds, cinematic 8k masterpiece, photorealistic, no text, no watermark, no logo.`;
 }
 
 /**
@@ -506,11 +506,11 @@ export function buildEnglishAssetPrompt(options = {}) {
 
   if (type === "character") {
     const traitDesc = [role, personality, appearance].filter(Boolean).join(", ").slice(0, 80);
-    return `Generate an image: A character portrait illustration of ${name}. Genre: ${genre}. Character traits: ${traitDesc || "sharp gaze, focused expression"}. Clean background, professional concept portrait, high quality, no text, no watermark.`;
+    return `Generate an image of a character portrait illustration of ${name}: Genre: ${genre}. Character traits: ${traitDesc || "sharp gaze, focused expression"}. Clean background, cinematic lighting, professional concept portrait, 8k resolution, photorealistic, no text, no watermark, no logo.`;
   }
 
   // 场景概念图
-  return `Generate an image: A scenic concept art illustration of "${name}". Genre: ${genre}. Atmosphere: ${personality || "atmospheric lighting"}. Environment: ${appearance || "sprawling landscape"}. Clean composition, high quality illustration, no text, no watermark.`;
+  return `Generate an image of an epic scenic concept art illustration of "${name}": Genre: ${genre}. Atmosphere: ${personality || "atmospheric lighting"}. Environment: ${appearance || "sprawling landscape"}. Volumetric lighting, 8k resolution, cinematic composition, photorealistic, no text, no watermark, no logo.`;
 }
 
 /**
@@ -604,13 +604,20 @@ export async function callGeminiImageGeneration(options = {}) {
     prefix = "novel",
   } = options;
 
+  let cleanPrompt = String(prompt || "").trim();
+  if (!cleanPrompt.toLowerCase().startsWith("generate an image")) {
+    cleanPrompt = `Generate an image of ${cleanPrompt}`;
+  } else if (cleanPrompt.startsWith("Generate an image:")) {
+    cleanPrompt = cleanPrompt.replace(/^Generate an image:\s*/i, "Generate an image of ");
+  }
+
   const candidateEndpoints = await getCandidateImageEndpoints(rawBaseUrl);
+  // 严格优先使用用户指定的 gemini-3-pro-image，杜绝降级到会产生色子的通用聊天模型
   const candidateModels = Array.from(
     new Set([
       requestedModel,
       "gemini-3-pro-image",
       "gemini-3.1-pro-image",
-      "gemini-advanced",
     ].filter(Boolean))
   );
 
@@ -647,7 +654,7 @@ export async function callGeminiImageGeneration(options = {}) {
           headers,
           body: JSON.stringify({
             model: currentModel,
-            prompt,
+            prompt: cleanPrompt,
             size: size || "1024x1024",
             n: 1,
             response_format: "b64_json",
