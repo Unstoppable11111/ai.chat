@@ -69,3 +69,63 @@ export async function takeQuota(key: string, limit: number, windowMs: number): P
   } catch (error) { await connection.rollback(); throw error; }
   finally { connection.release(); }
 }
+
+import {
+  detectPromptInjection,
+  checkMemoryRateLimit,
+} from "./workflow-security.mjs";
+
+export {
+  detectPromptInjection,
+  checkMemoryRateLimit,
+};
+
+/**
+ * 工作流服务端多维高频请求防护 (Anti-Spam / Rate Limiting)
+ */
+export async function checkWorkflowRateLimit(
+  request: Request,
+  userId: string,
+  type: "novel" | "asset"
+): Promise<{ allowed: boolean; message?: string }> {
+  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "ip-anonymous";
+  const ipKey = `rate:ip:${type}:${clientIp}`;
+  const userKey = `rate:user:${type}:${userId}`;
+
+  // novel 流程: 单用户 60s 内限 1 次，单 IP 60s 内限 2 次
+  // asset 流程: 单用户 60s 内限 4 次，单 IP 60s 内限 6 次
+  const userLimit = type === "novel" ? 1 : 4;
+  const ipLimit = type === "novel" ? 2 : 6;
+  const windowMs = 60 * 1000;
+
+  // 1. 内存滑动窗口高速校验 (拦截大部分恶意脚本)
+  if (!checkMemoryRateLimit(userKey, userLimit, windowMs)) {
+    return {
+      allowed: false,
+      message:
+        type === "novel"
+          ? "操作过于频繁，生成小说工业化全案每 60 秒仅限启动一次，请稍候再试。"
+          : "生成视觉资产过于频繁，每 60 秒最多生成 4 张，请稍候再试。",
+    };
+  }
+
+  if (!checkMemoryRateLimit(ipKey, ipLimit, windowMs)) {
+    return {
+      allowed: false,
+      message: "检测到当前网络环境请求过于高频，已触发安全防御，请 1 分钟后再试。",
+    };
+  }
+
+  // 2. 数据库滑动窗口持久校验 (防御跨实例刷接口)
+  try {
+    const ok = await takeQuota(userKey, userLimit, windowMs);
+    if (!ok) {
+      return { allowed: false, message: "操作过于频繁，已触发高频安全保护，请稍后重试。" };
+    }
+  } catch {
+    // 数据库抖动时自动沿用内存校验结果
+  }
+
+  return { allowed: true };
+}
+

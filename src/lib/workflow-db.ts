@@ -178,3 +178,71 @@ export async function deleteUserProject(userId: string, projectId: string): Prom
     return false;
   }
 }
+
+/**
+ * 校验指定小说项目是否归属于当前登录用户
+ */
+export async function verifyProjectOwnership(
+  userId: string,
+  projectId: string
+): Promise<boolean> {
+  if (!userId || !projectId) return false;
+  try {
+    await ensureWorkflowTable();
+    const rows = await executeQuery<{ id: string }>(
+      "SELECT id FROM workflow_projects WHERE id = ? AND user_id = ? LIMIT 1",
+      [projectId, userId]
+    );
+    return Boolean(rows && rows.length > 0);
+  } catch (error) {
+    console.error("[workflow-db] verifyProjectOwnership error:", error);
+    return false;
+  }
+}
+
+/**
+ * 统计指定登录用户在今天（自然日）创建的小说项目总数
+ */
+export async function countUserDailyNovels(userId: string): Promise<number> {
+  if (!userId) return 0;
+  try {
+    await ensureWorkflowTable();
+    // 统计当前自然日内该用户创建的小说数量
+    const rows = await executeQuery<{ total: number }>(
+      "SELECT COUNT(*) as total FROM workflow_projects WHERE user_id = ? AND created_at >= CURDATE()",
+      [userId]
+    );
+    if (!rows || rows.length === 0) return 0;
+    return Number(rows[0].total) || 0;
+  } catch (error) {
+    console.error("[workflow-db] countUserDailyNovels error:", error);
+    return 0;
+  }
+}
+
+/**
+ * 统计指定登录用户在今天（自然日）保存/生成的视觉资产总量
+ */
+export async function countUserDailyAssets(userId: string): Promise<number> {
+  if (!userId) return 0;
+  try {
+    await ensureWorkflowTable();
+    const rows = await executeQuery<{ visual_assets: unknown }>(
+      "SELECT visual_assets FROM workflow_projects WHERE user_id = ? AND updated_at >= CURDATE()",
+      [userId]
+    );
+    if (!rows || rows.length === 0) return 0;
+    let totalAssets = 0;
+    for (const r of rows) {
+      const assets = parseJsonField<unknown[]>(r.visual_assets, []);
+      if (Array.isArray(assets)) {
+        totalAssets += assets.length;
+      }
+    }
+    return totalAssets;
+  } catch (error) {
+    console.error("[workflow-db] countUserDailyAssets error:", error);
+    return 0;
+  }
+}
+

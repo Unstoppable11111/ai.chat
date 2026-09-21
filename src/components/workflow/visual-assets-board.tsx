@@ -17,23 +17,29 @@ import {
 import type { BibleData, CharacterCard, VisualAssetItem, WorkflowConfig } from "@/types/workflow";
 
 interface VisualAssetsBoardProps {
+  projectId?: string;
   bible: BibleData | null;
   coverUrl?: string;
   visualAssets: VisualAssetItem[];
   config: WorkflowConfig;
   onSaveVisualAsset: (asset: VisualAssetItem) => void;
   onQueueBusy?: (message?: string) => void;
+  onSecurityAlert?: (message: string) => void;
+  onQuotaLimit?: (message: string) => void;
 }
 
 const COOLDOWN_STORAGE_KEY = "chen_workflow_image_cooldown_until";
 
 export function VisualAssetsBoard({
+  projectId,
   bible,
   coverUrl,
   visualAssets = [],
   config,
   onSaveVisualAsset,
   onQueueBusy,
+  onSecurityAlert,
+  onQuotaLimit,
 }: VisualAssetsBoardProps) {
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -135,6 +141,7 @@ export function VisualAssetsBoard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          projectId,
           type: "character",
           name: char.name,
           role: char.role,
@@ -148,8 +155,29 @@ export function VisualAssetsBoard({
 
       if (res.status === 429) {
         const errData = await res.json().catch(() => null);
+        if (errData?.code === "DAILY_ASSET_QUOTA_EXCEEDED") {
+          onQuotaLimit?.(errData.error || "您今日的视觉资产生成额度已达上限（单账户单日最多10张）。");
+          return;
+        }
+        if (errData?.code === "RATE_LIMITED") {
+          onSecurityAlert?.(errData.error || "生成过于频繁，已触发限流保护，请稍候再试。");
+          return;
+        }
         const remaining = errData?.remainingSeconds || 300;
         handleTriggerCooldown(remaining, errData?.error);
+        return;
+      }
+
+      if (res.status === 400) {
+        const errData = await res.json().catch(() => null);
+        if (errData?.code === "PROMPT_INJECTION_DETECTED") {
+          onSecurityAlert?.(errData.error || "输入包含疑似违规指令，系统已阻断出图。");
+          return;
+        }
+      }
+
+      if (res.status === 401) {
+        onSecurityAlert?.("未登录或登录状态已过期，请重新登录后再生成视觉资产。");
         return;
       }
 
@@ -197,6 +225,7 @@ export function VisualAssetsBoard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          projectId,
           type: "scene",
           name: sceneTitle,
           role: "核心高能发生地",
@@ -210,8 +239,29 @@ export function VisualAssetsBoard({
 
       if (res.status === 429) {
         const errData = await res.json().catch(() => null);
+        if (errData?.code === "DAILY_ASSET_QUOTA_EXCEEDED") {
+          onQuotaLimit?.(errData.error || "您今日的视觉资产生成额度已达上限（单账户单日最多10张）。");
+          return;
+        }
+        if (errData?.code === "RATE_LIMITED") {
+          onSecurityAlert?.(errData.error || "生成过于频繁，已触发限流保护，请稍候再试。");
+          return;
+        }
         const remaining = errData?.remainingSeconds || 300;
         handleTriggerCooldown(remaining, errData?.error);
+        return;
+      }
+
+      if (res.status === 400) {
+        const errData = await res.json().catch(() => null);
+        if (errData?.code === "PROMPT_INJECTION_DETECTED") {
+          onSecurityAlert?.(errData.error || "输入包含疑似违规指令，系统已阻断出图。");
+          return;
+        }
+      }
+
+      if (res.status === 401) {
+        onSecurityAlert?.("未登录或登录状态已过期，请重新登录后再生成视觉资产。");
         return;
       }
 

@@ -88,6 +88,7 @@ export interface WorkflowResult {
 }
 
 export interface WorkflowConfig {
+  projectId?: string;
   prompt: string;
   genre?: string;
   style?: string;

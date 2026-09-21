@@ -9,6 +9,7 @@ import {
   X,
   CheckCircle2,
   Trash2,
+  ShieldAlert,
 } from "lucide-react";
 import type { WorkflowProject } from "@/types/workflow";
 
@@ -29,6 +30,14 @@ export type ModalState =
   | {
       type: "queue_busy";
       message?: string;
+    }
+  | {
+      type: "quota_limit";
+      message: string;
+    }
+  | {
+      type: "security_alert";
+      message: string;
     };
 
 interface WorkflowModalProps {
@@ -246,6 +255,74 @@ export function WorkflowModal({
               >
                 <Layers className="h-3.5 w-3.5 text-purple-600" />
                 <span>生成人物立绘</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 5. 每日额度上限拦截弹窗 (2本/天) */}
+        {state.type === "quota_limit" && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                <BookOpen className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">今日创作配额已达上限</h3>
+                <p className="text-xs text-muted-foreground">每个账户每天限创作 2 本小说全案与资产</p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-indigo-50/60 p-4 border border-indigo-100 text-xs text-indigo-950 leading-relaxed space-y-2">
+              <p className="font-semibold text-indigo-900">
+                {state.message || "您今日的小说创作额度已达上限（每个账户每日限 2 本小说的全案生产与视觉资产制作）。"}
+              </p>
+              <p className="text-indigo-700/80 text-[11px]">
+                为了保障全站高并发工业化流水线的平稳运行，系统统一在服务端对每日小说产出进行额度保护。您的配额将于明日零点自动重置。您也可以先在书架中精读、导出或调整已生成的经典作品。
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full rounded-2xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors cursor-pointer shadow-sm"
+              >
+                我知道了，查看书架作品
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 6. 提示词注入与高频请求拦截弹窗 */}
+        {state.type === "security_alert" && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">操作拦截 · 安全防御生效</h3>
+                <p className="text-xs text-muted-foreground">服务端触发安全审计或高频频控阻断</p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-rose-50/70 p-4 border border-rose-200/70 text-xs text-rose-950 leading-relaxed space-y-1.5">
+              <p className="font-semibold text-rose-900">
+                {state.message}
+              </p>
+              <p className="text-slate-600 text-[11px]">
+                为维护健康纯粹的创作环境与服务可用性，系统严格禁止输入包含越狱指令、嗅探配置或通过自动化脚本高频刷接口的行为。请调整输入内容后重试。
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full rounded-2xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors cursor-pointer shadow-sm"
+              >
+                我知道了，返回修改
               </button>
             </div>
           </div>

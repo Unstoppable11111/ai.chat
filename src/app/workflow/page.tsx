@@ -432,6 +432,7 @@ export default function WorkflowPage() {
 
     const requestPayload: WorkflowConfig = {
       ...config,
+      projectId: currentProjectId || undefined,
       baseUrl: safeBaseUrl,
       model: isCustom ? config.model?.trim() || "gpt-4o-mini" : "", // 非自定义 Key 留空，后端自动映射为站长 AI 对话后端模型
       prompt: prompt.trim(),
@@ -453,6 +454,27 @@ export default function WorkflowPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        if (errorData.code === "DAILY_QUOTA_EXCEEDED") {
+          setModalState({
+            type: "quota_limit",
+            message:
+              errorData.error ||
+              "您今日的小说创作额度已达上限（每个账户每日限 2 本小说的全案生产与视觉资产制作）。",
+          });
+        } else if (
+          errorData.code === "PROMPT_INJECTION_DETECTED" ||
+          errorData.code === "RATE_LIMITED"
+        ) {
+          setModalState({
+            type: "security_alert",
+            message: errorData.error || "触发服务端安全防护或高频请求拦截，系统已拒绝执行。",
+          });
+        } else if (errorData.code === "UNAUTHORIZED") {
+          setModalState({
+            type: "security_alert",
+            message: "未登录或登录会话已过期，请重新登录后再使用小说创作功能。",
+          });
+        }
         throw new Error(errorData.error || `HTTP 异常: ${response.status}`);
       }
 
@@ -1024,6 +1046,7 @@ export default function WorkflowPage() {
 
             {activeTab === "assets" && (
               <VisualAssetsBoard
+                projectId={currentProjectId || undefined}
                 bible={bible}
                 coverUrl={coverUrl}
                 visualAssets={visualAssets}
@@ -1032,6 +1055,18 @@ export default function WorkflowPage() {
                 onQueueBusy={(msg) =>
                   setModalState({
                     type: "queue_busy",
+                    message: msg,
+                  })
+                }
+                onSecurityAlert={(msg) =>
+                  setModalState({
+                    type: "security_alert",
+                    message: msg,
+                  })
+                }
+                onQuotaLimit={(msg) =>
+                  setModalState({
+                    type: "quota_limit",
                     message: msg,
                   })
                 }
