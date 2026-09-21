@@ -249,31 +249,40 @@ export function ConfigModal({
               {/* API 接入点 Base URL */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700">
-                  OpenAI 兼容 Base URL (留空默认使用服务器配置)
+                  OpenAI 兼容 Base URL (留空默认使用站长云端通道)
                 </label>
                 <input
                   type="text"
                   value={config.baseUrl || ""}
-                  onChange={(e) => onChange({ baseUrl: e.target.value })}
-                  placeholder="https://api.openai.com/v1 或中转代理地址"
+                  onChange={(e) => onChange({ baseUrl: e.target.value.trim() })}
+                  placeholder="留空默认使用服务器端高速接口 (无需填写)"
                   className="w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden"
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  若填入自定义中转端点，必须是以 http:// 或 https:// 开头的完整 URL。
+                </p>
               </div>
 
               {/* 自定义 API Key */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">
-                  API Key (留空默认使用服务器环境变量)
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700">
+                    自定义 API Key (可选)
+                  </label>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                    <Check className="h-3 w-3" />
+                    已默认启用站长高速服务
+                  </span>
+                </div>
                 <input
                   type="password"
                   value={config.apiKey || ""}
-                  onChange={(e) => onChange({ apiKey: e.target.value })}
-                  placeholder="sk-..."
+                  onChange={(e) => onChange({ apiKey: e.target.value.trim() })}
+                  placeholder="留空即默认使用站长内置 Key 进行生成"
                   className="w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  优先读取服务器内置环境变量（如已配置）。若填写则仅保存在当前浏览器本地，直接传至流水线。
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  默认无需填写任何 Key，系统会自动调用站长服务进行全流程创作。若输入您的个人 Key，将仅保存在您本地浏览器中用于发起请求。
                 </p>
               </div>
             </>

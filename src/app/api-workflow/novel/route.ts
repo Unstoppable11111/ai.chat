@@ -13,7 +13,64 @@ import type {
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 支持长耗时处理
 
+import {
+  resolveValidBaseUrl,
+  generateFallbackSvgCover,
+} from "@/lib/workflow-utils.mjs";
+
 const encoder = new TextEncoder();
+
+/**
+ * 调用图片生成 API 为第一章生成小说封面，带全自动优雅降级
+ */
+async function generateNovelCoverImage(options: {
+  title: string;
+  genre: string;
+  worldview: string;
+  firstChapterText: string;
+  baseUrl: string;
+  apiKey: string;
+}): Promise<string> {
+  const fallback = generateFallbackSvgCover(options.title, options.genre);
+  if (!options.apiKey) return fallback;
+
+  try {
+    const prompt = `Cinematic novel book cover art for "${options.title}". Genre: ${options.genre}. Theme: ${options.worldview.slice(0, 150)}. Dramatic lighting, high resolution, hyper-detailed, masterpiece, award-winning illustration, 8k, photorealistic, Unreal Engine 5 render, no text on artwork.`;
+    const url = `${options.baseUrl.replace(/\/+$/, "")}/images/generations`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000); // 20秒超时保底
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${options.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "dall-e-3",
+        prompt,
+        n: 1,
+        size: "1024x1024",
+      }),
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
+
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      const imageUrl = data?.data?.[0]?.url || data?.data?.[0]?.b64_json;
+      if (imageUrl) {
+        return imageUrl.startsWith("http")
+          ? imageUrl
+          : `data:image/png;base64,${imageUrl}`;
+      }
+    }
+  } catch {
+    // 降级兜底
+  }
+
+  return fallback;
+}
 
 /**
  * 安全解析 JSON，支持从包含 Markdown 代码块或杂质的文本中提取
@@ -178,19 +235,21 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // 配置模型服务
-  const baseUrl =
-    body.baseUrl?.trim() ||
-    process.env.OPENAI_BASE_URL ||
-    process.env.OPENAI_API_BASE ||
-    "https://api.openai.com/v1";
+  // 严格解析合法的 Base URL，彻底避免“Failed to parse URL from ...”崩溃
+  const baseUrl = resolveValidBaseUrl(body.baseUrl);
 
-  const apiKey = body.apiKey?.trim() || process.env.OPENAI_API_KEY || "";
+  // 优先使用用户自定义的 API Key，若无则使用站长服务端的环境变量 Key
+  const apiKey =
+    body.apiKey?.trim() ||
+    process.env.DEEPSEEK_API_KEY ||
+    process.env.OPENAI_API_KEY ||
+    "";
   const model =
     body.model?.trim() ||
+    process.env.DEEPSEEK_MODEL ||
     process.env.UPSTREAM_BALANCED_MODEL ||
     process.env.UPSTREAM_SPEED_MODEL ||
-    "gpt-4o-mini";
+    "deepseek-chat";
 
   if (!apiKey) {
     return new Response(
@@ -325,7 +384,6 @@ ${customSystemPrompt ? `特别遵循规则：${customSystemPrompt}\n` : ""}
         };
 
         const bible = extractJson<BibleData>(bibleRaw, defaultBible);
-        // 保证 outlines 数量匹配
         if (!bible.outlines || bible.outlines.length === 0) {
           bible.outlines = defaultBible.outlines;
         }
@@ -339,7 +397,7 @@ ${customSystemPrompt ? `特别遵循规则：${customSystemPrompt}\n` : ""}
         sendPing();
 
         // ==========================================
-        // Step 2: 逐章循环生成正文
+        // Step 2: 逐章循环生成正文（第一章生成后立即调用图片接口生成封面）
         // ==========================================
         sendEvent({
           type: "STEP_START",
@@ -350,6 +408,7 @@ ${customSystemPrompt ? `特别遵循规则：${customSystemPrompt}\n` : ""}
         const chapters: ChapterData[] = [];
         let rollingSummary = "故事开端，主角入局。";
         let lastChapterTail = "";
+        let generatedCoverUrl = "";
 
         for (let i = 0; i < bible.outlines.length; i++) {
           const outline = bible.outlines[i];
@@ -429,8 +488,8 @@ ${lastChapterTail ? lastChapterTail : "（本章为全书开篇，无需衔接�
             title: outline.title,
             summary: newSummaryAddition,
             raw_content: chapterText,
-            polished_content: "", // 后续 Step 4 填充
-            video_prompts: [], // 后续 Step 3 填充
+            polished_content: "",
+            video_prompts: [],
           });
 
           sendEvent({
@@ -443,17 +502,41 @@ ${lastChapterTail ? lastChapterTail : "（本章为全书开篇，无需衔接�
             },
           });
 
+          // 当生成第一章时，立即调用图片接口生成一张小说封面
+          if (chapterNumber === 1 && !generatedCoverUrl) {
+            sendEvent({
+              type: "STEP_START",
+              step: "cover_generation",
+              label: "正在为小说调用图片接口生成专属定制封面...",
+            });
+
+            generatedCoverUrl = await generateNovelCoverImage({
+              title: bible.title,
+              genre,
+              worldview: bible.worldview,
+              firstChapterText: chapterText,
+              baseUrl,
+              apiKey,
+            });
+
+            sendEvent({
+              type: "STEP_COMPLETE",
+              step: "cover_generation",
+              data: { cover_url: generatedCoverUrl },
+            });
+          }
+
           sendPing();
         }
 
         sendEvent({
           type: "STEP_COMPLETE",
           step: "step_2_chapters",
-          data: { chapters },
+          data: { chapters, cover_url: generatedCoverUrl },
         });
 
         // ==========================================
-        // Step 3: AI 视频分镜提示词（严格遵循任务 3 规范）
+        // Step 3: AI 视频分镜提示词（只生成分镜提示词）
         // ==========================================
         sendEvent({
           type: "STEP_START",
@@ -468,11 +551,11 @@ ${lastChapterTail ? lastChapterTail : "（本章为全书开篇，无需衔接�
           sendEvent({
             type: "STEP_START",
             step: chStep,
-            label: `生成第 ${ch.chapter_number} 章关键视觉镜头`,
+            label: `生成第 ${ch.chapter_number} 章关键视觉镜头提示词`,
           });
 
-          const videoPromptRequest = `请深度剖析以下章节小说正文，提炼出 3~4 个最具视觉冲击力、情绪高潮的电影级 AI 视频镜头。
-必须严格输出标准的 JSON 数组格式（不含任何其他解释性文字）：
+          const videoPromptRequest = `请深度剖析以下章节小说正文，提炼出 3~4 个最具视觉冲击力、情绪高潮的电影级 AI 视频镜头提示词。
+注意：仅输出分镜提示词结构，不需要生成视频文件。必须严格输出标准的 JSON 数组格式（不含任何其他解释性文字）：
 [
   {
     "scene_title": "场景标题（如：第${ch.chapter_number}章高潮 - 发现孕检单特写）",
@@ -676,6 +759,7 @@ ${JSON.stringify(bible.outlines, null, 2)}`;
           id: `wf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
           createdAt: new Date().toISOString(),
           prompt,
+          cover_url: generatedCoverUrl || generateFallbackSvgCover(bible.title, genre),
           bible,
           chapters,
           pitch,

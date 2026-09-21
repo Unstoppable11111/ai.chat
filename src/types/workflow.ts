@@ -68,6 +68,36 @@ export interface WorkflowResult {
   id: string;
   createdAt: string;
   prompt: string;
+  cover_url?: string;
+  bible: BibleData;
+  chapters: ChapterData[];
+  pitch: PitchNoteData;
+}
+
+export interface WorkflowConfig {
+  prompt: string;
+  genre?: string;
+  style?: string;
+  chapterCount?: number;
+  targetWordCount?: number;
+  deAiLevel?: "light" | "medium" | "aggressive";
+  customSystemPrompt?: string;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+}
+
+/**
+ * 完整小说工程对象（用于多小说书架与各小说专属参数绑定）
+ */
+export interface WorkflowProject {
+  id: string;
+  title: string;
+  cover_url: string;
+  createdAt: string;
+  updatedAt: string;
+  prompt: string;
+  config: WorkflowConfig; // 专属绑定的创作参数与上下文约束
   bible: BibleData;
   chapters: ChapterData[];
   pitch: PitchNoteData;
@@ -90,14 +120,20 @@ export interface WorkflowSSEEvent {
   error?: string;
 }
 
-export interface WorkflowConfig {
-  prompt: string;
-  genre?: string;
+/**
+ * 单章按提示词调优请求参数
+ */
+export interface ChapterTuneRequest {
+  bookTitle: string;
+  worldview: string;
+  characterCards?: CharacterCard[];
+  chapterOutline?: ChapterOutline;
+  chapterNumber: number;
+  chapterTitle: string;
+  currentContent: string;
+  userInstruction: string;
   style?: string;
-  chapterCount?: number;
-  targetWordCount?: number;
   deAiLevel?: "light" | "medium" | "aggressive";
-  customSystemPrompt?: string;
   apiKey?: string;
   baseUrl?: string;
   model?: string;

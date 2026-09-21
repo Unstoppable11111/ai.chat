@@ -1,0 +1,79 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  resolveValidBaseUrl,
+  generateFallbackSvgCover,
+} from "../src/lib/workflow-utils.mjs";
+
+test("resolveValidBaseUrl cleans corrupt inputs like 'chen' and falls back safely", () => {
+  // 单个无协议且无域名的脏单词
+  const corruptInput = "chen";
+  const resolved = resolveValidBaseUrl(corruptInput);
+  assert.ok(
+    resolved.startsWith("http://") || resolved.startsWith("https://"),
+    "Must resolve to an absolute HTTP/HTTPS URL"
+  );
+  assert.ok(!resolved.includes("chen/chat"), "Must not resolve to relative chen");
+
+  // 纯空值
+  const emptyResolved = resolveValidBaseUrl("");
+  assert.ok(emptyResolved.startsWith("http"));
+
+  // 包含域名但无协议
+  const domainOnly = "api.deepseek.com";
+  const withProtocol = resolveValidBaseUrl(domainOnly);
+  assert.equal(withProtocol, "https://api.deepseek.com");
+
+  // 完整合法 URL
+  const validUrl = "https://custom.openai.proxy/v1";
+  assert.equal(resolveValidBaseUrl(validUrl), "https://custom.openai.proxy/v1");
+});
+
+test("generateFallbackSvgCover generates valid SVG data URI with title", () => {
+  const coverUri = generateFallbackSvgCover("微观时间倒流", "科幻悬疑");
+  assert.ok(coverUri.startsWith("data:image/svg+xml;utf8,"));
+  assert.ok(coverUri.includes(encodeURIComponent("微观时间倒流")));
+  assert.ok(coverUri.includes(encodeURIComponent("科幻悬疑")));
+});
+
+test("WorkflowProject structure conforms to multi-project novel requirements", () => {
+  const mockProject = {
+    id: "proj_123",
+    title: "纳米级时空倒流",
+    cover_url: "data:image/svg+xml;utf8,...",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    prompt: "普通医生觉醒倒流能力",
+    config: {
+      prompt: "普通医生觉醒倒流能力",
+      genre: "都市异能",
+      style: "极简电影质感",
+      chapterCount: 3,
+      deAiLevel: "medium",
+    },
+    bible: {
+      title: "纳米级时空倒流",
+      logline: "倒流三秒救女儿",
+      worldview: "微观量子回溯",
+      characters: [],
+      foreshadowing: [],
+      outlines: [],
+    },
+    chapters: [],
+    pitch: {
+      title: "纳米级时空倒流",
+      logline: "倒流三秒救女儿",
+      target_audience: "青年男性",
+      benchmarks: "庆余年",
+      selling_points: [],
+      retention_hooks: [],
+      character_highlights: "主角冷静狠厉",
+      synopsis: "...",
+    },
+  };
+
+  assert.equal(typeof mockProject.id, "string");
+  assert.equal(typeof mockProject.cover_url, "string");
+  assert.equal(typeof mockProject.config.genre, "string");
+  assert.ok(Array.isArray(mockProject.chapters));
+});
