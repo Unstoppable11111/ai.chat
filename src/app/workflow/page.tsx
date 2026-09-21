@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Plus,
   Compass,
+  Image as ImageIcon,
 } from "lucide-react";
 import { WorkflowIntro } from "@/components/workflow/workflow-intro";
 import { NovelShelf } from "@/components/workflow/novel-shelf";
@@ -25,11 +26,13 @@ import {
 import { NovelViewer } from "@/components/workflow/novel-viewer";
 import { VideoPromptBoard } from "@/components/workflow/video-prompt-board";
 import { PitchCard } from "@/components/workflow/pitch-card";
+import { VisualAssetsBoard } from "@/components/workflow/visual-assets-board";
 import type {
   BibleData,
   ChapterData,
   PitchNoteData,
   VideoPromptItem,
+  VisualAssetItem,
   WorkflowConfig,
   WorkflowProject,
   WorkflowSSEEvent,
@@ -101,67 +104,18 @@ export default function WorkflowPage() {
   const [chapters, setChapters] = useState<ChapterData[]>([]);
   const [pitch, setPitch] = useState<PitchNoteData | null>(null);
   const [coverUrl, setCoverUrl] = useState<string>("");
+  const [visualAssets, setVisualAssets] = useState<VisualAssetItem[]>([]);
 
   // 打字机流式文本
   const [streamingText, setStreamingText] = useState("");
   const [streamingChapter, setStreamingChapter] = useState(1);
-  const [activeTab, setActiveTab] = useState<"novel" | "video" | "pitch" | "bible">("novel");
+  const [activeTab, setActiveTab] = useState<"novel" | "video" | "assets" | "pitch" | "bible">("novel");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // 从本地缓存恢复多小说项目库与清洗脏配置
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        const savedProjects = localStorage.getItem(LOCAL_PROJECTS_KEY);
-        if (savedProjects) {
-          const list: WorkflowProject[] = JSON.parse(savedProjects);
-          if (Array.isArray(list) && list.length > 0) {
-            setProjects(list);
-            // 默认加载第一部小说
-            const first = list[0];
-            setCurrentProjectId(first.id);
-            setPrompt(first.prompt || "");
-            // 清洗可能存在的脏 baseUrl（例如之前测试遗留的 chen）以及脏 model
-            const cleanedConfig = { ...first.config };
-            if (cleanedConfig.baseUrl && !/^https?:\/\//i.test(cleanedConfig.baseUrl)) {
-              cleanedConfig.baseUrl = "";
-            }
-            if (!cleanedConfig.apiKey?.trim()) {
-              cleanedConfig.model = "";
-            }
-            setConfig(cleanedConfig);
-            setBible(first.bible || null);
-            setChapters(first.chapters || []);
-            setPitch(first.pitch || null);
-            setCoverUrl(first.cover_url || "");
-            setSteps((prev) =>
-              prev.map((s) => ({ ...s, status: "completed" as StepStatus }))
-            );
-          }
-        }
-      } catch {
-        // 忽略缓存读取错误
-      }
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // 保存工程列表到本地缓存
-  const persistProjects = (updatedList: WorkflowProject[]) => {
-    setProjects(updatedList);
-    try {
-      localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(updatedList));
-    } catch {}
-  };
-
-  // 切换选中某部小说：左边加载原来绑定的专属参数，右边展示小说章节信息
-  const handleSelectProject = (projectId: string) => {
-    if (isRunning) handleStop();
-    const proj = projects.find((p) => p.id === projectId);
-    if (!proj) return;
-
+  // 统一加载单本小说的专属参数与数据
+  const loadProjectIntoState = (proj: WorkflowProject) => {
     setCurrentProjectId(proj.id);
     setPrompt(proj.prompt || "");
     const cleanedConfig = { ...proj.config };
@@ -176,11 +130,90 @@ export default function WorkflowPage() {
     setChapters(proj.chapters || []);
     setPitch(proj.pitch || null);
     setCoverUrl(proj.cover_url || "");
+    setVisualAssets(proj.visual_assets || []);
     setStreamingText("");
     setErrorMessage(null);
     setSteps((prev) =>
       prev.map((s) => ({ ...s, status: "completed" as StepStatus, detail: undefined }))
     );
+  };
+
+  // 优先从云端数据库加载用户绑定的小说书架，若无则使用本地缓存
+  useEffect(() => {
+    let ignore = false;
+
+    fetch("/api-workflow/projects")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (ignore) return;
+        if (data?.success && Array.isArray(data.projects) && data.projects.length > 0) {
+          const list: WorkflowProject[] = data.projects;
+          setProjects(list);
+          try {
+            localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(list));
+          } catch {}
+          loadProjectIntoState(list[0]);
+          return;
+        }
+
+        // 云端暂无时回退从本地缓存恢复
+        try {
+          const saved = localStorage.getItem(LOCAL_PROJECTS_KEY);
+          if (saved) {
+            const list: WorkflowProject[] = JSON.parse(saved);
+            if (Array.isArray(list) && list.length > 0) {
+              setProjects(list);
+              loadProjectIntoState(list[0]);
+            }
+          }
+        } catch {}
+      })
+      .catch(() => {
+        try {
+          const saved = localStorage.getItem(LOCAL_PROJECTS_KEY);
+          if (saved) {
+            const list: WorkflowProject[] = JSON.parse(saved);
+            if (Array.isArray(list) && list.length > 0) {
+              setProjects(list);
+              loadProjectIntoState(list[0]);
+            }
+          }
+        } catch {}
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // 保存工程列表到本地缓存并异步同步至用户绑定的云端数据库
+  const persistProjects = (updatedList: WorkflowProject[], targetToSync?: WorkflowProject) => {
+    setProjects(updatedList);
+    try {
+      localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(updatedList));
+    } catch {}
+
+    // 同步写入 MySQL 数据库（绑定到当前登录用户）
+    const itemToSync =
+      targetToSync ||
+      (currentProjectId ? updatedList.find((p) => p.id === currentProjectId) : null) ||
+      updatedList[0];
+
+    if (itemToSync) {
+      fetch("/api-workflow/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(itemToSync),
+      }).catch((err) => console.warn("[Workflow] 云端同步提醒:", err));
+    }
+  };
+
+  // 切换选中某部小说：左边加载原来绑定的专属参数，右边展示小说章节信息与资产
+  const handleSelectProject = (projectId: string) => {
+    if (isRunning) handleStop();
+    const proj = projects.find((p) => p.id === projectId);
+    if (!proj) return;
+    loadProjectIntoState(proj);
     setActiveTab("novel");
   };
 
@@ -194,6 +227,7 @@ export default function WorkflowPage() {
     setChapters([]);
     setPitch(null);
     setCoverUrl("");
+    setVisualAssets([]);
     setStreamingText("");
     setErrorMessage(null);
     setSteps(INITIAL_STEPS.map((s) => ({ ...s, status: "idle" })));
@@ -201,11 +235,34 @@ export default function WorkflowPage() {
     setActiveTab("novel");
   };
 
-  // 删除某部小说
+  // 保存新生成的视觉资产 (人物立绘或场景概念图)
+  const handleSaveVisualAsset = (newAsset: VisualAssetItem) => {
+    setVisualAssets((prev) => {
+      const filtered = prev.filter((a) => a.id !== newAsset.id);
+      const updated = [...filtered, newAsset];
+
+      if (currentProjectId) {
+        const nextProjects = projects.map((p) =>
+          p.id === currentProjectId
+            ? { ...p, visual_assets: updated, updatedAt: new Date().toISOString() }
+            : p
+        );
+        persistProjects(nextProjects);
+      }
+      return updated;
+    });
+  };
+
+  // 删除某部小说 (同步清理本地和云端数据库)
   const handleDeleteProject = (projectId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const nextList = projects.filter((p) => p.id !== projectId);
     persistProjects(nextList);
+
+    // 从云端数据库删除
+    fetch(`/api-workflow/projects?id=${encodeURIComponent(projectId)}`, {
+      method: "DELETE",
+    }).catch(() => {});
 
     if (currentProjectId === projectId) {
       if (nextList.length > 0) {
@@ -544,6 +601,7 @@ export default function WorkflowPage() {
                   bible: finalResult.bible,
                   chapters: finalResult.chapters,
                   pitch: finalResult.pitch,
+                  visual_assets: visualAssets,
                 };
 
                 setProjects((prev) => {
@@ -815,6 +873,24 @@ export default function WorkflowPage() {
 
               <button
                 type="button"
+                onClick={() => setActiveTab("assets")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === "assets"
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-white"
+                }`}
+              >
+                <ImageIcon className="h-3.5 w-3.5" />
+                <span>视觉资产</span>
+                {visualAssets.length > 0 && (
+                  <span className="rounded-full bg-purple-500 px-1.5 py-0.2 text-[10px] font-mono text-white">
+                    {visualAssets.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setActiveTab("pitch")}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === "pitch"
@@ -859,6 +935,16 @@ export default function WorkflowPage() {
             )}
 
             {activeTab === "video" && <VideoPromptBoard chapters={chapters} />}
+
+            {activeTab === "assets" && (
+              <VisualAssetsBoard
+                bible={bible}
+                coverUrl={coverUrl}
+                visualAssets={visualAssets}
+                config={config}
+                onSaveVisualAsset={handleSaveVisualAsset}
+              />
+            )}
 
             {activeTab === "pitch" && <PitchCard pitch={pitch} />}
 

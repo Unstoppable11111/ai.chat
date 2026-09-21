@@ -1,44 +1,30 @@
 "use client";
 
-import React from "react";
-import { Sparkles, Clapperboard, Layers, Cpu, Zap, ArrowRight } from "lucide-react";
+import React, { useState } from "react";
+import { Sparkles, Clapperboard, Layers, Cpu, Zap, ArrowRight, RotateCw } from "lucide-react";
+import { WORKFLOW_INSPIRATIONS, type WorkflowInspiration } from "@/data/workflow-inspirations";
 
 interface WorkflowIntroProps {
   onSelectPreset?: (prompt: string, genre: string, style: string) => void;
 }
 
-const PRESETS = [
-  {
-    genre: "都市异能 / 脑洞反转",
-    style: "极简电影质感、快节奏爽感",
-    title: "纳米级时空倒流",
-    prompt:
-      "普通外科医生在一次车祸中觉醒了‘微观时间倒流三秒’的能力，他本只想救活女儿，却在医院深处无意撞破跨国药企活体克隆与长生实验的惊天阴谋……",
-  },
-  {
-    genre: "科幻悬疑 / 赛博朋克",
-    style: "冷硬派白描、高压迫感对白",
-    title: "霓虹雨夜的机械仿生人",
-    prompt:
-      "雨夜的第三下水道区，一位退休的义体清道夫接到一笔赏金：追捕一个偷走巨头财阀核心算法代码的艺伎仿生人，然而当他追上目标时，仿生人体内传出的却是他五年前失踪妻子的记忆音频……",
-  },
-  {
-    genre: "爆款短剧 / 爽剧逆袭",
-    style: "短句密集、强冲突反差、三章一爆发",
-    title: "隐姓埋名的守国者",
-    prompt:
-      "华夏龙帅为护妻隐退三年，甘当林家赘婿受尽白眼与屈辱。今日，千亿财团携百万战部兵临城下，只为迎接他荣归执掌帅印，而势利岳母刚刚将一纸离婚协议摔在他脸上……",
-  },
-  {
-    genre: "悬疑古风 / 权谋谍影",
-    style: "肃杀凛冽、细节伏笔密布",
-    title: "大理寺午夜锁龙令",
-    prompt:
-      "天元三年，上元灯节夜，当朝宰相在皇城重重守卫之中被斩首弃市，现场唯留一枚失传百年的前朝玄铁密令。大理寺少卿奉旨彻查，却发现所有线索都指向了当今天子……",
-  },
-];
+function getRandomInspirations(count = 4): WorkflowInspiration[] {
+  const shuffled = [...WORKFLOW_INSPIRATIONS].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
 
 export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
+  const [inspirations, setInspirations] = useState<WorkflowInspiration[]>(() =>
+    getRandomInspirations(4)
+  );
+  const [isRotating, setIsRotating] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRotating(true);
+    setInspirations(getRandomInspirations(4));
+    setTimeout(() => setIsRotating(false), 500);
+  };
+
   return (
     <div className="relative overflow-hidden rounded-3xl border border-slate-900/10 bg-gradient-to-b from-white/90 via-white/70 to-white/50 p-6 md:p-8 backdrop-blur-xl shadow-xs">
       {/* 装饰光斑背景 */}
@@ -50,7 +36,7 @@ export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-800">
             <Sparkles className="h-3.5 w-3.5 text-cyan-600 animate-pulse" />
-            <span>工业级内容生产流水线 · 电影级视觉分镜</span>
+            <span>工业级内容生产流水线 · 电影级视觉分镜与角色立绘</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
@@ -61,8 +47,8 @@ export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
           <p className="max-w-3xl text-sm sm:text-base text-slate-600 leading-relaxed">
             将初始故事灵感无缝转化为高商业价值的网文全案与电影级视频分镜。
             贯穿<strong>「世界观细纲 Bible」</strong>、<strong>「长文本连续正文」</strong>、
-            <strong>「可灵/Runway 分镜提示词」</strong>、<strong>「去 AI 味短句重构」</strong>与
-            <strong>「商业投稿包装」</strong>五大标准工业节点。
+            <strong>「主角立绘与电影海报」</strong>、<strong>「可灵/Runway 分镜提示词」</strong>、
+            <strong>「去 AI 味短句重构」</strong>与<strong>「云端书架资产绑定」</strong>工业节点。
           </p>
         </div>
 
@@ -103,23 +89,40 @@ export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
               <Cpu className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-900">SSE 长连推流</p>
-              <p className="text-[11px] text-muted-foreground">无惧超时实时打字机</p>
+              <p className="text-xs font-bold text-slate-900">云端书架绑定</p>
+              <p className="text-[11px] text-muted-foreground">专属账户全资产持久化</p>
             </div>
           </div>
         </div>
 
-        {/* 快速体验预设赛道卡片 */}
+        {/* 100+ 随机推荐赛道灵感（支持手动刷新） */}
         <div className="pt-2">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              推荐赛道灵感（点击一键载入参数）
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                100+ 爆款赛道灵感库（点击一键载入设定）
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">随机抽取中</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/80 border border-slate-200 text-slate-700 hover:text-cyan-700 hover:border-cyan-500/40 text-xs font-medium shadow-2xs transition-all cursor-pointer"
+              title="换一批爆款灵感"
+            >
+              <RotateCw
+                className={`w-3.5 h-3.5 transition-transform duration-500 ${
+                  isRotating ? "rotate-180 text-cyan-600" : ""
+                }`}
+              />
+              <span>换一批灵感</span>
+            </button>
           </div>
+
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-            {PRESETS.map((preset) => (
+            {inspirations.map((preset) => (
               <button
-                key={preset.title}
+                key={preset.id}
                 type="button"
                 onClick={() => onSelectPreset?.(preset.prompt, preset.genre, preset.style)}
                 className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white/70 p-3.5 text-left transition-all hover:border-cyan-500/40 hover:bg-white hover:shadow-sm cursor-pointer"
@@ -127,7 +130,7 @@ export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                      {preset.genre.split("/")[0]}
+                      {preset.genre}
                     </span>
                     <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:text-cyan-600 group-hover:translate-x-0.5 transition-all" />
                   </div>
@@ -137,6 +140,10 @@ export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
                   <p className="line-clamp-2 text-[11px] text-slate-500 leading-relaxed">
                     {preset.prompt}
                   </p>
+                </div>
+                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                  <span className="truncate max-w-[150px]">{preset.protagonist}</span>
+                  <span className="text-cyan-600 font-semibold group-hover:underline">载入 &rarr;</span>
                 </div>
               </button>
             ))}

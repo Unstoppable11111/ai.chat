@@ -7,7 +7,9 @@ export interface CharacterCard {
   role: string;
   personality: string;
   motivation: string;
+  appearance?: string;
   visual_traits?: string;
+  portrait_url?: string;
 }
 
 export interface ForeshadowingItem {
@@ -64,6 +66,16 @@ export interface PitchNoteData {
   synopsis: string;
 }
 
+export interface VisualAssetItem {
+  id: string;
+  type: "character" | "scene";
+  title: string;
+  subtitle?: string;
+  description: string;
+  image_url: string;
+  created_at: string;
+}
+
 export interface WorkflowResult {
   id: string;
   createdAt: string;
@@ -72,6 +84,7 @@ export interface WorkflowResult {
   bible: BibleData;
   chapters: ChapterData[];
   pitch: PitchNoteData;
+  visual_assets?: VisualAssetItem[];
 }
 
 export interface WorkflowConfig {
@@ -92,6 +105,7 @@ export interface WorkflowConfig {
  */
 export interface WorkflowProject {
   id: string;
+  user_id?: string;
   title: string;
   cover_url: string;
   createdAt: string;
@@ -101,6 +115,7 @@ export interface WorkflowProject {
   bible: BibleData;
   chapters: ChapterData[];
   pitch: PitchNoteData;
+  visual_assets?: VisualAssetItem[];
 }
 
 export type WorkflowStepId =

@@ -21,21 +21,31 @@ import {
 const encoder = new TextEncoder();
 
 /**
- * 调用图片生成 API 为第一章生成小说封面，带全自动优雅降级
+ * 调用图片生成 API 为第一章生成小说封面，带全自动优雅降级 (结合主人公与主要场景)
  */
 async function generateNovelCoverImage(options: {
   title: string;
   genre: string;
   worldview: string;
   firstChapterText: string;
+  protagonist?: string;
+  mainScene?: string;
   baseUrl: string;
   apiKey: string;
 }): Promise<string> {
-  const fallback = generateFallbackSvgCover(options.title, options.genre);
+  const protagonistDesc = options.protagonist || "沉着内敛的逆光探索者";
+  const sceneDesc = options.mainScene || "破晓都市与深邃光影交织的核心场景";
+
+  const fallback = generateFallbackSvgCover(
+    options.title,
+    options.genre,
+    protagonistDesc,
+    sceneDesc
+  );
   if (!options.apiKey) return fallback;
 
   try {
-    const prompt = `Cinematic novel book cover art for "${options.title}". Genre: ${options.genre}. Theme: ${options.worldview.slice(0, 150)}. Dramatic lighting, high resolution, hyper-detailed, masterpiece, award-winning illustration, 8k, photorealistic, Unreal Engine 5 render, no text on artwork.`;
+    const prompt = `Epic cinematic blockbuster book cover poster for novel "${options.title}". Genre: ${options.genre}. Theme: ${options.worldview.slice(0, 120)}. Protagonist: ${protagonistDesc.slice(0, 100)}. Main setting: ${sceneDesc.slice(0, 100)}. Dramatic volumetric rim lighting, photorealistic 8k, Unreal Engine 5 render, cinematic composition, depth of field, hyper-detailed, award-winning illustration, masterpiece, no text on artwork.`;
     const url = `${options.baseUrl.replace(/\/+$/, "")}/images/generations`;
 
     const controller = new AbortController();
@@ -517,11 +527,19 @@ ${lastChapterTail ? lastChapterTail : "（本章为全书开篇，无需衔接�
               label: "正在为小说调用图片接口生成专属定制封面...",
             });
 
+            const firstHero = bible.characters?.[0];
+            const protagonistInfo = firstHero
+              ? `${firstHero.name} (${firstHero.role || "主角"}，${firstHero.personality || ""}，${firstHero.appearance || "英姿挺拔，眼神如炬"})`
+              : "核心主角逆光前行";
+            const firstScene = outline.title || outline.goal || "核心高能发生地";
+
             generatedCoverUrl = await generateNovelCoverImage({
               title: bible.title,
               genre,
               worldview: bible.worldview,
               firstChapterText: chapterText,
+              protagonist: protagonistInfo,
+              mainScene: firstScene,
               baseUrl,
               apiKey,
             });

@@ -77,3 +77,23 @@ test("WorkflowProject structure conforms to multi-project novel requirements", (
   assert.equal(typeof mockProject.config.genre, "string");
   assert.ok(Array.isArray(mockProject.chapters));
 });
+
+test("generateCharacterPortraitSvg generates valid portrait SVG data URI", async () => {
+  const { generateCharacterPortraitSvg } = await import("../src/lib/workflow-utils.mjs");
+  const portraitUri = generateCharacterPortraitSvg({
+    name: "林渊",
+    role: "急诊科主治医生",
+    personality: "沉着冷静",
+    appearance: "身着白大褂，目光如炬",
+    genre: "都市异能",
+  });
+  assert.ok(portraitUri.startsWith("data:image/svg+xml;utf8,"));
+  assert.ok(portraitUri.includes(encodeURIComponent("林渊")));
+});
+
+test("WORKFLOW_INSPIRATIONS contains at least 100 high-concept story presets", async () => {
+  const { WORKFLOW_INSPIRATIONS } = await import("../src/data/workflow-inspirations.mjs");
+  assert.ok(Array.isArray(WORKFLOW_INSPIRATIONS));
+  assert.ok(WORKFLOW_INSPIRATIONS.length >= 100, `Expected >= 100, got ${WORKFLOW_INSPIRATIONS.length}`);
+});
+
