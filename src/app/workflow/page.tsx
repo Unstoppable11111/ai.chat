@@ -79,7 +79,7 @@ const DEFAULT_CONFIG: WorkflowConfig = {
   style: "快节奏爽感、电影质感",
   chapterCount: 3,
   targetWordCount: 1200,
-  deAiLevel: "medium",
+  deAiLevel: "light",
   customSystemPrompt: "",
   model: "",   // 保持为空，默认走站点内置 AI 对话通道 (与全站 AI 助手一致)
   baseUrl: "", // 保持为空，默认走站点内置 AI 对话通道
@@ -1029,6 +1029,12 @@ export default function WorkflowPage() {
                 visualAssets={visualAssets}
                 config={config}
                 onSaveVisualAsset={handleSaveVisualAsset}
+                onQueueBusy={(msg) =>
+                  setModalState({
+                    type: "queue_busy",
+                    message: msg,
+                  })
+                }
               />
             )}
 

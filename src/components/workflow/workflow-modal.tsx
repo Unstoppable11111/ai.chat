@@ -25,6 +25,10 @@ export type ModalState =
   | {
       type: "book_published";
       project: WorkflowProject;
+    }
+  | {
+      type: "queue_busy";
+      message?: string;
     };
 
 interface WorkflowModalProps {
@@ -129,7 +133,41 @@ export function WorkflowModal({
           </div>
         )}
 
-        {/* 3. 全案精美成册入库庆祝弹窗 */}
+        {/* 3. 排队繁忙 / 请求频繁弹窗 */}
+        {state.type === "queue_busy" && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">生图请求过于频繁</h3>
+                <p className="text-xs text-muted-foreground">算力队列繁忙，已自动为您停止等待</p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-amber-50/70 p-4 border border-amber-200/60 text-xs text-amber-900 leading-relaxed space-y-1.5">
+              <p className="font-semibold text-slate-800">
+                {state.message || "当前绘图请求过多或上游公共算力节点正在排队。"}
+              </p>
+              <p className="text-slate-600 text-[11px]">
+                为防止页面长时间挂起卡死，系统已立即中断排队。您可以稍后再试，或在左上角【工作流参数与引擎配置】中填入自己的 API Key 享受独占高速出图。
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full rounded-2xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors cursor-pointer shadow-sm"
+              >
+                我知道了，稍后再试
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 4. 全案精美成册入库庆祝弹窗 */}
         {state.type === "book_published" && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">

@@ -19,6 +19,7 @@ interface VisualAssetsBoardProps {
   visualAssets: VisualAssetItem[];
   config: WorkflowConfig;
   onSaveVisualAsset: (asset: VisualAssetItem) => void;
+  onQueueBusy?: (message?: string) => void;
 }
 
 export function VisualAssetsBoard({
@@ -27,6 +28,7 @@ export function VisualAssetsBoard({
   visualAssets = [],
   config,
   onSaveVisualAsset,
+  onQueueBusy,
 }: VisualAssetsBoardProps) {
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -64,7 +66,18 @@ export function VisualAssetsBoard({
         }),
       });
 
+      if (res.status === 429) {
+        const errData = await res.json().catch(() => null);
+        onQueueBusy?.(errData?.error || "当前生图算力队列繁忙，已停止等待，请稍后再试。");
+        return;
+      }
+
       const data = await res.json().catch(() => null);
+      if (data?.code === "QUEUE_BUSY") {
+        onQueueBusy?.(data?.error || "当前生图算力队列繁忙，已停止等待，请稍后再试。");
+        return;
+      }
+
       if (data?.success && data.image_url) {
         onSaveVisualAsset({
           id: assetId,
@@ -104,7 +117,18 @@ export function VisualAssetsBoard({
         }),
       });
 
+      if (res.status === 429) {
+        const errData = await res.json().catch(() => null);
+        onQueueBusy?.(errData?.error || "当前生图算力队列繁忙，已停止等待，请稍后再试。");
+        return;
+      }
+
       const data = await res.json().catch(() => null);
+      if (data?.code === "QUEUE_BUSY") {
+        onQueueBusy?.(data?.error || "当前生图算力队列繁忙，已停止等待，请稍后再试。");
+        return;
+      }
+
       if (data?.success && data.image_url) {
         onSaveVisualAsset({
           id: assetId,

@@ -484,14 +484,86 @@ export function buildCinematicCoverPrompt(options = {}) {
 }
 
 /**
+ * 构造全英文影视级立绘与场景概念图 Prompt (彻底剔除中文乱码，注入具体电影级视觉要素)
+ */
+export function buildEnglishAssetPrompt(options = {}) {
+  const {
+    type = "character",
+    role = "",
+    personality = "",
+    appearance = "",
+    genre = "都市异能",
+  } = options;
+
+  const artStyle = getGenreArtStyle(genre);
+
+  if (type === "character") {
+    const traitDesc = [role, personality, appearance].filter(Boolean).join(", ");
+    return [
+      `Award-winning cinematic character portrait photography.`,
+      `Subject: charismatic character in ${artStyle.costume}, detailed facial expression, sharp gaze.`,
+      traitDesc ? `Visual Character Aura: ${traitDesc}.` : "",
+      `Genre & Setting: ${artStyle.era}.`,
+      `Key props: ${artStyle.props}.`,
+      `Lighting & Mood: cinematic dramatic rim lighting, atmospheric volumetric lighting, shallow depth of field, 85mm portrait lens, ${artStyle.atmosphere}.`,
+      `Quality: photorealistic 8k, highly detailed skin texture, Unreal Engine 5 render, Octane Render masterpiece.`,
+      `Strict Negative: ${artStyle.negative}, no text, no letters, no watermark, no logo, clean artwork only.`,
+    ].filter(Boolean).join(" ");
+  }
+
+  // 场景概念图
+  return [
+    `Cinematic wide-angle environment concept art.`,
+    `Environment: panoramic cinematic view of ${artStyle.era}.`,
+    `Key landmarks & details: rain-slicked surfaces, towering architectural depth, atmospheric mist, ${artStyle.props}.`,
+    `Lighting & Atmosphere: ${artStyle.atmosphere}, dramatic volumetric shafts of light, cinematic chiaroscuro, 35mm wide lens.`,
+    `Quality: 8k resolution, IMAX film still, photorealistic textures, Unreal Engine 5 render, award-winning illustration.`,
+    `Strict Negative: ${artStyle.negative}, no text, no title, no letters, no watermark, no logo, clean artwork only.`,
+  ].join(" ");
+}
+
+/**
  * 构造全球顶尖 FLUX.1 开源出图引擎高清渲染 URL
  */
 export function buildFluxImageUrl(prompt, options = {}) {
   const width = options.width || 768;
   const height = options.height || 1024;
   const seed = options.seed || Math.floor(Math.random() * 10000000);
+  const enhance = options.enhance ?? true;
   const safePrompt = String(prompt || "").replace(/[\r\n\t]+/g, " ").trim().slice(0, 1000);
   const encoded = encodeURIComponent(safePrompt);
-  return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&model=flux&nologo=true&enhance=true&private=true&safe=true&seed=${seed}`;
+  return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&model=flux&nologo=true&enhance=${enhance}&private=true&safe=true&seed=${seed}`;
+}
+
+/**
+ * 探测生图接口响应状态（短超时 7 秒，检测排队与限流，避免无休止挂起）
+ */
+export async function probeImageUrl(url, timeoutMs = 7000) {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "image/*, */*",
+      },
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timer));
+
+    // 429 过于频繁、503 服务不可用/队列满、500 服务端内部错误
+    if (res.status === 429 || res.status === 503 || res.status === 500) {
+      return { ok: false, status: res.status, isBusy: true };
+    }
+
+    const contentType = res.headers.get("content-type") || "";
+    if (res.ok && contentType.includes("image")) {
+      return { ok: true, status: 200, isBusy: false };
+    }
+
+    return { ok: false, status: res.status, isBusy: true };
+  } catch (err) {
+    // 超时说明排队过长或网络阻塞
+    return { ok: false, status: 408, isBusy: true, error: err?.name || "Timeout" };
+  }
 }
 

@@ -4,6 +4,8 @@ import {
   generateSceneConceptSvg,
   resolveValidBaseUrl,
   buildFluxImageUrl,
+  buildEnglishAssetPrompt,
+  probeImageUrl,
 } from "@/lib/workflow-utils.mjs";
 
 export const dynamic = "force-dynamic";
@@ -44,14 +46,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "资产名称不能为空" }, { status: 400 });
   }
 
+  // 构造全英文工业级影视 Prompt (彻底剔除中文字符，避免生图模型 T5 编码器失效与假文字)
+  const prompt = buildEnglishAssetPrompt({
+    type,
+    name,
+    role,
+    personality,
+    appearance: appearance || description,
+    genre,
+  });
+
   // 1. 如果配置了可用的第三方生图 Key，尝试调用生图 API (DALL-E-3 高清质量)
   const cleanKey = apiKey.trim();
   const safeBaseUrl = resolveValidBaseUrl(baseUrl);
-
-  const prompt =
-    type === "character"
-      ? `Cinematic character portrait photo of ${name}, ${role}. Personality: ${personality}. Appearance: ${appearance}. Genre: ${genre}. Masterpiece, hyper-detailed face, volumetric rim lighting, 8k resolution, photorealistic, character design concept art, neutral dark background, no text.`
-      : `Cinematic wide-angle environment concept art of scene "${name}". Details: ${description || appearance}. Atmosphere: ${personality}. Genre: ${genre}. Dramatic lighting, 8k, Unreal Engine 5 render, award-winning illustration, masterpiece, no text.`;
 
   if (cleanKey) {
     try {
@@ -90,15 +97,58 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 2. 核心升级：接入全球顶级开源 FLUX.1 真实出图引擎 (立绘/场景大片真实呈现)
+  // 2. 核心升级：接入全球顶级开源 FLUX.1 真实出图引擎 (纯英文专业 Prompt 渲染)
   try {
     const fluxUrl = buildFluxImageUrl(prompt, {
       width: type === "character" ? 768 : 1024,
       height: type === "character" ? 1024 : 576,
+      enhance: false,
     });
+
+    // 短探测：检测算力节点是否正在排队或限流频繁 (7 秒探测超时)
+    const probe = await probeImageUrl(fluxUrl, 7000);
+
+    // 用户明确诉求：如果出现排队的情况就不要生成了，直接提示太频繁稍后重试
+    if (probe.isBusy) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "QUEUE_BUSY",
+          error: "生图算力节点当前排队繁忙或请求过于频繁，请稍后再试",
+        },
+        { status: 429 }
+      );
+    }
+
+    if (probe.ok) {
+      return NextResponse.json({
+        success: true,
+        image_url: fluxUrl,
+      });
+    }
+
+    // 探测失败但非 busy，执行专属矢量保底
+    let fallbackUrl = "";
+    if (type === "character") {
+      fallbackUrl = generateCharacterPortraitSvg({
+        name,
+        role,
+        personality,
+        appearance: appearance || description,
+        genre,
+      });
+    } else {
+      fallbackUrl = generateSceneConceptSvg({
+        sceneTitle: name,
+        atmosphere: personality || "暗夜暴雨，光影交错",
+        elements: appearance || description || "核心交锋地貌",
+        genre,
+      });
+    }
     return NextResponse.json({
       success: true,
-      image_url: fluxUrl,
+      image_url: fallbackUrl,
+      isFallback: true,
     });
   } catch {
     // 3. 本地电影级专属视觉矢量图终极保底

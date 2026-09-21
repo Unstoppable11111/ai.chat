@@ -18,6 +18,7 @@ import {
   generateFallbackSvgCover,
   buildCinematicCoverPrompt,
   buildFluxImageUrl,
+  probeImageUrl,
 } from "@/lib/workflow-utils.mjs";
 
 const encoder = new TextEncoder();
@@ -94,13 +95,26 @@ async function generateNovelCoverImage(options: {
     }
   }
 
-  // 2. 核心升级：接入全球顶级开源 FLUX.1 真实出图引擎 (768x1024 纯正电影海报画幅，告别纯文字 SVG)
+  // 2. 核心升级：接入全球顶级开源 FLUX.1 真实出图引擎 (768x1024 纯正电影海报画幅)
   try {
     const fluxUrl = buildFluxImageUrl(cinematicPrompt, {
       width: 768,
       height: 1024,
+      enhance: false,
     });
-    return fluxUrl;
+
+    // 探测 7 秒，如果节点正在排队繁忙，立即转为电影级专属矢量海报保底，防止整书生成挂起
+    const probe = await probeImageUrl(fluxUrl, 7000);
+    if (probe.ok) {
+      return fluxUrl;
+    }
+
+    return generateFallbackSvgCover(
+      options.title,
+      options.genre,
+      protagonistDesc,
+      sceneDesc
+    );
   } catch {
     return generateFallbackSvgCover(
       options.title,

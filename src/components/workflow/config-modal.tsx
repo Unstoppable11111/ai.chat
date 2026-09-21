@@ -177,8 +177,8 @@ export function ConfigModal({
                 <label className="text-xs font-semibold text-slate-700">去 AI 味短句化强度</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { key: "light", label: "轻度", desc: "保留修辞，微调长句" },
-                    { key: "medium", label: "中度 (推荐)", desc: "剔除套词，15字短句" },
+                    { key: "light", label: "轻度 (推荐)", desc: "保留修辞，微调长句" },
+                    { key: "medium", label: "中度", desc: "剔除套词，15字短句" },
                     { key: "aggressive", label: "重度", desc: "极限白描，高压冷峻" },
                   ].map((level) => (
                     <button
@@ -190,7 +190,7 @@ export function ConfigModal({
                         })
                       }
                       className={`p-2.5 rounded-xl text-left border transition-all ${
-                        (config.deAiLevel || "medium") === level.key
+                        (config.deAiLevel || "light") === level.key
                           ? "border-violet-500 bg-violet-50/70 text-violet-900"
                           : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
                       }`}
