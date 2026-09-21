@@ -32,13 +32,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const baseUrl = resolveValidBaseUrl(body.baseUrl);
-  const apiKey = body.apiKey?.trim() || process.env.OPENAI_API_KEY || "";
-  const model =
-    body.model?.trim() ||
-    process.env.UPSTREAM_BALANCED_MODEL ||
-    process.env.UPSTREAM_SPEED_MODEL ||
-    "gpt-4o-mini";
+  // 判断是否为用户自定义的第三方 API Key
+  const isCustomKey = Boolean(body.apiKey && body.apiKey.trim().length > 0);
+
+  let apiKey = "";
+  let baseUrl = "";
+  let model = "";
+
+  if (isCustomKey) {
+    apiKey = body.apiKey!.trim();
+    baseUrl = body.baseUrl ? resolveValidBaseUrl(body.baseUrl) : "https://api.openai.com/v1";
+    model = body.model?.trim() || "gpt-4o-mini";
+  } else {
+    apiKey = process.env.OPENAI_API_KEY || process.env.DEEPSEEK_API_KEY || "";
+    baseUrl = resolveValidBaseUrl(process.env.OPENAI_BASE_URL) || "https://api.openai.com/v1";
+    model =
+      process.env.UPSTREAM_BALANCED_MODEL ||
+      process.env.UPSTREAM_SPEED_MODEL ||
+      "gemini-3.7-flash";
+  }
 
   if (!apiKey) {
     return NextResponse.json(

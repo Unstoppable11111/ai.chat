@@ -235,26 +235,33 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // 严格解析合法的 Base URL，彻底避免“Failed to parse URL from ...”崩溃
-  const baseUrl = resolveValidBaseUrl(body.baseUrl);
+  // 判断是否为用户自定义的第三方 API Key
+  const isCustomKey = Boolean(body.apiKey && body.apiKey.trim().length > 0);
 
-  // 优先使用用户自定义的 API Key，若无则使用站长服务端的环境变量 Key
-  const apiKey =
-    body.apiKey?.trim() ||
-    process.env.DEEPSEEK_API_KEY ||
-    process.env.OPENAI_API_KEY ||
-    "";
-  const model =
-    body.model?.trim() ||
-    process.env.DEEPSEEK_MODEL ||
-    process.env.UPSTREAM_BALANCED_MODEL ||
-    process.env.UPSTREAM_SPEED_MODEL ||
-    "deepseek-chat";
+  let apiKey = "";
+  let baseUrl = "";
+  let model = "";
+
+  if (isCustomKey) {
+    // 1. 用户填入了第三方自定义 Key
+    apiKey = body.apiKey!.trim();
+    baseUrl = body.baseUrl ? resolveValidBaseUrl(body.baseUrl) : "https://api.openai.com/v1";
+    model = body.model?.trim() || "gpt-4o-mini";
+  } else {
+    // 2. 默认使用站长内置的 AI 对话高速通道（与 /api-chat-backend 保持 100% 一致）
+    apiKey = process.env.OPENAI_API_KEY || process.env.DEEPSEEK_API_KEY || "";
+    baseUrl = resolveValidBaseUrl(process.env.OPENAI_BASE_URL) || "https://api.openai.com/v1";
+    // 默认模型必须使用站长对话配置的 gemini 模型，严防调用站长通道中未配置的 deepseek-chat 渠道
+    model =
+      process.env.UPSTREAM_BALANCED_MODEL ||
+      process.env.UPSTREAM_SPEED_MODEL ||
+      "gemini-3.7-flash";
+  }
 
   if (!apiKey) {
     return new Response(
       JSON.stringify({
-        error: "未配置 API Key。请在控制台设置抽屉中填写您的 API Key，或在服务器环境变量中配置 OPENAI_API_KEY。",
+        error: "未配置 API Key。请在控制台设置抽屉中填写您的第三方 API Key，或联系管理员检查服务端 OPENAI_API_KEY。",
       }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );

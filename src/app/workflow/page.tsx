@@ -77,9 +77,9 @@ const DEFAULT_CONFIG: WorkflowConfig = {
   targetWordCount: 1200,
   deAiLevel: "medium",
   customSystemPrompt: "",
-  model: "deepseek-chat",
-  baseUrl: "", // 保持为空，默认走后端服务
-  apiKey: "",  // 保持为空，默认走后端服务
+  model: "",   // 保持为空，默认走站点内置 AI 对话通道 (与全站 AI 助手一致)
+  baseUrl: "", // 保持为空，默认走站点内置 AI 对话通道
+  apiKey: "",  // 保持为空，默认走站点内置 AI 对话通道
 };
 
 export default function WorkflowPage() {
@@ -123,10 +123,13 @@ export default function WorkflowPage() {
             const first = list[0];
             setCurrentProjectId(first.id);
             setPrompt(first.prompt || "");
-            // 清洗可能存在的脏 baseUrl（例如之前测试遗留的 chen）
+            // 清洗可能存在的脏 baseUrl（例如之前测试遗留的 chen）以及脏 model
             const cleanedConfig = { ...first.config };
             if (cleanedConfig.baseUrl && !/^https?:\/\//i.test(cleanedConfig.baseUrl)) {
               cleanedConfig.baseUrl = "";
+            }
+            if (!cleanedConfig.apiKey?.trim()) {
+              cleanedConfig.model = "";
             }
             setConfig(cleanedConfig);
             setBible(first.bible || null);
@@ -164,6 +167,9 @@ export default function WorkflowPage() {
     const cleanedConfig = { ...proj.config };
     if (cleanedConfig.baseUrl && !/^https?:\/\//i.test(cleanedConfig.baseUrl)) {
       cleanedConfig.baseUrl = "";
+    }
+    if (!cleanedConfig.apiKey?.trim()) {
+      cleanedConfig.model = "";
     }
     setConfig(cleanedConfig);
     setBible(proj.bible || null);
@@ -294,9 +300,12 @@ export default function WorkflowPage() {
       safeBaseUrl = "";
     }
 
+    const isCustom = Boolean(config.apiKey && config.apiKey.trim().length > 0);
+
     const requestPayload: WorkflowConfig = {
       ...config,
       baseUrl: safeBaseUrl,
+      model: isCustom ? config.model?.trim() || "gpt-4o-mini" : "", // 非自定义 Key 留空，后端自动映射为站长 AI 对话后端模型
       prompt: prompt.trim(),
     };
 

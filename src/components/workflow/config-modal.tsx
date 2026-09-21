@@ -28,10 +28,11 @@ const STYLE_OPTIONS = [
 ];
 
 const MODEL_OPTIONS = [
-  { label: "DeepSeek V3 (推荐高性价比)", value: "deepseek-chat" },
-  { label: "GPT-4o Mini (超快推理)", value: "gpt-4o-mini" },
-  { label: "GPT-4o (全能旗舰)", value: "gpt-4o" },
-  { label: "Claude 3.5 Sonnet (文笔优异)", value: "claude-3-5-sonnet-20241022" },
+  { label: "全站 AI 对话内置引擎 (推荐，默认使用无需填 Key)", value: "" },
+  { label: "DeepSeek V3 (需填自定义 Key)", value: "deepseek-chat" },
+  { label: "GPT-4o Mini (超快推理，需填自定义 Key)", value: "gpt-4o-mini" },
+  { label: "GPT-4o (全能旗舰，需填自定义 Key)", value: "gpt-4o" },
+  { label: "Claude 3.5 Sonnet (需填自定义 Key)", value: "claude-3-5-sonnet-20241022" },
 ];
 
 export function ConfigModal({
@@ -221,21 +222,26 @@ export function ConfigModal({
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700">目标大模型 (Model)</label>
                 <div className="space-y-1.5">
-                  {MODEL_OPTIONS.map((m) => (
-                    <button
-                      key={m.value}
-                      type="button"
-                      onClick={() => onChange({ model: m.value })}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium border transition-all flex items-center justify-between ${
-                        config.model === m.value
-                          ? "border-cyan-500 bg-cyan-50 text-cyan-800 font-semibold"
-                          : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
-                      }`}
-                    >
-                      <span>{m.label}</span>
-                      <span className="font-mono text-[10px] text-slate-400">{m.value}</span>
-                    </button>
-                  ))}
+                  {MODEL_OPTIONS.map((m) => {
+                    const isSelected = (config.model || "") === m.value;
+                    return (
+                      <button
+                        key={m.value}
+                        type="button"
+                        onClick={() => onChange({ model: m.value })}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium border transition-all flex items-center justify-between ${
+                          isSelected
+                            ? "border-cyan-500 bg-cyan-50 text-cyan-800 font-semibold"
+                            : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
+                        }`}
+                      >
+                        <span>{m.label}</span>
+                        <span className="font-mono text-[10px] text-slate-400">
+                          {m.value || "内置引擎"}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
                 <input
                   type="text"
@@ -267,22 +273,31 @@ export function ConfigModal({
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-slate-700">
-                    自定义 API Key (可选)
+                    自定义第三方 API Key (可选)
                   </label>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
-                    <Check className="h-3 w-3" />
-                    已默认启用站长高速服务
-                  </span>
+                  {config.apiKey ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-medium text-cyan-700">
+                      <Check className="h-3 w-3" />
+                      已启用自定义第三方 Key
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                      <Check className="h-3 w-3" />
+                      默认使用站长 AI 对话服务
+                    </span>
+                  )}
                 </div>
                 <input
                   type="password"
                   value={config.apiKey || ""}
                   onChange={(e) => onChange({ apiKey: e.target.value.trim() })}
-                  placeholder="留空即默认使用站长内置 Key 进行生成"
+                  placeholder="留空即默认使用站长内置 AI 对话服务生成"
                   className="w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden"
                 />
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  默认无需填写任何 Key，系统会自动调用站长服务进行全流程创作。若输入您的个人 Key，将仅保存在您本地浏览器中用于发起请求。
+                  {config.apiKey
+                    ? "您已配置个人 API Key，将优先使用您的 Key 及指定模型。"
+                    : "默认无需填写任何 Key，系统已无缝接入全站 AI 助手的高速通道进行全流程创作。"}
                 </p>
               </div>
             </>
