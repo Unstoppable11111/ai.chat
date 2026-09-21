@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/add-admin-column.mjs",
     "build": "next build",
     "start": "next start",
     "db:sync": "node scripts/sync-mdx-to-mysql.mjs",
