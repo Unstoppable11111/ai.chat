@@ -31,11 +31,12 @@ import {
   checkWorkflowRateLimit,
 } from "@/lib/server-security";
 import { countUserDailyNovels, verifyProjectOwnership } from "@/lib/workflow-db";
+import { isSuperAdmin } from "@/lib/auth-db";
 
 const encoder = new TextEncoder();
 
 /**
- * 根据全书大纲与核心冲突生成电影级商业海报封面 (统一接入站长 gemini-3.1-pro-image 模型)
+ * 根据全书大纲与核心冲突生成电影级商业海报封面 (统一接入站长 gemini-3-pro-image 模型)
  */
 async function generateNovelCoverImage(options: {
   title: string;
@@ -48,22 +49,12 @@ async function generateNovelCoverImage(options: {
   customPrompt?: string;
   baseUrl: string;
   apiKey: string;
+  isAdmin?: boolean;
 }): Promise<string> {
   const protagonistDesc = options.protagonist || "沉着内敛的逆光探索者";
   const sceneDesc = options.mainScene || "破晓都市与深邃光影交织的核心场景";
 
-  // 1. 若当前通道正处于冷却保护中，直接转矢量海报，防止整书流水线挂起
-  const cooldown = getImageCooldownStatus();
-  if (cooldown.active) {
-    return generateFallbackSvgCover(
-      options.title,
-      options.genre,
-      protagonistDesc,
-      sceneDesc
-    );
-  }
-
-  // 基于全书大纲、世界观与核心冲突提炼顶级电影海报 Prompt (8K 商业海报质感，强制无水印)
+  // 基于全书大纲、世界观与核心冲突提炼出版级小说封面 Prompt
   const defaultPrompt = buildCinematicCoverPrompt({
     title: options.title,
     genre: options.genre,
@@ -79,41 +70,54 @@ async function generateNovelCoverImage(options: {
       ? options.customPrompt.trim()
       : defaultPrompt;
 
-  // 2. 统一使用站长 Key 与网关，调用 gemini-3.1-pro-image
-  const effectiveApiKey = options.apiKey?.trim() || process.env.OPENAI_API_KEY || "";
-  const effectiveBaseUrl =
-    options.baseUrl?.trim() || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
-
-  if (effectiveApiKey) {
+  // 1. 若当前通道正处于冷却保护中且非管理员，直接转降级高质量位图，防止整书流水线挂起
+  const cooldown = getImageCooldownStatus();
+  if (!options.isAdmin && cooldown.active) {
     try {
-      const coverUrl = await callGeminiImageGeneration({
-        prompt: cinematicPrompt,
-        apiKey: effectiveApiKey,
-        baseUrl: effectiveBaseUrl,
-        model: "gemini-3.1-pro-image",
-        size: "1024x1024",
-        timeoutMs: 15000,
-      });
+      const fluxCover = buildFluxImageUrl(cinematicPrompt, { width: 768, height: 1024 });
+      if (fluxCover) return fluxCover;
+    } catch {}
+    return generateFallbackSvgCover(
+      options.title,
+      options.genre,
+      protagonistDesc,
+      sceneDesc
+    );
+  }
 
-      if (coverUrl) {
-        reportImageSuccess();
-        return coverUrl;
-      }
-    } catch (err: unknown) {
-      const errorObj = err as { status?: number; message?: string; name?: string };
-      const isRateLimit =
-        errorObj.status === 429 ||
-        errorObj.status === 503 ||
-        String(errorObj.message).includes("CONCURRENCY") ||
-        String(errorObj.message).includes("RATE_LIMIT");
-      const isTimeout =
-        errorObj.status === 408 ||
-        errorObj.name === "AbortError" ||
-        String(errorObj.message).includes("TIMEOUT");
+  // 2. 统一调用 gemini-3-pro-image 生图服务 (支持本地中间件免密或站长 Key)
+  const effectiveApiKey = options.apiKey?.trim() || process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "";
+  const effectiveBaseUrl =
+    options.baseUrl?.trim() || process.env.IMAGE_API_BASE_URL || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
 
-      if (isRateLimit || isTimeout) {
-        triggerImageCooldown(isTimeout ? "NOVEL_COVER_TIMEOUT" : "NOVEL_COVER_CONCURRENCY");
-      }
+  try {
+    const coverUrl = await callGeminiImageGeneration({
+      prompt: cinematicPrompt,
+      apiKey: effectiveApiKey,
+      baseUrl: effectiveBaseUrl,
+      model: "gemini-3-pro-image",
+      size: "1024x1024",
+      timeoutMs: 20000,
+    });
+
+    if (coverUrl) {
+      reportImageSuccess();
+      return coverUrl;
+    }
+  } catch (err: unknown) {
+    const errorObj = err as { status?: number; message?: string; name?: string };
+    const isRateLimit =
+      errorObj.status === 429 ||
+      errorObj.status === 503 ||
+      String(errorObj.message).includes("CONCURRENCY") ||
+      String(errorObj.message).includes("RATE_LIMIT");
+    const isTimeout =
+      errorObj.status === 408 ||
+      errorObj.name === "AbortError" ||
+      String(errorObj.message).includes("TIMEOUT");
+
+    if (isRateLimit || isTimeout) {
+      triggerImageCooldown(isTimeout ? "NOVEL_COVER_TIMEOUT" : "NOVEL_COVER_CONCURRENCY");
     }
   }
 
@@ -350,12 +354,14 @@ export async function POST(request: NextRequest) {
 
   // 4. 每个账户每天限额 2 本小说判定 (Daily Quota: 2 Books/Day)
   // 如果不是针对当前用户已存在的小说进行重新微调，则属于新创建小说
+  // 超级管理员特权：完全免除每日配额限制，支持无限次创作
+  const isAdmin = await isSuperAdmin(userId);
   const dailyNovelCount = await countUserDailyNovels(userId);
   const isExistingBook = body.projectId
     ? await verifyProjectOwnership(userId, body.projectId)
     : false;
 
-  if (!isExistingBook && dailyNovelCount >= 2) {
+  if (!isAdmin && !isExistingBook && dailyNovelCount >= 2) {
     return new Response(
       JSON.stringify({
         error: "您今日的小说创作额度已达上限（每个账户每日限 2 本小说的全案生产与资产制作），请明日再来体验。",
@@ -891,13 +897,13 @@ ${JSON.stringify(bible.outlines, null, 2)}`;
           const finalConflict = lastOutline?.conflict || bible.logline || "全书宿命高潮对决";
           const mainSetting = lastOutline?.title || bible.worldview.slice(0, 80);
 
-          const artAgentSystem = `你是一位顶级好莱坞概念美术总监兼专业视觉提示词工程专家。请根据小说全书大纲、高潮冲突与核心主角设定，为生图模型【gemini-3.1-pro-image】定制一段【纯英文顶级电影海报视觉提示词】。
+          const artAgentSystem = `你是一位顶级小说概念美术总监兼专业视觉提示词工程专家。请根据小说全书大纲、高潮冲突与核心主角设定，为生图模型【gemini-3-pro-image】定制一段【纯英文标准小说封面视觉生图提示词】。
 要求：
-1. 深入分析全书大纲高潮与人设，提炼出最具张力的电影镜头画面（主角动作神态、标志性服饰道具、宏大场景构图与纵深、电影光影）；
-2. 包含专业摄影/渲染视觉词（cinematic wide-angle key visual, dramatic volumetric rim lighting, deep chiaroscuro contrast, 8k resolution, IMAX cinematic film still, masterpiece）；
+1. 必须以 "Generate an image: Novel book cover illustration for ..." 开头；
+2. 深入分析全书大纲高潮与人设，提炼出最具张力的封面画面（主角神态外貌、标志性服饰道具、核心场景与电影光影构图）；
 3. 严格契合【${genre} - ${style}】题材风格（古风穿传统汉服持冷兵器，严禁现代西服违和物；科幻赛博雨夜霓虹与机械装甲）；
-4. 【核心禁令】：末尾必须强制加上严格的无水印/无文字排除词：clean pure artwork, absolutely no watermark, no text, no chinese characters, no letters, no words, no signature, no logo, no subtitles, no borders, clean pure image only；
-5. 纯英文输出，100-140词，不要包含任何中文或多余废话解释。`;
+4. 【核心禁令】：末尾必须强制加上严格的无水印/无文字排除词：clean pure artwork, professional book cover design, absolutely no watermark, no text, no chinese characters, no letters, no words, no signature, no logo, no subtitles, no borders, clean pure image only；
+5. 纯英文输出，80-120词左右，不要包含任何中文或多余废话解释。`;
 
           const artAgentRes = await callLLMStream(
             [
@@ -941,6 +947,7 @@ ${JSON.stringify(bible.outlines, null, 2)}`;
           customPrompt: customArtPrompt,
           baseUrl,
           apiKey,
+          isAdmin,
         });
 
         sendEvent({

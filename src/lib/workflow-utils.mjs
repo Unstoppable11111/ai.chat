@@ -1,17 +1,41 @@
+import fs from "node:fs";
+import path from "node:path";
+
 /**
- * 自动化小说 & AI 视频分镜工作流通用工具函数
+ * 将 Base64 图片数据安全存储到项目的 public/generated/workflow/ 目录中，并返回轻量可访问静态路径
  */
+export function saveBase64ImageLocally(b64Data, prefix = "visual") {
+  if (!b64Data || typeof b64Data !== "string") return "";
+  if (b64Data.startsWith("http://") || b64Data.startsWith("https://")) {
+    return b64Data;
+  }
+  try {
+    const uploadDir = path.join(process.cwd(), "public", "generated", "workflow");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    const cleanB64 = b64Data.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(cleanB64, "base64");
+    const filename = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`;
+    const fullPath = path.join(uploadDir, filename);
+    fs.writeFileSync(fullPath, buffer);
+    return `/generated/workflow/${filename}`;
+  } catch (err) {
+    console.warn("[saveBase64ImageLocally] Warning writing local file, fallback to data URI:", err);
+    return b64Data.startsWith("data:") ? b64Data : `data:image/png;base64,${b64Data}`;
+  }
+}
 
 /**
  * 严格清洗并解析合法的 Base URL，彻底防止“Failed to parse URL from ...”崩溃
  */
 export function resolveValidBaseUrl(rawInput) {
-  const envUrl = process.env.OPENAI_BASE_URL || process.env.OPENAI_API_BASE || "";
-  let candidate = (rawInput || "").trim();
+  const envUrl = process.env.IMAGE_API_BASE_URL || process.env.OPENAI_BASE_URL || process.env.OPENAI_API_BASE || "";
+  let candidate = (rawInput || "").replace(/^["']|["']$/g, "").trim();
 
   // 若用户未传或传空，优先使用环境变量
   if (!candidate) {
-    candidate = envUrl.trim();
+    candidate = envUrl.replace(/^["']|["']$/g, "").trim();
   }
 
   // 尝试规范化 URL 协议
@@ -535,10 +559,10 @@ export async function probeImageUrl(url, timeoutMs = 7000) {
 }
 
 /**
- * 专为 gemini-3.1-pro-image 打造的高速生图通道
+ * 专为 gemini-3-pro-image 打造的高速生图通道
  * 严格遵从用户指定的请求格式：
  * {
- *   "model": "gemini-3.1-pro-image",
+ *   "model": "gemini-3-pro-image",
  *   "prompt": "Generate an image ...",
  *   "size": "1024x1024",
  *   "n": 1,
@@ -548,29 +572,32 @@ export async function probeImageUrl(url, timeoutMs = 7000) {
 export async function callGeminiImageGeneration(options = {}) {
   const {
     prompt,
-    apiKey = process.env.OPENAI_API_KEY || "",
-    baseUrl = process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1",
-    model = "gemini-3.1-pro-image",
+    apiKey = process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "",
+    baseUrl = process.env.IMAGE_API_BASE_URL || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1",
+    model = process.env.IMAGE_MODEL || "gemini-3-pro-image",
     size = "1024x1024",
-    timeoutMs = 15000,
+    timeoutMs = 20000,
   } = options;
-
-  if (!apiKey) {
-    throw new Error("API_KEY_MISSING");
-  }
 
   const cleanBaseUrl = resolveValidBaseUrl(baseUrl).replace(/\/+$/, "");
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const imagesUrl = `${cleanBaseUrl}/images/generations`;
+    const imagesUrl = cleanBaseUrl.endsWith("/images/generations")
+      ? cleanBaseUrl
+      : `${cleanBaseUrl}/images/generations`;
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (apiKey && apiKey.trim()) {
+      headers.Authorization = `Bearer ${apiKey.trim()}`;
+    }
+
     const res = await fetch(imagesUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers,
       body: JSON.stringify({
         model,
         prompt,
@@ -589,56 +616,20 @@ export async function callGeminiImageGeneration(options = {}) {
 
     if (res.ok) {
       const data = await res.json().catch(() => null);
-      const img = data?.data?.[0]?.b64_json || data?.data?.[0]?.url;
-      if (img) {
-        return img.startsWith("http") ? img : `data:image/png;base64,${img}`;
+      const b64 = data?.data?.[0]?.b64_json;
+      const url = data?.data?.[0]?.url;
+
+      // 若为 Base64 图片，自动安全落盘至服务器本地，生成轻量静态 URL
+      if (b64) {
+        return saveBase64ImageLocally(b64, "novel");
+      }
+      if (url && typeof url === "string" && url.startsWith("http")) {
+        return url;
       }
     }
 
-    // 若 images/generations 返回 404/405 等，尝试兼顾 chat completions 渠道
-    if (res.status === 404 || res.status === 405) {
-      const chatUrl = `${cleanBaseUrl}/chat/completions`;
-      const chatController = new AbortController();
-      const chatTimer = setTimeout(() => chatController.abort(), timeoutMs);
-
-      const chatRes = await fetch(chatUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: "user",
-              content: `Generate an image according to this prompt: ${prompt}`,
-            },
-          ],
-        }),
-        signal: chatController.signal,
-      }).finally(() => clearTimeout(chatTimer));
-
-      if (chatRes.status === 429 || chatRes.status === 503) {
-        const err = new Error(`CONCURRENCY_OR_RATE_LIMIT_${chatRes.status}`);
-        err.status = chatRes.status;
-        throw err;
-      }
-
-      if (chatRes.ok) {
-        const chatData = await chatRes.json().catch(() => null);
-        const reply = chatData?.choices?.[0]?.message?.content || "";
-        const match =
-          reply.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/) ||
-          reply.match(/(https?:\/\/[^\s)]+\.(?:png|jpg|jpeg|webp))/i);
-        if (match && match[1]) {
-          return match[1];
-        }
-      }
-    }
-
-    // 若上游网关未配置或未返回有效图片 (如 500 provider returned no generated images)
-    // 立即自动热切换至真实位图渲染引擎，确保本地请求通过且输出精美海报位图
+    // 若当前接口报错（如 500、404、无图片等），立即尝试降级到免费的真实高精位图接口
+    console.warn(`[ImageGen] 服务器渠道 ${res.status} 未能产出图片，正在降级使用免费高质量位图渲染引擎...`);
     const fallbackFluxUrl = buildFluxImageUrl(prompt, { width: 768, height: 1024 });
     const probe = await probeImageUrl(fallbackFluxUrl, 8000);
     if (probe.ok) {
@@ -655,7 +646,7 @@ export async function callGeminiImageGeneration(options = {}) {
       timeoutErr.status = 408;
       throw timeoutErr;
     }
-    // 终极保底：生成真实高质量位图
+    // 降级保底：使用免费的高清位图引擎生成，确保绝不返回简陋 SVG
     try {
       const fallbackFluxUrl = buildFluxImageUrl(prompt, { width: 768, height: 1024 });
       return fallbackFluxUrl;

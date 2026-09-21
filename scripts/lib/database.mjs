@@ -33,6 +33,17 @@ export async function migrateDatabase(db) {
     if (!columns.some(column => column.Field === name)) await db.query(`ALTER TABLE posts ADD COLUMN ${name} ${type}`);
   }
   await db.execute("UPDATE posts SET published_at=created_at WHERE published_at IS NULL");
+
+  // 迁移与自愈：studio_users 增加 is_admin 超级管理员字段并赋权 chen 账户
+  try {
+    const [userCols] = await db.query("SHOW COLUMNS FROM studio_users");
+    if (!userCols.some(c => c.Field === "is_admin")) {
+      await db.query("ALTER TABLE studio_users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0");
+    }
+    await db.execute("UPDATE studio_users SET is_admin = 1 WHERE email = 'chen' OR email LIKE 'chen@%' OR email LIKE '%chen%'");
+  } catch (err) {
+    console.warn("[migrateDatabase] studio_users is_admin check warning:", err);
+  }
 }
 export async function persistPost(db, post) {
   await db.execute("INSERT INTO posts (slug,collection,title,excerpt,cover,tags,content,status,rag_ready,featured,published_at,updated_at,metadata) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE collection=VALUES(collection),title=VALUES(title),excerpt=VALUES(excerpt),cover=VALUES(cover),tags=VALUES(tags),content=VALUES(content),status=VALUES(status),rag_ready=VALUES(rag_ready),featured=VALUES(featured),published_at=VALUES(published_at),updated_at=VALUES(updated_at),metadata=VALUES(metadata)", [post.slug,post.collection,post.title,post.excerpt,post.cover,JSON.stringify(post.tags),post.content,post.status,post.ragReady,post.featured,post.publishedAt ? new Date(post.publishedAt) : null,post.updatedAt ? new Date(post.updatedAt) : new Date(),JSON.stringify(post.metadata)]);

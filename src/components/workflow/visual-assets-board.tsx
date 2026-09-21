@@ -323,7 +323,7 @@ export function VisualAssetsBoard({
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900">
-              小说视觉资产库 · gemini-3.1-pro-image 工业化赋能
+              小说视觉资产库 · gemini-3-pro-image 工业化赋能
             </h4>
             <p className="text-[11px] text-slate-500">
               人物画像与场景概念图为可选生成资产。用户手动确认后即时生成，并永久绑定至当前小说的数字资产包。
@@ -612,7 +612,7 @@ export function VisualAssetsBoard({
             </div>
             <div className="pt-3 pb-1 flex flex-wrap items-center justify-between w-full px-4 text-white text-xs gap-2">
               <span className="text-slate-400 font-mono text-[11px]">
-                gemini-3.1-pro-image 工业级超清视觉资产 (无水印认证)
+                gemini-3-pro-image 工业级超清视觉资产 (无水印认证)
               </span>
               <div className="flex items-center gap-2">
                 <button

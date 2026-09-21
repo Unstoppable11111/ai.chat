@@ -56,3 +56,7 @@ __pycache__/
 *.db-shm
 *.db-wal
 quant_service/database/
+
+# generated images
+public/generated/workflow/*
+!public/generated/workflow/.gitkeep

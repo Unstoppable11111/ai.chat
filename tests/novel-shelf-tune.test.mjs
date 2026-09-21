@@ -145,15 +145,20 @@ test("triggerImageCooldown handles 5-minute initial penalty and 30-minute escala
   assert.equal(status2.tier, 2);
 });
 
-test("callGeminiImageGeneration is exported and throws if api key is missing", async () => {
-  const { callGeminiImageGeneration } = await import("../src/lib/workflow-utils.mjs");
+test("saveBase64ImageLocally safely persists base64 to local disk and returns static URL", async () => {
+  const { saveBase64ImageLocally, callGeminiImageGeneration } = await import("../src/lib/workflow-utils.mjs");
   assert.equal(typeof callGeminiImageGeneration, "function");
-  await assert.rejects(
-    async () => {
-      await callGeminiImageGeneration({ prompt: "test prompt", apiKey: "" });
-    },
-    { message: "API_KEY_MISSING" }
-  );
+  assert.equal(typeof saveBase64ImageLocally, "function");
+
+  // 1x1 base64 png
+  const transparentPngB64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+  const savedUrl = saveBase64ImageLocally(transparentPngB64, "unit-test");
+  assert.ok(savedUrl.startsWith("/generated/workflow/unit-test-"));
+  assert.ok(savedUrl.endsWith(".png"));
+
+  // HTTP URL 原样返回
+  const httpUrl = "https://example.com/cover.png";
+  assert.equal(saveBase64ImageLocally(httpUrl), httpUrl);
 });
 
 

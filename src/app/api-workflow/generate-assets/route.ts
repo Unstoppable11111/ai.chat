@@ -17,6 +17,7 @@ import {
   checkWorkflowRateLimit,
 } from "@/lib/server-security";
 import { countUserDailyAssets, verifyProjectOwnership } from "@/lib/workflow-db";
+import { isSuperAdmin } from "@/lib/auth-db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "无效的请求格式" }, { status: 400 });
   }
 
-  // 1. 服务端强制 Session 登录鉴权 (严防外部脚本绕过前端白嫖 gemini-3.1-pro-image)
+  // 1. 服务端强制 Session 登录鉴权 (严防外部脚本绕过前端白嫖 gemini-3-pro-image)
   const userId = await requestOwner(request);
   if (!userId) {
     return NextResponse.json(
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 4. 服务端多维滑动窗口高频请求防御 (每 60 秒限 4 次)
+  // 4. 服务端多维滑动窗口高频请求防御 (每 60 秒限 4 次，超级管理员免频控)
   const rateLimitRes = await checkWorkflowRateLimit(request, userId, "asset");
   if (!rateLimitRes.allowed) {
     return NextResponse.json(
@@ -114,9 +115,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 5. 单账户单日资产生成配额限制 (每天最多 10 张，充分满足 2 本小说的核心资产)
+  // 5. 单账户单日资产生成配额限制 (每天最多 10 张，超级管理员无限生成)
+  const isAdmin = await isSuperAdmin(userId);
   const dailyAssets = await countUserDailyAssets(userId);
-  if (dailyAssets >= 10) {
+  if (!isAdmin && dailyAssets >= 10) {
     return NextResponse.json(
       {
         success: false,
@@ -127,9 +129,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 1. 检查生图通道是否处于冷却保护状态 (5分钟 -> 30分钟)
+  // 6. 检查生图通道是否处于冷却保护状态 (5分钟 -> 30分钟，超级管理员豁免)
   const cooldown = getImageCooldownStatus();
-  if (cooldown.active) {
+  if (!isAdmin && cooldown.active) {
     const minutes = Math.floor(cooldown.remainingSeconds / 60);
     const seconds = cooldown.remainingSeconds % 60;
     const timeText = minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
@@ -145,7 +147,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 2. 构造专为 gemini-3.1-pro-image 优化的纯英文无水印提示词
+  // 7. 构造专为 gemini-3-pro-image 优化的纯英文无水印提示词
   const prompt = buildEnglishAssetPrompt({
     type,
     name,
@@ -155,11 +157,11 @@ export async function POST(request: NextRequest) {
     genre,
   });
 
-  // 3. 优先使用用户自定义 Key，若无则坚决使用站长 Key 与网关 (彻底解决之前未配置站长 Key 的问题)
-  const effectiveApiKey = apiKey.trim() || process.env.OPENAI_API_KEY || "";
-  const effectiveBaseUrl = baseUrl.trim() || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
+  // 8. 优先使用用户自定义 Key，若无则使用站长 Key 与网关 (支持本地生图中间件免密请求)
+  const effectiveApiKey = apiKey.trim() || process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "";
+  const effectiveBaseUrl = baseUrl.trim() || process.env.IMAGE_API_BASE_URL || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
 
-  if (!effectiveApiKey) {
+  if (!effectiveApiKey && !process.env.IMAGE_API_BASE_URL) {
     return NextResponse.json(
       {
         success: false,
@@ -169,15 +171,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 4. 调用 gemini-3.1-pro-image 进行高质量无水印出图
+  // 9. 调用 gemini-3-pro-image 进行高质量无水印出图
   try {
     const imageUrl = await callGeminiImageGeneration({
       prompt,
       apiKey: effectiveApiKey,
       baseUrl: effectiveBaseUrl,
-      model: "gemini-3.1-pro-image",
+      model: "gemini-3-pro-image",
       size: type === "character" ? "1024x1024" : "1024x1024",
-      timeoutMs: 15000,
+      timeoutMs: 20000,
     });
 
     // 成功出图，汇报健康状态
@@ -186,7 +188,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       image_url: imageUrl,
-      model: "gemini-3.1-pro-image",
+      model: "gemini-3-pro-image",
     });
   } catch (err: unknown) {
     const errorObj = err as { status?: number; message?: string; name?: string };
@@ -200,8 +202,8 @@ export async function POST(request: NextRequest) {
       errorObj.name === "AbortError" ||
       String(errorObj.message).includes("TIMEOUT");
 
-    // 用户要求：当检测超时或者并发上限的时候，暂停生图接口五分钟，如果五分钟后还是超时并发，那就延长到30分钟
-    if (isRateLimit || isTimeout) {
+    // 当检测超时或者并发上限的时候，非超级管理员暂停生图接口五分钟（再错延长30分钟）
+    if (!isAdmin && (isRateLimit || isTimeout)) {
       const penalty = triggerImageCooldown(isTimeout ? "TIMEOUT" : "CONCURRENCY_LIMIT");
       const minutes = Math.floor(penalty.remainingSeconds / 60);
       const seconds = penalty.remainingSeconds % 60;
@@ -221,7 +223,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 其它常规错误，优先回退到真实高质感位图渲染引擎，杜绝简陋 SVG 几何小人
+    // 其它常规错误或管理员免冷却时，优先降级回退到免费的高质量位图渲染引擎，杜绝简陋 SVG
     try {
       const fluxAssetUrl = buildFluxImageUrl(prompt, {
         width: type === "character" ? 768 : 1024,

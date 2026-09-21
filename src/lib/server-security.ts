@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { RowDataPacket } from "mysql2/promise";
 import { getDbPool } from "./db";
-import { sessionUser } from "./auth-db";
+import { sessionUser, isSuperAdmin } from "./auth-db";
 
 export const SESSION_COOKIE = "studio_session";
 export const SESSION_SECONDS = 60 * 60 * 8;
@@ -12,6 +12,10 @@ export function sessionToken(request: Request) {
   return request.headers.get("cookie")?.split(";").map(part => part.trim()).find(part => part.startsWith(`${SESSION_COOKIE}=`))?.slice(SESSION_COOKIE.length + 1);
 }
 export function requestOwner(request: Request) { return sessionUser(sessionToken(request)); }
+export async function isRequestSuperAdmin(request: Request) {
+  const userId = await requestOwner(request);
+  return isSuperAdmin(userId);
+}
 export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return request.headers.get("sec-fetch-site") !== "cross-site";
@@ -88,6 +92,11 @@ export async function checkWorkflowRateLimit(
   userId: string,
   type: "novel" | "asset"
 ): Promise<{ allowed: boolean; message?: string }> {
+  // 超级管理员特权：完全不受高频请求频控限制
+  if (await isSuperAdmin(userId)) {
+    return { allowed: true };
+  }
+
   const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "ip-anonymous";
   const ipKey = `rate:ip:${type}:${clientIp}`;
   const userKey = `rate:user:${type}:${userId}`;

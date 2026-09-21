@@ -3,7 +3,12 @@ import { promisify } from "node:util";
 import { executeQuery, executeWrite } from "./db";
 
 const scrypt = promisify(scryptCallback);
-export interface StudioUser { id: string; email: string; password_hash: string }
+export interface StudioUser {
+  id: string;
+  email: string;
+  password_hash: string;
+  is_admin?: boolean;
+}
 export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const key = await scrypt(password, salt, 64) as Buffer;
@@ -46,4 +51,51 @@ export async function sessionUserDetails(token: string | undefined) {
 export async function revokeSession(token: string) {
   await executeWrite("DELETE FROM studio_sessions WHERE token_hash=?", [tokenHash(token)]);
 }
+
+/**
+ * 确保 studio_users 拥有 is_admin 字段，并将 chen 账户设置为超级管理员
+ */
+let isAdminEnsured = false;
+export async function ensureAdminField(): Promise<void> {
+  if (isAdminEnsured) return;
+  try {
+    const cols = await executeQuery<{ Field: string }>("SHOW COLUMNS FROM studio_users");
+    if (cols && !cols.some((c) => c.Field === "is_admin")) {
+      await executeWrite("ALTER TABLE studio_users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0");
+    }
+    // 自动将包含或名为 chen 的账户设为超级管理员
+    await executeWrite(
+      "UPDATE studio_users SET is_admin = 1 WHERE email = 'chen' OR email LIKE 'chen@%' OR email LIKE '%chen%'"
+    );
+    isAdminEnsured = true;
+  } catch (err) {
+    console.warn("[ensureAdminField] warning:", err);
+  }
+}
+
+/**
+ * 校验指定用户是否拥有超级管理员特权 (无限额生成小说与视觉资产)
+ */
+export async function isSuperAdmin(userId: string | null | undefined): Promise<boolean> {
+  if (!userId) return false;
+  try {
+    await ensureAdminField();
+    const rows = await executeQuery<{ is_admin: number; email: string }>(
+      "SELECT is_admin, email FROM studio_users WHERE id = ? AND disabled = 0 LIMIT 1",
+      [userId]
+    );
+    if (!rows || rows.length === 0) return false;
+    const user = rows[0];
+    if (Number(user.is_admin) === 1) return true;
+    // 智能兜底：账号名称为 chen 或包含 chen 的享有超级管理员权限
+    const email = (user.email || "").toLowerCase();
+    if (email === "chen" || email.startsWith("chen@") || email.includes("chen")) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 

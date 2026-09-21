@@ -41,7 +41,7 @@ async function ensureWorkflowTable(): Promise<void> {
         id VARCHAR(64) PRIMARY KEY,
         user_id VARCHAR(64) NOT NULL,
         title VARCHAR(255) NOT NULL,
-        cover_url TEXT,
+        cover_url LONGTEXT,
         prompt TEXT,
         genre VARCHAR(64),
         style VARCHAR(64),
@@ -57,6 +57,9 @@ async function ensureWorkflowTable(): Promise<void> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `;
     await executeWrite(ddl);
+    try {
+      await executeWrite("ALTER TABLE workflow_projects MODIFY COLUMN cover_url LONGTEXT");
+    } catch {}
     isTableEnsured = true;
   } catch (err) {
     console.warn("[workflow-db] ensureWorkflowTable warning:", err);
