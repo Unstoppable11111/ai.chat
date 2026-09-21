@@ -385,7 +385,67 @@ export function generateSceneConceptSvg(options = {}) {
 }
 
 /**
- * 根据全书大纲 Bible 智能提炼电影级商业海报 Prompt (对标 Midjourney v6 / FLUX.1)
+ * 题材风格专属艺术词典
+ */
+function getGenreArtStyle(genre = "", style = "") {
+  const g = (genre + " " + style).toLowerCase();
+
+  // 1. 悬疑古风 / 武侠 / 江湖 / 刺客
+  if (g.includes("古风") || g.includes("武侠") || g.includes("江湖") || g.includes("刀") || g.includes("剑")) {
+    return {
+      era: "ancient Ming-Tang dynasty oriental world, rain-soaked ancient tile roofs, traditional wooden architecture, misty night alley",
+      costume: "traditional dark embroidered silk Hanfu robes, leather wristguards, flowing black hair with wooden hairpin, bamboo hat silhouette",
+      props: "cold glinting curved steel Dao blade, raindrop ripples, eerie dim paper lantern glow",
+      atmosphere: "dark oriental gothic aesthetic, atmospheric Jianghu film still, cinematic chiaroscuro, volumetric moonlight through heavy mist",
+      negative: "modern clothing, casual clothes, western fantasy, medieval knight, anime, cartoon, deformed hands, distorted face, blurry, text, words, watermark, logo, Chinese characters, calligraphy",
+    };
+  }
+
+  // 2. 修仙 / 玄幻 / 仙侠
+  if (g.includes("修仙") || g.includes("仙侠") || g.includes("玄幻") || g.includes("宗门")) {
+    return {
+      era: "mythical Eastern celestial realm, floating immortal mountain peaks, towering ancient daoist temples in sea of clouds",
+      costume: "flowing white and azure celestial robes with golden embroidery, ethereal jade pendants, wind-swept long hair",
+      props: "flying spiritual sword enveloped in blue lightning, glowing golden talisman runes, celestial energy aura",
+      atmosphere: "majestic mythical fantasy, god rays breaking through celestial clouds, ethereal lighting, Octane Render, 8k IMAX scale",
+      negative: "modern suit, t-shirt, cars, modern architecture, western armor, text, letters, watermark, bad hands, low resolution",
+    };
+  }
+
+  // 3. 悬疑惊悚 / 诡异怪谈 / 破案
+  if (g.includes("悬疑") || g.includes("惊悚") || g.includes("诡异") || g.includes("推理")) {
+    return {
+      era: "shadowy neo-noir crime scene, gloomy rain-slicked cobblestone street, flickering gas lamp or streetlights",
+      costume: "dramatic dark trench coat, shadow-draped silhouette, sharp penetrating gaze",
+      props: "mysterious vintage pocket watch, bloody sealed envelope, enigmatic shattered glass",
+      atmosphere: "Hitchcockian psychological suspense, deep obsidian shadows, moody cyan and amber split lighting, film grain, photorealistic 8k",
+      negative: "bright joyful colors, cartoon, cute, funny, deformed, text, watermark, signature",
+    };
+  }
+
+  // 4. 科幻 / 赛博朋克 / 星际
+  if (g.includes("科幻") || g.includes("赛博") || g.includes("星际") || g.includes("太空")) {
+    return {
+      era: "futuristic cyberpunk megacity, towering holographic billboards, neon-drenched rainy skyscraper canyons",
+      costume: "sleek tactical cyber-exosuit, carbon fiber armor plates, cybernetic ocular implant",
+      props: "glowing cyan plasma firearm, quantum energy orb, floating holographic interfaces",
+      atmosphere: "dramatic sci-fi neo-noir, anamorphic lens flare, dense volumetric smog, Unreal Engine 5 render, raytracing 8k",
+      negative: "ancient temple, horses, swords, medieval robes, cartoon, low quality, text, watermark",
+    };
+  }
+
+  // 默认：都市异能 / 电影爽文
+  return {
+    era: "contemporary nocturnal metropolis, rainy glass skyscrapers, asphalt reflecting red and amber city lights",
+    costume: "sharp modern tailored dark coat or surgeon surgical attire, intense focused expression",
+    props: "subtle glowing blue quantum aura around fingertips, metallic precision surgical blade, floating time-reversal particles",
+    atmosphere: "high-budget Hollywood cinematic key visual, dynamic low-angle composition, dramatic rim lighting, photorealistic 8k",
+    negative: "amateur drawing, cartoon, anime, lowres, deformed limbs, watermark, text, signature, letters",
+  };
+}
+
+/**
+ * 根据全书大纲 Bible 智能提炼电影级商业海报 Prompt (深度贴合题材风格，杜绝乱码文字)
  */
 export function buildCinematicCoverPrompt(options = {}) {
   const {
@@ -398,13 +458,29 @@ export function buildCinematicCoverPrompt(options = {}) {
     coreConflict = "",
   } = options;
 
-  const cleanTitle = String(title).replace(/[《》]/g, "").trim();
-  const heroPart = protagonist ? `Protagonist: ${protagonist.slice(0, 120)}.` : "Protagonist: Charismatic main character with intense focused gaze and signature weapon or relic.";
-  const scenePart = mainScene ? `Setting: ${mainScene.slice(0, 120)}.` : "Setting: Epic panoramic cyberpunk metropolis under rainstorm and neon glow.";
-  const themePart = worldview ? `World concept: ${worldview.slice(0, 150)}.` : "";
-  const conflictPart = coreConflict ? `Climax confrontation: ${coreConflict.slice(0, 100)}.` : "";
+  const artStyle = getGenreArtStyle(genre, style);
 
-  return `Masterpiece cinematic official movie poster for novel "${cleanTitle}". Genre: ${genre}, ${style}. ${heroPart} ${scenePart} ${themePart} ${conflictPart} Low-angle dramatic framing, volumetric atmospheric rim lighting, deep contrast shadows, Unreal Engine 5 render, ray-tracing, photorealistic 8k, IMAX scale, hyper-detailed texture, depth of field, award-winning concept art, no text, no letters, no watermark.`.trim();
+  // 清洗主角与场景描述中的中文杂质，转换为核心视觉描述
+  const heroDescription = protagonist
+    ? protagonist.replace(/[《》（）()]/g, " ").slice(0, 100)
+    : "lone charismatic protagonist";
+  const sceneDescription = mainScene
+    ? mainScene.replace(/[《》（）()]/g, " ").slice(0, 100)
+    : artStyle.era;
+
+  const cleanTitle = String(title).replace(/[《》]/g, "").trim();
+  const prompt = [
+    `Award-winning cinematic official movie poster key visual.`,
+    cleanTitle ? `Story theme: "${cleanTitle}".` : "",
+    `Genre & Era: ${artStyle.era}.`,
+    `Protagonist: ${heroDescription}, wearing ${artStyle.costume}, ${artStyle.props}.`,
+    `Setting & Environment: ${sceneDescription}.`,
+    `Cinematic Atmosphere: ${artStyle.atmosphere}.`,
+    `Visual Specs: dynamic low-angle wide shot, volumetric atmospheric lighting, deep contrast chiaroscuro, Unreal Engine 5 render, ray-tracing, photorealistic 8k resolution, masterpiece, intricate textures, IMAX cinematic film still.`,
+    `Strict Negative: ${artStyle.negative}, no text, no title, no letters, no typography, no subtitles, no watermark, no logo, no frame, clean pure artwork only.`,
+  ].filter(Boolean).join(" ");
+
+  return prompt.trim();
 }
 
 /**
@@ -416,6 +492,6 @@ export function buildFluxImageUrl(prompt, options = {}) {
   const seed = options.seed || Math.floor(Math.random() * 10000000);
   const safePrompt = String(prompt || "").replace(/[\r\n\t]+/g, " ").trim().slice(0, 1000);
   const encoded = encodeURIComponent(safePrompt);
-  return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&model=flux&nologo=true&enhance=true&seed=${seed}`;
+  return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&model=flux&nologo=true&enhance=true&private=true&safe=true&seed=${seed}`;
 }
 

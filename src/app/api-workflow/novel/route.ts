@@ -33,6 +33,7 @@ async function generateNovelCoverImage(options: {
   protagonist?: string;
   mainScene?: string;
   coreConflict?: string;
+  customPrompt?: string;
   baseUrl: string;
   apiKey: string;
 }): Promise<string> {
@@ -40,7 +41,7 @@ async function generateNovelCoverImage(options: {
   const sceneDesc = options.mainScene || "破晓都市与深邃光影交织的核心场景";
 
   // 基于全书大纲、世界观与核心冲突提炼顶级电影海报 Prompt (8K 商业海报质感)
-  const cinematicPrompt = buildCinematicCoverPrompt({
+  const defaultPrompt = buildCinematicCoverPrompt({
     title: options.title,
     genre: options.genre,
     style: options.style || "电影质感",
@@ -49,6 +50,11 @@ async function generateNovelCoverImage(options: {
     mainScene: sceneDesc,
     coreConflict: options.coreConflict || "",
   });
+
+  const cinematicPrompt =
+    options.customPrompt && options.customPrompt.trim().length > 30
+      ? options.customPrompt.trim()
+      : defaultPrompt;
 
   // 1. 若配置了有效的第三方 API Key，优先向 upstream 发起 DALL-E-3 高清渲染请求 (quality: hd, style: vivid)
   if (options.apiKey) {
@@ -437,7 +443,7 @@ ${customSystemPrompt ? `特别遵循规则：${customSystemPrompt}\n` : ""}
         sendPing();
 
         // ==========================================
-        // Step 2: 逐章循环生成正文（第一章生成后立即调用图片接口生成封面）
+        // Step 2: 逐章正文撰写与流式打字输出 (共 ${bible.outlines.length} 章)
         // ==========================================
         sendEvent({
           type: "STEP_START",
@@ -448,7 +454,6 @@ ${customSystemPrompt ? `特别遵循规则：${customSystemPrompt}\n` : ""}
         const chapters: ChapterData[] = [];
         let rollingSummary = "故事开端，主角入局。";
         let lastChapterTail = "";
-        let generatedCoverUrl = "";
 
         for (let i = 0; i < bible.outlines.length; i++) {
           const outline = bible.outlines[i];
@@ -542,47 +547,13 @@ ${lastChapterTail ? lastChapterTail : "（本章为全书开篇，无需衔接�
             },
           });
 
-          // 当生成第一章时，立即调用图片接口生成一张小说封面 (基于全书大纲提炼电影海报)
-          if (chapterNumber === 1 && !generatedCoverUrl) {
-            sendEvent({
-              type: "STEP_START",
-              step: "cover_generation",
-              label: "正在基于全书大纲与主角人设生成电影级精美海报封面...",
-            });
-
-            const firstHero = bible.characters?.[0];
-            const protagonistInfo = firstHero
-              ? `${firstHero.name} (${firstHero.role || "主角"}，${firstHero.personality || ""}，${firstHero.appearance || "英姿挺拔，眼神如炬"})`
-              : "核心主角逆光前行";
-            const mainConflict = outline.conflict || bible.logline || "宿命交锋";
-            const firstScene = outline.title || outline.goal || "核心高能发生地";
-
-            generatedCoverUrl = await generateNovelCoverImage({
-              title: bible.title,
-              genre,
-              style,
-              worldview: bible.worldview,
-              protagonist: protagonistInfo,
-              mainScene: firstScene,
-              coreConflict: mainConflict,
-              baseUrl,
-              apiKey,
-            });
-
-            sendEvent({
-              type: "STEP_COMPLETE",
-              step: "cover_generation",
-              data: { cover_url: generatedCoverUrl },
-            });
-          }
-
           sendPing();
         }
 
         sendEvent({
           type: "STEP_COMPLETE",
           step: "step_2_chapters",
-          data: { chapters, cover_url: generatedCoverUrl },
+          data: { chapters },
         });
 
         // ==========================================
@@ -803,7 +774,87 @@ ${JSON.stringify(bible.outlines, null, 2)}`;
         });
 
         // ==========================================
-        // 最终聚合与推流完毕
+        // Step 6: 全书终极电影海报封面生成 (汇聚全案世界观、全章情节与美术指导提炼)
+        // ==========================================
+        sendEvent({
+          type: "STEP_START",
+          step: "cover_generation",
+          label: `正在汇聚全书 ${chapters.length} 章完整情节与大纲，由美术指导 Agent 提炼并生成终极电影海报...`,
+        });
+
+        let generatedCoverUrl = "";
+        let customArtPrompt = "";
+
+        // 尝试由美术指导 Agent 专门基于全书故事提炼一段顶级英文海报 Prompt
+        try {
+          const firstHero = bible.characters?.[0];
+          const protagonistInfo = firstHero
+            ? `${firstHero.name} (${firstHero.role || "主角"}，${firstHero.personality || ""}，${firstHero.appearance || firstHero.visual_traits || "英姿挺拔，眼神如炬"})`
+            : "核心主角逆光前行";
+          const lastOutline = bible.outlines?.[bible.outlines.length - 1];
+          const finalConflict = lastOutline?.conflict || bible.logline || "全书宿命高潮对决";
+          const mainSetting = lastOutline?.title || bible.worldview.slice(0, 80);
+
+          const artAgentSystem = `你是一位顶级好莱坞概念美术总监与电影海报设计师。请根据小说全书大纲与高潮冲突，输出一段用于 FLUX.1 / DALL-E-3 高清生图的【纯英文顶级电影海报提示词】。
+要求：
+1. 提取最契合【${genre} - ${style}】氛围的核心画面（主体人物动作姿态、标志性武器/信物、核心场景、光影）；
+2. 包含专业摄影/渲染词（dynamic low-angle framing, volumetric rim lighting, deep contrast shadows, Unreal Engine 5 render, ray-tracing, photorealistic 8k, masterpiece）；
+3. 严格针对【${genre}】题材（如古风必须穿传统汉服持冷兵器，严禁现代西装等违和物；科幻赛博必须雨夜霓虹机能战服）；
+4. 末尾强制加上严厉否定词：no text, no chinese characters, no letters, no title, no watermark, no logo, no subtitles, clean artwork only；
+5. 纯英文输出，100-150词，不要包含任何中文或多余废话。`;
+
+          const artAgentRes = await callLLMStream(
+            [
+              { role: "system", content: artAgentSystem },
+              {
+                role: "user",
+                content: `书名：《${bible.title}》\n题材：${genre} · ${style}\n世界观：${bible.worldview}\n主角：${protagonistInfo}\n全书最高潮：${finalConflict}\n核心场景：${mainSetting}`,
+              },
+            ],
+            { ...llmOptions, maxTokens: 300 },
+            () => {}
+          );
+
+          if (artAgentRes && artAgentRes.trim().length > 30) {
+            customArtPrompt = artAgentRes
+              .trim()
+              .replace(/```[a-z]*\s*/gi, "")
+              .replace(/```\s*$/g, "")
+              .trim();
+          }
+        } catch {
+          // 容错降级到静态规则库
+        }
+
+        const firstHero = bible.characters?.[0];
+        const protagonistInfo = firstHero
+          ? `${firstHero.name} (${firstHero.role || "主角"}，${firstHero.personality || ""}，${firstHero.appearance || firstHero.visual_traits || "英姿挺拔，眼神如炬"})`
+          : "核心主角逆光前行";
+        const lastOutline = bible.outlines?.[bible.outlines.length - 1];
+        const finalConflict = lastOutline?.conflict || bible.logline || "全书宿命高潮对决";
+        const mainSetting = lastOutline?.title || bible.worldview.slice(0, 80);
+
+        generatedCoverUrl = await generateNovelCoverImage({
+          title: bible.title,
+          genre,
+          style,
+          worldview: bible.worldview,
+          protagonist: protagonistInfo,
+          mainScene: mainSetting,
+          coreConflict: finalConflict,
+          customPrompt: customArtPrompt,
+          baseUrl,
+          apiKey,
+        });
+
+        sendEvent({
+          type: "STEP_COMPLETE",
+          step: "cover_generation",
+          data: { cover_url: generatedCoverUrl },
+        });
+
+        // ==========================================
+        // 最终聚合与推流完毕 (此时整部小说全案完成并最终入库书架)
         // ==========================================
         const finalResult: WorkflowResult = {
           id: `wf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,

@@ -27,6 +27,7 @@ import { NovelViewer } from "@/components/workflow/novel-viewer";
 import { VideoPromptBoard } from "@/components/workflow/video-prompt-board";
 import { PitchCard } from "@/components/workflow/pitch-card";
 import { VisualAssetsBoard } from "@/components/workflow/visual-assets-board";
+import { WorkflowModal, type ModalState } from "@/components/workflow/workflow-modal";
 import type {
   BibleData,
   ChapterData,
@@ -47,8 +48,8 @@ const INITIAL_STEPS: StepItem[] = [
   },
   {
     id: "step_2_chapters",
-    name: "Step 2: 逐章正文与智能封面 (Chapters & Cover)",
-    description: "上下文接力生成正文，第一章就绪自动调用图片生成封面",
+    name: "Step 2: 逐章正文创作与流式打字 (Context Cascading)",
+    description: "上下文滚动接力，去机械味短句正文实时逐章流式撰写",
     status: "idle",
   },
   {
@@ -59,14 +60,14 @@ const INITIAL_STEPS: StepItem[] = [
   },
   {
     id: "step_4_polish",
-    name: "Step 4: 去 AI 味短句化重构 (Polish)",
-    description: "剔除空洞套话，拆分为 15 字以内短句，增强对白攻击性",
+    name: "Step 4: 去 AI 味语言精修与调优 (De-AI Polish)",
+    description: "15字以内短句拆分，删除套话，强化动作与物理细节",
     status: "idle",
   },
   {
     id: "step_5_pitch",
-    name: "Step 5: 商业投稿与卖点包装 (Pitch Note)",
-    description: "核心受众圈层、对标爆款、付费卡点与投稿提案",
+    name: "Step 5: 商业包装与终极电影海报 (Pitch & Cover)",
+    description: "面向编辑与制片人的商业亮点，汇聚全案生成电影海报",
     status: "idle",
   },
 ];
@@ -111,6 +112,7 @@ export default function WorkflowPage() {
   const [streamingChapter, setStreamingChapter] = useState(1);
   const [activeTab, setActiveTab] = useState<"novel" | "video" | "assets" | "pitch" | "bible">("novel");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [modalState, setModalState] = useState<ModalState>({ type: "idle" });
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -264,9 +266,21 @@ export default function WorkflowPage() {
     });
   };
 
-  // 删除某部小说 (彻底解耦：本地即时过滤 + 异步云端删除 + 避免闭包竞态)
-  const handleDeleteProject = (projectId: string, e: React.MouseEvent) => {
+  // 触发删除小说二次确认弹窗 (杜绝误删，提升安全感)
+  const handleRequestDeleteProject = (proj: WorkflowProject, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isRunning) {
+      setModalState({
+        type: "busy_block",
+        message: "当前流水线正在执行工业化生产中，为保障数据完整性，暂时无法删除小说。请等待当前全案完成或先中止任务。",
+      });
+      return;
+    }
+    setModalState({ type: "confirm_delete", project: proj });
+  };
+
+  // 确认执行从本地及云端数据库彻底删除
+  const handleConfirmDelete = (projectId: string) => {
     const nextList = projects.filter((p) => p.id !== projectId);
     persistProjectsLocally(nextList);
     deleteProjectFromCloud(projectId);
@@ -279,6 +293,11 @@ export default function WorkflowPage() {
         handleCreateNew();
       }
     }
+  };
+
+  // 触发运行中拦截弹窗
+  const handleBlockedAction = (message: string) => {
+    setModalState({ type: "busy_block", message });
   };
 
   // 更新当前小说的创作配置项并同步绑定
@@ -325,8 +344,12 @@ export default function WorkflowPage() {
     }
   };
 
-  // 选择预设创作赛道
+  // 选择预设创作赛道 (正在运行时严格拦截锁控)
   const handleSelectPreset = (p: string, g: string, s: string) => {
+    if (isRunning) {
+      handleBlockedAction("当前已有小说正在流水线工业化生产中，请等待当前全案完成或先中止任务，再尝试其他赛道。");
+      return;
+    }
     setPrompt(p);
     handleConfigChange({ genre: g, style: s });
   };
@@ -381,6 +404,10 @@ export default function WorkflowPage() {
 
   // 启动工业化流水线
   const handleStartPipeline = async () => {
+    if (isRunning) {
+      handleBlockedAction("当前已有小说正在流水线工业化生产中，请勿重复启动或提交。");
+      return;
+    }
     if (!prompt.trim()) {
       setErrorMessage("请先输入小说的核心灵感或基础设定");
       return;
@@ -663,6 +690,9 @@ export default function WorkflowPage() {
                   return updatedList;
                 });
                 syncProjectToCloud(newProject);
+
+                // 全书精美成册并归档入库，弹出大作完成庆祝弹窗
+                setModalState({ type: "book_published", project: newProject });
               }
 
               // 处理 ERROR
@@ -735,9 +765,11 @@ export default function WorkflowPage() {
       <NovelShelf
         projects={projects}
         currentProjectId={currentProjectId}
+        isRunning={isRunning}
         onSelectProject={handleSelectProject}
         onCreateNew={handleCreateNew}
-        onDeleteProject={handleDeleteProject}
+        onReqDeleteProject={handleRequestDeleteProject}
+        onBlockedAction={handleBlockedAction}
       />
 
       {/* 参数调优抽屉弹窗 */}
@@ -789,8 +821,15 @@ export default function WorkflowPage() {
               {/* 参数调优入口 */}
               <button
                 type="button"
-                onClick={() => setIsConfigOpen(true)}
-                className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-cyan-500/40 hover:text-cyan-700 transition-all shadow-2xs cursor-pointer"
+                onClick={() => {
+                  if (isRunning) {
+                    handleBlockedAction("当前流水线正在运行中，创作参数已被锁定，请等待生成完毕或中止后再调整。");
+                    return;
+                  }
+                  setIsConfigOpen(true);
+                }}
+                disabled={isRunning}
+                className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-cyan-500/40 hover:text-cyan-700 transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Sliders className="h-3.5 w-3.5" />
                 <span>配置参数</span>
@@ -970,6 +1009,7 @@ export default function WorkflowPage() {
           <div className="flex-1 min-h-[480px]">
             {activeTab === "novel" && (
               <NovelViewer
+                key={currentProjectId || "current"}
                 bible={bible}
                 chapters={chapters}
                 config={config}
@@ -1096,6 +1136,18 @@ export default function WorkflowPage() {
           </div>
         </div>
       </div>
+
+      {/* 业务状态交互弹窗 (删除二次确认 / 并发拦截 / 全案成册庆祝) */}
+      <WorkflowModal
+        state={modalState}
+        onClose={() => setModalState({ type: "idle" })}
+        onConfirmDelete={handleConfirmDelete}
+        onViewBook={(id) => {
+          handleSelectProject(id);
+          setActiveTab("novel");
+        }}
+        onGoAssets={() => setActiveTab("assets")}
+      />
     </div>
   );
 }

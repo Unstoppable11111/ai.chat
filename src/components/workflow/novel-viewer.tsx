@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Copy,
   Download,
@@ -34,9 +34,23 @@ export function NovelViewer({
   isStreaming = false,
   onUpdateChapter,
 }: NovelViewerProps) {
-  const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
+  const [manualChapterIndex, setManualChapterIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"polished" | "raw">("polished");
   const [copied, setCopied] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 当处于推流撰写中时，自动追踪流式章节；非推流或手动点击后使用手动索引
+  const selectedChapterIndex =
+    isStreaming && streamingChapter > 0
+      ? streamingChapter - 1
+      : manualChapterIndex ?? 0;
+
+  // 打字机流式输出时平滑滚动到底部
+  useEffect(() => {
+    if (isStreaming && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [streamingText, isStreaming]);
 
   // 单章根据提示词微调状态
   const [isTuneOpen, setIsTuneOpen] = useState(false);
@@ -47,14 +61,19 @@ export function NovelViewer({
   // 当前所选章节
   const currentChapter = chapters[selectedChapterIndex];
 
-  // 计算字数
-  const currentContent =
-    viewMode === "polished" && currentChapter?.polished_content
-      ? currentChapter.polished_content
-      : currentChapter?.raw_content ||
-        (isStreaming && streamingChapter === selectedChapterIndex + 1
-          ? streamingText
-          : "");
+  // 计算当前视窗正文内容
+  const isCurrentStreaming = isStreaming && streamingChapter === selectedChapterIndex + 1;
+  const currentContent = isCurrentStreaming
+    ? streamingText
+    : viewMode === "polished" && currentChapter?.polished_content
+    ? currentChapter.polished_content
+    : currentChapter?.raw_content || "";
+
+  // 章节标题
+  const currentTitle =
+    currentChapter?.title ||
+    bible?.outlines?.[selectedChapterIndex]?.title ||
+    `第 ${selectedChapterIndex + 1} 章`;
 
   const totalWords = chapters.reduce((acc, c) => {
     const text = c.polished_content || c.raw_content || "";
@@ -290,14 +309,46 @@ export function NovelViewer({
 
       {/* 章节导航 Tab 列表 */}
       <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 border-b border-slate-100 shrink-0 hide-scrollbar">
-        {chapters.length > 0 ? (
+        {bible?.outlines && bible.outlines.length > 0 ? (
+          bible.outlines.map((outline, idx) => {
+            const chNum = outline.chapter_number || idx + 1;
+            const isSelected = selectedChapterIndex === idx;
+            const isThisStreaming = isStreaming && streamingChapter === chNum;
+            const existing = chapters.find((c) => c.chapter_number === chNum);
+
+            return (
+              <button
+                key={chNum}
+                type="button"
+                onClick={() => setManualChapterIndex(idx)}
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                  isSelected
+                    ? "bg-cyan-500/15 text-cyan-800 font-bold border border-cyan-500/30 shadow-2xs"
+                    : isThisStreaming
+                    ? "bg-amber-50 text-amber-800 border border-amber-300 animate-pulse"
+                    : existing
+                    ? "text-slate-700 hover:bg-slate-100 border border-transparent"
+                    : "text-slate-400 hover:bg-slate-50 border border-transparent opacity-60"
+                }`}
+              >
+                <span>第 {chNum} 章</span>
+                <span className="text-[10px] truncate max-w-[85px]">
+                  {existing?.title || outline.title}
+                </span>
+                {isThisStreaming && (
+                  <span className="flex h-1.5 w-1.5 rounded-full bg-cyan-600 animate-ping" />
+                )}
+              </button>
+            );
+          })
+        ) : chapters.length > 0 ? (
           chapters.map((ch, idx) => {
             const isSelected = selectedChapterIndex === idx;
             return (
               <button
                 key={ch.chapter_number}
                 type="button"
-                onClick={() => setSelectedChapterIndex(idx)}
+                onClick={() => setManualChapterIndex(idx)}
                 className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   isSelected
                     ? "bg-cyan-500/15 text-cyan-800 font-bold border border-cyan-500/30"
@@ -322,29 +373,38 @@ export function NovelViewer({
       </div>
 
       {/* 正文打字机滚动视窗 */}
-      <div className="relative flex-1 overflow-y-auto p-4 md:p-6 min-h-[360px] max-h-[580px]">
+      <div
+        ref={scrollContainerRef}
+        className="relative flex-1 overflow-y-auto p-4 md:p-6 min-h-[360px] max-h-[580px] scroll-smooth"
+      >
         {currentContent ? (
           <div className="space-y-4">
             {/* 本章标题头 */}
-            {currentChapter && (
-              <div className="space-y-1 pb-3 border-b border-slate-100">
+            <div className="space-y-1 pb-3 border-b border-slate-100">
+              <div className="flex items-center justify-between">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                  第 {currentChapter.chapter_number} 章：{currentChapter.title}
+                  第 {selectedChapterIndex + 1} 章：{currentTitle}
                 </h3>
-                {viewMode === "polished" && currentChapter.polished_content && (
-                  <p className="text-[11px] text-violet-700 bg-violet-50 inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono">
-                    <Sparkles className="h-3 w-3" />
-                    已应用去 AI 味冷硬短句精修与专项调优
-                  </p>
+                {isCurrentStreaming && (
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-cyan-700 bg-cyan-50 px-2.5 py-0.5 rounded-full border border-cyan-200 animate-pulse">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-600 animate-ping" />
+                    SSE 工业打字机推流中 ({streamingText.length} 字)
+                  </span>
                 )}
               </div>
-            )}
+              {viewMode === "polished" && currentChapter?.polished_content && !isCurrentStreaming && (
+                <p className="text-[11px] text-violet-700 bg-violet-50 inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono">
+                  <Sparkles className="h-3 w-3" />
+                  已应用去 AI 味冷硬短句精修与专项调优
+                </p>
+              )}
+            </div>
 
             {/* 正文段落渲染 */}
             <div className="text-sm sm:text-base leading-relaxed sm:leading-loose text-slate-800 whitespace-pre-wrap font-sans tracking-wide">
               {currentContent}
-              {isStreaming && (
-                <span className="inline-block w-1.5 h-4 ml-1 bg-cyan-600 animate-pulse align-middle rounded-xs" />
+              {isCurrentStreaming && (
+                <span className="inline-block w-2 h-4 ml-1 bg-cyan-600 animate-pulse align-middle rounded-xs" />
               )}
             </div>
           </div>
