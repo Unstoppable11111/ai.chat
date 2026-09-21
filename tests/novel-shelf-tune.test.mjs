@@ -123,4 +123,37 @@ test("buildCinematicCoverPrompt generates rich 8k movie poster prompt from story
   assert.ok(fluxUrl.includes("enhance=true"));
 });
 
+test("triggerImageCooldown handles 5-minute initial penalty and 30-minute escalation", async () => {
+  const { getImageCooldownStatus, triggerImageCooldown, reportImageSuccess } = await import("../src/lib/workflow-cooldown.mjs");
+  
+  // 初始触发：5 分钟
+  const first = triggerImageCooldown("FIRST_TIMEOUT");
+  assert.equal(first.tier, 1);
+  assert.ok(first.remainingSeconds >= 290 && first.remainingSeconds <= 300);
+
+  const status1 = getImageCooldownStatus();
+  assert.equal(status1.active, true);
+  assert.equal(status1.tier, 1);
+
+  // 再次触发：升级为 30 分钟 (1800 秒)
+  const second = triggerImageCooldown("SECOND_CONCURRENCY");
+  assert.equal(second.tier, 2);
+  assert.ok(second.remainingSeconds >= 1790 && second.remainingSeconds <= 1800);
+
+  const status2 = getImageCooldownStatus();
+  assert.equal(status2.active, true);
+  assert.equal(status2.tier, 2);
+});
+
+test("callGeminiImageGeneration is exported and throws if api key is missing", async () => {
+  const { callGeminiImageGeneration } = await import("../src/lib/workflow-utils.mjs");
+  assert.equal(typeof callGeminiImageGeneration, "function");
+  await assert.rejects(
+    async () => {
+      await callGeminiImageGeneration({ prompt: "test prompt", apiKey: "" });
+    },
+    { message: "API_KEY_MISSING" }
+  );
+});
+
 

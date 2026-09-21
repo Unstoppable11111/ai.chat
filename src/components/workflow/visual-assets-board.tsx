@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Sparkles,
@@ -10,6 +10,9 @@ import {
   Loader2,
   RefreshCw,
   Eye,
+  Download,
+  Maximize2,
+  Clock,
 } from "lucide-react";
 import type { BibleData, CharacterCard, VisualAssetItem, WorkflowConfig } from "@/types/workflow";
 
@@ -22,6 +25,8 @@ interface VisualAssetsBoardProps {
   onQueueBusy?: (message?: string) => void;
 }
 
+const COOLDOWN_STORAGE_KEY = "chen_workflow_image_cooldown_until";
+
 export function VisualAssetsBoard({
   bible,
   coverUrl,
@@ -32,6 +37,72 @@ export function VisualAssetsBoard({
 }: VisualAssetsBoardProps) {
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+
+  // 初始化与轮询生图通道冷却倒计时
+  useEffect(() => {
+    const checkCooldown = () => {
+      try {
+        const stored = localStorage.getItem(COOLDOWN_STORAGE_KEY);
+        if (stored) {
+          const until = parseInt(stored, 10);
+          const diff = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+          setCooldownRemaining(diff);
+          if (diff <= 0) {
+            localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+          }
+        } else {
+          setCooldownRemaining(0);
+        }
+      } catch {
+        // 忽略 localStorage 读取异常
+      }
+    };
+
+    checkCooldown();
+    const timer = setInterval(checkCooldown, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 记录触发冷却并持久化到本地
+  const handleTriggerCooldown = React.useCallback((seconds: number, message?: string) => {
+    const until = Date.now() + seconds * 1000;
+    try {
+      localStorage.setItem(COOLDOWN_STORAGE_KEY, until.toString());
+    } catch {
+      // 忽略
+    }
+    setCooldownRemaining(seconds);
+    onQueueBusy?.(message);
+  }, [onQueueBusy]);
+
+  // 保存图片到本地
+  const handleDownloadImage = async (url: string, filename: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.target = "_blank";
+      a.click();
+    }
+  };
+
+  const formatSeconds = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
   if (!bible) {
     return (
@@ -47,6 +118,15 @@ export function VisualAssetsBoard({
 
   // 手动确认生成人物立绘画像
   const handleGenerateCharacterPortrait = async (char: CharacterCard, idx: number) => {
+    if (cooldownRemaining > 0) {
+      onQueueBusy?.(
+        `生图通道目前正处于并发/超时冷却保护中，剩余倒计时 ${formatSeconds(
+          cooldownRemaining
+        )}。在此期间请稍候再试。`
+      );
+      return;
+    }
+
     const assetId = `char_${char.name}_${idx}`;
     setGeneratingId(assetId);
 
@@ -68,13 +148,15 @@ export function VisualAssetsBoard({
 
       if (res.status === 429) {
         const errData = await res.json().catch(() => null);
-        onQueueBusy?.(errData?.error || "当前生图算力队列繁忙，已停止等待，请稍后再试。");
+        const remaining = errData?.remainingSeconds || 300;
+        handleTriggerCooldown(remaining, errData?.error);
         return;
       }
 
       const data = await res.json().catch(() => null);
-      if (data?.code === "QUEUE_BUSY") {
-        onQueueBusy?.(data?.error || "当前生图算力队列繁忙，已停止等待，请稍后再试。");
+      if (data?.code === "COOLDOWN_ACTIVE") {
+        const remaining = data?.remainingSeconds || 300;
+        handleTriggerCooldown(remaining, data?.error);
         return;
       }
 
@@ -98,6 +180,15 @@ export function VisualAssetsBoard({
 
   // 手动确认生成场景概念图
   const handleGenerateSceneConcept = async (sceneTitle: string, idx: number) => {
+    if (cooldownRemaining > 0) {
+      onQueueBusy?.(
+        `生图通道目前正处于并发/超时冷却保护中，剩余倒计时 ${formatSeconds(
+          cooldownRemaining
+        )}。在此期间请稍候再试。`
+      );
+      return;
+    }
+
     const assetId = `scene_${idx}`;
     setGeneratingId(assetId);
 
@@ -119,13 +210,15 @@ export function VisualAssetsBoard({
 
       if (res.status === 429) {
         const errData = await res.json().catch(() => null);
-        onQueueBusy?.(errData?.error || "当前生图算力队列繁忙，已停止等待，请稍后再试。");
+        const remaining = errData?.remainingSeconds || 300;
+        handleTriggerCooldown(remaining, errData?.error);
         return;
       }
 
       const data = await res.json().catch(() => null);
-      if (data?.code === "QUEUE_BUSY") {
-        onQueueBusy?.(data?.error || "当前生图算力队列繁忙，已停止等待，请稍后再试。");
+      if (data?.code === "COOLDOWN_ACTIVE") {
+        const remaining = data?.remainingSeconds || 300;
+        handleTriggerCooldown(remaining, data?.error);
         return;
       }
 
@@ -152,6 +245,26 @@ export function VisualAssetsBoard({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
+      {/* 冷却警告通知条 */}
+      {cooldownRemaining > 0 && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-amber-900 animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-700 shrink-0">
+              <Clock className="w-4 h-4 animate-spin" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold">生图并发/超时冷却保护生效中</h4>
+              <p className="text-[11px] text-amber-700/80">
+                由于检测到上游并发上限或超时，系统已启用指数退避保护，期间暂停提交视觉资产生成。
+              </p>
+            </div>
+          </div>
+          <div className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-800 font-mono text-xs font-bold shrink-0">
+            剩余 {formatSeconds(cooldownRemaining)}
+          </div>
+        </div>
+      )}
+
       {/* 顶部通告条 */}
       <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -160,7 +273,7 @@ export function VisualAssetsBoard({
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900">
-              小说视觉资产库 · 按需专属生成
+              小说视觉资产库 · gemini-3.1-pro-image 工业化赋能
             </h4>
             <p className="text-[11px] text-slate-500">
               人物画像与场景概念图为可选生成资产。用户手动确认后即时生成，并永久绑定至当前小说的数字资产包。
@@ -175,7 +288,7 @@ export function VisualAssetsBoard({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-purple-600" />
             <h3 className="text-sm font-bold text-slate-900">出版级电影封面海报</h3>
-            <span className="text-[10px] text-slate-400 font-mono">已融合主角剪影与主场景</span>
+            <span className="text-[10px] text-slate-400 font-mono">已融合主角剪影与主场景 · 支持无损放大与本地保存</span>
           </div>
         </div>
 
@@ -195,21 +308,21 @@ export function VisualAssetsBoard({
                   onClick={() => setPreviewImage(coverUrl)}
                   className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1.5 cursor-pointer"
                 >
-                  <Eye className="w-4 h-4" />
-                  <span>查看原图</span>
+                  <Maximize2 className="w-4 h-4" />
+                  <span>放大封面</span>
                 </button>
               </>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center">
                 <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-                <span>第一章生成后自动出炉</span>
+                <span>全书生成完毕后自动精美出炉</span>
               </div>
             )}
           </div>
 
-          <div className="space-y-2.5 text-center sm:text-left">
+          <div className="space-y-2.5 text-center sm:text-left flex-1">
             <div className="inline-block px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-semibold">
-              {config.genre || "都市异能"} · 精装封面
+              {config.genre || "都市异能"} · 出版级精装海报
             </div>
             <h4 className="text-lg font-black text-slate-900">{bible.title}</h4>
             <p className="text-xs text-slate-600 max-w-md leading-relaxed">
@@ -219,6 +332,30 @@ export function VisualAssetsBoard({
               <p>主角：{bible.characters?.[0]?.name || "核心逆行者"}</p>
               <p>核心发生地：{scenes[0] || "高能剧情现场"}</p>
             </div>
+
+            {/* 封面操作区: 放大与保存本地 */}
+            {coverUrl && (
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewImage(coverUrl)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>放大查看封面</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDownloadImage(coverUrl, `《${bible.title}》_出版级电影封面.png`)
+                  }
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>保存封面到本地</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -295,11 +432,16 @@ export function VisualAssetsBoard({
 
                   <button
                     type="button"
-                    disabled={isGenerating}
+                    disabled={isGenerating || cooldownRemaining > 0}
                     onClick={() => handleGenerateCharacterPortrait(char, idx)}
-                    className="w-full mt-2 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border shadow-2xs disabled:opacity-50 border-purple-500/30 bg-purple-50 hover:bg-purple-100 text-purple-700"
+                    className="w-full mt-2 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border shadow-2xs disabled:opacity-50 border-purple-500/30 bg-purple-50 hover:bg-purple-100 text-purple-700 disabled:cursor-not-allowed"
                   >
-                    {existingAsset ? (
+                    {cooldownRemaining > 0 ? (
+                      <>
+                        <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                        <span className="text-amber-700">冷却保护中 ({formatSeconds(cooldownRemaining)})</span>
+                      </>
+                    ) : existingAsset ? (
                       <>
                         <RefreshCw className="w-3.5 h-3.5" />
                         <span>重新生成立绘画像</span>
@@ -382,11 +524,15 @@ export function VisualAssetsBoard({
 
                   <button
                     type="button"
-                    disabled={isGenerating}
+                    disabled={isGenerating || cooldownRemaining > 0}
                     onClick={() => handleGenerateSceneConcept(sceneTitle, idx)}
-                    className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-2xs disabled:opacity-50 border-cyan-500/30 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 cursor-pointer"
+                    className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-2xs disabled:opacity-50 border-cyan-500/30 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    {existingAsset ? "重新生成" : "生成场景图"}
+                    {cooldownRemaining > 0
+                      ? `冷却中 (${formatSeconds(cooldownRemaining)})`
+                      : existingAsset
+                      ? "重新生成"
+                      : "生成场景图"}
                   </button>
                 </div>
               </div>
@@ -395,7 +541,7 @@ export function VisualAssetsBoard({
         </div>
       </div>
 
-      {/* 原图弹窗查看 */}
+      {/* 原图弹窗查看 (支持无损放大与一键本地保存) */}
       {previewImage && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
@@ -414,15 +560,32 @@ export function VisualAssetsBoard({
                 className="object-contain"
               />
             </div>
-            <div className="pt-3 pb-1 flex items-center justify-between w-full px-4 text-white text-xs">
-              <span className="text-slate-400">AI 工业化工作流独家认证视觉资产</span>
-              <button
-                type="button"
-                onClick={() => setPreviewImage(null)}
-                className="px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 transition-colors cursor-pointer"
-              >
-                关闭
-              </button>
+            <div className="pt-3 pb-1 flex flex-wrap items-center justify-between w-full px-4 text-white text-xs gap-2">
+              <span className="text-slate-400 font-mono text-[11px]">
+                gemini-3.1-pro-image 工业级超清视觉资产 (无水印认证)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDownloadImage(
+                      previewImage,
+                      `《${bible.title}》_视觉资产_${Date.now()}.png`
+                    )
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-colors cursor-pointer shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>保存到本地</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewImage(null)}
+                  className="px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-colors cursor-pointer font-medium"
+                >
+                  关闭
+                </button>
+              </div>
             </div>
           </div>
         </div>

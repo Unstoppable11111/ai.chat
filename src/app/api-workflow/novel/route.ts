@@ -17,14 +17,18 @@ import {
   resolveValidBaseUrl,
   generateFallbackSvgCover,
   buildCinematicCoverPrompt,
-  buildFluxImageUrl,
-  probeImageUrl,
+  callGeminiImageGeneration,
 } from "@/lib/workflow-utils.mjs";
+import {
+  getImageCooldownStatus,
+  triggerImageCooldown,
+  reportImageSuccess,
+} from "@/lib/workflow-cooldown.mjs";
 
 const encoder = new TextEncoder();
 
 /**
- * 根据全书大纲与核心冲突生成电影级商业海报封面 (DALL-E-3 HD / FLUX.1 双引擎高质感出图)
+ * 根据全书大纲与核心冲突生成电影级商业海报封面 (统一接入站长 gemini-3.1-pro-image 模型)
  */
 async function generateNovelCoverImage(options: {
   title: string;
@@ -41,7 +45,18 @@ async function generateNovelCoverImage(options: {
   const protagonistDesc = options.protagonist || "沉着内敛的逆光探索者";
   const sceneDesc = options.mainScene || "破晓都市与深邃光影交织的核心场景";
 
-  // 基于全书大纲、世界观与核心冲突提炼顶级电影海报 Prompt (8K 商业海报质感)
+  // 1. 若当前通道正处于冷却保护中，直接转矢量海报，防止整书流水线挂起
+  const cooldown = getImageCooldownStatus();
+  if (cooldown.active) {
+    return generateFallbackSvgCover(
+      options.title,
+      options.genre,
+      protagonistDesc,
+      sceneDesc
+    );
+  }
+
+  // 基于全书大纲、世界观与核心冲突提炼顶级电影海报 Prompt (8K 商业海报质感，强制无水印)
   const defaultPrompt = buildCinematicCoverPrompt({
     title: options.title,
     genre: options.genre,
@@ -57,72 +72,51 @@ async function generateNovelCoverImage(options: {
       ? options.customPrompt.trim()
       : defaultPrompt;
 
-  // 1. 若配置了有效的第三方 API Key，优先向 upstream 发起 DALL-E-3 高清渲染请求 (quality: hd, style: vivid)
-  if (options.apiKey) {
+  // 2. 统一使用站长 Key 与网关，调用 gemini-3.1-pro-image
+  const effectiveApiKey = options.apiKey?.trim() || process.env.OPENAI_API_KEY || "";
+  const effectiveBaseUrl =
+    options.baseUrl?.trim() || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
+
+  if (effectiveApiKey) {
     try {
-      const url = `${options.baseUrl.replace(/\/+$/, "")}/images/generations`;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const coverUrl = await callGeminiImageGeneration({
+        prompt: cinematicPrompt,
+        apiKey: effectiveApiKey,
+        baseUrl: effectiveBaseUrl,
+        model: "gemini-3.1-pro-image",
+        size: "1024x1024",
+        timeoutMs: 15000,
+      });
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${options.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "dall-e-3",
-          prompt: cinematicPrompt,
-          n: 1,
-          size: "1024x1024",
-          quality: "hd",
-          style: "vivid",
-        }),
-        signal: controller.signal,
-      }).finally(() => clearTimeout(timeout));
-
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        const imageUrl = data?.data?.[0]?.url || data?.data?.[0]?.b64_json;
-        if (imageUrl) {
-          return imageUrl.startsWith("http")
-            ? imageUrl
-            : `data:image/png;base64,${imageUrl}`;
-        }
+      if (coverUrl) {
+        reportImageSuccess();
+        return coverUrl;
       }
-    } catch {
-      // upstream 渠道不可用时，无缝由顶级开源 FLUX.1 电影级生图引擎接管
+    } catch (err: unknown) {
+      const errorObj = err as { status?: number; message?: string; name?: string };
+      const isRateLimit =
+        errorObj.status === 429 ||
+        errorObj.status === 503 ||
+        String(errorObj.message).includes("CONCURRENCY") ||
+        String(errorObj.message).includes("RATE_LIMIT");
+      const isTimeout =
+        errorObj.status === 408 ||
+        errorObj.name === "AbortError" ||
+        String(errorObj.message).includes("TIMEOUT");
+
+      if (isRateLimit || isTimeout) {
+        triggerImageCooldown(isTimeout ? "NOVEL_COVER_TIMEOUT" : "NOVEL_COVER_CONCURRENCY");
+      }
     }
   }
 
-  // 2. 核心升级：接入全球顶级开源 FLUX.1 真实出图引擎 (768x1024 纯正电影海报画幅)
-  try {
-    const fluxUrl = buildFluxImageUrl(cinematicPrompt, {
-      width: 768,
-      height: 1024,
-      enhance: false,
-    });
-
-    // 探测 7 秒，如果节点正在排队繁忙，立即转为电影级专属矢量海报保底，防止整书生成挂起
-    const probe = await probeImageUrl(fluxUrl, 7000);
-    if (probe.ok) {
-      return fluxUrl;
-    }
-
-    return generateFallbackSvgCover(
-      options.title,
-      options.genre,
-      protagonistDesc,
-      sceneDesc
-    );
-  } catch {
-    return generateFallbackSvgCover(
-      options.title,
-      options.genre,
-      protagonistDesc,
-      sceneDesc
-    );
-  }
+  // 3. 优雅保底：本地电影级专属视觉矢量图
+  return generateFallbackSvgCover(
+    options.title,
+    options.genre,
+    protagonistDesc,
+    sceneDesc
+  );
 }
 
 /**
@@ -809,13 +803,13 @@ ${JSON.stringify(bible.outlines, null, 2)}`;
           const finalConflict = lastOutline?.conflict || bible.logline || "全书宿命高潮对决";
           const mainSetting = lastOutline?.title || bible.worldview.slice(0, 80);
 
-          const artAgentSystem = `你是一位顶级好莱坞概念美术总监与电影海报设计师。请根据小说全书大纲与高潮冲突，输出一段用于 FLUX.1 / DALL-E-3 高清生图的【纯英文顶级电影海报提示词】。
+          const artAgentSystem = `你是一位顶级好莱坞概念美术总监兼专业视觉提示词工程专家。请根据小说全书大纲、高潮冲突与核心主角设定，为生图模型【gemini-3.1-pro-image】定制一段【纯英文顶级电影海报视觉提示词】。
 要求：
-1. 提取最契合【${genre} - ${style}】氛围的核心画面（主体人物动作姿态、标志性武器/信物、核心场景、光影）；
-2. 包含专业摄影/渲染词（dynamic low-angle framing, volumetric rim lighting, deep contrast shadows, Unreal Engine 5 render, ray-tracing, photorealistic 8k, masterpiece）；
-3. 严格针对【${genre}】题材（如古风必须穿传统汉服持冷兵器，严禁现代西装等违和物；科幻赛博必须雨夜霓虹机能战服）；
-4. 末尾强制加上严厉否定词：no text, no chinese characters, no letters, no title, no watermark, no logo, no subtitles, clean artwork only；
-5. 纯英文输出，100-150词，不要包含任何中文或多余废话。`;
+1. 深入分析全书大纲高潮与人设，提炼出最具张力的电影镜头画面（主角动作神态、标志性服饰道具、宏大场景构图与纵深、电影光影）；
+2. 包含专业摄影/渲染视觉词（cinematic wide-angle key visual, dramatic volumetric rim lighting, deep chiaroscuro contrast, 8k resolution, IMAX cinematic film still, masterpiece）；
+3. 严格契合【${genre} - ${style}】题材风格（古风穿传统汉服持冷兵器，严禁现代西服违和物；科幻赛博雨夜霓虹与机械装甲）；
+4. 【核心禁令】：末尾必须强制加上严格的无水印/无文字排除词：clean pure artwork, absolutely no watermark, no text, no chinese characters, no letters, no words, no signature, no logo, no subtitles, no borders, clean pure image only；
+5. 纯英文输出，100-140词，不要包含任何中文或多余废话解释。`;
 
           const artAgentRes = await callLLMStream(
             [

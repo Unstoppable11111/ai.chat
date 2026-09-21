@@ -567,3 +567,114 @@ export async function probeImageUrl(url, timeoutMs = 7000) {
   }
 }
 
+/**
+ * 专为 gemini-3.1-pro-image 打造的站长高速生图通道
+ * 默认使用站长聚合网关与 Key，严格保证高质量且无水印
+ */
+export async function callGeminiImageGeneration(options = {}) {
+  const {
+    prompt,
+    apiKey = process.env.OPENAI_API_KEY || "",
+    baseUrl = process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1",
+    model = "gemini-3.1-pro-image",
+    size = "1024x1024",
+    timeoutMs = 15000,
+  } = options;
+
+  if (!apiKey) {
+    throw new Error("API_KEY_MISSING");
+  }
+
+  const cleanBaseUrl = resolveValidBaseUrl(baseUrl).replace(/\/+$/, "");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    // 优先调用标准 images/generations 接口
+    const imagesUrl = `${cleanBaseUrl}/images/generations`;
+    const res = await fetch(imagesUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        prompt,
+        n: 1,
+        size,
+        quality: "hd",
+      }),
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timer));
+
+    if (res.status === 429 || res.status === 503) {
+      const err = new Error(`CONCURRENCY_OR_RATE_LIMIT_${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      const img = data?.data?.[0]?.url || data?.data?.[0]?.b64_json;
+      if (img) {
+        return img.startsWith("http") ? img : `data:image/png;base64,${img}`;
+      }
+    }
+
+    // 若 images/generations 返回 404/405 等，尝试兼顾 chat completions 渠道
+    if (res.status === 404 || res.status === 405) {
+      const chatUrl = `${cleanBaseUrl}/chat/completions`;
+      const chatController = new AbortController();
+      const chatTimer = setTimeout(() => chatController.abort(), timeoutMs);
+
+      const chatRes = await fetch(chatUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: "user",
+              content: `Generate an image according to this prompt: ${prompt}`,
+            },
+          ],
+        }),
+        signal: chatController.signal,
+      }).finally(() => clearTimeout(chatTimer));
+
+      if (chatRes.status === 429 || chatRes.status === 503) {
+        const err = new Error(`CONCURRENCY_OR_RATE_LIMIT_${chatRes.status}`);
+        err.status = chatRes.status;
+        throw err;
+      }
+
+      if (chatRes.ok) {
+        const chatData = await chatRes.json().catch(() => null);
+        const reply = chatData?.choices?.[0]?.message?.content || "";
+        const match =
+          reply.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/) ||
+          reply.match(/(https?:\/\/[^\s)]+\.(?:png|jpg|jpeg|webp))/i);
+        if (match && match[1]) {
+          return match[1];
+        }
+      }
+    }
+
+    const errText = await res.text().catch(() => "");
+    const error = new Error(`GEMINI_IMAGE_ERROR_${res.status}: ${errText.slice(0, 200)}`);
+    error.status = res.status;
+    throw error;
+  } catch (err) {
+    if (err.name === "AbortError") {
+      const timeoutErr = new Error("GEMINI_IMAGE_TIMEOUT");
+      timeoutErr.status = 408;
+      throw timeoutErr;
+    }
+    throw err;
+  }
+}
+
