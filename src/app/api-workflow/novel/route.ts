@@ -19,6 +19,7 @@ import {
   buildCinematicCoverPrompt,
   callGeminiImageGeneration,
   buildFluxImageUrl,
+  probeImageUrl,
 } from "@/lib/workflow-utils.mjs";
 import {
   reportImageSuccess,
@@ -82,7 +83,7 @@ async function generateNovelCoverImage(options: {
       baseUrl: effectiveBaseUrl,
       model: "gemini-3-pro-image",
       size: "1024x1024",
-      timeoutMs: 90000,
+      timeoutMs: 45000,
       prefix: "novel",
     });
 
@@ -91,20 +92,21 @@ async function generateNovelCoverImage(options: {
       return coverUrl;
     }
   } catch (err: unknown) {
-    console.warn("[NovelCover] 官方生图通道未成功，自动启用免费接口兜底:", err);
+    console.warn("[NovelCover] 官方生图通道未成功，自动启用安全保底方案:", err);
   }
 
-  // 2. 只有当官方 4981 经重试后完全无法出图时，才回退到免费高精位图作为最终保底
+  // 2. 只有当官方 4981 经重试后完全无法出图时，才尝试免费高精位图，但必须经 6 秒探测通过才返回，杜绝假死
   try {
     const fluxCover = buildFluxImageUrl(cinematicPrompt, { width: 768, height: 1024 });
-    if (fluxCover) {
+    const probe = await probeImageUrl(fluxCover, 6000);
+    if (probe.ok) {
       return fluxCover;
     }
   } catch {
-    // 忽略异常并进入本地保底
+    // 忽略异常并进入本地零时延矢量封面保底
   }
 
-  // 4. 极端网络异常保底
+  // 3. 极端网络异常本地保底（毫秒级响应，永不卡死）
   return generateFallbackSvgCover(
     options.title,
     options.genre,

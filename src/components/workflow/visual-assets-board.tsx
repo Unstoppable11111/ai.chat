@@ -200,6 +200,9 @@ export function VisualAssetsBoard({
       }
 
       if (data?.success && data.image_url) {
+        if (data.isFallback) {
+          onQueueBusy?.("官方 4981 生图通道暂时繁忙，已为您生成视觉保底图。");
+        }
         onSaveVisualAsset({
           id: assetId,
           type: "character",
@@ -273,6 +276,9 @@ export function VisualAssetsBoard({
       }
 
       if (data?.success && data.image_url) {
+        if (data.isFallback) {
+          onQueueBusy?.("官方 4981 生图通道暂时繁忙，已为您生成视觉保底图。");
+        }
         onSaveVisualAsset({
           id: assetId,
           type: "scene",

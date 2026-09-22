@@ -601,7 +601,7 @@ export async function callGeminiImageGeneration(options = {}) {
     baseUrl: rawBaseUrl,
     model: requestedModel = process.env.IMAGE_MODEL || "gemini-3-pro-image",
     size = "1024x1024",
-    timeoutMs = 90000,
+    timeoutMs = 45000,
     prefix = "novel",
   } = options;
 
@@ -644,13 +644,13 @@ export async function callGeminiImageGeneration(options = {}) {
     for (const currentModel of candidateModels) {
       if (endpointConnectionFailed) break;
 
-      // 对本地 4981 服务提供最多 2 次指数退避重试，避免 Google Gemini Web 临时会话繁忙直接断连
-      const maxRetries = isLocalService ? 2 : 0;
+      // 对本地 4981 服务提供最多 1 次退避重试，避免耗尽网关时限导致 504 截断
+      const maxRetries = isLocalService ? 1 : 0;
 
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         if (attempt > 0) {
-          console.log(`[ImageGen] 本地服务 4981 遇到瞬态繁忙，正在等待 2 秒进行第 ${attempt} 次重试...`);
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          console.log(`[ImageGen] 本地服务 4981 遇到瞬态繁忙，正在等待 1.5 秒进行第 ${attempt} 次重试...`);
+          await new Promise((resolve) => setTimeout(resolve, 1500));
         }
 
         const controller = new AbortController();
@@ -731,18 +731,11 @@ export async function callGeminiImageGeneration(options = {}) {
     }
   }
 
-  // 只有当本地 4981 及其他官方渠道重试均告失败时，才最终降级至免费位图渲染引擎作为保底
-  console.warn("[ImageGen] 本地及官方生图通道重试后未能出图，使用免费高精渲染引擎作为最终兜底...");
-  try {
-    const fallbackFluxUrl = buildFluxImageUrl(prompt, { width: 768, height: 1024 });
-    const probe = await probeImageUrl(fallbackFluxUrl, 8000);
-    if (probe.ok) {
-      return fallbackFluxUrl;
-    }
-    return fallbackFluxUrl;
-  } catch {
-    if (lastError) throw lastError;
-    throw new Error("IMAGE_GENERATION_FAILED");
+  // 当本地 4981 及备选网关均未成功出图时，显式抛出 lastError，由上层业务明确捕获并决定是否启用保底
+  console.warn("[ImageGen] 本地及官方生图通道未能出图，向上抛出异常由上层业务安全处理:", lastError?.message || lastError);
+  if (lastError) {
+    throw lastError;
   }
+  throw new Error("IMAGE_GENERATION_FAILED: No available endpoint produced an image");
 }
 

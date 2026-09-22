@@ -5,6 +5,7 @@ import {
   buildEnglishAssetPrompt,
   callGeminiImageGeneration,
   buildFluxImageUrl,
+  probeImageUrl,
 } from "@/lib/workflow-utils.mjs";
 import {
   reportImageSuccess,
@@ -18,7 +19,7 @@ import { countUserDailyAssets, verifyProjectOwnership } from "@/lib/workflow-db"
 import { isSuperAdmin } from "@/lib/auth-db";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
   let body: {
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
     (baseUrl && baseUrl !== "https://api.openai.com/v1" && baseUrl !== process.env.OPENAI_BASE_URL ? baseUrl : "") ||
     "http://127.0.0.1:4981/openai/v1";
 
-  // 8. 调用官方生图服务 (优先 4981 gemini-3-pro-image，自动重试、落盘、免费保底)
+  // 8. 调用官方生图服务 (优先 4981 gemini-3-pro-image，自动重试、落盘、异常抛出)
   try {
     const imageUrl = await callGeminiImageGeneration({
       prompt,
@@ -152,7 +153,7 @@ export async function POST(request: NextRequest) {
       baseUrl: effectiveBaseUrl,
       model: "gemini-3-pro-image",
       size: type === "character" ? "1024x1024" : "1024x1024",
-      timeoutMs: 90000,
+      timeoutMs: 45000,
       prefix: type === "character" ? "character" : "scene",
     });
 
@@ -163,26 +164,29 @@ export async function POST(request: NextRequest) {
       success: true,
       image_url: imageUrl,
       model: "gemini-3-pro-image",
+      isFallback: false,
     });
   } catch (err: unknown) {
     const errorObj = err as { status?: number; message?: string; name?: string };
-    console.warn("[GenerateAssets] 官方生图通道抛出异常，启动免费高精位图兜底:", errorObj);
+    console.warn("[GenerateAssets] 官方生图通道抛出异常，启动安全保底流程:", errorObj);
 
-    // 当且仅当本地 4981 及所有渠道全部报错时，才使用免费高精位图作为兜底保底
+    // 1. 尝试海外 Flux，但严控 6 秒探测超时。若海外拥堵或挂起，绝不将死链返回给前端拖垮浏览器
     try {
       const fluxAssetUrl = buildFluxImageUrl(prompt, {
         width: type === "character" ? 768 : 1024,
         height: type === "character" ? 1024 : 576,
       });
-      if (fluxAssetUrl) {
+      const probe = await probeImageUrl(fluxAssetUrl, 6000);
+      if (probe.ok) {
         return NextResponse.json({
           success: true,
           image_url: fluxAssetUrl,
           model: "flux-cinema",
+          isFallback: true,
         });
       }
     } catch {
-      // 忽略并进入极端保底
+      // 忽略并进入极端矢量 SVG 零等待保底
     }
 
     let fallbackUrl = "";
@@ -207,6 +211,7 @@ export async function POST(request: NextRequest) {
       success: true,
       image_url: fallbackUrl,
       isFallback: true,
+      model: "vector-svg-fallback",
     });
   }
 }
