@@ -87,6 +87,24 @@ const DEFAULT_CONFIG: WorkflowConfig = {
   apiKey: "",  // 保持为空，默认走站点内置 AI 对话通道
 };
 
+/**
+ * 仅在本地持久化轻量元数据：杜绝将数十万字正文或庞大 Base64 塞入 LocalStorage 导致主线程卡死
+ */
+function sanitizeProjectsForLocalStorage(list: WorkflowProject[]): WorkflowProject[] {
+  return list.slice(0, 10).map((p) => ({
+    ...p,
+    cover_url: p.cover_url && p.cover_url.length > 50000 ? "" : p.cover_url,
+    chapters: (p.chapters || []).map((ch) => ({
+      chapter_number: ch.chapter_number,
+      title: ch.title,
+      summary: ch.summary,
+      raw_content: ch.raw_content ? ch.raw_content.slice(0, 150) : "",
+      polished_content: ch.polished_content ? ch.polished_content.slice(0, 150) : "",
+      video_prompts: ch.video_prompts || [],
+    })),
+  }));
+}
+
 export default function WorkflowPage() {
   // 多小说书架列表
   const [projects, setProjects] = useState<WorkflowProject[]>([]);
@@ -153,7 +171,8 @@ export default function WorkflowPage() {
           const list: WorkflowProject[] = data.projects;
           setProjects(list);
           try {
-            localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(list));
+            const sanitized = sanitizeProjectsForLocalStorage(list);
+            localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(sanitized));
           } catch {}
           loadProjectIntoState(list[0]);
           return;
@@ -186,14 +205,19 @@ export default function WorkflowPage() {
 
     return () => {
       ignore = true;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
     };
   }, []);
 
-  // 仅在本地持久化工程列表 (纯更新 state 与 localStorage，绝不隐式触发网络 POST)
+  // 仅在本地持久化工程列表 (纯更新 state 与轻量 localStorage，绝不隐式触发网络 POST)
   const persistProjectsLocally = (updatedList: WorkflowProject[]) => {
     setProjects(updatedList);
     try {
-      localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(updatedList));
+      const sanitized = sanitizeProjectsForLocalStorage(updatedList);
+      localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(sanitized));
     } catch {}
   };
 
@@ -605,7 +629,7 @@ export default function WorkflowPage() {
 
       if (!response.body) throw new Error("服务器未返回流数据");
 
-      const reader = response.body.getReader();
+      let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
       const decoder = new TextDecoder();
       let buffer = "";
 
@@ -614,7 +638,9 @@ export default function WorkflowPage() {
       let currentPitch: PitchNoteData | null = isResume ? pitch : (isNew ? null : pitch);
       let currentCoverUrl: string = isResume ? coverUrl : (isNew ? "" : coverUrl);
 
-      while (true) {
+      try {
+        reader = response.body.getReader();
+        while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -866,6 +892,14 @@ export default function WorkflowPage() {
           }
         }
       }
+    } finally {
+      if (reader) {
+        try {
+          await reader.cancel();
+          reader.releaseLock();
+        } catch {}
+      }
+    }
     } catch (err: unknown) {
       const isAbort =
         err instanceof Error &&

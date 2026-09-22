@@ -13,6 +13,42 @@ interface NovelShelfProps {
   onReqDeleteProject: (proj: WorkflowProject, e: React.MouseEvent) => void;
   onBlockedAction?: (reason: string) => void;
 }
+ 
+function ShelfCoverImage({ coverUrl, title }: { coverUrl?: string; title: string }) {
+  const [loadFailed, setLoadFailed] = React.useState(false);
+  const [loaded, setLoaded] = React.useState(false);
+
+  if (!coverUrl || loadFailed) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-cyan-400">
+        <BookOpen className="h-7 w-7 opacity-70 mb-1" />
+        <p className="line-clamp-2 text-xs font-bold text-white">{title}</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {!loaded && (
+        <div className="absolute inset-0 bg-slate-800 animate-pulse flex items-center justify-center text-slate-500">
+          <BookOpen className="h-5 w-5 opacity-40" />
+        </div>
+      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={coverUrl}
+        alt={title}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoadFailed(true)}
+        className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-105 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </>
+  );
+}
 
 export function NovelShelf({
   projects,
@@ -84,21 +120,9 @@ export function NovelShelf({
                     : "border-slate-200/90 bg-white hover:border-cyan-400 hover:shadow-xs"
                 } ${isRunning ? "hover:border-amber-400" : ""}`}
               >
-                {/* 封面图区域 */}
+                {/* 封面图区域 (添加异步解码、原生懒加载与网络异常平滑降级，彻底杜绝慢速外链与大图卡顿) */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-slate-900 shadow-inner">
-                  {proj.cover_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={proj.cover_url}
-                      alt={proj.title}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-cyan-400">
-                      <BookOpen className="h-7 w-7 opacity-70 mb-1" />
-                      <p className="line-clamp-2 text-xs font-bold text-white">{proj.title}</p>
-                    </div>
-                  )}
+                  <ShelfCoverImage coverUrl={proj.cover_url} title={proj.title} />
 
                   {/* 悬浮删除操作 */}
                   <button

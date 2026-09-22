@@ -23,6 +23,13 @@ release="$DEPLOY_PATH/releases/$release_id"
 mkdir -p "$release"
 tar -xzf "$RELEASE_ARCHIVE" -C "$release"
 ln -s "$DEPLOY_PATH/.env.local" "$release/.env.local"
+mkdir -p "$DEPLOY_PATH/shared/generated/workflow"
+mkdir -p "$release/public"
+rm -rf "$release/public/generated"
+ln -s "$DEPLOY_PATH/shared/generated" "$release/public/generated"
+if [ -n "$old_release" ] && [ -d "$old_release/public/generated" ] && [ ! -L "$old_release/public/generated" ]; then
+  cp -rn "$old_release/public/generated/." "$DEPLOY_PATH/shared/generated/" 2>/dev/null || true
+fi
 cd "$release"
 npm ci --no-audit --no-fund
 test -f .next/BUILD_ID
