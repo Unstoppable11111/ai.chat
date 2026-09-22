@@ -74,6 +74,9 @@ export interface VisualAssetItem {
   description: string;
   image_url: string;
   created_at: string;
+  status?: "generated" | "fallback";
+  metadata?: Record<string, unknown>;
+  previous_versions?: { image_url: string; created_at: string; metadata?: Record<string, unknown> }[];
 }
 
 export interface WorkflowResult {
@@ -99,6 +102,7 @@ export interface WorkflowConfig {
   apiKey?: string;
   baseUrl?: string;
   model?: string;
+  coverMetadata?: Record<string, unknown>;
   // 断点续写与恢复参数
   resumeBible?: BibleData;
   resumeChapters?: ChapterData[];
@@ -121,6 +125,10 @@ export interface WorkflowProject {
   chapters: ChapterData[];
   pitch?: PitchNoteData;
   visual_assets?: VisualAssetItem[];
+  isSummary?: boolean;
+  chapterCount?: number;
+  wordCount?: number;
+  revision?: string;
 }
 
 export type WorkflowStepId =

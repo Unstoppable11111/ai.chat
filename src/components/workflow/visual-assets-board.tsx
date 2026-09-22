@@ -17,16 +17,17 @@ import {
   Link as LinkIcon,
   X,
 } from "lucide-react";
-import type { BibleData, CharacterCard, VisualAssetItem, WorkflowConfig } from "@/types/workflow";
+import type { BibleData, ChapterData, CharacterCard, VisualAssetItem, WorkflowConfig } from "@/types/workflow";
 
 interface VisualAssetsBoardProps {
   projectId?: string;
   bible: BibleData | null;
   coverUrl?: string;
   visualAssets: VisualAssetItem[];
+  chapters?: ChapterData[];
   config: WorkflowConfig;
-  onSaveVisualAsset: (asset: VisualAssetItem) => void;
-  onUpdateCover?: (newCoverUrl: string) => void;
+  onSaveVisualAsset: (asset: VisualAssetItem, projectId?: string) => void;
+  onUpdateCover?: (newCoverUrl: string, projectId?: string) => void;
   onQueueBusy?: (message?: string) => void;
   onSecurityAlert?: (message: string) => void;
   onQuotaLimit?: (message: string) => void;
@@ -79,6 +80,7 @@ export function VisualAssetsBoard({
   bible,
   coverUrl,
   visualAssets = [],
+  chapters = [],
   config,
   onSaveVisualAsset,
   onUpdateCover,
@@ -86,7 +88,8 @@ export function VisualAssetsBoard({
   onSecurityAlert,
   onQuotaLimit,
 }: VisualAssetsBoardProps) {
-  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [generationStates, setGenerationStates] = useState<Record<string, { status: "loading" | "error" | "cancelled" | "fallback"; message?: string }>>({});
+  const controllersRef = React.useRef(new Map<string, AbortController>());
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [cooldownRemaining] = useState<number>(0);
 
@@ -95,13 +98,15 @@ export function VisualAssetsBoard({
   const [replaceUrlInput, setReplaceUrlInput] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // 启动时清理本地过期冷却缓存
+  // Leaving a book or tab cancels its requests before callbacks can update another book.
   useEffect(() => {
+    const controllers = controllersRef.current;
     try {
       localStorage.removeItem(COOLDOWN_STORAGE_KEY);
     } catch {
       // 忽略
     }
+    return () => { for (const controller of controllers.values()) controller.abort(); controllers.clear(); };
   }, []);
 
   // 保存图片到本地
@@ -144,156 +149,83 @@ export function VisualAssetsBoard({
     );
   }
 
-  // 手动确认生成人物立绘画像
-  const handleGenerateCharacterPortrait = async (char: CharacterCard, idx: number) => {
-    const assetId = `char_${char.name}_${idx}`;
-    setGeneratingId(assetId);
-
+  const generateAsset = async (
+    assetId: string,
+    type: "character" | "scene",
+    title: string,
+    subtitle: string,
+    description: string,
+    details: { name: string; role: string; personality: string; appearance: string; plot?: string }
+  ) => {
+    if (!projectId || controllersRef.current.has(assetId)) return;
+    const controller = new AbortController();
+    controllersRef.current.set(assetId, controller);
+    setGenerationStates((previous) => ({ ...previous, [assetId]: { status: "loading" } }));
+    const timeout = setTimeout(() => controller.abort(new DOMException("生图请求超时，请重试", "TimeoutError")), 180_000);
     try {
-      const res = await fetch("/api-workflow/generate-assets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId,
-          type: "character",
-          name: char.name,
-          role: char.role,
-          personality: char.personality,
-          appearance: char.appearance || char.visual_traits || "英姿挺拔，眼神如炬",
-          genre: config.genre || "都市异能",
-          apiKey: config.apiKey || "",
-          baseUrl: config.baseUrl || "",
-        }),
+      const response = await fetch("/api-workflow/generate-assets", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({ projectId, type, ...details, description, style: config.style || "", worldview: bible.worldview, genre: config.genre || "都市异能" }),
       });
-
-      if (res.status === 429) {
-        const errData = await res.json().catch(() => null);
-        if (errData?.code === "DAILY_ASSET_QUOTA_EXCEEDED") {
-          onQuotaLimit?.(errData.error || "您今日的视觉资产生成额度已达上限（单账户单日最多10张）。");
-          return;
-        }
-        if (errData?.code === "RATE_LIMITED") {
-          onSecurityAlert?.(errData.error || "生成过于频繁，已触发限流保护，请稍候再试。");
-          return;
-        }
-        onQueueBusy?.(errData?.error || "生图通道瞬态繁忙，请稍候再试。");
-        return;
+      const data = await response.json().catch(() => null);
+      if (controller.signal.aborted) return;
+      if (!response.ok || !data?.success || !data.image_url) {
+        const message = data?.error || `生图失败（HTTP ${response.status}），请重试。`;
+        if (data?.code === "DAILY_ASSET_QUOTA_EXCEEDED") onQuotaLimit?.(message);
+        else if (response.status === 401 || data?.code === "PROMPT_INJECTION_DETECTED") onSecurityAlert?.(message);
+        else if (response.status === 429) onQueueBusy?.(message);
+        throw new Error(message);
       }
-
-      if (res.status === 400) {
-        const errData = await res.json().catch(() => null);
-        if (errData?.code === "PROMPT_INJECTION_DETECTED") {
-          onSecurityAlert?.(errData.error || "输入包含疑似违规指令，系统已阻断出图。");
-          return;
-        }
-      }
-
-      if (res.status === 401) {
-        onSecurityAlert?.("未登录或登录状态已过期，请重新登录后再生成视觉资产。");
-        return;
-      }
-
-      const data = await res.json().catch(() => null);
-      if (data?.code === "COOLDOWN_ACTIVE") {
-        onQueueBusy?.(data?.error || "通道正在处理中，请稍后。");
-        return;
-      }
-
-      if (data?.success && data.image_url) {
-        if (data.isFallback) {
-          onQueueBusy?.("官方 4981 生图通道暂时繁忙，已为您生成视觉保底图。");
-        }
-        onSaveVisualAsset({
-          id: assetId,
-          type: "character",
-          title: char.name,
-          subtitle: char.role,
-          description: `${char.personality} | ${char.appearance || char.visual_traits || ""}`,
-          image_url: data.image_url,
-          created_at: new Date().toISOString(),
-        });
-      }
-    } catch (err) {
-      console.error("生成人物立绘失败:", err);
+      const isFallback = Boolean(data.isFallback || data.status === "fallback");
+      onSaveVisualAsset({
+        id: assetId, type, title, subtitle, description,
+        image_url: data.image_url, created_at: new Date().toISOString(),
+        status: isFallback ? "fallback" : "generated",
+        metadata: data.metadata,
+      }, projectId);
+      setGenerationStates((previous) => {
+        const next = { ...previous };
+        if (isFallback) next[assetId] = { status: "fallback", message: "当前为降级预览图，可重新生成。" };
+        else delete next[assetId];
+        return next;
+      });
+    } catch (error) {
+      const timedOut = controller.signal.reason?.name === "TimeoutError";
+      const cancelled = controller.signal.aborted && !timedOut;
+      setGenerationStates((previous) => ({ ...previous, [assetId]: {
+        status: cancelled ? "cancelled" : "error",
+        message: timedOut ? "生成超时，原图已保留，可重试。" : cancelled ? "已取消，原图已保留。" : error instanceof Error ? error.message : "生成失败，原图已保留。",
+      } }));
     } finally {
-      setGeneratingId(null);
+      clearTimeout(timeout);
+      controllersRef.current.delete(assetId);
     }
   };
 
-  // 手动确认生成场景概念图
-  const handleGenerateSceneConcept = async (sceneTitle: string, idx: number) => {
-    const assetId = `scene_${idx}`;
-    setGeneratingId(assetId);
+  const handleGenerateCharacterPortrait = (char: CharacterCard, idx: number) =>
+    generateAsset(`char_${char.name}_${idx}`, "character", char.name, char.role,
+      `${char.personality} | ${char.appearance || char.visual_traits || ""}`,
+      { name: char.name, role: char.role, personality: char.personality, appearance: char.appearance || char.visual_traits || char.motivation });
 
-    try {
-      const res = await fetch("/api-workflow/generate-assets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId,
-          type: "scene",
-          name: sceneTitle,
-          role: "核心高能发生地",
-          personality: "高压迫感，光影交叠",
-          appearance: "宏大建筑群与深邃景深",
-          genre: config.genre || "都市异能",
-          apiKey: config.apiKey || "",
-          baseUrl: config.baseUrl || "",
-        }),
-      });
+  const handleGenerateSceneConcept = (sceneTitle: string, idx: number) => {
+    const outline = bible.outlines?.[idx];
+    const chapter = chapters.find((item) => item.chapter_number === outline?.chapter_number);
+    const plot = [outline?.goal, outline?.conflict, outline?.hook, chapter?.summary, ...(chapter?.video_prompts || []).map((shot) => `${shot.scene_title}: ${shot.visual_description}`)].filter(Boolean).join("\n").slice(0, 8000);
+    return generateAsset(`scene_${idx}`, "scene", sceneTitle, "核心剧情场景",
+      [outline?.goal, outline?.conflict, outline?.hook].filter(Boolean).join(" | "),
+      { name: sceneTitle, role: outline?.goal || "", personality: outline?.conflict || "", appearance: outline?.hook || "", plot });
+  };
 
-      if (res.status === 429) {
-        const errData = await res.json().catch(() => null);
-        if (errData?.code === "DAILY_ASSET_QUOTA_EXCEEDED") {
-          onQuotaLimit?.(errData.error || "您今日的视觉资产生成额度已达上限（单账户单日最多10张）。");
-          return;
-        }
-        if (errData?.code === "RATE_LIMITED") {
-          onSecurityAlert?.(errData.error || "生成过于频繁，已触发限流保护，请稍候再试。");
-          return;
-        }
-        onQueueBusy?.(errData?.error || "生图通道瞬态繁忙，请稍候再试。");
-        return;
-      }
-
-      if (res.status === 400) {
-        const errData = await res.json().catch(() => null);
-        if (errData?.code === "PROMPT_INJECTION_DETECTED") {
-          onSecurityAlert?.(errData.error || "输入包含疑似违规指令，系统已阻断出图。");
-          return;
-        }
-      }
-
-      if (res.status === 401) {
-        onSecurityAlert?.("未登录或登录状态已过期，请重新登录后再生成视觉资产。");
-        return;
-      }
-
-      const data = await res.json().catch(() => null);
-      if (data?.code === "COOLDOWN_ACTIVE") {
-        onQueueBusy?.(data?.error || "通道正在处理中，请稍后。");
-        return;
-      }
-
-      if (data?.success && data.image_url) {
-        if (data.isFallback) {
-          onQueueBusy?.("官方 4981 生图通道暂时繁忙，已为您生成视觉保底图。");
-        }
-        onSaveVisualAsset({
-          id: assetId,
-          type: "scene",
-          title: sceneTitle,
-          subtitle: "核心剧情场景",
-          description: "宏大场景透视与光影氛围概念图",
-          image_url: data.image_url,
-          created_at: new Date().toISOString(),
-        });
-      }
-    } catch (err) {
-      console.error("生成场景图失败:", err);
-    } finally {
-      setGeneratingId(null);
-    }
+  const renderGenerationStatus = (assetId: string, asset?: VisualAssetItem) => {
+    const state = generationStates[assetId];
+    return (
+      <>
+        {state?.status === "loading" && <button type="button" onClick={() => controllersRef.current.get(assetId)?.abort()} className="inline-flex items-center gap-1 text-xs text-rose-700"><X className="h-3.5 w-3.5" />取消生成</button>}
+        {state?.message && <p role="status" className={state.status === "error" ? "text-xs text-rose-700" : "text-xs text-amber-700"}>{state.message}</p>}
+        {!!asset?.previous_versions?.length && <div className="flex flex-wrap gap-2 pt-1">{asset.previous_versions.map((version, index) => <button key={version.created_at + index} type="button" title={`查看候选图 ${index + 1}`} onClick={() => setPreviewImage(version.image_url)} className="relative h-12 w-12 shrink-0 overflow-hidden rounded border border-slate-200"><Image src={version.image_url} alt={`候选图 ${index + 1}`} fill unoptimized sizes="48px" className="object-cover" /></button>)}</div>}
+      </>
+    );
   };
 
   // 提取小说中的主要场景列表
@@ -329,7 +261,7 @@ export function VisualAssetsBoard({
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900">
-              小说视觉资产库 · gemini-3-pro-image 工业化赋能
+              小说视觉资产库
             </h4>
             <p className="text-[11px] text-slate-500">
               人物画像与场景概念图为可选生成资产。用户手动确认后即时生成，并永久绑定至当前小说的数字资产包。
@@ -442,7 +374,7 @@ export function VisualAssetsBoard({
           {bible.characters?.map((char, idx) => {
             const assetId = `char_${char.name}_${idx}`;
             const existingAsset = visualAssets.find((a) => a.id === assetId);
-            const isGenerating = generatingId === assetId;
+            const isGenerating = generationStates[assetId]?.status === "loading";
 
             return (
               <div
@@ -479,9 +411,10 @@ export function VisualAssetsBoard({
                   )}
 
                   {isGenerating && (
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center text-white text-xs gap-2 z-10">
+                    <div className="absolute inset-0 bg-black/70  flex flex-col items-center justify-center text-white text-xs gap-2 z-10">
                       <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
                       <span>正在渲染角色立绘...</span>
+                      <button type="button" onClick={() => controllersRef.current.get(assetId)?.abort()} title="取消生成" className="rounded p-2 hover:bg-white/20"><X className="h-4 w-4" /></button>
                     </div>
                   )}
                 </div>
@@ -522,6 +455,7 @@ export function VisualAssetsBoard({
                       </>
                     )}
                   </button>
+                  {renderGenerationStatus(assetId, existingAsset)}
                 </div>
               </div>
             );
@@ -543,7 +477,7 @@ export function VisualAssetsBoard({
           {scenes.slice(0, 4).map((sceneTitle, idx) => {
             const assetId = `scene_${idx}`;
             const existingAsset = visualAssets.find((a) => a.id === assetId);
-            const isGenerating = generatingId === assetId;
+            const isGenerating = generationStates[assetId]?.status === "loading";
 
             return (
               <div
@@ -579,9 +513,10 @@ export function VisualAssetsBoard({
                   )}
 
                   {isGenerating && (
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center text-white text-xs gap-2 z-10">
+                    <div className="absolute inset-0 bg-black/70  flex flex-col items-center justify-center text-white text-xs gap-2 z-10">
                       <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
                       <span>正在绘制场景概念图...</span>
+                      <button type="button" onClick={() => controllersRef.current.get(assetId)?.abort()} title="取消生成" className="rounded p-2 hover:bg-white/20"><X className="h-4 w-4" /></button>
                     </div>
                   )}
                 </div>
@@ -605,6 +540,7 @@ export function VisualAssetsBoard({
                       : "生成场景图"}
                   </button>
                 </div>
+                {renderGenerationStatus(assetId, existingAsset)}
               </div>
             );
           })}
@@ -614,7 +550,7 @@ export function VisualAssetsBoard({
       {/* 原图弹窗查看 (支持无损放大与一键本地保存) */}
       {previewImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80  animate-in fade-in duration-200"
           onClick={() => setPreviewImage(null)}
         >
           <div
@@ -663,7 +599,7 @@ export function VisualAssetsBoard({
 
       {/* 替换封面交互模态框 */}
       {isReplaceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4  animate-in fade-in">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
@@ -705,7 +641,7 @@ export function VisualAssetsBoard({
                     try {
                       const compressedUrl = await compressImageFile(file);
                       if (compressedUrl) {
-                        onUpdateCover?.(compressedUrl);
+                        onUpdateCover?.(compressedUrl, projectId);
                         setIsReplaceModalOpen(false);
                       }
                     } catch (err) {
@@ -742,7 +678,7 @@ export function VisualAssetsBoard({
                   type="button"
                   onClick={() => {
                     if (replaceUrlInput.trim()) {
-                      onUpdateCover?.(replaceUrlInput.trim());
+                      onUpdateCover?.(replaceUrlInput.trim(), projectId);
                       setReplaceUrlInput("");
                       setIsReplaceModalOpen(false);
                     }
@@ -767,7 +703,7 @@ export function VisualAssetsBoard({
                     <div
                       key={asset.id}
                       onClick={() => {
-                        onUpdateCover?.(asset.image_url);
+                        onUpdateCover?.(asset.image_url, projectId);
                         setIsReplaceModalOpen(false);
                       }}
                       className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-slate-300/80 hover:border-cyan-500 transition-all cursor-pointer shadow-2xs"

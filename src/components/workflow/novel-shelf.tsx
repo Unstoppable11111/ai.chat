@@ -12,6 +12,9 @@ interface NovelShelfProps {
   onCreateNew: () => void;
   onReqDeleteProject: (proj: WorkflowProject, e: React.MouseEvent) => void;
   onBlockedAction?: (reason: string) => void;
+  hasMore?: boolean;
+  loading?: boolean;
+  onLoadMore?: () => void;
 }
  
 function ShelfCoverImage({ coverUrl, title }: { coverUrl?: string; title: string }) {
@@ -50,7 +53,7 @@ function ShelfCoverImage({ coverUrl, title }: { coverUrl?: string; title: string
   );
 }
 
-export function NovelShelf({
+export const NovelShelf = React.memo(function NovelShelf({
   projects,
   currentProjectId,
   isRunning = false,
@@ -58,6 +61,9 @@ export function NovelShelf({
   onCreateNew,
   onReqDeleteProject,
   onBlockedAction,
+  hasMore,
+  loading,
+  onLoadMore,
 }: NovelShelfProps) {
   const handleSelect = (id: string) => {
     if (isRunning) {
@@ -76,7 +82,7 @@ export function NovelShelf({
   };
 
   return (
-    <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-5 shadow-xs backdrop-blur-md space-y-4">
+    <div className="rounded-3xl border border-slate-900/10 bg-white p-5 shadow-xs space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700">
@@ -85,7 +91,7 @@ export function NovelShelf({
           <div>
             <h2 className="text-sm font-bold text-slate-900">我的小说书架库</h2>
             <p className="text-[11px] text-muted-foreground">
-              共已工业化生产 {projects.length} 部小说全案，各书参数与人设独立绑定，全书生成完毕后自动精美成册入库
+              已加载 {projects.length} 部小说
             </p>
           </div>
         </div>
@@ -105,7 +111,7 @@ export function NovelShelf({
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
           {projects.map((proj) => {
             const isSelected = proj.id === currentProjectId;
-            const totalWords = proj.chapters.reduce(
+            const totalWords = proj.isSummary ? proj.wordCount : proj.wordCount ?? proj.chapters.reduce(
               (acc, c) => acc + (c.polished_content || c.raw_content || "").length,
               0
             );
@@ -122,7 +128,7 @@ export function NovelShelf({
               >
                 {/* 封面图区域 (添加异步解码、原生懒加载与网络异常平滑降级，彻底杜绝慢速外链与大图卡顿) */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-slate-900 shadow-inner">
-                  <ShelfCoverImage coverUrl={proj.cover_url} title={proj.title} />
+                  <ShelfCoverImage key={proj.cover_url} coverUrl={proj.cover_url} title={proj.title} />
 
                   {/* 悬浮删除操作 */}
                   <button
@@ -143,8 +149,8 @@ export function NovelShelf({
 
                   {/* 底部章节字数徽章 */}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 pt-6 text-[10px] text-white/90 flex items-center justify-between">
-                    <span className="font-mono">{proj.chapters.length} 章</span>
-                    <span className="font-mono">{totalWords} 字</span>
+                    <span className="font-mono">{proj.chapterCount ?? proj.chapters.length} 章</span>
+                    <span className="font-mono">{totalWords === undefined ? "字数待统计" : `${totalWords} 字`}</span>
                   </div>
                 </div>
 
@@ -182,6 +188,7 @@ export function NovelShelf({
           </div>
         </div>
       )}
+      {hasMore && <button type="button" disabled={loading} onClick={onLoadMore} className="flex items-center gap-2 mx-auto text-xs font-semibold text-cyan-700 disabled:opacity-50"><Plus className="h-4 w-4" />{loading ? "加载中..." : "加载更多"}</button>}
     </div>
   );
-}
+}, (previous, next) => previous.projects === next.projects && previous.currentProjectId === next.currentProjectId && previous.isRunning === next.isRunning && previous.hasMore === next.hasMore && previous.loading === next.loading);

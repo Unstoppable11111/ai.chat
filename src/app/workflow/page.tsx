@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useWorkflowProjects } from "@/components/workflow/use-workflow-projects";
+import { canResumeWorkflow, publicWorkflowConfig } from "@/components/workflow/project-state.mjs";
 import {
   Sliders,
   Play,
@@ -73,7 +75,6 @@ const INITIAL_STEPS: StepItem[] = [
   },
 ];
 
-const LOCAL_PROJECTS_KEY = "chen_ai_workflow_projects_v2";
 const DEFAULT_CONFIG: WorkflowConfig = {
   prompt: "",
   genre: "都市异能",
@@ -87,27 +88,14 @@ const DEFAULT_CONFIG: WorkflowConfig = {
   apiKey: "",  // 保持为空，默认走站点内置 AI 对话通道
 };
 
-/**
- * 仅在本地持久化轻量元数据：杜绝将数十万字正文或庞大 Base64 塞入 LocalStorage 导致主线程卡死
- */
-function sanitizeProjectsForLocalStorage(list: WorkflowProject[]): WorkflowProject[] {
-  return list.slice(0, 10).map((p) => ({
-    ...p,
-    cover_url: p.cover_url && p.cover_url.length > 50000 ? "" : p.cover_url,
-    chapters: (p.chapters || []).map((ch) => ({
-      chapter_number: ch.chapter_number,
-      title: ch.title,
-      summary: ch.summary,
-      raw_content: ch.raw_content ? ch.raw_content.slice(0, 150) : "",
-      polished_content: ch.polished_content ? ch.polished_content.slice(0, 150) : "",
-      video_prompts: ch.video_prompts || [],
-    })),
-  }));
-}
-
 export default function WorkflowPage() {
   // 多小说书架列表
-  const [projects, setProjects] = useState<WorkflowProject[]>([]);
+  const { projects, projectsRef, hasMore, loading: shelfLoading, saveError, loadMore, fetchProject, patchProject, createProject, removeProject, retrySaves } = useWorkflowProjects();
+  const [projectLoading, setProjectLoading] = useState(false);
+  const currentProjectIdRef = useRef<string | null>(null);
+  const selectionRef = useRef(0);
+  const configDraftRef = useRef<{ id: string; config: WorkflowConfig } | null>(null);
+  const configTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
   // 当前小说的专属参数与输入
@@ -132,11 +120,13 @@ export default function WorkflowPage() {
   const [activeTab, setActiveTab] = useState<"novel" | "video" | "assets" | "pitch" | "bible">("novel");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: "idle" });
+  const canResume = canResumeWorkflow({ bible: bible || undefined, chapters, pitch: pitch || undefined, cover_url: coverUrl, config });
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // 统一加载单本小说的专属参数与数据
-  const loadProjectIntoState = (proj: WorkflowProject) => {
+  const loadProjectIntoState = useCallback((proj: WorkflowProject) => {
+    currentProjectIdRef.current = proj.id;
     setCurrentProjectId(proj.id);
     setPrompt(proj.prompt || proj.config?.prompt || "");
     const cleanedConfig = { ...DEFAULT_CONFIG, ...proj.config };
@@ -154,102 +144,62 @@ export default function WorkflowPage() {
     setVisualAssets(proj.visual_assets || []);
     setStreamingText("");
     setErrorMessage(null);
-    setSteps((prev) =>
-      prev.map((s) => ({ ...s, status: "completed" as StepStatus, detail: undefined }))
-    );
-  };
-
-  // 优先从云端数据库加载用户绑定的小说书架，若无则使用本地缓存
-  useEffect(() => {
-    let ignore = false;
-
-    fetch("/api-workflow/projects")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (ignore) return;
-        if (data?.success && Array.isArray(data.projects) && data.projects.length > 0) {
-          const list: WorkflowProject[] = data.projects;
-          setProjects(list);
-          try {
-            const sanitized = sanitizeProjectsForLocalStorage(list);
-            localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(sanitized));
-          } catch {}
-          loadProjectIntoState(list[0]);
-          return;
-        }
-
-        // 云端暂无时回退从本地缓存恢复
-        try {
-          const saved = localStorage.getItem(LOCAL_PROJECTS_KEY);
-          if (saved) {
-            const list: WorkflowProject[] = JSON.parse(saved);
-            if (Array.isArray(list) && list.length > 0) {
-              setProjects(list);
-              loadProjectIntoState(list[0]);
-            }
-          }
-        } catch {}
-      })
-      .catch(() => {
-        try {
-          const saved = localStorage.getItem(LOCAL_PROJECTS_KEY);
-          if (saved) {
-            const list: WorkflowProject[] = JSON.parse(saved);
-            if (Array.isArray(list) && list.length > 0) {
-              setProjects(list);
-              loadProjectIntoState(list[0]);
-            }
-          }
-        } catch {}
-      });
-
-    return () => {
-      ignore = true;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
-      }
-    };
+    const savedChapters = proj.chapters || [];
+    const expectedCount = proj.bible?.outlines?.length || cleanedConfig.chapterCount || 3;
+    const chaptersComplete = savedChapters.length >= expectedCount && savedChapters.every((chapter) => Boolean(chapter.raw_content?.trim()));
+    const hasFinalCover = Boolean(proj.cover_url && !/^data:image\/svg\+xml/i.test(proj.cover_url) && !/\.svg(?:[?#]|$)/i.test(proj.cover_url));
+    const completed = [
+      Boolean(proj.bible),
+      chaptersComplete,
+      chaptersComplete && savedChapters.every((chapter) => Boolean(chapter.video_prompts?.length)),
+      chaptersComplete && savedChapters.every((chapter) => Boolean(chapter.polished_content?.trim())),
+      Boolean(proj.pitch?.synopsis?.trim()) && hasFinalCover,
+    ];
+    setSteps(INITIAL_STEPS.map((step, index) => ({ ...step, status: completed[index] ? "completed" : "idle" })));
+    const nextStep = completed.findIndex((complete) => !complete);
+    setCurrentStepIndex(nextStep === -1 ? INITIAL_STEPS.length - 1 : nextStep);
   }, []);
 
-  // 仅在本地持久化工程列表 (纯更新 state 与轻量 localStorage，绝不隐式触发网络 POST)
-  const persistProjectsLocally = (updatedList: WorkflowProject[]) => {
-    setProjects(updatedList);
+  const flushConfigDraft = useCallback(() => {
+    if (configTimerRef.current) clearTimeout(configTimerRef.current);
+    const draft = configDraftRef.current;
+    configDraftRef.current = null;
+    return draft ? patchProject(draft.id, { config: draft.config, prompt: draft.config.prompt }) : Promise.resolve(true);
+  }, [patchProject]);
+
+  // Summary rows never enter the editor until their full record has loaded.
+  const handleSelectProject = useCallback(async (projectId: string) => {
+    flushConfigDraft();
+    const selection = ++selectionRef.current;
+    setProjectLoading(true);
     try {
-      const sanitized = sanitizeProjectsForLocalStorage(updatedList);
-      localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(sanitized));
-    } catch {}
-  };
+      const project = await fetchProject(projectId);
+      if (selection !== selectionRef.current) return;
+      loadProjectIntoState(project);
+      setActiveTab("novel");
+    } catch (error) {
+      if (selection === selectionRef.current) setErrorMessage(error instanceof Error ? error.message : "小说加载失败");
+    } finally {
+      if (selection === selectionRef.current) setProjectLoading(false);
+    }
+  }, [fetchProject, flushConfigDraft, loadProjectIntoState]);
 
-  // 显式异步保存指定小说项目至云端 MySQL 数据库
-  const syncProjectToCloud = (project: WorkflowProject) => {
-    if (!project || !project.id) return;
-    fetch("/api-workflow/projects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(project),
-    }).catch((err) => console.warn("[Workflow] 云端单书保存失败:", err));
-  };
-
-  // 显式异步从云端 MySQL 数据库删除指定小说项目
-  const deleteProjectFromCloud = (projectId: string) => {
-    if (!projectId) return;
-    fetch(`/api-workflow/projects?id=${encodeURIComponent(projectId)}`, {
-      method: "DELETE",
-    }).catch((err) => console.warn("[Workflow] 云端单书删除失败:", err));
-  };
-
-  // 切换选中某部小说：左边加载原来绑定的专属参数，右边展示小说章节信息与资产
-  const handleSelectProject = (projectId: string) => {
-    if (isRunning) handleStop();
-    const proj = projects.find((p) => p.id === projectId);
-    if (!proj) return;
-    loadProjectIntoState(proj);
-    setActiveTab("novel");
-  };
+  useEffect(() => {
+    void loadMore(true);
+    const selection = selectionRef;
+    return () => {
+      selection.current++;
+      abortControllerRef.current?.abort();
+      if (configTimerRef.current) clearTimeout(configTimerRef.current);
+    };
+  }, [loadMore]);
 
   // 创作全新小说
   const handleCreateNew = () => {
+    flushConfigDraft();
+    selectionRef.current++;
+    currentProjectIdRef.current = null;
+    setProjectLoading(false);
     if (isRunning) handleStop();
     setCurrentProjectId(null);
     setPrompt("");
@@ -266,79 +216,35 @@ export default function WorkflowPage() {
     setActiveTab("novel");
   };
 
-  // 手动修改书名并实时同步至本地和云端书架
   const handleUpdateTitle = (newTitle: string) => {
+    const id = currentProjectIdRef.current;
     const trimmed = newTitle.trim();
-    if (!trimmed) return;
-    setBible((prev) => (prev ? { ...prev, title: trimmed } : null));
-    if (currentProjectId) {
-      setProjects((prev) => {
-        const updated = prev.map((p) => {
-          if (p.id === currentProjectId) {
-            const updatedProj: WorkflowProject = {
-              ...p,
-              title: trimmed,
-              bible: p.bible ? { ...p.bible, title: trimmed } : undefined,
-              updatedAt: new Date().toISOString(),
-            };
-            syncProjectToCloud(updatedProj);
-            return updatedProj;
-          }
-          return p;
-        });
-        persistProjectsLocally(updated);
-        return updated;
-      });
-    }
+    const project = projectsRef.current.find((item) => item.id === id);
+    if (!trimmed || !id || !project) return;
+    const updatedBible = project.bible ? { ...project.bible, title: trimmed } : undefined;
+    setBible(updatedBible || null);
+    void patchProject(id, { title: trimmed, bible: updatedBible });
   };
 
-  // 手动替换或更新封面（视觉资产与书架封面联动公用，改了一个两个同步改）
-  const handleUpdateCover = (newCoverUrl: string) => {
-    if (!newCoverUrl) return;
-    setCoverUrl(newCoverUrl);
-    if (currentProjectId) {
-      setProjects((prev) => {
-        const updated = prev.map((p) => {
-          if (p.id === currentProjectId) {
-            const updatedProj: WorkflowProject = {
-              ...p,
-              cover_url: newCoverUrl,
-              updatedAt: new Date().toISOString(),
-            };
-            syncProjectToCloud(updatedProj);
-            return updatedProj;
-          }
-          return p;
-        });
-        persistProjectsLocally(updated);
-        return updated;
-      });
-    }
+  const handleUpdateCover = (newCoverUrl: string, sourceProjectId?: string) => {
+    const id = sourceProjectId || currentProjectIdRef.current;
+    if (!newCoverUrl || !id) return;
+    if (id === currentProjectIdRef.current) setCoverUrl(newCoverUrl);
+    void patchProject(id, { cover_url: newCoverUrl });
   };
 
-  // 保存新生成的视觉资产 (人物立绘或场景概念图)
-  const handleSaveVisualAsset = (newAsset: VisualAssetItem) => {
-    setVisualAssets((prev) => {
-      const filtered = prev.filter((a) => a.id !== newAsset.id);
-      const updated = [...filtered, newAsset];
-
-      if (currentProjectId) {
-        const targetProj = projects.find((p) => p.id === currentProjectId);
-        if (targetProj) {
-          const updatedProj: WorkflowProject = {
-            ...targetProj,
-            visual_assets: updated,
-            updatedAt: new Date().toISOString(),
-          };
-          const nextProjects = projects.map((p) =>
-            p.id === currentProjectId ? updatedProj : p
-          );
-          persistProjectsLocally(nextProjects);
-          syncProjectToCloud(updatedProj);
-        }
-      }
-      return updated;
-    });
+  const handleSaveVisualAsset = (newAsset: VisualAssetItem, sourceProjectId?: string) => {
+    const id = sourceProjectId || currentProjectIdRef.current;
+    const project = projectsRef.current.find((item) => item.id === id);
+    if (!id || !project) return;
+    const previous = project.visual_assets?.find((item) => item.id === newAsset.id);
+    const asset = previous ? { ...newAsset, previous_versions: [
+      ...(previous.previous_versions || []),
+      { image_url: previous.image_url, created_at: previous.created_at, metadata: previous.metadata },
+    ].slice(-3) } : newAsset;
+    const assets = [...(project.visual_assets || []).filter((item) => item.id !== asset.id), asset];
+    if (id === currentProjectIdRef.current) setVisualAssets(assets);
+    void patchProject(id, { visual_assets: assets });
   };
 
   // 触发删除小说二次确认弹窗 (杜绝误删，提升安全感)
@@ -354,80 +260,49 @@ export default function WorkflowPage() {
     setModalState({ type: "confirm_delete", project: proj });
   };
 
-  // 确认执行从本地及云端数据库彻底删除
-  const handleConfirmDelete = (projectId: string) => {
-    const nextList = projects.filter((p) => p.id !== projectId);
-    persistProjectsLocally(nextList);
-    deleteProjectFromCloud(projectId);
-
-    // 如果删除的是当前选中的小说项目
-    if (currentProjectId === projectId) {
-      if (nextList.length > 0) {
-        loadProjectIntoState(nextList[0]);
-      } else {
-        handleCreateNew();
-      }
+  const handleConfirmDelete = async (projectId: string) => {
+    try {
+      await removeProject(projectId);
+      if (currentProjectIdRef.current === projectId) handleCreateNew();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "删除失败");
     }
   };
 
   // 触发运行中拦截弹窗
-  const handleBlockedAction = (message: string) => {
+  const handleBlockedAction = useCallback((message: string) => {
     setModalState({ type: "busy_block", message });
-  };
+  }, []);
 
-  // 更新当前小说的创作配置项并同步绑定
-  const handleConfigChange = (updated: Partial<WorkflowConfig>) => {
-    setConfig((prev) => {
-      const next = { ...prev, ...updated };
-      // 若当前已处于某个小说工程中，同步持久化到该小说的专属绑定配置中
-      if (currentProjectId) {
-        const targetProj = projects.find((p) => p.id === currentProjectId);
-        if (targetProj) {
-          const updatedProj: WorkflowProject = {
-            ...targetProj,
-            config: next,
-            updatedAt: new Date().toISOString(),
-          };
-          const nextProjects = projects.map((p) =>
-            p.id === currentProjectId ? updatedProj : p
-          );
-          persistProjectsLocally(nextProjects);
-          syncProjectToCloud(updatedProj);
-        }
-      }
-      return next;
-    });
-  };
+  const handleConfigChange = useCallback((updated: Partial<WorkflowConfig>) => {
+    const next = { ...config, ...updated };
+    setConfig(next);
+    const id = currentProjectIdRef.current;
+    if (!id) return;
+    configDraftRef.current = { id, config: next };
+    if (configTimerRef.current) clearTimeout(configTimerRef.current);
+    configTimerRef.current = setTimeout(flushConfigDraft, 700);
+  }, [config, flushConfigDraft]);
 
-  // 当 Prompt 输入框失焦时，持久化同步到当前小说绑定中 (避免每个按键都发起网络请求)
   const handlePromptBlur = () => {
-    if (currentProjectId && prompt.trim()) {
-      const targetProj = projects.find((p) => p.id === currentProjectId);
-      if (targetProj && targetProj.prompt !== prompt.trim()) {
-        const updatedProj: WorkflowProject = {
-          ...targetProj,
-          prompt: prompt.trim(),
-          config: { ...targetProj.config, prompt: prompt.trim() },
-          updatedAt: new Date().toISOString(),
-        };
-        const nextProjects = projects.map((p) =>
-          p.id === currentProjectId ? updatedProj : p
-        );
-        persistProjectsLocally(nextProjects);
-        syncProjectToCloud(updatedProj);
-      }
-    }
+    const id = currentProjectIdRef.current;
+    if (!id) return;
+    const nextConfig = { ...config, prompt: prompt.trim() };
+    setConfig(nextConfig);
+    configDraftRef.current = null;
+    if (configTimerRef.current) clearTimeout(configTimerRef.current);
+    void patchProject(id, { prompt: prompt.trim(), config: nextConfig });
   };
 
   // 选择预设创作赛道 (正在运行时严格拦截锁控)
-  const handleSelectPreset = (p: string, g: string, s: string) => {
+  const handleSelectPreset = useCallback((p: string, g: string, s: string) => {
     if (isRunning) {
       handleBlockedAction("当前已有小说正在流水线工业化生产中，请等待当前全案完成或先中止任务，再尝试其他赛道。");
       return;
     }
     setPrompt(p);
-    handleConfigChange({ genre: g, style: s });
-  };
+    handleConfigChange({ genre: g, style: s, prompt: p });
+  }, [isRunning, handleBlockedAction, handleConfigChange]);
 
   // 终止执行
   const handleStop = () => {
@@ -441,50 +316,21 @@ export default function WorkflowPage() {
     );
   };
 
-  // 重置当前正在创作的内容
-  const handleReset = () => {
-    handleCreateNew();
+  const handleUpdateChapter = (chapterNumber: number, updatedFields: Partial<ChapterData>, sourceProjectId?: string) => {
+    const id = sourceProjectId || currentProjectIdRef.current;
+    const project = projectsRef.current.find((item) => item.id === id);
+    if (!id || !project) return;
+    const nextChapters = project.chapters.map((chapter) =>
+      chapter.chapter_number === chapterNumber ? { ...chapter, ...updatedFields } : chapter
+    );
+    if (id === currentProjectIdRef.current) setChapters(nextChapters);
+    void patchProject(id, { chapters: nextChapters });
   };
 
-  // 单章微调后的持久化回调
-  const handleUpdateChapter = (
-    chapterNumber: number,
-    updatedFields: Partial<ChapterData>
-  ) => {
-    setChapters((prev) => {
-      const nextChapters = prev.map((ch) =>
-        ch.chapter_number === chapterNumber ? { ...ch, ...updatedFields } : ch
-      );
-
-      // 同步持久化到当前选中小说项目中
-      if (currentProjectId) {
-        const targetProj = projects.find((p) => p.id === currentProjectId);
-        if (targetProj) {
-          const updatedProj: WorkflowProject = {
-            ...targetProj,
-            chapters: nextChapters,
-            updatedAt: new Date().toISOString(),
-          };
-          const nextProjects = projects.map((p) =>
-            p.id === currentProjectId ? updatedProj : p
-          );
-          persistProjectsLocally(nextProjects);
-          syncProjectToCloud(updatedProj);
-        }
-      }
-
-      return nextChapters;
-    });
-  };
-
-  // 手动修改章节名并实时同步
   const handleUpdateChapterTitle = (chapterNumber: number, newTitle: string) => {
-    const trimmed = newTitle.trim();
-    if (!trimmed) return;
-    handleUpdateChapter(chapterNumber, { title: trimmed });
+    if (newTitle.trim()) handleUpdateChapter(chapterNumber, { title: newTitle.trim() });
   };
 
-  // 中间过程 Checkpoint 自动保存（杜绝中断丢失，支持断点续写与书架同步）
   const saveCheckpoint = (
     projId: string,
     currentBible: BibleData | null,
@@ -492,42 +338,18 @@ export default function WorkflowPage() {
     currentPitch: PitchNoteData | null,
     currentCoverUrl: string
   ) => {
-    if (!projId) return;
-    const snapTitle =
-      currentBible?.title ||
-      (prompt.trim() ? prompt.trim().slice(0, 16) : "创作中小说");
-    const checkpointProj: WorkflowProject = {
-      id: projId,
-      title: snapTitle,
-      cover_url: currentCoverUrl,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      prompt: prompt.trim(),
-      config: { ...config, prompt: prompt.trim() },
-      bible: currentBible || undefined,
-      chapters: currentChapters,
-      pitch: currentPitch || undefined,
-      visual_assets: visualAssets,
-    };
-
-    setProjects((prev) => {
-      const existingIndex = prev.findIndex((p) => p.id === projId);
-      let updatedList: WorkflowProject[];
-      if (existingIndex !== -1) {
-        updatedList = [...prev];
-        updatedList[existingIndex] = { ...updatedList[existingIndex], ...checkpointProj };
-      } else {
-        updatedList = [checkpointProj, ...prev];
-      }
-      persistProjectsLocally(updatedList);
-      return updatedList;
-    });
-
-    syncProjectToCloud(checkpointProj);
+    const patch: Partial<WorkflowProject> = { chapters: [...currentChapters] };
+    if (currentBible) { patch.bible = currentBible; patch.title = currentBible.title; }
+    if (currentPitch) patch.pitch = currentPitch;
+    // Preserve independently replaced covers and visual assets during the pipeline.
+    const latest = projectsRef.current.find((item) => item.id === projId);
+    if (currentCoverUrl && (!latest?.cover_url || latest.cover_url === coverUrl)) patch.cover_url = currentCoverUrl;
+    return patchProject(projId, patch);
   };
 
   // 启动工业化流水线 (支持全新的独立创作、覆盖重写、以及断点续写)
   const handleStartPipeline = async (options?: { isNew?: boolean; isResume?: boolean }) => {
+    if (projectLoading) return;
     if (isRunning) {
       handleBlockedAction("当前已有小说正在流水线工业化生产中，请勿重复启动或提交。");
       return;
@@ -537,13 +359,14 @@ export default function WorkflowPage() {
       return;
     }
 
-    const isNew = options?.isNew ?? (!currentProjectId);
-    const isResume = options?.isResume ?? false;
+    const isResume = Boolean(options?.isResume && !options?.isNew && currentProjectId && bible);
+    const isNew = !isResume;
 
     // 若为新建小说，分配全新工程 ID 并清空旧状态，彻底杜绝覆盖第一本书
     let activeId = currentProjectId;
     if (isNew || !activeId) {
       activeId = `proj_${Date.now()}`;
+      currentProjectIdRef.current = activeId;
       setCurrentProjectId(activeId);
       setBible(null);
       setChapters([]);
@@ -561,7 +384,7 @@ export default function WorkflowPage() {
       setSteps((prev) =>
         prev.map((s) => {
           if (s.id === "step_1_bible") return { ...s, status: "completed" as StepStatus };
-          if (s.id === "step_2_chapters") return { ...s, status: "running" as StepStatus, detail: `断点续写：第 ${resumeFrom} 章` };
+          if (s.id === "step_2_chapters") return { ...s, status: "running" as StepStatus, detail: resumeFrom <= (bible?.outlines.length || config.chapterCount || 3) ? `断点续写：第 ${resumeFrom} 章` : "恢复未完成的生产环节" };
           return { ...s, status: "idle" as StepStatus, detail: undefined };
         })
       );
@@ -593,7 +416,36 @@ export default function WorkflowPage() {
       resumeFromChapter: isResume ? (chapters.length + 1) : undefined,
     };
 
+    let displayedStream = "";
+    let streamTimer: ReturnType<typeof setTimeout> | null = null;
+    const resetStream = () => {
+      if (streamTimer) clearTimeout(streamTimer);
+      streamTimer = null;
+      displayedStream = "";
+      setStreamingText("");
+    };
+    const publishChunk = (text: string) => {
+      displayedStream += text;
+      if (!streamTimer) streamTimer = setTimeout(() => {
+        if (!abortController.signal.aborted && currentProjectIdRef.current === activeId) setStreamingText(displayedStream);
+        streamTimer = null;
+      }, 80);
+    };
+
     try {
+      if (!(await flushConfigDraft())) return;
+      if (!projectsRef.current.find((project) => project.id === activeId)?.revision) {
+        const created = await createProject({
+          id: activeId, title: prompt.trim().slice(0, 24) || "创作中小说",
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          prompt: prompt.trim(), config: { ...config, prompt: prompt.trim() },
+          chapters: [], cover_url: "", visual_assets: [],
+        });
+        if (!created) return;
+      } else if (!(await patchProject(activeId, { prompt: prompt.trim(), config: { ...config, prompt: prompt.trim() } }))) {
+        return;
+      }
+      if (abortController.signal.aborted) return;
       const response = await fetch("/api-workflow/novel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -632,23 +484,25 @@ export default function WorkflowPage() {
       let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
       const decoder = new TextDecoder();
       let buffer = "";
+      let pipelineComplete = false;
 
-      let currentBible: BibleData | null = isResume ? bible : (isNew ? null : bible);
-      let currentChapters: ChapterData[] = isResume ? [...chapters] : (isNew ? [] : [...chapters]);
-      let currentPitch: PitchNoteData | null = isResume ? pitch : (isNew ? null : pitch);
-      let currentCoverUrl: string = isResume ? coverUrl : (isNew ? "" : coverUrl);
+      let currentBible: BibleData | null = isResume ? bible : null;
+      let currentChapters: ChapterData[] = isResume ? [...chapters] : [];
+      let currentPitch: PitchNoteData | null = isResume ? pitch : null;
+      let currentCoverUrl: string = isResume ? coverUrl : "";
 
       try {
         reader = response.body.getReader();
         while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done || abortController.signal.aborted || currentProjectIdRef.current !== activeId) break;
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
         for (const line of lines) {
+          if (abortController.signal.aborted || currentProjectIdRef.current !== activeId) break;
           const trimmed = line.trim();
           if (!trimmed || trimmed.startsWith(":")) continue;
           if (trimmed.startsWith("data: ")) {
@@ -661,7 +515,7 @@ export default function WorkflowPage() {
                 if (stepKey.startsWith("chapter_")) {
                   const chNum = parseInt(stepKey.replace("chapter_", ""), 10);
                   setStreamingChapter(chNum);
-                  setStreamingText("");
+                  resetStream();
                   setActiveTab("novel");
                   setSteps((prev) =>
                     prev.map((s) =>
@@ -673,7 +527,7 @@ export default function WorkflowPage() {
                 } else if (stepKey === "cover_generation") {
                   setSteps((prev) =>
                     prev.map((s) =>
-                      s.id === "step_2_chapters"
+                      s.id === "step_5_pitch"
                         ? { ...s, status: "running", detail: event.label }
                         : s
                     )
@@ -711,7 +565,7 @@ export default function WorkflowPage() {
 
               // 处理 CHUNK
               if (event.type === "CHUNK" && event.text) {
-                setStreamingText((prev) => prev + event.text);
+                publishChunk(event.text);
               }
 
               // 处理 STEP_COMPLETE
@@ -722,7 +576,7 @@ export default function WorkflowPage() {
                 if (stepKey === "step_1_bible" && data?.bible) {
                   currentBible = data.bible as BibleData;
                   setBible(currentBible);
-                  setStreamingText("");
+                  resetStream();
                   saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                   setSteps((prev) =>
                     prev.map((s) =>
@@ -731,10 +585,20 @@ export default function WorkflowPage() {
                         : s
                     )
                   );
-                } else if (stepKey === "cover_generation" && data?.cover_url) {
-                  currentCoverUrl = String(data.cover_url);
-                  setCoverUrl(currentCoverUrl);
-                  saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
+                } else if (stepKey === "cover_generation" && data) {
+                  if (data.warning) setErrorMessage(`封面暂用预览图：${String(data.warning)}。正文已保留，点击「继续完成工作流」可重试封面。`);
+                  if (data.cover_url) {
+                    currentCoverUrl = String(data.cover_url);
+                    const latest = projectsRef.current.find((project) => project.id === activeId);
+                    const coverUnchanged = !latest?.cover_url || latest.cover_url === coverUrl;
+                    setCoverUrl(coverUnchanged ? currentCoverUrl : latest.cover_url);
+                    if (coverUnchanged && data.metadata && latest) {
+                      const updatedConfig = { ...latest.config, coverMetadata: data.metadata as Record<string, unknown> };
+                      setConfig(updatedConfig);
+                      void patchProject(activeId, { config: updatedConfig });
+                    }
+                    saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
+                  }
                 } else if (stepKey.startsWith("chapter_") && data) {
                   const chNum = Number(data.chapter_number) || 1;
                   const chTitle = String(data.title || `第 ${chNum} 章`);
@@ -744,7 +608,7 @@ export default function WorkflowPage() {
                   const newChapter: ChapterData = {
                     chapter_number: chNum,
                     title: chTitle,
-                    summary: "",
+                    summary: String(data.summary || ""),
                     raw_content: chContent,
                     polished_content: "",
                     video_prompts: [],
@@ -757,7 +621,7 @@ export default function WorkflowPage() {
                   }
 
                   setChapters([...currentChapters]);
-                  setStreamingText("");
+                  resetStream();
                   // 关键点：单章写完立即存库入 Checkpoint！杜绝中断丢失！
                   saveCheckpoint(activeId, currentBible, currentChapters, currentPitch, currentCoverUrl);
                 } else if (stepKey === "step_2_chapters" && data?.chapters) {
@@ -830,54 +694,27 @@ export default function WorkflowPage() {
 
               // 处理 ALL_COMPLETE
               if (event.type === "ALL_COMPLETE" && event.result) {
+                pipelineComplete = true;
                 const finalResult = event.result;
                 setBible(finalResult.bible);
                 setChapters(finalResult.chapters);
                 setPitch(finalResult.pitch);
-                if (finalResult.cover_url) {
-                  setCoverUrl(finalResult.cover_url);
-                }
+                const latestCover = projectsRef.current.find((project) => project.id === activeId)?.cover_url;
+                if (latestCover || finalResult.cover_url) setCoverUrl(latestCover || finalResult.cover_url || "");
 
                 setSteps((prev) =>
                   prev.map((s) => ({ ...s, status: "completed", detail: undefined }))
                 );
-                setIsRunning(false);
-
-                // 将本小说最终完整持久化入库到 projects 书架中
-                const newProject: WorkflowProject = {
-                  id: activeId,
-                  title: finalResult.bible.title || "未命名小说",
-                  cover_url: finalResult.cover_url || currentCoverUrl,
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                  prompt: prompt.trim(),
-                  config: { ...config, prompt: prompt.trim() },
-                  bible: finalResult.bible,
-                  chapters: finalResult.chapters,
-                  pitch: finalResult.pitch,
-                  visual_assets: visualAssets,
-                };
-
-                setProjects((prev) => {
-                  const existingIndex = prev.findIndex((p) => p.id === activeId);
-                  let updatedList: WorkflowProject[];
-                  if (existingIndex !== -1) {
-                    updatedList = [...prev];
-                    updatedList[existingIndex] = newProject;
-                  } else {
-                    updatedList = [newProject, ...prev];
-                  }
-                  persistProjectsLocally(updatedList);
-                  return updatedList;
-                });
-                syncProjectToCloud(newProject);
+                const saved = await saveCheckpoint(activeId, finalResult.bible, finalResult.chapters, finalResult.pitch, finalResult.cover_url || currentCoverUrl);
+                const newProject = projectsRef.current.find((project) => project.id === activeId)!;
 
                 // 全书精美成册并归档入库，弹出大作完成庆祝弹窗
-                setModalState({ type: "book_published", project: newProject });
+                if (saved && !abortController.signal.aborted && currentProjectIdRef.current === activeId) setModalState({ type: "book_published", project: newProject });
               }
 
               // 处理 ERROR
               if (event.type === "ERROR") {
+                abortController.abort();
                 setErrorMessage(event.error || "执行出错");
                 setIsRunning(false);
                 setSteps((prev) =>
@@ -892,6 +729,7 @@ export default function WorkflowPage() {
           }
         }
       }
+      if (!pipelineComplete && !abortController.signal.aborted) throw new Error("生成连接提前结束，已完成的内容已保留，可继续创作。");
     } finally {
       if (reader) {
         try {
@@ -904,7 +742,7 @@ export default function WorkflowPage() {
       const isAbort =
         err instanceof Error &&
         (err.name === "AbortError" || err.message === "Client aborted");
-      if (!isAbort) {
+      if (!isAbort && currentProjectIdRef.current === activeId) {
         const msg =
           err instanceof Error ? err.message : "请求失败，请检查网络或配置";
         setErrorMessage(msg);
@@ -915,8 +753,11 @@ export default function WorkflowPage() {
         );
       }
     } finally {
-      setIsRunning(false);
-      abortControllerRef.current = null;
+      if (streamTimer) clearTimeout(streamTimer);
+      if (abortControllerRef.current === abortController) {
+        setIsRunning(false);
+        abortControllerRef.current = null;
+      }
     }
   };
 
@@ -929,10 +770,11 @@ export default function WorkflowPage() {
       cover_url: coverUrl,
       exportTime: new Date().toISOString(),
       prompt,
-      config,
+      config: publicWorkflowConfig(config),
       bible,
       chapters,
       pitch,
+      visual_assets: visualAssets,
     };
     const blob = new Blob([JSON.stringify(projectData, null, 2)], {
       type: "application/json;charset=utf-8",
@@ -946,13 +788,16 @@ export default function WorkflowPage() {
   };
 
   return (
-    <div className="container-shell mx-auto py-6 sm:py-8 space-y-6">
+    <div className="container-shell mx-auto py-6 sm:py-8 space-y-6 workflow-surface">
       {/* 顶部介绍与赛道选择 */}
       <WorkflowIntro onSelectPreset={handleSelectPreset} />
 
       {/* 多小说书架画廊卡片流 */}
       <NovelShelf
         projects={projects}
+        hasMore={hasMore}
+        loading={shelfLoading}
+        onLoadMore={() => void loadMore()}
         currentProjectId={currentProjectId}
         isRunning={isRunning}
         onSelectProject={handleSelectProject}
@@ -964,10 +809,18 @@ export default function WorkflowPage() {
       {/* 参数调优抽屉弹窗 */}
       <ConfigModal
         isOpen={isConfigOpen}
-        onClose={() => setIsConfigOpen(false)}
+        onClose={() => { flushConfigDraft(); setIsConfigOpen(false); }}
         config={config}
         onChange={handleConfigChange}
       />
+
+      {saveError && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <span>{saveError}</span>
+          <button type="button" onClick={() => void retrySaves()} className="inline-flex items-center gap-1 font-semibold"><RefreshCw className="h-4 w-4" />重试保存</button>
+        </div>
+      )}
+      {projectLoading && <p role="status" className="text-sm text-slate-600">正在加载小说正文...</p>}
 
       {/* 错误提示横幅 */}
       {errorMessage && (
@@ -991,7 +844,7 @@ export default function WorkflowPage() {
         {/* 左栏：小说专属创作参数面板 (占 4 列) */}
         <div className="lg:col-span-4 space-y-5">
           {/* 输入控制台卡片 */}
-          <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-5 shadow-xs backdrop-blur-md space-y-4">
+          <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-5 shadow-xs  space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700">
@@ -1077,7 +930,7 @@ export default function WorkflowPage() {
               ) : (
                 <>
                   {/* 若检测到未完成章节，优先展示【断点续写】按钮 */}
-                  {bible && chapters.length < (config.chapterCount || 3) ? (
+                  {canResume ? (
                     <div className="flex flex-col gap-2">
                       <button
                         type="button"
@@ -1085,7 +938,7 @@ export default function WorkflowPage() {
                         className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
                       >
                         <Play className="h-4 w-4 fill-current" />
-                        <span>⏩ 断点续写：继续生成第 {chapters.length + 1} 章</span>
+                        <span>继续完成工作流</span>
                       </button>
                       <div className="flex items-center gap-2">
                         <button
@@ -1098,11 +951,11 @@ export default function WorkflowPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleStartPipeline({ isResume: false, isNew: false })}
+                          onClick={() => handleStartPipeline({ isNew: true })}
                           className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-amber-500 hover:text-amber-700 shadow-2xs transition-all cursor-pointer"
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
-                          <span>重写本案</span>
+                          <span>重写新版本</span>
                         </button>
                         {(bible || chapters.length > 0) && (
                           <button
@@ -1131,12 +984,12 @@ export default function WorkflowPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleStartPipeline({ isResume: false, isNew: false })}
+                            onClick={() => handleStartPipeline({ isNew: true })}
                             className="flex items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-semibold text-slate-700 hover:border-amber-500 hover:text-amber-700 shadow-2xs transition-all cursor-pointer"
-                            title="重新生成当前小说的所有设定与正文"
+                            title="创建独立的新版本并重新生成，保留原小说"
                           >
                             <RefreshCw className="h-3.5 w-3.5" />
-                            <span>重写本案</span>
+                            <span>重写新版本</span>
                           </button>
                         </>
                       ) : (
@@ -1172,20 +1025,20 @@ export default function WorkflowPage() {
           <PipelineStepper
             steps={steps}
             currentStepIndex={currentStepIndex}
-            onRetry={handleStartPipeline}
+            onRetry={() => void handleStartPipeline({ isResume: true })}
             isRunning={isRunning}
           />
         </div>
 
         {/* 右栏：章节信息与多维视窗看板 (占 8 列) */}
-        <div className="lg:col-span-8 flex flex-col space-y-4">
+        <div className="lg:col-span-8 min-w-0 flex flex-col space-y-4">
           {/* 右栏顶部 Tab 切换胶囊 */}
-          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 overflow-x-auto hide-scrollbar">
-            <div className="flex items-center gap-2">
+          <div className="max-w-full min-w-0 border-b border-slate-200/80 pb-2.5 overflow-x-auto hide-scrollbar">
+            <div className="flex w-max min-w-max items-center gap-2">
               <button
                 type="button"
                 onClick={() => setActiveTab("novel")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === "novel"
                     ? "bg-slate-900 text-white shadow-xs"
                     : "text-slate-600 hover:bg-white"
@@ -1203,7 +1056,7 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("video")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === "video"
                     ? "bg-slate-900 text-white shadow-xs"
                     : "text-slate-600 hover:bg-white"
@@ -1221,7 +1074,7 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("assets")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === "assets"
                     ? "bg-slate-900 text-white shadow-xs"
                     : "text-slate-600 hover:bg-white"
@@ -1239,7 +1092,7 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("pitch")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === "pitch"
                     ? "bg-slate-900 text-white shadow-xs"
                     : "text-slate-600 hover:bg-white"
@@ -1255,7 +1108,7 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("bible")}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === "bible"
                     ? "bg-slate-900 text-white shadow-xs"
                     : "text-slate-600 hover:bg-white"
@@ -1271,13 +1124,15 @@ export default function WorkflowPage() {
           <div className="flex-1 min-h-[480px]">
             {activeTab === "novel" && (
               <NovelViewer
-                key={currentProjectId || "current"}
+                key={currentProjectId || "new"}
+                projectId={currentProjectId || undefined}
                 bible={bible}
                 chapters={chapters}
                 config={config}
                 streamingText={streamingText}
                 streamingChapter={streamingChapter}
                 isStreaming={isRunning && steps[1].status === "running"}
+                isBusy={isRunning}
                 onUpdateChapter={handleUpdateChapter}
                 onUpdateTitle={handleUpdateTitle}
                 onUpdateChapterTitle={handleUpdateChapterTitle}
@@ -1288,9 +1143,11 @@ export default function WorkflowPage() {
 
             {activeTab === "assets" && (
               <VisualAssetsBoard
+                key={currentProjectId || "new"}
                 projectId={currentProjectId || undefined}
                 bible={bible}
                 coverUrl={coverUrl}
+                chapters={chapters}
                 visualAssets={visualAssets}
                 config={config}
                 onSaveVisualAsset={handleSaveVisualAsset}
@@ -1319,7 +1176,7 @@ export default function WorkflowPage() {
             {activeTab === "pitch" && <PitchCard pitch={pitch} />}
 
             {activeTab === "bible" && (
-              <div className="rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs backdrop-blur-md space-y-4">
+              <div className="rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs  space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
                   <div>
                     <h2 className="text-sm font-bold text-slate-900">

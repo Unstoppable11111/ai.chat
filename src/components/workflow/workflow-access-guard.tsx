@@ -54,10 +54,8 @@ export function WorkflowAccessGuard({ configured }: { configured: boolean }) {
   return (
     <div className="min-h-[88vh] flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b0f24] to-[#02050a] text-white">
       {/* 氛围渐变光晕背景 */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[380px] bg-purple-600/15 blur-[130px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 w-[450px] h-[320px] bg-cyan-500/15 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="w-full max-w-md rounded-3xl bg-gradient-to-br from-[#0e142e]/95 via-[#0c1226]/95 to-[#0b1021]/95 border border-purple-500/30 p-7 sm:p-8 shadow-[0_0_50px_rgba(168,85,247,0.15)] backdrop-blur-2xl relative z-10 space-y-6 animate-in fade-in zoom-in-95 duration-300">
+      <div className="w-full max-w-md rounded-3xl bg-gradient-to-br from-[#0e142e]/95 via-[#0c1226]/95 to-[#0b1021]/95 border border-purple-500/30 p-7 sm:p-8 shadow-[0_0_50px_rgba(168,85,247,0.15)]  relative z-10 space-y-6 animate-in fade-in zoom-in-95 duration-300">
         {/* 顶部系统标识 */}
         <div className="text-center space-y-2.5">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-mono">

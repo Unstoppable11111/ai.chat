@@ -15,7 +15,7 @@ function getRandomInspirations(count = 4): WorkflowInspiration[] {
   return shuffled.slice(0, count);
 }
 
-export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
+export const WorkflowIntro = React.memo(function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
   // 服务端与客户端初次渲染必须保持完全一致，严禁在初始状态中使用 Math.random() 造成水合错误 (React error #418)
   const [inspirations, setInspirations] = useState<WorkflowInspiration[]>(INITIAL_INSPIRATIONS);
   const [isRotating, setIsRotating] = useState(false);
@@ -27,10 +27,8 @@ export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-900/10 bg-gradient-to-b from-white/90 via-white/70 to-white/50 p-6 md:p-8 backdrop-blur-xl shadow-xs">
+    <div className="relative overflow-hidden rounded-3xl border border-slate-900/10 bg-gradient-to-b from-white/90 via-white/70 to-white/50 p-6 md:p-8  shadow-xs">
       {/* 装饰光斑背景 */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-violet-500/10 blur-3xl" />
 
       <div className="relative z-10 space-y-6">
         {/* 顶部标签与标题 */}
@@ -153,4 +151,4 @@ export function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
       </div>
     </div>
   );
-}
+});

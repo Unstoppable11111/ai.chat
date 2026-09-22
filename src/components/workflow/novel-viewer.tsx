@@ -19,24 +19,28 @@ import {
 import type { BibleData, ChapterData, WorkflowConfig } from "@/types/workflow";
 
 interface NovelViewerProps {
+  projectId?: string;
   bible: BibleData | null;
   chapters: ChapterData[];
   config?: WorkflowConfig;
   streamingText?: string;
   streamingChapter?: number;
   isStreaming?: boolean;
-  onUpdateChapter?: (chapterNumber: number, updatedFields: Partial<ChapterData>) => void;
+  isBusy?: boolean;
+  onUpdateChapter?: (chapterNumber: number, updatedFields: Partial<ChapterData>, projectId?: string) => void;
   onUpdateTitle?: (newTitle: string) => void;
   onUpdateChapterTitle?: (chapterNumber: number, newTitle: string) => void;
 }
 
 export function NovelViewer({
+  projectId,
   bible,
   chapters,
   config,
   streamingText = "",
   streamingChapter = 1,
   isStreaming = false,
+  isBusy = false,
   onUpdateChapter,
   onUpdateTitle,
   onUpdateChapterTitle,
@@ -45,6 +49,10 @@ export function NovelViewer({
   const [viewMode, setViewMode] = useState<"polished" | "raw">("polished");
   const [copied, setCopied] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const followStreamRef = useRef(true);
+  const tuneControllerRef = useRef<AbortController | null>(null);
+  useEffect(() => () => { tuneControllerRef.current?.abort(); }, []);
+  useEffect(() => { if (isBusy) tuneControllerRef.current?.abort(); }, [isBusy]);
 
   // 书名手动编辑状态
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -66,7 +74,7 @@ export function NovelViewer({
 
   // 打字机流式输出时平滑滚动到底部
   useEffect(() => {
-    if (isStreaming && scrollContainerRef.current) {
+    if (isStreaming && followStreamRef.current && scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
     }
   }, [streamingText, isStreaming]);
@@ -83,7 +91,7 @@ export function NovelViewer({
   // 计算当前视窗正文内容
   const isCurrentStreaming = isStreaming && streamingChapter === selectedChapterIndex + 1;
   const currentContent = isCurrentStreaming
-    ? streamingText
+    ? streamingText || currentChapter?.raw_content || ""
     : viewMode === "polished" && currentChapter?.polished_content
     ? currentChapter.polished_content
     : currentChapter?.raw_content || "";
@@ -130,10 +138,12 @@ export function NovelViewer({
 
   // 针对当前章执行提示词专项调优
   const handleTuneChapter = async () => {
-    if (!currentChapter || !tuneInstruction.trim() || isTuning) return;
+    if (!currentChapter || !tuneInstruction.trim() || isTuning || isBusy) return;
 
     setIsTuning(true);
     setTuneError(null);
+    const controller = new AbortController();
+    tuneControllerRef.current = controller;
 
     const targetOutline = bible?.outlines?.find(
       (o) => o.chapter_number === currentChapter.chapter_number
@@ -143,7 +153,9 @@ export function NovelViewer({
       const res = await fetch("/api-workflow/chapter-tune", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
+          projectId,
           bookTitle: bible?.title || "未命名小说",
           worldview: bible?.worldview || "",
           characterCards: bible?.characters || [],
@@ -161,6 +173,7 @@ export function NovelViewer({
       });
 
       const data = await res.json();
+      if (controller.signal.aborted) return;
       if (!res.ok || !data.success) {
         throw new Error(data.error || "调优请求失败");
       }
@@ -168,12 +181,13 @@ export function NovelViewer({
       // 更新当前章节精修正文
       onUpdateChapter?.(currentChapter.chapter_number, {
         polished_content: data.tuned_content,
-      });
+      }, projectId);
 
       setViewMode("polished");
       setTuneInstruction("");
       setIsTuneOpen(false);
     } catch (err: unknown) {
+      if (controller.signal.aborted) return;
       const msg = err instanceof Error ? err.message : "调优执行失败";
       setTuneError(msg);
     } finally {
@@ -182,6 +196,7 @@ export function NovelViewer({
   };
 
   const handleSaveTitle = () => {
+    if (isBusy) return;
     const trimmed = titleInput.trim();
     if (trimmed && onUpdateTitle) {
       onUpdateTitle(trimmed);
@@ -190,15 +205,17 @@ export function NovelViewer({
   };
 
   const handleSaveChapterTitle = () => {
+    if (isBusy) return;
     const trimmed = chapterTitleInput.trim();
     if (trimmed && currentChapter) {
-      onUpdateChapterTitle?.(currentChapter.chapter_number, trimmed);
-      onUpdateChapter?.(currentChapter.chapter_number, { title: trimmed });
+      if (onUpdateChapterTitle) onUpdateChapterTitle(currentChapter.chapter_number, trimmed);
+      else onUpdateChapter?.(currentChapter.chapter_number, { title: trimmed });
     }
     setIsEditingChapterTitle(false);
   };
 
   const handleSaveContent = () => {
+    if (isBusy) return;
     if (!currentChapter) return;
     if (viewMode === "polished" && currentChapter.polished_content) {
       onUpdateChapter?.(currentChapter.chapter_number, { polished_content: contentInput });
@@ -209,7 +226,7 @@ export function NovelViewer({
   };
 
   return (
-    <div className="flex flex-col h-full rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs backdrop-blur-md">
+    <div className="flex flex-col h-full rounded-3xl border border-slate-900/10 bg-white p-5 shadow-xs">
       {/* 顶部工具栏与统计 */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200/80 shrink-0">
         <div className="flex items-center gap-2">
@@ -251,6 +268,7 @@ export function NovelViewer({
               <div
                 className="flex items-center gap-1.5 group cursor-pointer"
                 onClick={() => {
+                  if (isBusy) return;
                   setTitleInput(bible?.title || "");
                   setIsEditingTitle(true);
                 }}
@@ -295,6 +313,7 @@ export function NovelViewer({
             ) : (
               <button
                 type="button"
+                disabled={isBusy}
                 onClick={() => {
                   setContentInput(currentContent);
                   setIsEditingContent(true);
@@ -311,6 +330,7 @@ export function NovelViewer({
           {currentChapter && (
             <button
               type="button"
+              disabled={isBusy}
               onClick={() => setIsTuneOpen(!isTuneOpen)}
               className="flex items-center gap-1 rounded-xl border border-violet-200 bg-violet-50/80 px-2.5 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 transition-all cursor-pointer"
             >
@@ -408,7 +428,7 @@ export function NovelViewer({
             <button
               type="button"
               onClick={handleTuneChapter}
-              disabled={isTuning || !tuneInstruction.trim()}
+              disabled={isTuning || isBusy || !tuneInstruction.trim()}
               className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-violet-700 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
             >
               {isTuning ? (
@@ -499,7 +519,11 @@ export function NovelViewer({
       {/* 正文打字机滚动视窗 */}
       <div
         ref={scrollContainerRef}
-        className="relative flex-1 overflow-y-auto p-4 md:p-6 min-h-[360px] max-h-[580px] scroll-smooth"
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          followStreamRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 96;
+        }}
+        className="relative flex-1 overflow-y-auto p-4 md:p-6 min-h-[360px] max-h-[580px]"
       >
         {currentContent ? (
           <div className="space-y-4">
@@ -543,6 +567,7 @@ export function NovelViewer({
                   <div
                     className="flex items-center gap-2 group cursor-pointer"
                     onClick={() => {
+                      if (isBusy) return;
                       setChapterTitleInput(currentTitle);
                       setIsEditingChapterTitle(true);
                     }}

@@ -17,7 +17,7 @@ interface PitchCardProps {
   pitch: PitchNoteData | null;
 }
 
-export function PitchCard({ pitch }: PitchCardProps) {
+export const PitchCard = React.memo(function PitchCard({ pitch }: PitchCardProps) {
   const [copied, setCopied] = useState(false);
 
   if (!pitch) {
@@ -53,7 +53,7 @@ export function PitchCard({ pitch }: PitchCardProps) {
   };
 
   return (
-    <div className="rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs backdrop-blur-md space-y-4">
+    <div className="rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs  space-y-4">
       {/* 头部 */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
         <div className="flex items-center gap-2">
@@ -157,4 +157,4 @@ export function PitchCard({ pitch }: PitchCardProps) {
       </div>
     </div>
   );
-}
+});

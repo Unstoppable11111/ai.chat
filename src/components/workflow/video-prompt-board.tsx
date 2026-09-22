@@ -16,7 +16,7 @@ interface VideoPromptBoardProps {
   chapters: ChapterData[];
 }
 
-export function VideoPromptBoard({ chapters }: VideoPromptBoardProps) {
+export const VideoPromptBoard = React.memo(function VideoPromptBoard({ chapters }: VideoPromptBoardProps) {
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ export function VideoPromptBoard({ chapters }: VideoPromptBoardProps) {
   };
 
   return (
-    <div className="flex flex-col h-full rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs backdrop-blur-md">
+    <div className="flex flex-col h-full rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs ">
       {/* 顶部标题与批量复制 */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200/80 shrink-0">
         <div className="flex items-center gap-2">
@@ -210,4 +210,4 @@ export function VideoPromptBoard({ chapters }: VideoPromptBoardProps) {
       </div>
     </div>
   );
-}
+});

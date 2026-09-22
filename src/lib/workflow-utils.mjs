@@ -1,28 +1,97 @@
 import fs from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { getImageCooldownStatus, triggerImageCooldown, reportImageSuccess } from "./workflow-cooldown.mjs";
+
+export const MAX_GENERATED_IMAGE_BYTES = 15 * 1024 * 1024;
+
+function rasterFormat(extension, mimeType, width, height) {
+  if (!width || !height || width > 8192 || height > 8192 || width * height > 32 * 1024 * 1024) return null;
+  return { extension, mimeType, width, height };
+}
+
+export function inspectGeneratedImage(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length > MAX_GENERATED_IMAGE_BYTES) return null;
+  if (buffer.length >= 45 && buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) && buffer.readUInt32BE(8) === 13 && buffer.toString("ascii", 12, 16) === "IHDR" && buffer.toString("ascii", buffer.length - 8, buffer.length - 4) === "IEND") {
+    return rasterFormat(".png", "image/png", buffer.readUInt32BE(16), buffer.readUInt32BE(20));
+  }
+  if (buffer.length >= 4 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff && buffer[buffer.length - 2] === 0xff && buffer[buffer.length - 1] === 0xd9) {
+    let offset = 2;
+    while (offset + 3 < buffer.length) {
+      if (buffer[offset] !== 0xff) return null;
+      while (buffer[offset] === 0xff) offset++;
+      const marker = buffer[offset++];
+      if (marker === 0xda || marker === 0xd9 || offset + 2 > buffer.length) return null;
+      if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+      const length = buffer.readUInt16BE(offset);
+      if (length < 2 || offset + length > buffer.length) return null;
+      if ([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf].includes(marker)) {
+        return length >= 8 ? rasterFormat(".jpg", "image/jpeg", buffer.readUInt16BE(offset + 5), buffer.readUInt16BE(offset + 3)) : null;
+      }
+      offset += length;
+    }
+  }
+  if (buffer.length >= 25 && buffer.toString("ascii", 0, 4) === "RIFF" && buffer.toString("ascii", 8, 12) === "WEBP" && buffer.readUInt32LE(4) + 8 === buffer.length) {
+    const chunk = buffer.toString("ascii", 12, 16);
+    if (chunk === "VP8X" && buffer.length >= 30) return rasterFormat(".webp", "image/webp", buffer.readUIntLE(24, 3) + 1, buffer.readUIntLE(27, 3) + 1);
+    if (chunk === "VP8L" && buffer[20] === 0x2f) {
+      const dimensions = buffer.readUInt32LE(21);
+      return rasterFormat(".webp", "image/webp", (dimensions & 0x3fff) + 1, ((dimensions >>> 14) & 0x3fff) + 1);
+    }
+    if (chunk === "VP8 " && buffer.length >= 30 && buffer.subarray(23, 26).equals(Buffer.from([0x9d, 0x01, 0x2a]))) {
+      return rasterFormat(".webp", "image/webp", buffer.readUInt16LE(26) & 0x3fff, buffer.readUInt16LE(28) & 0x3fff);
+    }
+  }
+  return null;
+}
+
+function decodeGeneratedImage(b64Data) {
+  if (typeof b64Data !== "string" || b64Data.length > Math.ceil(MAX_GENERATED_IMAGE_BYTES / 3) * 4 + 100) {
+    throw imageError("IMAGE_INVALID_DATA", "图片为空或超过 15 MB 限制。", 502);
+  }
+  const dataUri = b64Data.match(/^data:(image\/(?:png|jpeg|webp));base64,([\s\S]+)$/i);
+  const encoded = dataUri ? dataUri[2] : b64Data;
+  if (!encoded || encoded.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) {
+    throw imageError("IMAGE_INVALID_DATA", "图片服务返回的内容不是有效 Base64 图片。", 502);
+  }
+  const buffer = Buffer.from(encoded, "base64");
+  const format = inspectGeneratedImage(buffer);
+  if (!format || (dataUri && dataUri[1].toLowerCase() !== format.mimeType)) {
+    throw imageError("IMAGE_INVALID_DATA", "图片内容与 PNG、JPEG 或 WebP 格式不符。", 502);
+  }
+  return { buffer, format };
+}
+
+function imageDestination(prefix, extension) {
+  const uploadDir = path.resolve(process.env.GENERATED_ASSET_DIR || path.join(process.cwd(), "public", "generated"), "workflow");
+  const safePrefix = String(prefix || "visual").replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 48) || "visual";
+  const filename = `${safePrefix}-${randomUUID()}${extension}`;
+  return { uploadDir, fullPath: path.join(uploadDir, filename), url: `/generated/workflow/${filename}` };
+}
 
 /**
  * 将 Base64 图片数据安全存储到项目的 public/generated/workflow/ 目录中，并返回轻量可访问静态路径
  */
 export function saveBase64ImageLocally(b64Data, prefix = "visual") {
-  if (!b64Data || typeof b64Data !== "string") return "";
-  if (b64Data.startsWith("http://") || b64Data.startsWith("https://")) {
-    return b64Data;
-  }
+  const { buffer, format } = decodeGeneratedImage(b64Data);
+  const destination = imageDestination(prefix, format.extension);
+  fs.mkdirSync(destination.uploadDir, { recursive: true });
+  fs.writeFileSync(destination.fullPath, buffer, { flag: "wx" });
+  return destination.url;
+}
+
+async function persistGeneratedImage(b64Data, prefix, signal) {
+  const { buffer, format } = decodeGeneratedImage(b64Data);
+  const destination = imageDestination(prefix, format.extension);
+  signal.throwIfAborted();
+  await fs.promises.mkdir(destination.uploadDir, { recursive: true });
   try {
-    const uploadDir = path.join(process.cwd(), "public", "generated", "workflow");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    const cleanB64 = b64Data.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(cleanB64, "base64");
-    const filename = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`;
-    const fullPath = path.join(uploadDir, filename);
-    fs.writeFileSync(fullPath, buffer);
-    return `/generated/workflow/${filename}`;
-  } catch (err) {
-    console.warn("[saveBase64ImageLocally] Warning writing local file, fallback to data URI:", err);
-    return b64Data.startsWith("data:") ? b64Data : `data:image/png;base64,${b64Data}`;
+    await fs.promises.writeFile(destination.fullPath, buffer, { flag: "wx", signal });
+    signal.throwIfAborted();
+    return { imageUrl: destination.url, width: format.width, height: format.height };
+  } catch (error) {
+    await fs.promises.unlink(destination.fullPath).catch(() => {});
+    throw error;
   }
 }
 
@@ -477,18 +546,22 @@ export function buildCinematicCoverPrompt(options = {}) {
     genre = "都市异能",
     protagonist = "",
     mainScene = "",
+    style = "cinematic illustration",
+    worldview = "",
+    plot = "",
+    coreConflict = "",
   } = options;
 
   const cleanTitle = String(title).replace(/[《》]/g, "").trim();
   const heroDescription = protagonist
-    ? protagonist.replace(/[《》（）()]/g, " ").trim().slice(0, 80)
+    ? String(protagonist).replace(/[《》（）()]/g, " ").trim()
     : "charismatic protagonist";
   const sceneDescription = mainScene
-    ? mainScene.replace(/[《》（）()]/g, " ").trim().slice(0, 80)
+    ? String(mainScene).replace(/[《》（）()]/g, " ").trim()
     : "dramatic key setting";
 
   // 统一使用已验证成功的 "Generate an image of " 标准前缀，确保 gemini-web-to-api 100% 触发多模态生图通道
-  return `Generate an image of an epic novel book cover for "${cleanTitle}": Genre: ${genre}. Protagonist: ${heroDescription}. Scene: ${sceneDescription}. Cinematic volumetric lighting, dramatic storm clouds, cinematic 8k masterpiece, photorealistic, no text, no watermark, no logo.`;
+  return `Generate an image of a novel book cover for "${cleanTitle}". Genre: ${genre}. Visual style: ${style}. World setting: ${worldview}. Protagonist appearance and identity: ${heroDescription}. Key setting: ${sceneDescription}. Actual story context: ${plot}. Central conflict: ${coreConflict}. Keep the character's described appearance consistent. Portrait cover composition with room for a title overlay, clear focal subject, no rendered text, no watermark, no logo.`;
 }
 
 /**
@@ -502,15 +575,19 @@ export function buildEnglishAssetPrompt(options = {}) {
     personality = "",
     appearance = "",
     genre = "都市异能",
+    description = "",
+    style = "cinematic illustration",
+    worldview = "",
+    plot = "",
   } = options;
 
   if (type === "character") {
-    const traitDesc = [role, personality, appearance].filter(Boolean).join(", ").slice(0, 80);
-    return `Generate an image of a character portrait illustration of ${name}: Genre: ${genre}. Character traits: ${traitDesc || "sharp gaze, focused expression"}. Clean background, cinematic lighting, professional concept portrait, 8k resolution, photorealistic, no text, no watermark, no logo.`;
+    const traitDesc = [role, personality, appearance].filter(Boolean).join(", ");
+    return `Generate an image of a character portrait illustration of ${name}. Genre: ${genre}. Visual style: ${style}. World setting: ${worldview}. Character identity, personality and full appearance: ${traitDesc}. Additional character details: ${description}. Actual story context: ${plot}. Preserve all specified facial features, clothing, age and identifying details. Portrait composition, coherent lighting, no text, no watermark, no logo.`;
   }
 
   // 场景概念图
-  return `Generate an image of an epic scenic concept art illustration of "${name}": Genre: ${genre}. Atmosphere: ${personality || "atmospheric lighting"}. Environment: ${appearance || "sprawling landscape"}. Volumetric lighting, 8k resolution, cinematic composition, photorealistic, no text, no watermark, no logo.`;
+  return `Generate an image of a scene concept illustration of "${name}". Genre: ${genre}. Visual style: ${style}. World setting: ${worldview}. Atmosphere: ${personality}. Environment: ${appearance}. Scene details: ${description}. Actual story context: ${plot}. Show the described location, events and characters consistently with the story. Landscape composition, coherent lighting, no text, no watermark, no logo.`;
 }
 
 /**
@@ -558,184 +635,261 @@ export async function probeImageUrl(url, timeoutMs = 7000) {
   }
 }
 
-/**
- * 解析并生成候选生图网关列表（本地 4981 端口中间件拥有绝对最高优先级）
- */
-export async function getCandidateImageEndpoints(rawInput) {
-  const endpoints = [];
+const LOCAL_IMAGE_ENDPOINT = "http://127.0.0.1:4981/openai/v1";
+const activeProviderKey = Symbol.for("chen-workflow-image-active-providers");
+const activeProviders = globalThis[activeProviderKey] || (globalThis[activeProviderKey] = new Set());
 
-  // 1. 本地 4981 生图服务（用户服务器运行的 gemini-web-to-api 中间件，绝对最高优先级）
-  endpoints.push("http://127.0.0.1:4981/openai/v1");
-
-  // 2. 显式环境变量指定的 IMAGE_API_BASE_URL
-  if (process.env.IMAGE_API_BASE_URL && process.env.IMAGE_API_BASE_URL.trim()) {
-    endpoints.push(resolveValidBaseUrl(process.env.IMAGE_API_BASE_URL));
-  }
-
-  // 3. 用户前端自定义传入的第三方独立网关 (非默认 openai 与站长默认网关)
-  if (
-    rawInput &&
-    rawInput.trim() &&
-    !rawInput.includes("api.openai.com") &&
-    rawInput !== process.env.OPENAI_BASE_URL &&
-    rawInput !== "https://newapi.chenyc.chat/v1"
-  ) {
-    endpoints.push(resolveValidBaseUrl(rawInput));
-  }
-
-  // 4. 站长通用网关（仅作为官方备选渠道）
-  const gateway = process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
-  endpoints.push(resolveValidBaseUrl(gateway));
-
-  return Array.from(new Set(endpoints.filter(Boolean)));
+function imageError(code, message, status = 502, retryAfter = 0) {
+  return Object.assign(new Error(message), { code, status, retryAfter });
 }
 
-/**
- * 专为工业级 AI 视觉资产打造的高速生图通道
- * 严格遵从请求格式并支持多网关与多模型兼容自适应轮询与自动本地落盘
- */
-export async function callGeminiImageGeneration(options = {}) {
-  const {
-    prompt,
-    apiKey = process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "",
-    baseUrl: rawBaseUrl,
-    model: requestedModel = process.env.IMAGE_MODEL || "gemini-3-pro-image",
-    size = "1024x1024",
-    timeoutMs = 45000,
-    prefix = "novel",
-  } = options;
-
-  let cleanPrompt = String(prompt || "").trim();
-  if (!cleanPrompt.toLowerCase().startsWith("generate an image")) {
-    cleanPrompt = `Generate an image of ${cleanPrompt}`;
-  } else if (cleanPrompt.startsWith("Generate an image:")) {
-    cleanPrompt = cleanPrompt.replace(/^Generate an image:\s*/i, "Generate an image of ");
+function normalizeImageEndpoint(value) {
+  let parsed;
+  try {
+    parsed = new URL(String(value).trim());
+  } catch {
+    throw imageError("IMAGE_CONFIG_INVALID", "生图服务地址配置无效。", 503);
   }
+  if (parsed.username || parsed.password || parsed.search || parsed.hash) {
+    throw imageError("IMAGE_CONFIG_INVALID", "生图服务地址不能包含凭据、查询参数或片段。", 503);
+  }
+  const local = ["127.0.0.1", "localhost", "[::1]"].includes(parsed.hostname) && parsed.port === "4981";
+  if (parsed.protocol !== "https:" && !(parsed.protocol === "http:" && local)) {
+    throw imageError("IMAGE_CONFIG_INVALID", "远程生图服务必须使用 HTTPS。", 503);
+  }
+  return { endpoint: parsed.href.replace(/\/+$/, ""), local, provider: parsed.origin };
+}
 
-  const candidateEndpoints = await getCandidateImageEndpoints(rawBaseUrl);
-  // 严格优先使用用户指定的 gemini-3-pro-image，杜绝降级到无效的 gemini-3.1-pro-image
-  const candidateModels = Array.from(
-    new Set([
-      requestedModel,
-      "gemini-3-pro-image",
-    ].filter(Boolean))
-  );
-
-  let lastError = null;
-
-  for (const endpoint of candidateEndpoints) {
-    const cleanBaseUrl = endpoint.replace(/\/+$/, "");
-    const imagesUrl = cleanBaseUrl.endsWith("/images/generations")
-      ? cleanBaseUrl
-      : `${cleanBaseUrl}/images/generations`;
-
-    const isLocalService = cleanBaseUrl.includes("127.0.0.1") || cleanBaseUrl.includes("localhost");
-
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    // 本地 4981 服务免密调用，绝不附加任何外部 Authorization Header，保持与实测成功的 curl 完全一致
-    if (!isLocalService && apiKey && apiKey.trim()) {
-      headers.Authorization = `Bearer ${apiKey.trim()}`;
+export function resolveImageProviders(options = {}) {
+  const configuredEndpoint = process.env.IMAGE_API_BASE_URL?.trim() || LOCAL_IMAGE_ENDPOINT;
+  const configured = normalizeImageEndpoint(configuredEndpoint);
+  const model = String(options.model || process.env.IMAGE_MODEL || "gemini-3-pro-image").trim();
+  const explicitEndpoint = typeof options.baseUrl === "string" && options.baseUrl.trim();
+  if (explicitEndpoint) {
+    const custom = normalizeImageEndpoint(explicitEndpoint);
+    const key = typeof options.apiKey === "string" ? options.apiKey.trim() : "";
+    const serverKeys = [process.env.IMAGE_API_KEY, process.env.OPENAI_API_KEY, process.env.IMAGE_FALLBACK_API_KEY].filter(Boolean);
+    if (serverKeys.includes(key) && custom.endpoint !== configured.endpoint) {
+      throw imageError("IMAGE_CREDENTIAL_MISMATCH", "服务端密钥不能用于其他生图网关。", 400);
     }
+    if (!custom.local && !key) {
+      throw imageError("IMAGE_CREDENTIAL_REQUIRED", "自定义生图网关必须提供与该地址绑定的密钥。", 400);
+    }
+    return [{ ...custom, apiKey: custom.local ? "" : key, model }];
+  }
+  if (options.apiKey) {
+    throw imageError("IMAGE_CREDENTIAL_MISMATCH", "自定义生图密钥必须与服务地址一起配置。", 400);
+  }
+  const primaryKey = process.env.IMAGE_API_KEY?.trim() || "";
+  if (!configured.local && !primaryKey) {
+    throw imageError("IMAGE_CONFIG_INVALID", "请为远程生图服务配置独立的 IMAGE_API_KEY。", 503);
+  }
+  const providers = [{ ...configured, apiKey: configured.local ? "" : primaryKey, model }];
+  if (process.env.IMAGE_FALLBACK_BASE_URL?.trim()) {
+    const fallback = normalizeImageEndpoint(process.env.IMAGE_FALLBACK_BASE_URL);
+    const fallbackKey = process.env.IMAGE_FALLBACK_API_KEY?.trim() || "";
+    if (!fallback.local && !fallbackKey) {
+      throw imageError("IMAGE_CONFIG_INVALID", "备用生图网关需要独立的 IMAGE_FALLBACK_API_KEY。", 503);
+    }
+    if (fallback.provider !== configured.provider && fallbackKey && fallbackKey === primaryKey) {
+      throw imageError("IMAGE_CREDENTIAL_MISMATCH", "不同生图网关不能复用同一个服务端密钥。", 503);
+    }
+    if (fallback.endpoint !== configured.endpoint) {
+      providers.push({ ...fallback, apiKey: fallback.local ? "" : fallbackKey, model: process.env.IMAGE_FALLBACK_MODEL?.trim() || model });
+    }
+  }
+  return providers;
+}
 
-    let endpointConnectionFailed = false;
+export async function getCandidateImageEndpoints() {
+  return resolveImageProviders().map(({ endpoint }) => endpoint);
+}
 
-    for (const currentModel of candidateModels) {
-      if (endpointConnectionFailed) break;
+function abortable(operation, signal) {
+  signal.throwIfAborted();
+  return new Promise((resolve, reject) => {
+    const onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+    Promise.resolve(operation).then(resolve, reject).finally(() => signal.removeEventListener("abort", onAbort));
+  });
+}
 
-      // 对本地 4981 服务提供最多 1 次退避重试，避免耗尽网关时限导致 504 截断
-      const maxRetries = isLocalService ? 1 : 0;
+async function readImageResponse(response, signal) {
+  const limit = Math.ceil(MAX_GENERATED_IMAGE_BYTES / 3) * 4 + 65536;
+  const declaredSize = Number(response.headers.get("content-length") || 0);
+  if (declaredSize > limit) throw imageError("IMAGE_RESPONSE_TOO_LARGE", "生图响应超过大小限制。");
+  let text;
+  if (response.body?.getReader) {
+    const reader = response.body.getReader();
+    const chunks = [];
+    let bytes = 0;
+    try {
+      while (true) {
+        const result = await abortable(reader.read(), signal);
+        if (result.done) break;
+        bytes += result.value.byteLength;
+        if (bytes > limit) throw imageError("IMAGE_RESPONSE_TOO_LARGE", "生图响应超过大小限制。");
+        chunks.push(Buffer.from(result.value));
+      }
+      text = Buffer.concat(chunks).toString("utf8");
+    } finally {
+      void reader.cancel().catch(() => {});
+      reader.releaseLock();
+    }
+  } else {
+    text = await abortable(response.text(), signal);
+    if (Buffer.byteLength(text) > limit) throw imageError("IMAGE_RESPONSE_TOO_LARGE", "生图响应超过大小限制。");
+  }
+  signal.throwIfAborted();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw imageError("IMAGE_INVALID_RESPONSE", "生图服务返回了无效响应，请检查网关地址和模型。");
+  }
+}
 
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        if (attempt > 0) {
-          console.log(`[ImageGen] 本地服务 4981 遇到瞬态繁忙，正在等待 1.5 秒进行第 ${attempt} 次重试...`);
-          await new Promise((resolve) => setTimeout(resolve, 1500));
+function imageDimensions(kind, explicitSize, actual = false) {
+  const defaults = { cover: "1024x1024", character: "1024x1024", scene: "1024x1024" };
+  const size = explicitSize || process.env["IMAGE_SIZE_" + kind.toUpperCase()] || defaults[kind];
+  const match = String(size).match(actual ? /^(\d{1,4})x(\d{1,4})$/ : /^(\d{3,4})x(\d{3,4})$/);
+  const maxSide = actual ? 8192 : 4096;
+  if (!match || Number(match[1]) > maxSide || Number(match[2]) > maxSide) {
+    throw imageError("IMAGE_SIZE_INVALID", "生图尺寸须为受支持的宽x高格式，单边不超过 4096。", 400);
+  }
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const divisor = gcd(width, height);
+  return { size: String(size), aspectRatio: width / divisor + ":" + height / divisor };
+}
+
+/** A single deadline covers queue checks, upstream body reads, fallback and disk writes. */
+export async function generateWorkflowImage(options = {}) {
+  const kind = options.kind || "cover";
+  if (!["cover", "character", "scene"].includes(kind)) throw imageError("IMAGE_KIND_INVALID", "不支持的图片类型。", 400);
+  const rawPrompt = String(options.prompt || "").trim();
+  if (!rawPrompt || rawPrompt.length > 16000) throw imageError("IMAGE_PROMPT_INVALID", "图片提示词不能为空且不能超过 16000 字符。", 400);
+  const prompt = /^generate an image/i.test(rawPrompt) ? rawPrompt : "Generate an image of " + rawPrompt;
+  const dimensions = imageDimensions(kind, options.size);
+  const providers = resolveImageProviders(options);
+  const configuredTimeout = Number(options.timeoutMs || process.env.IMAGE_TIMEOUT_MS || 85000);
+  const timeoutMs = Number.isFinite(configuredTimeout) ? Math.max(1, Math.min(110000, configuredTimeout)) : 85000;
+  const controller = new AbortController();
+  const onCancel = () => controller.abort(imageError("IMAGE_CANCELLED", "已取消图片生成。", 499));
+  if (options.signal?.aborted) onCancel();
+  else options.signal?.addEventListener("abort", onCancel, { once: true });
+  const timer = setTimeout(() => controller.abort(imageError("IMAGE_TIMEOUT", "图片生成超时，请稍后重试；上游可能仍在处理本次请求。", 504)), timeoutMs);
+  let lastError;
+  let usageReserved = false;
+  try {
+    controller.signal.throwIfAborted();
+    for (const provider of providers) {
+      controller.signal.throwIfAborted();
+      const cooldown = getImageCooldownStatus(provider.provider);
+      if (cooldown.active) {
+        lastError = imageError("IMAGE_COOLDOWN", "生图服务正在短暂冷却，请稍后重试。", 429, cooldown.remainingSeconds);
+        continue;
+      }
+      if (activeProviders.has(provider.provider)) {
+        lastError = imageError("IMAGE_BUSY", "生图服务正在处理另一个任务，请稍后重试。", 429, 5);
+        continue;
+      }
+      activeProviders.add(provider.provider);
+      try {
+        if (!usageReserved && options.beforeRequest) {
+          await abortable(options.beforeRequest(), controller.signal);
+          usageReserved = true;
         }
-
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-        try {
-          console.log(`[ImageGen] 尝试生图 (第 ${attempt + 1} 次): gateway=${imagesUrl}, model=${currentModel}`);
-
-          const res = await fetch(imagesUrl, {
-            method: "POST",
-            headers,
-            body: JSON.stringify({
-              model: currentModel,
-              prompt: cleanPrompt,
-              size: size || "1024x1024",
-              n: 1,
-              response_format: "b64_json",
-            }),
-            signal: controller.signal,
-          }).finally(() => clearTimeout(timer));
-
-          if (res.ok) {
-            const data = await res.json().catch(() => null);
-            const b64 = data?.data?.[0]?.b64_json;
-            const url = data?.data?.[0]?.url;
-
-            // 若为 Base64 图片，自动安全落盘至服务器本地，生成轻量静态 URL
-            if (b64) {
-              console.log(`[ImageGen] ✅ 网关 ${imagesUrl} 模型 ${currentModel} 生图成功！Base64 长度: ${b64.length}，正在安全落盘...`);
-              return saveBase64ImageLocally(b64, prefix);
-            }
-            if (url && typeof url === "string" && url.startsWith("http")) {
-              console.log(`[ImageGen] ✅ 网关 ${imagesUrl} 模型 ${currentModel} 生图成功！返回 URL: ${url}`);
-              return url;
-            }
-          }
-
-          // 检查失败详情
-          const errText = await res.text().catch(() => "");
-          let errJson = null;
-          try {
-            errJson = JSON.parse(errText);
-          } catch {}
-          const errMsg = errJson?.error?.message || errJson?.error?.code || errText;
-
-          console.warn(`[ImageGen] 网关 ${imagesUrl} 模型 ${currentModel} 响应未成功 (HTTP ${res.status}): ${errMsg}`);
-
-          const isModelNotFound =
-            res.status === 404 ||
-            (res.status === 400 && String(errMsg).includes("not supported")) ||
-            String(errMsg).includes("model_not_found") ||
-            String(errMsg).includes("No available channel") ||
-            String(errMsg).includes("not exist") ||
-            String(errMsg).includes("does not exist");
-
-          if (isModelNotFound) {
-            console.warn(`[ImageGen] 渠道未配置模型 ${currentModel}，切换模型...`);
-            lastError = new Error(`MODEL_NOT_FOUND: ${currentModel}`);
-            break; // 换模型，不需要在当前模型重试
-          }
-
-          lastError = new Error(`GEMINI_IMAGE_ERROR_${res.status}: ${errMsg}`);
-          // 若为 500（如 1060 或瞬态错误），继续下一个 attempt 重试
-        } catch (err) {
-          if (err.name === "AbortError") {
-            console.warn(`[ImageGen] 网关 ${imagesUrl} 模型 ${currentModel} 请求超时 (${timeoutMs}ms)`);
-            lastError = new Error("GEMINI_IMAGE_TIMEOUT");
-          } else {
-            if (isLocalService && (err.code === "ECONNREFUSED" || err.message?.includes("fetch failed"))) {
-              console.log(`[ImageGen] 本地服务 ${cleanBaseUrl} 无法连接 (${err.message})，跳至下一网关...`);
-              endpointConnectionFailed = true;
-              break;
-            }
-            lastError = err;
-          }
+        controller.signal.throwIfAborted();
+        const headers = { "Content-Type": "application/json" };
+        if (provider.apiKey) headers.Authorization = "Bearer " + provider.apiKey;
+        const url = provider.endpoint.endsWith("/images/generations") ? provider.endpoint : provider.endpoint + "/images/generations";
+        const response = await abortable(fetch(url, {
+          method: "POST", headers, redirect: "error", signal: controller.signal,
+          body: JSON.stringify({ model: provider.model, prompt, size: dimensions.size, n: 1, response_format: "b64_json" }),
+        }), controller.signal);
+        if (!response.ok) {
+          void response.body?.cancel().catch(() => {});
+          const retryHeader = response.headers.get("retry-after");
+          const retrySeconds = retryHeader && /^\d+$/.test(retryHeader) ? Number(retryHeader) : 0;
+          const message = response.status === 401 || response.status === 403
+            ? "生图服务鉴权失败，请检查独立的图片密钥。"
+            : response.status === 400 || response.status === 404 || response.status === 422
+              ? "生图服务不支持当前模型、尺寸或请求参数，请检查 IMAGE_MODEL 和 IMAGE_SIZE 配置。"
+              : response.status === 429 ? "上游生图服务请求过多，请稍后重试。"
+                : "上游生图服务暂时不可用（HTTP " + response.status + "）。";
+          const error = imageError("IMAGE_UPSTREAM_" + response.status, message, response.status === 429 ? 429 : 502, retrySeconds);
+          const cooldownResult = triggerImageCooldown(error.code, provider.provider, retrySeconds);
+          error.retryAfter = Math.max(error.retryAfter, cooldownResult.remainingSeconds);
+          throw error;
         }
+        const data = await readImageResponse(response, controller.signal);
+        const b64 = data?.data?.[0]?.b64_json;
+        if (!b64) {
+          if (data?.data?.[0]?.url) {
+            throw imageError("IMAGE_URL_UNSUPPORTED", "生图服务仅返回了临时链接；请配置网关返回 b64_json 后重试，当前图片未保存。");
+          }
+          throw imageError("IMAGE_EMPTY_RESULT", "模型没有返回图片，可能拒绝了请求或网关未启用生图能力。请修改描述或检查图片模型。");
+        }
+        const saved = await persistGeneratedImage(b64, options.prefix || kind, controller.signal);
+        const actualDimensions = imageDimensions(kind, `${saved.width}x${saved.height}`, true);
+        reportImageSuccess(provider.provider);
+        return {
+          imageUrl: saved.imageUrl,
+          metadata: {
+            provider: provider.provider, model: provider.model, prompt, kind,
+            ...actualDimensions, width: saved.width, height: saved.height,
+            requestedSize: dimensions.size, requestedAspectRatio: dimensions.aspectRatio,
+          },
+        };
+      } catch (caught) {
+        const error = controller.signal.aborted ? controller.signal.reason : caught;
+        if (error?.code === "IMAGE_TIMEOUT") triggerImageCooldown("TIMEOUT", provider.provider);
+        lastError = error;
+        // Only explicit rejection by a busy/unavailable server can use a configured fallback.
+        // Network failures and timeouts may have already started a billable generation.
+        if (!/^IMAGE_UPSTREAM_(429|500|502|503|504)$/.test(error?.code || "")) throw error;
+      } finally {
+        activeProviders.delete(provider.provider);
       }
     }
+    throw lastError || imageError("IMAGE_UNAVAILABLE", "当前没有可用的生图服务。", 503);
+  } catch (error) {
+    if (error?.code || error?.status) throw error;
+    throw imageError("IMAGE_NETWORK_ERROR", "无法连接生图服务，请检查服务状态。", 502);
+  } finally {
+    clearTimeout(timer);
+    options.signal?.removeEventListener("abort", onCancel);
   }
-
-  // 当本地 4981 及备选网关均未成功出图时，显式抛出 lastError，由上层业务明确捕获并决定是否启用保底
-  console.warn("[ImageGen] 本地及官方生图通道未能出图，向上抛出异常由上层业务安全处理:", lastError?.message || lastError);
-  if (lastError) {
-    throw lastError;
-  }
-  throw new Error("IMAGE_GENERATION_FAILED: No available endpoint produced an image");
 }
 
+export async function callGeminiImageGeneration(options = {}) {
+  return (await generateWorkflowImage(options)).imageUrl;
+}
+
+/** Resolve only known raster assets beneath a canonical configured storage root. */
+export function resolveGeneratedAssetPath(pathSegments) {
+  if (!Array.isArray(pathSegments) || pathSegments.length !== 2 || pathSegments[0] !== "workflow") return null;
+  if (pathSegments.some(segment => typeof segment !== "string" || !/^[a-zA-Z0-9_.-]+$/.test(segment) || segment === "." || segment === "..")) return null;
+  if (!/\.(png|jpe?g|webp)$/i.test(pathSegments[1])) return null;
+  const roots = [
+    process.env.GENERATED_ASSET_DIR,
+    path.join(process.cwd(), "public", "generated"),
+    path.join(process.cwd(), "shared", "generated"),
+    "/www/wwwroot/chenyc/shared/generated",
+    process.env.DEPLOY_PATH ? path.join(process.env.DEPLOY_PATH, "shared", "generated") : null,
+  ].filter(Boolean);
+  for (const root of roots) {
+    try {
+      const canonicalRoot = fs.realpathSync(root);
+      const candidate = fs.realpathSync(path.resolve(canonicalRoot, ...pathSegments));
+      const relative = path.relative(canonicalRoot, candidate);
+      if (!relative || relative.startsWith(".." + path.sep) || relative === ".." || path.isAbsolute(relative)) continue;
+      const stat = fs.statSync(candidate);
+      if (stat.isFile() && stat.size <= MAX_GENERATED_IMAGE_BYTES && stat.size > 0) return candidate;
+    } catch {
+      // A deployment may expose only one of these storage roots.
+    }
+  }
+  return null;
+}

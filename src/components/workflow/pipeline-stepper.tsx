@@ -46,7 +46,7 @@ export function PipelineStepper({
   isRunning,
 }: PipelineStepperProps) {
   return (
-    <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-5 shadow-xs backdrop-blur-md">
+    <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-5 shadow-xs ">
       <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
         <div className="flex items-center gap-2">
           {isRunning && (
