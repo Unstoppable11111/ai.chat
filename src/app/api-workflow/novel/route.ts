@@ -21,8 +21,6 @@ import {
   buildFluxImageUrl,
 } from "@/lib/workflow-utils.mjs";
 import {
-  getImageCooldownStatus,
-  triggerImageCooldown,
   reportImageSuccess,
 } from "@/lib/workflow-cooldown.mjs";
 import {
@@ -70,28 +68,12 @@ async function generateNovelCoverImage(options: {
       ? options.customPrompt.trim()
       : defaultPrompt;
 
-  // 1. 若当前通道正处于冷却保护中且非管理员，直接转降级高质量位图，防止整书流水线挂起
-  const cooldown = getImageCooldownStatus();
-  if (!options.isAdmin && cooldown.active) {
-    try {
-      const fluxCover = buildFluxImageUrl(cinematicPrompt, { width: 768, height: 1024 });
-      if (fluxCover) return fluxCover;
-    } catch {}
-    return generateFallbackSvgCover(
-      options.title,
-      options.genre,
-      protagonistDesc,
-      sceneDesc
-    );
-  }
-
-  // 2. 统一调用官方生图服务 (支持本地 4981 免密直连、站长 Key、多模型自动兼容轮询)
+  // 1. 统一优先调用本地 4981 官方 gemini-3-pro-image 服务 (免密直连、自动重试与落盘)
   const effectiveApiKey = options.apiKey?.trim() || process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "";
   const effectiveBaseUrl =
     process.env.IMAGE_API_BASE_URL ||
     (options.baseUrl && options.baseUrl !== "https://api.openai.com/v1" && options.baseUrl !== process.env.OPENAI_BASE_URL ? options.baseUrl : "") ||
-    process.env.OPENAI_BASE_URL ||
-    "https://newapi.chenyc.chat/v1";
+    "http://127.0.0.1:4981/openai/v1";
 
   try {
     const coverUrl = await callGeminiImageGeneration({
@@ -100,7 +82,7 @@ async function generateNovelCoverImage(options: {
       baseUrl: effectiveBaseUrl,
       model: "gemini-3-pro-image",
       size: "1024x1024",
-      timeoutMs: 50000,
+      timeoutMs: 90000,
       prefix: "novel",
     });
 
@@ -109,23 +91,10 @@ async function generateNovelCoverImage(options: {
       return coverUrl;
     }
   } catch (err: unknown) {
-    const errorObj = err as { status?: number; message?: string; name?: string };
-    const isRateLimit =
-      errorObj.status === 429 ||
-      errorObj.status === 503 ||
-      String(errorObj.message).includes("CONCURRENCY") ||
-      String(errorObj.message).includes("RATE_LIMIT");
-    const isTimeout =
-      errorObj.status === 408 ||
-      errorObj.name === "AbortError" ||
-      String(errorObj.message).includes("TIMEOUT");
-
-    if (isRateLimit || isTimeout) {
-      triggerImageCooldown(isTimeout ? "NOVEL_COVER_TIMEOUT" : "NOVEL_COVER_CONCURRENCY");
-    }
+    console.warn("[NovelCover] 官方生图通道未成功，自动启用免费接口兜底:", err);
   }
 
-  // 3. 优先回退到真实高精位图渲染引擎，确保生成的是真正的精美出版海报，杜绝简陋 SVG
+  // 2. 只有当官方 4981 经重试后完全无法出图时，才回退到免费高精位图作为最终保底
   try {
     const fluxCover = buildFluxImageUrl(cinematicPrompt, { width: 768, height: 1024 });
     if (fluxCover) {

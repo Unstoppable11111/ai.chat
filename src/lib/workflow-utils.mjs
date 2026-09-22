@@ -559,30 +559,31 @@ export async function probeImageUrl(url, timeoutMs = 7000) {
 }
 
 /**
- * 解析并生成候选生图网关列表（本地 4981 端口中间件与站长网关全覆盖）
+ * 解析并生成候选生图网关列表（本地 4981 端口中间件拥有绝对最高优先级）
  */
 export async function getCandidateImageEndpoints(rawInput) {
   const endpoints = [];
 
-  // 1. 显式指定的 IMAGE_API_BASE_URL (拥有最高优先级)
+  // 1. 本地 4981 生图服务（用户服务器运行的 gemini-web-to-api 中间件，绝对最高优先级）
+  endpoints.push("http://127.0.0.1:4981/openai/v1");
+
+  // 2. 显式环境变量指定的 IMAGE_API_BASE_URL
   if (process.env.IMAGE_API_BASE_URL && process.env.IMAGE_API_BASE_URL.trim()) {
     endpoints.push(resolveValidBaseUrl(process.env.IMAGE_API_BASE_URL));
   }
 
-  // 2. 本地 4981 生图服务 (用户 VM-0-15-ubuntu 服务器运行的中间件)
-  endpoints.push("http://127.0.0.1:4981/openai/v1");
-
-  // 3. 用户前端自定义传入的网关 (非通用 openai)
+  // 3. 用户前端自定义传入的第三方独立网关 (非默认 openai 与站长默认网关)
   if (
     rawInput &&
     rawInput.trim() &&
     !rawInput.includes("api.openai.com") &&
-    rawInput !== process.env.OPENAI_BASE_URL
+    rawInput !== process.env.OPENAI_BASE_URL &&
+    rawInput !== "https://newapi.chenyc.chat/v1"
   ) {
     endpoints.push(resolveValidBaseUrl(rawInput));
   }
 
-  // 4. 站长通用网关
+  // 4. 站长通用网关（仅作为官方备选渠道）
   const gateway = process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1";
   endpoints.push(resolveValidBaseUrl(gateway));
 
@@ -600,7 +601,7 @@ export async function callGeminiImageGeneration(options = {}) {
     baseUrl: rawBaseUrl,
     model: requestedModel = process.env.IMAGE_MODEL || "gemini-3-pro-image",
     size = "1024x1024",
-    timeoutMs = 50000,
+    timeoutMs = 90000,
     prefix = "novel",
   } = options;
 
@@ -612,12 +613,11 @@ export async function callGeminiImageGeneration(options = {}) {
   }
 
   const candidateEndpoints = await getCandidateImageEndpoints(rawBaseUrl);
-  // 严格优先使用用户指定的 gemini-3-pro-image，杜绝降级到会产生色子的通用聊天模型
+  // 严格优先使用用户指定的 gemini-3-pro-image，杜绝降级到无效的 gemini-3.1-pro-image
   const candidateModels = Array.from(
     new Set([
       requestedModel,
       "gemini-3-pro-image",
-      "gemini-3.1-pro-image",
     ].filter(Boolean))
   );
 
@@ -634,7 +634,8 @@ export async function callGeminiImageGeneration(options = {}) {
     const headers = {
       "Content-Type": "application/json",
     };
-    if (apiKey && apiKey.trim()) {
+    // 本地 4981 服务免密调用，绝不附加任何外部 Authorization Header，保持与实测成功的 curl 完全一致
+    if (!isLocalService && apiKey && apiKey.trim()) {
       headers.Authorization = `Bearer ${apiKey.trim()}`;
     }
 
@@ -643,97 +644,95 @@ export async function callGeminiImageGeneration(options = {}) {
     for (const currentModel of candidateModels) {
       if (endpointConnectionFailed) break;
 
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      // 对本地 4981 服务提供最多 2 次指数退避重试，避免 Google Gemini Web 临时会话繁忙直接断连
+      const maxRetries = isLocalService ? 2 : 0;
 
-      try {
-        console.log(`[ImageGen] 尝试生图: gateway=${imagesUrl}, model=${currentModel}`);
-
-        const res = await fetch(imagesUrl, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            model: currentModel,
-            prompt: cleanPrompt,
-            size: size || "1024x1024",
-            n: 1,
-            response_format: "b64_json",
-          }),
-          signal: controller.signal,
-        }).finally(() => clearTimeout(timer));
-
-        if (res.ok) {
-          const data = await res.json().catch(() => null);
-          const b64 = data?.data?.[0]?.b64_json;
-          const url = data?.data?.[0]?.url;
-
-          // 若为 Base64 图片，自动安全落盘至服务器本地，生成轻量静态 URL
-          if (b64) {
-            console.log(`[ImageGen] ✅ 网关 ${imagesUrl} 模型 ${currentModel} 生图成功！Base64 长度: ${b64.length}，正在安全落盘...`);
-            return saveBase64ImageLocally(b64, prefix);
-          }
-          if (url && typeof url === "string" && url.startsWith("http")) {
-            console.log(`[ImageGen] ✅ 网关 ${imagesUrl} 模型 ${currentModel} 生图成功！返回 URL: ${url}`);
-            return url;
-          }
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        if (attempt > 0) {
+          console.log(`[ImageGen] 本地服务 4981 遇到瞬态繁忙，正在等待 2 秒进行第 ${attempt} 次重试...`);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
         }
 
-        // 检查失败详情
-        const errText = await res.text().catch(() => "");
-        let errJson = null;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+
         try {
-          errJson = JSON.parse(errText);
-        } catch {}
-        const errMsg = errJson?.error?.message || errJson?.error?.code || errText;
+          console.log(`[ImageGen] 尝试生图 (第 ${attempt + 1} 次): gateway=${imagesUrl}, model=${currentModel}`);
 
-        console.warn(`[ImageGen] 网关 ${imagesUrl} 模型 ${currentModel} 响应未成功 (HTTP ${res.status}): ${errMsg}`);
+          const res = await fetch(imagesUrl, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              model: currentModel,
+              prompt: cleanPrompt,
+              size: size || "1024x1024",
+              n: 1,
+              response_format: "b64_json",
+            }),
+            signal: controller.signal,
+          }).finally(() => clearTimeout(timer));
 
-        const isModelNotFound =
-          res.status === 404 ||
-          res.status === 503 ||
-          res.status === 400 ||
-          String(errMsg).includes("model_not_found") ||
-          String(errMsg).includes("No available channel") ||
-          String(errMsg).includes("not exist") ||
-          String(errMsg).includes("does not exist");
+          if (res.ok) {
+            const data = await res.json().catch(() => null);
+            const b64 = data?.data?.[0]?.b64_json;
+            const url = data?.data?.[0]?.url;
 
-        // 如果是该网关未配置该模型渠道，切换下一个模型
-        if (isModelNotFound) {
-          console.warn(`[ImageGen] 渠道未配置模型 ${currentModel}，正在无缝尝试下一个兼容模型...`);
-          lastError = new Error(`MODEL_NOT_FOUND: ${currentModel}`);
-          continue;
-        }
-
-        // 如果是真实的限流或并发报错 (非 model_not_found)
-        if (res.status === 429 || (res.status === 503 && !isModelNotFound)) {
-          const err = new Error(`CONCURRENCY_OR_RATE_LIMIT_${res.status}: ${errMsg}`);
-          err.status = res.status;
-          throw err;
-        }
-
-        lastError = new Error(`GEMINI_IMAGE_ERROR_${res.status}: ${errMsg}`);
-      } catch (err) {
-        if (err.name === "AbortError") {
-          console.warn(`[ImageGen] 网关 ${imagesUrl} 模型 ${currentModel} 请求超时 (${timeoutMs}ms)`);
-          const timeoutErr = new Error("GEMINI_IMAGE_TIMEOUT");
-          timeoutErr.status = 408;
-          lastError = timeoutErr;
-        } else if (err.message && err.message.includes("CONCURRENCY_OR_RATE_LIMIT")) {
-          throw err;
-        } else {
-          // 本地内网服务连接不通 (如 4981 端口未开或在外部机器开发)，快速跳到下一个网关
-          if (isLocalService) {
-            console.log(`[ImageGen] 本地服务 ${cleanBaseUrl} 连接失败 (${err.message})，快速切换至下一网关...`);
-            endpointConnectionFailed = true;
+            // 若为 Base64 图片，自动安全落盘至服务器本地，生成轻量静态 URL
+            if (b64) {
+              console.log(`[ImageGen] ✅ 网关 ${imagesUrl} 模型 ${currentModel} 生图成功！Base64 长度: ${b64.length}，正在安全落盘...`);
+              return saveBase64ImageLocally(b64, prefix);
+            }
+            if (url && typeof url === "string" && url.startsWith("http")) {
+              console.log(`[ImageGen] ✅ 网关 ${imagesUrl} 模型 ${currentModel} 生图成功！返回 URL: ${url}`);
+              return url;
+            }
           }
-          lastError = err;
+
+          // 检查失败详情
+          const errText = await res.text().catch(() => "");
+          let errJson = null;
+          try {
+            errJson = JSON.parse(errText);
+          } catch {}
+          const errMsg = errJson?.error?.message || errJson?.error?.code || errText;
+
+          console.warn(`[ImageGen] 网关 ${imagesUrl} 模型 ${currentModel} 响应未成功 (HTTP ${res.status}): ${errMsg}`);
+
+          const isModelNotFound =
+            res.status === 404 ||
+            (res.status === 400 && String(errMsg).includes("not supported")) ||
+            String(errMsg).includes("model_not_found") ||
+            String(errMsg).includes("No available channel") ||
+            String(errMsg).includes("not exist") ||
+            String(errMsg).includes("does not exist");
+
+          if (isModelNotFound) {
+            console.warn(`[ImageGen] 渠道未配置模型 ${currentModel}，切换模型...`);
+            lastError = new Error(`MODEL_NOT_FOUND: ${currentModel}`);
+            break; // 换模型，不需要在当前模型重试
+          }
+
+          lastError = new Error(`GEMINI_IMAGE_ERROR_${res.status}: ${errMsg}`);
+          // 若为 500（如 1060 或瞬态错误），继续下一个 attempt 重试
+        } catch (err) {
+          if (err.name === "AbortError") {
+            console.warn(`[ImageGen] 网关 ${imagesUrl} 模型 ${currentModel} 请求超时 (${timeoutMs}ms)`);
+            lastError = new Error("GEMINI_IMAGE_TIMEOUT");
+          } else {
+            if (isLocalService && (err.code === "ECONNREFUSED" || err.message?.includes("fetch failed"))) {
+              console.log(`[ImageGen] 本地服务 ${cleanBaseUrl} 无法连接 (${err.message})，跳至下一网关...`);
+              endpointConnectionFailed = true;
+              break;
+            }
+            lastError = err;
+          }
         }
       }
     }
   }
 
-  // 只有当所有官方候选模型（包括 gemini-3.1-pro-image 等）全部失败时，才进行平滑降级
-  console.warn("[ImageGen] 所有官方生图网关与模型渠道均未能出图，最终降级至免费高质量位图渲染引擎...");
+  // 只有当本地 4981 及其他官方渠道重试均告失败时，才最终降级至免费位图渲染引擎作为保底
+  console.warn("[ImageGen] 本地及官方生图通道重试后未能出图，使用免费高精渲染引擎作为最终兜底...");
   try {
     const fallbackFluxUrl = buildFluxImageUrl(prompt, { width: 768, height: 1024 });
     const probe = await probeImageUrl(fallbackFluxUrl, 8000);

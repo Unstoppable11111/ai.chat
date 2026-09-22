@@ -15,7 +15,6 @@ import {
   Clock,
   Upload,
   Link as LinkIcon,
-  Check,
   X,
 } from "lucide-react";
 import type { BibleData, CharacterCard, VisualAssetItem, WorkflowConfig } from "@/types/workflow";
@@ -49,49 +48,21 @@ export function VisualAssetsBoard({
 }: VisualAssetsBoardProps) {
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+  const [cooldownRemaining] = useState<number>(0);
 
   // 替换封面模态框与输入状态
   const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
   const [replaceUrlInput, setReplaceUrlInput] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // 初始化与轮询生图通道冷却倒计时
+  // 启动时清理本地过期冷却缓存
   useEffect(() => {
-    const checkCooldown = () => {
-      try {
-        const stored = localStorage.getItem(COOLDOWN_STORAGE_KEY);
-        if (stored) {
-          const until = parseInt(stored, 10);
-          const diff = Math.max(0, Math.ceil((until - Date.now()) / 1000));
-          setCooldownRemaining(diff);
-          if (diff <= 0) {
-            localStorage.removeItem(COOLDOWN_STORAGE_KEY);
-          }
-        } else {
-          setCooldownRemaining(0);
-        }
-      } catch {
-        // 忽略 localStorage 读取异常
-      }
-    };
-
-    checkCooldown();
-    const timer = setInterval(checkCooldown, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // 记录触发冷却并持久化到本地
-  const handleTriggerCooldown = React.useCallback((seconds: number, message?: string) => {
-    const until = Date.now() + seconds * 1000;
     try {
-      localStorage.setItem(COOLDOWN_STORAGE_KEY, until.toString());
+      localStorage.removeItem(COOLDOWN_STORAGE_KEY);
     } catch {
       // 忽略
     }
-    setCooldownRemaining(seconds);
-    onQueueBusy?.(message);
-  }, [onQueueBusy]);
+  }, []);
 
   // 保存图片到本地
   const handleDownloadImage = async (url: string, filename: string) => {
@@ -135,15 +106,6 @@ export function VisualAssetsBoard({
 
   // 手动确认生成人物立绘画像
   const handleGenerateCharacterPortrait = async (char: CharacterCard, idx: number) => {
-    if (cooldownRemaining > 0) {
-      onQueueBusy?.(
-        `生图通道目前正处于并发/超时冷却保护中，剩余倒计时 ${formatSeconds(
-          cooldownRemaining
-        )}。在此期间请稍候再试。`
-      );
-      return;
-    }
-
     const assetId = `char_${char.name}_${idx}`;
     setGeneratingId(assetId);
 
@@ -174,8 +136,7 @@ export function VisualAssetsBoard({
           onSecurityAlert?.(errData.error || "生成过于频繁，已触发限流保护，请稍候再试。");
           return;
         }
-        const remaining = errData?.remainingSeconds || 300;
-        handleTriggerCooldown(remaining, errData?.error);
+        onQueueBusy?.(errData?.error || "生图通道瞬态繁忙，请稍候再试。");
         return;
       }
 
@@ -194,8 +155,7 @@ export function VisualAssetsBoard({
 
       const data = await res.json().catch(() => null);
       if (data?.code === "COOLDOWN_ACTIVE") {
-        const remaining = data?.remainingSeconds || 300;
-        handleTriggerCooldown(remaining, data?.error);
+        onQueueBusy?.(data?.error || "通道正在处理中，请稍后。");
         return;
       }
 
@@ -219,15 +179,6 @@ export function VisualAssetsBoard({
 
   // 手动确认生成场景概念图
   const handleGenerateSceneConcept = async (sceneTitle: string, idx: number) => {
-    if (cooldownRemaining > 0) {
-      onQueueBusy?.(
-        `生图通道目前正处于并发/超时冷却保护中，剩余倒计时 ${formatSeconds(
-          cooldownRemaining
-        )}。在此期间请稍候再试。`
-      );
-      return;
-    }
-
     const assetId = `scene_${idx}`;
     setGeneratingId(assetId);
 
@@ -258,8 +209,7 @@ export function VisualAssetsBoard({
           onSecurityAlert?.(errData.error || "生成过于频繁，已触发限流保护，请稍候再试。");
           return;
         }
-        const remaining = errData?.remainingSeconds || 300;
-        handleTriggerCooldown(remaining, errData?.error);
+        onQueueBusy?.(errData?.error || "生图通道瞬态繁忙，请稍候再试。");
         return;
       }
 
@@ -278,8 +228,7 @@ export function VisualAssetsBoard({
 
       const data = await res.json().catch(() => null);
       if (data?.code === "COOLDOWN_ACTIVE") {
-        const remaining = data?.remainingSeconds || 300;
-        handleTriggerCooldown(remaining, data?.error);
+        onQueueBusy?.(data?.error || "通道正在处理中，请稍后。");
         return;
       }
 

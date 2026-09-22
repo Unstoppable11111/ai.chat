@@ -7,8 +7,6 @@ import {
   buildFluxImageUrl,
 } from "@/lib/workflow-utils.mjs";
 import {
-  getImageCooldownStatus,
-  triggerImageCooldown,
   reportImageSuccess,
 } from "@/lib/workflow-cooldown.mjs";
 import {
@@ -129,25 +127,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 6. 检查生图通道是否处于冷却保护状态 (5分钟 -> 30分钟，超级管理员豁免)
-  const cooldown = getImageCooldownStatus();
-  if (!isAdmin && cooldown.active) {
-    const minutes = Math.floor(cooldown.remainingSeconds / 60);
-    const seconds = cooldown.remainingSeconds % 60;
-    const timeText = minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
-    return NextResponse.json(
-      {
-        success: false,
-        code: "COOLDOWN_ACTIVE",
-        remainingSeconds: cooldown.remainingSeconds,
-        tier: cooldown.tier,
-        error: `生图接口并发已达上限或超时，当前处于${cooldown.tier === 2 ? "30" : "5"}分钟冷却保护中。还剩 ${timeText}，在此期间暂停生成视觉资产。`,
-      },
-      { status: 429 }
-    );
-  }
-
-  // 7. 构造专为 gemini-3-pro-image 优化的纯英文无水印提示词
+  // 6. 构造专为 gemini-3-pro-image 优化的纯英文无水印提示词
   const prompt = buildEnglishAssetPrompt({
     type,
     name,
@@ -157,25 +137,14 @@ export async function POST(request: NextRequest) {
     genre,
   });
 
-  // 8. 优先使用用户自定义 Key，若无则使用站长 Key 与网关 (支持本地生图中间件免密请求)
+  // 7. 优先使用本地 4981 官方生图中间件（免密直连、多模型兼容自适应）
   const effectiveApiKey = apiKey.trim() || process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "";
   const effectiveBaseUrl =
     process.env.IMAGE_API_BASE_URL ||
     (baseUrl && baseUrl !== "https://api.openai.com/v1" && baseUrl !== process.env.OPENAI_BASE_URL ? baseUrl : "") ||
-    process.env.OPENAI_BASE_URL ||
-    "https://newapi.chenyc.chat/v1";
+    "http://127.0.0.1:4981/openai/v1";
 
-  if (!effectiveApiKey && !process.env.IMAGE_API_BASE_URL) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "未配置 API Key。请在控制台设置抽屉中填写您的 API Key，或联系管理员配置服务端 OPENAI_API_KEY。",
-      },
-      { status: 400 }
-    );
-  }
-
-  // 9. 调用官方生图服务 (多模型自动兼容、本地落盘)
+  // 8. 调用官方生图服务 (优先 4981 gemini-3-pro-image，自动重试、落盘、免费保底)
   try {
     const imageUrl = await callGeminiImageGeneration({
       prompt,
@@ -183,7 +152,7 @@ export async function POST(request: NextRequest) {
       baseUrl: effectiveBaseUrl,
       model: "gemini-3-pro-image",
       size: type === "character" ? "1024x1024" : "1024x1024",
-      timeoutMs: 50000,
+      timeoutMs: 90000,
       prefix: type === "character" ? "character" : "scene",
     });
 
@@ -197,38 +166,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (err: unknown) {
     const errorObj = err as { status?: number; message?: string; name?: string };
-    const isRateLimit =
-      errorObj.status === 429 ||
-      errorObj.status === 503 ||
-      String(errorObj.message).includes("CONCURRENCY") ||
-      String(errorObj.message).includes("RATE_LIMIT");
-    const isTimeout =
-      errorObj.status === 408 ||
-      errorObj.name === "AbortError" ||
-      String(errorObj.message).includes("TIMEOUT");
+    console.warn("[GenerateAssets] 官方生图通道抛出异常，启动免费高精位图兜底:", errorObj);
 
-    // 当检测超时或者并发上限的时候，非超级管理员暂停生图接口五分钟（再错延长30分钟）
-    if (!isAdmin && (isRateLimit || isTimeout)) {
-      const penalty = triggerImageCooldown(isTimeout ? "TIMEOUT" : "CONCURRENCY_LIMIT");
-      const minutes = Math.floor(penalty.remainingSeconds / 60);
-      const seconds = penalty.remainingSeconds % 60;
-      const timeText = minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
-
-      return NextResponse.json(
-        {
-          success: false,
-          code: "COOLDOWN_ACTIVE",
-          remainingSeconds: penalty.remainingSeconds,
-          tier: penalty.tier,
-          error: `生图接口检测到${isTimeout ? "响应超时" : "并发上限"}，已触发${
-            penalty.tier === 2 ? "30" : "5"
-          }分钟冷却保护。还剩 ${timeText}，在此期间暂停生成视觉资产。`,
-        },
-        { status: 429 }
-      );
-    }
-
-    // 其它常规错误或管理员免冷却时，优先降级回退到免费的高质量位图渲染引擎，杜绝简陋 SVG
+    // 当且仅当本地 4981 及所有渠道全部报错时，才使用免费高精位图作为兜底保底
     try {
       const fluxAssetUrl = buildFluxImageUrl(prompt, {
         width: type === "character" ? 768 : 1024,
@@ -242,10 +182,9 @@ export async function POST(request: NextRequest) {
         });
       }
     } catch {
-      // 忽略并进入极端网络保底
+      // 忽略并进入极端保底
     }
 
-    // 极端网络情况下的保底
     let fallbackUrl = "";
     if (type === "character") {
       fallbackUrl = generateCharacterPortraitSvg({
