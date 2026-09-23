@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import {
-  Sparkles,
   Maximize2,
   Minimize2,
   Volume2,
@@ -14,12 +13,9 @@ import {
   Camera,
   CameraOff,
   Sliders,
-  ChevronDown,
   ChevronUp,
-  Hand,
   Activity,
   Zap,
-  Layers,
   Heart,
   Globe,
   Radio,
@@ -326,10 +322,6 @@ export function GestureSystem() {
     }
   };
 
-  // 切换色彩方案
-  const cycleColorTheme = () => {
-    setColorIndex((prev) => (prev + 1) % COLOR_PRESETS.length);
-  };
 
   // 摄像头手势识别启动/关闭
   const toggleCamera = async () => {
