@@ -275,7 +275,13 @@ export default function IntroExperience() {
     const h = window.innerHeight;
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
+    } catch (e) {
+      console.warn("[IntroExperience] WebGL context creation failed:", e);
+      return;
+    }
     renderer.setSize(w, h);
     renderer.setPixelRatio(DPR);
     renderer.setClearColor(0x000000);

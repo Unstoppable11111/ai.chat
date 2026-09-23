@@ -171,7 +171,13 @@ export function VisualAssetsBoard({
       const data = await response.json().catch(() => null);
       if (controller.signal.aborted) return;
       if (!response.ok || !data?.success || !data.image_url) {
-        const message = data?.error || `生图失败（HTTP ${response.status}），请重试。`;
+        const message =
+          data?.error ||
+          (response.status === 502
+            ? "生图服务暂时不可用或网络异常（HTTP 502），请稍后重试。"
+            : response.status === 504
+              ? "生图服务响应超时（HTTP 504），请稍后重试。"
+              : `生图服务请求未完成（HTTP ${response.status}），请重试。`);
         if (data?.code === "DAILY_ASSET_QUOTA_EXCEEDED") onQuotaLimit?.(message);
         else if (response.status === 401 || data?.code === "PROMPT_INJECTION_DETECTED") onSecurityAlert?.(message);
         else if (response.status === 429) onQueueBusy?.(message);
@@ -186,7 +192,7 @@ export function VisualAssetsBoard({
       }, projectId);
       setGenerationStates((previous) => {
         const next = { ...previous };
-        if (isFallback) next[assetId] = { status: "fallback", message: "当前为降级预览图，可重新生成。" };
+        if (isFallback) next[assetId] = { status: "fallback", message: data?.warning || "当前为降级矢量预览图，可随时重新生成。" };
         else delete next[assetId];
         return next;
       });

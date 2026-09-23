@@ -122,19 +122,60 @@ export async function POST(request: NextRequest) {
     });
   } catch (err: unknown) {
     const error = err as { status?: number; message?: string; code?: string; retryAfter?: number };
-    console.warn("[GenerateAssets] generation failed:", error.code || "IMAGE_GENERATION_FAILED");
-    return NextResponse.json(
-      {
-        success: false,
-        status: "failed",
-        code: error.code || "IMAGE_GENERATION_FAILED",
-        error: error.message || "图片生成失败，请稍后重试。",
-        retryAfter: error.retryAfter || 0,
-      },
-      {
-        status: error.status && error.status >= 400 && error.status <= 599 ? error.status : 502,
-        headers: error.retryAfter ? { "Retry-After": String(error.retryAfter) } : undefined,
-      }
-    );
+    console.warn("[GenerateAssets] generation failed:", error.code || "IMAGE_GENERATION_FAILED", error.message);
+
+    // 1. 如果是配额上限、安全拒绝或用户主动取消，如实返回对应状态码，不走降级
+    if (error.code === "DAILY_ASSET_QUOTA_EXCEEDED" || error.code === "PROMPT_INJECTION_DETECTED" || error.code === "IMAGE_CANCELLED") {
+      return NextResponse.json(
+        {
+          success: false,
+          status: "failed",
+          code: error.code,
+          error: error.message || "生成请求未完成",
+          retryAfter: error.retryAfter || 0,
+        },
+        {
+          status: error.status && error.status >= 400 && error.status <= 599 ? error.status : 400,
+          headers: error.retryAfter ? { "Retry-After": String(error.retryAfter) } : undefined,
+        }
+      );
+    }
+
+    // 2. 方案三优化：如果上游生图服务异常（Cookie失效、HTTP 500/502、网络超时、模型不可用等），自动启动高精矢量 SVG 保底
+    try {
+      const fallbackUrl = type === "character"
+        ? generateCharacterPortraitSvg({ name, role, personality, appearance: appearance || description, genre })
+        : generateSceneConceptSvg({ sceneTitle: name, atmosphere: personality, elements: description || appearance, genre });
+
+      return NextResponse.json({
+        success: true,
+        status: "fallback",
+        image_url: fallbackUrl,
+        isFallback: true,
+        model: "vector-svg-fallback",
+        warning: "上游生图通道暂时不可用，已自动生成高精矢量保底图。您可以继续后续流程，或稍后点击重新生成。",
+        metadata: {
+          provider: "local",
+          model: "vector-svg-fallback",
+          prompt,
+          kind: type,
+          fallbackReason: error.message || error.code || "UPSTREAM_UNAVAILABLE",
+        },
+      });
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          status: "failed",
+          code: error.code || "IMAGE_GENERATION_FAILED",
+          error: error.message || "生图服务暂时不可用，请稍后重试。",
+          retryAfter: error.retryAfter || 0,
+        },
+        {
+          status: error.status && error.status >= 400 && error.status <= 599 ? error.status : 502,
+          headers: error.retryAfter ? { "Retry-After": String(error.retryAfter) } : undefined,
+        }
+      );
+    }
   }
 }

@@ -1,11 +1,26 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 interface QuantumRadar3DProps {
   score?: number;
   marketState?: string;
+}
+
+function isWebGLSupported(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const canvas = document.createElement("canvas");
+    return Boolean(
+      window.WebGLRenderingContext &&
+        (canvas.getContext("webgl2") ||
+          canvas.getContext("webgl") ||
+          canvas.getContext("experimental-webgl"))
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -15,27 +30,42 @@ interface QuantumRadar3DProps {
  * - 核心多面体量子晶体晶格发光脉动与能量核呼吸
  * - 64 颗环绕漫游的极光粒子星尘与光晕
  * - 灵敏的视差动态投影与悬浮特技光效
+ * - 完备的 WebGL 异常检测与 2.5D 高精优雅降级防崩机制
  */
 export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: QuantumRadar3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [webglSupported, setWebglSupported] = useState<boolean>(true);
 
   useEffect(() => {
+    if (!isWebGLSupported()) {
+      setWebglSupported(false);
+      return;
+    }
+
     const container = containerRef.current;
     if (!container) return;
 
     const width = container.clientWidth || 140;
     const height = container.clientHeight || 120;
 
-    // 1. Scene, Camera, WebGL Renderer
+    // 1. Scene, Camera, WebGL Renderer with safe context initialization
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.z = 4.5;
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: "high-performance",
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: "high-performance",
+      });
+    } catch (error) {
+      console.warn("[QuantumRadar3D] WebGL context creation failed, activating 2.5D fallback:", error);
+      setWebglSupported(false);
+      return;
+    }
+
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
@@ -199,24 +229,58 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
       cancelAnimationFrame(reqId);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", handleResize);
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
+      if (renderer) {
+        if (container.contains(renderer.domElement)) {
+          container.removeChild(renderer.domElement);
+        }
+        outerRingGeo.dispose();
+        outerRingMat.dispose();
+        innerRingGeo.dispose();
+        innerRingMat.dispose();
+        coreGeo.dispose();
+        coreMat.dispose();
+        innerCoreGeo.dispose();
+        innerCoreMat.dispose();
+        centerGeo.dispose();
+        centerMat.dispose();
+        particleGeo.dispose();
+        particleMat.dispose();
+        renderer.dispose();
       }
-      outerRingGeo.dispose();
-      outerRingMat.dispose();
-      innerRingGeo.dispose();
-      innerRingMat.dispose();
-      coreGeo.dispose();
-      coreMat.dispose();
-      innerCoreGeo.dispose();
-      innerCoreMat.dispose();
-      centerGeo.dispose();
-      centerMat.dispose();
-      particleGeo.dispose();
-      particleMat.dispose();
-      renderer.dispose();
     };
   }, [score, marketState]);
+
+  if (!webglSupported) {
+    return (
+      <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c182b]/80 via-[#08101e]/90 to-[#0e1d35]/80 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.15)] select-none">
+        {/* 2.5D 纯 CSS / SVG 赛博全息引力核（WebGL 降级安全渲染） */}
+        <div className="relative flex items-center justify-center w-24 h-24">
+          {/* 外层赛博青动态旋转虚线环 */}
+          <div className="absolute inset-0 rounded-full border border-dashed border-cyan-400/50 animate-[spin_12s_linear_infinite]" />
+          {/* 次级极光绿逆向旋转引力环 */}
+          <div
+            className="absolute inset-2 rounded-full border-2 border-emerald-400/60 animate-[spin_7s_linear_infinite_reverse]"
+            style={{ transform: "rotateX(55deg) rotateY(25deg)" }}
+          />
+          {/* 内部高亮脉冲光圈 */}
+          <div className="absolute inset-4 rounded-full border border-sky-400/40 animate-ping opacity-60" />
+          {/* 核心菱形悬浮晶格多面体 */}
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 via-sky-300 to-emerald-400 shadow-[0_0_16px_rgba(6,182,212,0.85)] animate-pulse flex items-center justify-center rotate-45">
+            <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_6px_#ffffff]" />
+          </div>
+          {/* 漫游极光微粒 */}
+          <div className="absolute -top-1 left-3 w-1.5 h-1.5 rounded-full bg-cyan-300 animate-ping" />
+          <div className="absolute bottom-1 right-2 w-1 h-1 rounded-full bg-emerald-300 animate-ping" style={{ animationDelay: "600ms" }} />
+        </div>
+
+        {/* 状态指示与标签 */}
+        <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-cyan-300 font-mono tracking-wider">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+          AURORA GRAVITY CORE · 2.5D 全息引力核
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c182b]/80 via-[#08101e]/90 to-[#0e1d35]/80 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
