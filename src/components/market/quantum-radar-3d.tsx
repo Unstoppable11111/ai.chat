@@ -34,13 +34,10 @@ function isWebGLSupported(): boolean {
  */
 export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: QuantumRadar3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [webglSupported, setWebglSupported] = useState<boolean>(true);
+  const [webglSupported, setWebglSupported] = useState<boolean>(() => isWebGLSupported());
 
   useEffect(() => {
-    if (!isWebGLSupported()) {
-      setWebglSupported(false);
-      return;
-    }
+    if (!webglSupported) return;
 
     const container = containerRef.current;
     if (!container) return;
@@ -62,7 +59,7 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
       });
     } catch (error) {
       console.warn("[QuantumRadar3D] WebGL context creation failed, activating 2.5D fallback:", error);
-      setWebglSupported(false);
+      setTimeout(() => setWebglSupported(false), 0);
       return;
     }
 
@@ -248,7 +245,7 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
         renderer.dispose();
       }
     };
-  }, [score, marketState]);
+  }, [score, marketState, webglSupported]);
 
   if (!webglSupported) {
     return (
