@@ -103,10 +103,8 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <a
-              href="/gesture-interactive.html"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/gesture"
               className="relative hidden items-center gap-1.5 overflow-hidden rounded-full border border-brand-violet/20 bg-brand-violet/5 px-3.5 py-2 text-sm font-medium text-brand-violet shadow-sm transition-all duration-300 hover:scale-105 hover:border-brand-violet/40 hover:bg-brand-violet/10 hover:shadow-md hover:shadow-brand-violet/5 md:flex"
             >
               <span className="relative flex h-1.5 w-1.5">
@@ -115,7 +113,7 @@ export function SiteHeader() {
               </span>
               <Hand className="h-3.5 w-3.5 animate-pulse text-brand-violet" />
               <span>手势互动</span>
-            </a>
+            </Link>
 
             <Link
               href="/experiments/pelican"

@@ -174,15 +174,13 @@ export function HeroSection() {
               >
                 <span>📑 技术白皮书</span>
               </Link>
-              <a 
-                href="/gesture-interactive.html"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link 
+                href="/gesture"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-brand-violet/25 bg-brand-violet/10 text-[11px] font-medium text-brand-violet shadow-2xs hover:bg-brand-violet/15 transition-colors"
               >
                 <Hand className="h-3 w-3" />
                 <span>3D 手势交互</span>
-              </a>
+              </Link>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sparkles, Clapperboard, Layers, Cpu, Zap, ArrowRight, RotateCw } from "lucide-react";
 import { WORKFLOW_INSPIRATIONS, type WorkflowInspiration } from "@/data/workflow-inspirations";
 
@@ -11,14 +11,22 @@ interface WorkflowIntroProps {
 const INITIAL_INSPIRATIONS = WORKFLOW_INSPIRATIONS.slice(0, 4);
 
 function getRandomInspirations(count = 4): WorkflowInspiration[] {
-  const shuffled = [...WORKFLOW_INSPIRATIONS].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
+  const array = [...WORKFLOW_INSPIRATIONS];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array.slice(0, count);
 }
 
 export const WorkflowIntro = React.memo(function WorkflowIntro({ onSelectPreset }: WorkflowIntroProps) {
-  // 服务端与客户端初次渲染必须保持完全一致，严禁在初始状态中使用 Math.random() 造成水合错误 (React error #418)
+  // 服务端与客户端初次渲染保持完全一致避免水合错误 (React error #418)，挂载后立即随机抽取 4 个赛道灵感，确保用户每次进入页面展示均不相同
   const [inspirations, setInspirations] = useState<WorkflowInspiration[]>(INITIAL_INSPIRATIONS);
   const [isRotating, setIsRotating] = useState(false);
+
+  useEffect(() => {
+    setInspirations(getRandomInspirations(4));
+  }, []);
 
   const handleRefresh = () => {
     setIsRotating(true);

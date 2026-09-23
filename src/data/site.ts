@@ -19,7 +19,7 @@ export const navigation: NavItem[] = [
   { href: "/news", label: "科技资讯" },
   { href: "/stack", label: "工具整理" },
   { href: "/prompts", label: "学习笔记" },
-  { href: "/gesture-interactive.html", label: "手势实验" },
+  { href: "/gesture", label: "手势互动" },
   { href: "/experiments/pelican", label: "鹈鹕盲测" },
   { href: "/about", label: "关于我" },
 ];
