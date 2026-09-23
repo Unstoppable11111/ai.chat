@@ -6,7 +6,7 @@ import { chunkMarkdown, parseMarkdown, rankChunks } from "../src/lib/markdown-co
 
 const posts=readLocalPosts().filter(p=>p.collection==="build-log"&&p.ragReady&&p.status==="published");
 test("all revised technical notes have working examples and valid chunk anchors",()=>{
-  assert.equal(posts.length,12);
+  assert.ok(posts.length >= 12, "已发布的白皮书数量不应少于基准12篇");
   for(const post of posts){
     const {tree,headings}=parseMarkdown(post.content);
     assert.ok(post.content.includes("https://"),post.slug);

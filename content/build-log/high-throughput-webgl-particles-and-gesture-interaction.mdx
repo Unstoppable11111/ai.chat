@@ -7,7 +7,7 @@ tags: ["WebGL", "Three.js", "粒子系统", "多模态交互", "前端架构"]
 cover: "/images/blog-covers/multimodal-dit.webp"
 featured: true
 status: published
-ragReady: false
+ragReady: true
 views: 0
 likes: 0
 ---
@@ -152,3 +152,8 @@ assert.ok(computeAttractorForce(100, maxRadiusSq) > computeAttractorForce(1000, 
 ```
 
 通过将手势交互系统由静态页面重构为原生响应式应用，不仅彻底解决了多端体验断层与外部网络依赖瓶颈，更为未来结合 WebGPU 计算管线实现百万级粒子场交互奠定了坚实的工程基石。
+
+## 原始资料
+
+- [Three.js 核心文档与粒子缓冲区](https://threejs.org/docs/)：关于 WebGL 几何体缓冲与 PointsMaterial 的标准实现。
+- [Web Audio API W3C 官方规范](https://www.w3.org/TR/webaudio/)：关于离散傅里叶频域分析（AnalyserNode）的权威规范。
