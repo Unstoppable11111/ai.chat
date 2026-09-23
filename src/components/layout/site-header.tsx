@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Hand, Menu, Sparkles, X, User, LogOut, ChevronDown, TrendingUp, Bot, Trophy } from "lucide-react";
+import { Command, Hand, Menu, Sparkles, X, User, LogOut, ChevronDown, TrendingUp, Bot, Trophy, BookOpen } from "lucide-react";
 import { navigation, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -138,28 +138,76 @@ export function SiteHeader() {
                   <ChevronDown className={cn("h-3.5 w-3.5 text-slate-500 transition-transform duration-200", userMenuOpen && "rotate-180")} />
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl p-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
-                    <div className="px-3 py-2 border-b border-slate-100">
-                      <p className="text-[10px] text-muted-foreground">当前已登录账号</p>
-                      <p className="font-semibold text-slate-800 truncate font-mono text-sm mt-0.5">{user.username}</p>
+                  <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-2xl p-2.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
+                    {/* 用户头部信息卡片 */}
+                    <div className="px-3 py-2.5 rounded-xl bg-gradient-to-br from-slate-50 to-cyan-50/60 border border-slate-100 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-xs font-bold text-white uppercase shadow-xs">
+                          {user.username.slice(0, 1)}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-slate-900 truncate font-mono text-sm leading-tight">{user.username}</p>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span className="text-[10px] text-emerald-700 font-medium">全站专属资产已绑定</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+
+                    {/* 核心工作流与功能矩阵 */}
                     <div className="py-1 space-y-0.5">
+                      <p className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        核心工作台与资产
+                      </p>
                       <Link
-                        href="/market"
+                        href="/workflow"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                        className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
                       >
-                        <TrendingUp className="h-3.5 w-3.5 text-cyan-600" />
-                        <span>量化投研工作台</span>
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-3.5 w-3.5 text-cyan-600 group-hover:scale-110 transition-transform" />
+                          <span className="font-medium">自动化小说与分镜工作流</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">书架</span>
                       </Link>
                       <Link
                         href="/chat"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                        className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
                       >
-                        <Bot className="h-3.5 w-3.5 text-cyan-600" />
-                        <span>贾维斯专属 AI 记忆</span>
+                        <div className="flex items-center gap-2">
+                          <Bot className="h-3.5 w-3.5 text-blue-600 group-hover:scale-110 transition-transform" />
+                          <span className="font-medium">贾维斯专属 AI 对话记忆</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">记忆</span>
                       </Link>
+                      <Link
+                        href="/market"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-3.5 w-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                          <span className="font-medium">量化投研与策略中心</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">多空</span>
+                      </Link>
+                      <Link
+                        href="/gesture"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Hand className="h-3.5 w-3.5 text-violet-600 group-hover:scale-110 transition-transform" />
+                          <span className="font-medium">3D 手势视效空间</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">交互</span>
+                      </Link>
+                    </div>
+
+                    {/* 退出登录操作区 */}
+                    <div className="mt-1.5 pt-1.5 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={async (e) => {
@@ -172,10 +220,13 @@ export function SiteHeader() {
                             window.location.reload();
                           }
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer group"
                       >
-                        <LogOut className="h-3.5 w-3.5" />
-                        <span>退出当前账号</span>
+                        <div className="flex items-center gap-2 font-medium">
+                          <LogOut className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                          <span>退出登录</span>
+                        </div>
+                        <span className="text-[10px] text-rose-400 group-hover:text-rose-600">注销会话</span>
                       </button>
                     </div>
                   </div>

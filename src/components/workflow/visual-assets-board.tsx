@@ -574,7 +574,7 @@ export function VisualAssetsBoard({
             </div>
             <div className="pt-3 pb-1 flex flex-wrap items-center justify-between w-full px-4 text-white text-xs gap-2">
               <span className="text-slate-400 font-mono text-[11px]">
-                gemini-3-pro-image 工业级超清视觉资产 (无水印认证)
+                Studio Ultra-HD 工业级超清视觉资产 (无水印认证)
               </span>
               <div className="flex items-center gap-2">
                 <button
