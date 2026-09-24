@@ -72,7 +72,11 @@ export function evaluateAggressive(
   // 1. 主线题材与情绪热度 (25分) - 破除科技优先，唯题材强度与赚钱效应是瞻
   let indScore = 20;
   let indReason = `处于全市场热门主线题材【${p.sector}】`;
-  if (["低空经济", "商业航天", "机器人", "华为海思", "固态电池", "CPO光模块", "PCB算力板", "算力硬件", "智能驾驶"].includes(p.sector)) {
+  const hotKeywords = [
+    "低空经济", "商业航天", "机器人", "华为", "海思", "鸿蒙", "信创",
+    "固态电池", "CPO", "光模块", "PCB", "算力", "智能驾驶", "重组", "电网", "半导体"
+  ];
+  if (hotKeywords.some((kw) => p.sector.includes(kw))) {
     indScore = 25;
     indReason = `处于全市场情绪最高板与主流资金主攻方向【${p.sector}】，游资机构合力最强`;
   } else if (p.profit_growth_pct >= 30 || ind.is_60d_breakout) {
@@ -135,8 +139,8 @@ export function evaluateAggressive(
   const totalScore = parseFloat((indScore + capScore + trScore + moScore + valScore).toFixed(1));
 
   let action: "BUY" | "SELL" | "HOLD" | "WATCH" = "WATCH";
-  // 必须是中小市值且放量突破
-  if (totalScore >= 78 && p.market_cap_yi <= 500 && (ind.is_20d_breakout || ind.is_60d_breakout)) {
+  // 必须是中小市值且放量突破或日内强势
+  if (totalScore >= 78 && p.market_cap_yi <= 500 && (ind.is_20d_breakout || ind.is_60d_breakout || factors!.day_change_pct >= 2.0)) {
     action = "BUY";
   } else if (totalScore >= 70 && p.market_cap_yi <= 500) {
     action = "HOLD";
@@ -157,7 +161,7 @@ export function evaluateAggressive(
   };
 
   const trace: DecisionTrace = {
-    data_as_of: `${dateStr} 15:00:00`,
+    data_as_of: `${dateStr} ${timeStr}`,
     signal_time: `${dateStr} ${timeStr}`,
     execution_time: "次日 09:30:00 开盘集合竞价/开板换手 (T+1规则)",
     data_input: `最新现价 ¥${price.toFixed(2)}，日内涨跌 ${factors!.day_change_pct}%，市值 ${p.market_cap_yi}亿(中小盘)，行业=${p.sector}`,
@@ -259,7 +263,7 @@ export function evaluateBalanced(
   };
 
   const trace: DecisionTrace = {
-    data_as_of: `${dateStr} 15:00:00`,
+    data_as_of: `${dateStr} ${timeStr}`,
     signal_time: `${dateStr} ${timeStr}`,
     execution_time: "次日 09:35:00 回踩分批建仓 (T+1规则)",
     data_input: `最新现价 ¥${price.toFixed(2)}，ROE ${p.roe_pct}%，PEG ${p.peg}，负债率 ${p.debt_ratio_pct}%`,
@@ -364,7 +368,7 @@ export function evaluateConservative(
   };
 
   const trace: DecisionTrace = {
-    data_as_of: `${dateStr} 15:00:00`,
+    data_as_of: `${dateStr} ${timeStr}`,
     signal_time: `${dateStr} ${timeStr}`,
     execution_time: "次日 10:00:00 左侧网格挂单 (T+1规则)",
     data_input: `最新现价 ¥${price.toFixed(2)}，股息率 ${p.dividend_yield_pct}%，经营现金流 ${p.operating_cash_flow_yi}亿，Beta ${p.beta}`,
@@ -386,7 +390,8 @@ export function evaluateConservative(
 export function generateStrategyRecommendations(
   quotes: Record<string, RealQuote>,
   dateStr: string,
-  timeStr: string
+  timeStr: string,
+  targetStrategies?: Record<string, StrategyType[]>
 ): Record<StrategyType, StrategySignal[]> {
   const result: Record<StrategyType, StrategySignal[]> = {
     aggressive: [],
@@ -394,12 +399,26 @@ export function generateStrategyRecommendations(
     conservative: [],
   };
 
+  const hotKeywords = [
+    "低空经济", "商业航天", "机器人", "华为", "海思", "鸿蒙", "信创",
+    "固态电池", "CPO", "光模块", "PCB", "算力", "智能驾驶", "重组", "电网", "半导体"
+  ];
+
   for (const [code, quote] of Object.entries(quotes)) {
     const factors = calculateStockFactors(code, quote);
     if (!factors) continue;
+    const p = factors.profile;
+    const ind = factors.indicators;
 
-    // 激进策略候选池评估 (市场最高连板梯队龙头、断板弱转强反包，支持满仓单挑，退潮期果断100%空仓避险)
-    if (["600865", "600108", "002403", "000158", "002085", "600550", "000062"].includes(code)) {
+    const assigned = targetStrategies?.[code];
+
+    // 1. 激进策略候选池判定：
+    // 显式指定 aggressive，或者具备超短连板/高弹性特征（市值≤500亿且属于热点题材、高Beta或突破放量）
+    const isAggCandidate = assigned
+      ? assigned.includes("aggressive")
+      : (p.market_cap_yi <= 500 && (p.beta >= 1.25 || hotKeywords.some((kw) => p.sector.includes(kw)) || factors.day_change_pct >= 2.0 || ind.is_20d_breakout));
+
+    if (isAggCandidate) {
       const execCheck = checkLimitUpExecution(quote);
       const agg = evaluateAggressive(factors, dateStr, timeStr);
       const finalAction = execCheck.can_buy ? agg.signal : "WATCH";
@@ -415,16 +434,16 @@ export function generateStrategyRecommendations(
         action: finalAction,
         score: agg.score,
         score_detail: agg.detail,
-        data_as_of: `${dateStr} 15:00:00`,
+        data_as_of: `${dateStr} ${timeStr}`,
         signal_time: `${dateStr} ${timeStr}`,
         execution_time: execCheck.status === "LIMIT_UP_OPENED_BOUGHT"
           ? "日内分时开板换手点 (排板按涨停价撮合)"
           : "次日 09:30:00 (开盘换手回封撮合)",
         current_price: quote.current_price,
         suggested_entry: execCheck.can_buy ? execCheck.execution_price : 0,
-        stop_loss: parseFloat((quote.current_price * 0.93).toFixed(2)), // 宽幅严格止损 -7.0%
-        target_price: parseFloat((quote.current_price * 1.20).toFixed(2)), // 连板止盈目标 +20.0%
-        position_size_pct: execCheck.can_buy ? 100 : 0, // 无法成交默认保持现金
+        stop_loss: parseFloat((quote.current_price * 0.93).toFixed(2)),
+        target_price: parseFloat((quote.current_price * 1.20).toFixed(2)),
+        position_size_pct: execCheck.can_buy ? 100 : 0,
         risk_reward_ratio: 2.85,
         confidence: execCheck.can_buy ? "HIGH" : "LOW",
         reason: finalReason,
@@ -436,8 +455,13 @@ export function generateStrategyRecommendations(
       });
     }
 
-    // 均衡策略候选池评估 (GARP中军+成长)
-    if (["600584", "002475", "300476", "300502"].includes(code)) {
+    // 2. 均衡策略候选池判定：
+    // 显式指定 balanced，或者具备GARP中军特征（市值≥150亿，ROE高或业绩高增，低股息非纯收息股）
+    const isBalCandidate = assigned
+      ? assigned.includes("balanced")
+      : (p.market_cap_yi >= 150 && (p.roe_pct >= 12 || p.profit_growth_pct >= 20 || p.peg <= 1.2) && p.dividend_yield_pct < 4.5);
+
+    if (isBalCandidate) {
       const bal = evaluateBalanced(factors, dateStr, timeStr);
       result.balanced.push({
         id: `sig-bal-${code}`,
@@ -447,7 +471,7 @@ export function generateStrategyRecommendations(
         action: bal.signal,
         score: bal.score,
         score_detail: bal.detail,
-        data_as_of: `${dateStr} 15:00:00`,
+        data_as_of: `${dateStr} ${timeStr}`,
         signal_time: `${dateStr} ${timeStr}`,
         execution_time: "次日 09:35:00",
         current_price: quote.current_price,
@@ -463,8 +487,13 @@ export function generateStrategyRecommendations(
       });
     }
 
-    // 保守策略候选池评估 (高股息+农业防守+公用事业)
-    if (["600900", "601985", "600036", "000998"].includes(code)) {
+    // 3. 保守策略候选池判定：
+    // 显式指定 conservative，或者具备高股息/公用事业低波防守特征
+    const isConCandidate = assigned
+      ? assigned.includes("conservative")
+      : (p.dividend_yield_pct >= 2.0 || p.beta <= 0.9 || ["电力", "银行", "煤炭", "核电", "公用", "农业"].some((s) => p.sector.includes(s)));
+
+    if (isConCandidate) {
       const con = evaluateConservative(factors, dateStr, timeStr);
       result.conservative.push({
         id: `sig-con-${code}`,
@@ -474,7 +503,7 @@ export function generateStrategyRecommendations(
         action: con.signal,
         score: con.score,
         score_detail: con.detail,
-        data_as_of: `${dateStr} 15:00:00`,
+        data_as_of: `${dateStr} ${timeStr}`,
         signal_time: `${dateStr} ${timeStr}`,
         execution_time: "次日 10:00:00",
         current_price: quote.current_price,
@@ -491,12 +520,15 @@ export function generateStrategyRecommendations(
     }
   }
 
-  // 评分从高到低排序
+  // 评分从高到低排序，保留前 6 只优质标的
   result.aggressive.sort((a, b) => b.score - a.score);
-  // 激进型超短铁律：持仓与推荐严格不超过2只，极度聚焦龙头
-  result.aggressive = result.aggressive.slice(0, 2);
+  result.aggressive = result.aggressive.slice(0, 6);
+
   result.balanced.sort((a, b) => b.score - a.score);
+  result.balanced = result.balanced.slice(0, 6);
+
   result.conservative.sort((a, b) => b.score - a.score);
+  result.conservative = result.conservative.slice(0, 6);
 
   return result;
 }

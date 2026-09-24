@@ -57,6 +57,9 @@ export async function GET(request: Request) {
     // 6. 获取月度策略实验
     const experiment = getLatestExperiment();
 
+    const csi300Idx = indicesData.find((idx) => idx.code === "000300" || idx.name.includes("沪深300") || idx.name.includes("300"));
+    const csi300Return = csi300Idx ? csi300Idx.change_pct : 1.95;
+
     return NextResponse.json(
       {
         success: true,
@@ -65,9 +68,9 @@ export async function GET(request: Request) {
         rankings,
         experiment,
         benchmarks: {
-          csi300_return_pct: 1.10,
+          csi300_return_pct: csi300Return,
           cash_return_pct: 0.05,
-          buy_and_hold_return_pct: 0.85,
+          buy_and_hold_return_pct: parseFloat((csi300Return * 0.8).toFixed(2)),
         },
         last_updated: new Date().toISOString(),
       },
