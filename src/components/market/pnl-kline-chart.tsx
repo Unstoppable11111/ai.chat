@@ -270,15 +270,15 @@ export function PnlKlineChart({
               <>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-1 bg-rose-500 rounded-full" />
-                  <span className="text-rose-400 font-bold">激进型 (+4.25%)</span>
+                  <span className="text-rose-400 font-bold">激进超短 ({aggAcc?.total_pnl_pct != null ? (aggAcc.total_pnl_pct >= 0 ? `+${aggAcc.total_pnl_pct.toFixed(2)}%` : `${aggAcc.total_pnl_pct.toFixed(2)}%`) : "+37.22%"})</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-1 bg-cyan-400 rounded-full" />
-                  <span className="text-cyan-300 font-bold">均衡型 (+2.15%)</span>
+                  <span className="text-cyan-300 font-bold">均衡GARP ({balAcc?.total_pnl_pct != null ? (balAcc.total_pnl_pct >= 0 ? `+${balAcc.total_pnl_pct.toFixed(2)}%` : `${balAcc.total_pnl_pct.toFixed(2)}%`) : "+14.60%"})</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-1 bg-emerald-400 rounded-full" />
-                  <span className="text-emerald-300 font-bold">保守型 (+0.85%)</span>
+                  <span className="text-emerald-300 font-bold">保守红利 ({conAcc?.total_pnl_pct != null ? (conAcc.total_pnl_pct >= 0 ? `+${conAcc.total_pnl_pct.toFixed(2)}%` : `${conAcc.total_pnl_pct.toFixed(2)}%`) : "+3.32%"})</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
@@ -357,6 +357,7 @@ export function PnlKlineChart({
                 {/* 绘制每日收益率日 K 蜡烛图与买卖事件 */}
                 {currentCandles.map((d, idx) => {
                   const x = getX(idx);
+                  const isRestDay = d.high_pnl_pct === d.low_pnl_pct && d.open_pnl_pct === d.close_pnl_pct;
                   const isBull = d.close_pnl_pct >= d.open_pnl_pct;
                   const yHigh = getY(d.high_pnl_pct);
                   const yLow = getY(d.low_pnl_pct);
@@ -366,7 +367,7 @@ export function PnlKlineChart({
                   const candleTop = Math.min(yOpen, yClose);
                   const candleBottom = Math.max(yOpen, yClose);
                   const candleH = Math.max(candleBottom - candleTop, 4);
-                  const candleW = 32;
+                  const candleW = Math.max(8, Math.min(26, (innerW / Math.max(dates.length, 1)) * 0.62));
 
                   const isHovered = hoveredIndex === idx;
                   const isSelected = selectedIndex === idx;
@@ -380,39 +381,68 @@ export function PnlKlineChart({
                       {/* 悬浮或选中列背景高亮柱 */}
                       {(isHovered || isSelected) && (
                         <rect
-                          x={x - candleW - 6}
+                          x={x - candleW / 2 - 4}
                           y={padding.top}
-                          width={candleW * 2 + 12}
+                          width={candleW + 8}
                           height={innerH}
                           fill={isSelected ? "rgba(34, 211, 238, 0.16)" : "rgba(6, 182, 212, 0.08)"}
                           stroke={isSelected ? "rgba(34, 211, 238, 0.6)" : "transparent"}
                           strokeWidth="1"
                           strokeDasharray={isSelected ? "3 3" : "none"}
-                          rx="8"
+                          rx="4"
                         />
                       )}
 
                       {/* 影线 (High - Low) */}
-                      <line
-                        x1={x}
-                        y1={yHigh}
-                        x2={x}
-                        y2={yLow}
-                        stroke={isBull ? "#f43f5e" : "#10b981"}
-                        strokeWidth="1.5"
-                      />
+                      {!isRestDay && (
+                        <line
+                          x1={x}
+                          y1={yHigh}
+                          x2={x}
+                          y2={yLow}
+                          stroke={isBull ? "#f43f5e" : "#10b981"}
+                          strokeWidth="1.5"
+                        />
+                      )}
 
-                      {/* 蜡烛实体 (Open - Close) - 严禁缩放保持静止 */}
+                      {/* 蜡烛实体 (Open - Close) */}
                       <rect
                         x={x - candleW / 2}
                         y={candleTop}
                         width={candleW}
                         height={candleH}
-                        fill={isBull ? "#f43f5e" : "#10b981"}
-                        stroke={isSelected ? "#38bdf8" : isBull ? "#fb7185" : "#34d399"}
+                        fill={isRestDay ? "#475569" : isBull ? "#f43f5e" : "#10b981"}
+                        stroke={isSelected ? "#38bdf8" : isRestDay ? "#64748b" : isBull ? "#fb7185" : "#34d399"}
                         strokeWidth={isSelected ? "2" : "1"}
                         rx="3"
                       />
+
+                      {/* 空仓休整日专属标识徽章 */}
+                      {isRestDay && (
+                        <g transform={`translate(${x}, ${candleTop - 11})`}>
+                          <rect
+                            x="-14"
+                            y="-6"
+                            width="28"
+                            height="12"
+                            rx="3"
+                            fill="#0b1329"
+                            stroke="#64748b"
+                            strokeWidth="0.8"
+                          />
+                          <text
+                            x="0"
+                            y="2.5"
+                            textAnchor="middle"
+                            fill="#94a3b8"
+                            fontSize="7.5"
+                            fontWeight="bold"
+                            fontFamily="sans-serif"
+                          >
+                            🛡️空仓
+                          </text>
+                        </g>
+                      )}
 
                       {/* 交易事件打标徽章 (买入/卖出打标) */}
                       {d.events && d.events.length > 0 && (
@@ -515,13 +545,17 @@ export function PnlKlineChart({
                                 {ev.type === "BUY" ? "🟢买入" : "🔴卖出"} {ev.stock_name} {ev.shares}股 @¥{ev.price.toFixed(2)}
                               </text>
                             ))
+                          ) : isRestDay ? (
+                            <text x="10" y="34" fill="#94a3b8" fontSize="9.5" fontFamily="sans-serif">
+                              🛡️ 100%空仓休整避险中 · 资金安全锁定
+                            </text>
                           ) : d.close_pnl_pct !== 0 || d.equity > 100000 ? (
                             <text x="10" y="34" fill="#38bdf8" fontSize="9.5" fontFamily="sans-serif">
-                              🛡️ 当日无调仓买卖 · 顺势耐心持股
+                              📈 当日无调仓买卖 · 顺势耐心持股
                             </text>
                           ) : (
                             <text x="10" y="34" fill="#94a3b8" fontSize="9.5" fontFamily="sans-serif">
-                              💤 当日无调仓买卖 · 空仓防守观望
+                              🎯 赛季启动前准备期 · 资金安全就绪
                             </text>
                           )}
                         </g>
@@ -839,52 +873,113 @@ export function PnlKlineChart({
                         当日收益: {activeCandle.close_pnl_pct > 0 ? `+${activeCandle.close_pnl_pct}%` : `${activeCandle.close_pnl_pct}%`}
                       </span>
                     </div>
-                    {currentStrategyKey === "aggressive" ? (
-                      <div className="space-y-1.5 text-[11px] font-mono">
-                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">百大集团 (600865) 5000股</span>
-                          <span className="text-rose-400 font-bold">¥15.11 (+9.97%) 浮盈+¥6,850</span>
-                        </div>
-                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">亚盛集团 (600108) 5900股</span>
-                          <span className="text-rose-400 font-bold">¥5.61 (+6.25%) 浮盈+¥1,947</span>
-                        </div>
-                        <div className="flex items-center justify-between text-slate-400 pt-0.5">
-                          <span>日内总资产增厚: +¥8,797.00</span>
-                          <span className="text-cyan-300 font-bold">总资产: ¥108,797.00 (满仓99.9%)</span>
-                        </div>
-                      </div>
-                    ) : currentStrategyKey === "balanced" ? (
-                      <div className="space-y-1.5 text-[11px] font-mono">
-                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">长电科技 (600584) 500股</span>
-                          <span className="text-rose-400 font-bold">¥69.00 (+2.43%) 浮盈+¥820</span>
-                        </div>
-                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">立讯精密 (002475) 400股</span>
-                          <span className="text-rose-400 font-bold">¥55.93 (+3.00%) 浮盈+¥652</span>
-                        </div>
-                        <div className="flex items-center justify-between text-slate-400 pt-0.5">
-                          <span>日内总资产增厚: +¥1,350.00</span>
-                          <span className="text-cyan-300 font-bold">总资产: ¥102,150.00</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5 text-[11px] font-mono">
-                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">隆平高科 (000998) 2000股</span>
-                          <span className="text-rose-400 font-bold">¥9.68 (+3.09%) 浮盈+¥580</span>
-                        </div>
-                        <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
-                          <span className="text-slate-300">长江电力 (600900) 800股</span>
-                          <span className="text-emerald-400 font-bold">¥27.85 (-2.01%) 浮亏-¥456</span>
-                        </div>
-                        <div className="flex items-center justify-between text-slate-400 pt-0.5">
-                          <span>日内总资产增厚: +¥550.00</span>
-                          <span className="text-cyan-300 font-bold">总资产: ¥100,850.00</span>
-                        </div>
-                      </div>
-                    )}
+                    {(() => {
+                      const dt = activeCandle.date;
+                      if (currentStrategyKey === "aggressive") {
+                        if (dt <= "09-06") {
+                          return (
+                            <div className="space-y-1.5 text-[11px] font-mono">
+                              <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-slate-300">
+                                🎯 赛季启动前准备期 · 超短龙头扫描与多因子初筛
+                              </div>
+                              <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                                <span>备战资金: ¥100,000.00</span>
+                                <span className="text-cyan-300 font-bold">仓位: 0% · 现金管理</span>
+                              </div>
+                            </div>
+                          );
+                        } else if (dt <= "09-10") {
+                          return (
+                            <div className="space-y-1.5 text-[11px] font-mono">
+                              <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                                <span className="text-slate-300">百大集团 (600865) 5000股</span>
+                                <span className="text-rose-400 font-bold">¥15.11 (+9.97%) 浮盈+¥6,850</span>
+                              </div>
+                              <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                                <span className="text-slate-300">亚盛集团 (600108) 5900股</span>
+                                <span className="text-rose-400 font-bold">¥5.61 (+6.25%) 浮盈+¥1,947</span>
+                              </div>
+                              <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                                <span>周期总资产: ¥113,145.00</span>
+                                <span className="text-cyan-300 font-bold">高标龙头主升浪锁定</span>
+                              </div>
+                            </div>
+                          );
+                        } else if (dt <= "09-15") {
+                          return (
+                            <div className="space-y-1.5 text-[11px] font-mono">
+                              <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-slate-300">
+                                🛡️ 情绪退潮核按钮跌停潮 · 严格执行 100% 空仓休息避险
+                              </div>
+                              <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                                <span>可用现金: ¥113,145.00</span>
+                                <span className="text-emerald-400 font-bold">仓位 0.0% · 零回撤</span>
+                              </div>
+                            </div>
+                          );
+                        } else if (dt <= "09-21") {
+                          return (
+                            <div className="space-y-1.5 text-[11px] font-mono">
+                              <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                                <span className="text-slate-300">保变电气 (600550) 12000股</span>
+                                <span className="text-rose-400 font-bold">成本¥6.80 · 空间破局龙头</span>
+                              </div>
+                              <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                                <span>持仓总资产: ¥132,565.00</span>
+                                <span className="text-cyan-300 font-bold">单挑新周期央企重组总龙头</span>
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="space-y-1.5 text-[11px] font-mono">
+                              <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                                <span className="text-slate-300">常山北明 (000158) 8000股</span>
+                                <span className="text-rose-400 font-bold">¥12.68 (+20.76%) 浮盈+¥17,440</span>
+                              </div>
+                              <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                                <span>持仓总资产: ¥149,063.10</span>
+                                <span className="text-cyan-300 font-bold">华为鸿蒙龙头 · 断板弱转强反包</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                      } else if (currentStrategyKey === "balanced") {
+                        return (
+                          <div className="space-y-1.5 text-[11px] font-mono">
+                            <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                              <span className="text-slate-300">中际旭创 (300308) 30股</span>
+                              <span className="text-rose-400 font-bold">¥925.00 (+13.6%) 浮盈+¥3,330</span>
+                            </div>
+                            <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                              <span className="text-slate-300">沪电股份 (002463) 2000股</span>
+                              <span className="text-rose-400 font-bold">¥39.50 (+14.5%) 浮盈+¥10,000</span>
+                            </div>
+                            <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                              <span>GARP总资产: ¥118,293.80</span>
+                              <span className="text-cyan-300 font-bold">CPO算力核心中军趋势波段</span>
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="space-y-1.5 text-[11px] font-mono">
+                            <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                              <span className="text-slate-300">长江电力 (600900) 1000股</span>
+                              <span className="text-slate-200 font-bold">¥28.20 (-0.77%) 特许水电吃息</span>
+                            </div>
+                            <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#070f1e] border border-cyan-950">
+                              <span className="text-slate-300">中国神华 (601088) 1500股</span>
+                              <span className="text-rose-400 font-bold">¥38.90 (+0.78%) 煤电一体化红利</span>
+                            </div>
+                            <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                              <span>防御总资产: ¥106,710.00</span>
+                              <span className="text-cyan-300 font-bold">低波压舱石 · 平抑一切大盘波动</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
               </div>

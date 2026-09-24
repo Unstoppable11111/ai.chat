@@ -106,3 +106,54 @@ export interface WinRateStats {
   avg_return_pct: number;
   max_return_pct: number;
 }
+
+/**
+ * 计算多因子选股策略历史胜率统计
+ */
+export function calculateWinRateStats(history: StockRecommendation[]): WinRateStats {
+  if (!history || history.length === 0) {
+    return {
+      total_signals: 0,
+      win_count: 0,
+      loss_count: 0,
+      holding_count: 0,
+      win_rate: 0,
+      profit_loss_ratio: 0,
+      avg_return_pct: 0,
+      max_return_pct: 0,
+    };
+  }
+
+  const winPicks = history.filter((p) => p.status === "win");
+  const stoppedPicks = history.filter((p) => p.status === "stopped");
+  const holdingPicks = history.filter((p) => p.status === "holding");
+
+  const completed = winPicks.length + stoppedPicks.length;
+  const winRate = completed > 0 ? parseFloat(((winPicks.length / completed) * 100).toFixed(1)) : 0;
+
+  // 盈利单平均收益率与亏损单平均亏损
+  const winReturns = winPicks.map((p) => Math.max(p.t1_return, p.t3_return, p.t5_max_return));
+  const avgWin = winReturns.length > 0 ? winReturns.reduce((a, b) => a + b, 0) / winReturns.length : 0;
+
+  const lossReturns = stoppedPicks.map((p) => Math.min(p.t1_return, p.t3_return, p.t5_max_return));
+  const avgLoss = lossReturns.length > 0 ? Math.abs(lossReturns.reduce((a, b) => a + b, 0) / lossReturns.length) : 0;
+
+  const pnlRatio = avgLoss > 0 ? parseFloat((avgWin / avgLoss).toFixed(2)) : parseFloat(avgWin.toFixed(2));
+
+  // 全部样本平均最大收益率与单笔最高
+  const allMaxReturns = history.map((p) => Math.max(p.t1_return, p.t3_return, p.t5_max_return));
+  const avgReturn = allMaxReturns.length > 0 ? parseFloat((allMaxReturns.reduce((a, b) => a + b, 0) / allMaxReturns.length).toFixed(1)) : 0;
+  const maxReturn = allMaxReturns.length > 0 ? parseFloat(Math.max(...allMaxReturns).toFixed(1)) : 0;
+
+  return {
+    total_signals: history.length,
+    win_count: winPicks.length,
+    loss_count: stoppedPicks.length,
+    holding_count: holdingPicks.length,
+    win_rate: winRate,
+    profit_loss_ratio: pnlRatio,
+    avg_return_pct: avgReturn,
+    max_return_pct: maxReturn,
+  };
+}
+

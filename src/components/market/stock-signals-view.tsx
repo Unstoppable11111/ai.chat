@@ -37,6 +37,7 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
   const [paperAccount, setPaperAccount] = useState<PaperAccount | undefined>();
   const [pnlKline, setPnlKline] = useState<DailyPnlCandle[]>([]);
   const [tradeEvents, setTradeEvents] = useState<TradeEvent[]>([]);
+  const [watchlist, setWatchlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingCode, setAddingCode] = useState<string | null>(null);
 
@@ -53,6 +54,7 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
         setAccounts(json.accounts || []);
         setPnlKline(json.pnl_kline || []);
         setTradeEvents(json.trade_events || []);
+        setWatchlist(json.dynamic_watchlist || []);
       }).catch(() => {}).finally(() => { if (!abort.signal.aborted) setLoading(false); });
     return () => abort.abort();
   }, [activeAccountStyle]);
@@ -271,7 +273,75 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
         </div>
       </div>
 
-      {/* 4. 历史推荐记录与实盘胜率核验表 */}
+      {/* 4. 盘中/盘后风格动态备选股票池 (Dynamic Watchlist Pipeline) */}
+      {watchlist.length > 0 && (
+        <div className="p-6 rounded-3xl bg-[#0c1626]/80 border border-cyan-500/20 shadow-xl backdrop-blur-xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Target className="w-4 h-4 text-cyan-400" />
+                风格专属动态备选池 (Watchlist)
+                <span className="text-xs font-normal text-slate-400">
+                  (根据今日量价动能与题材异动动态更替)
+                </span>
+              </h3>
+            </div>
+            <span className="text-xs text-slate-400 font-mono">
+              盘中/盘后梯队盯盘 · 拒绝一成不变
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {watchlist.map((item: any) => (
+              <div
+                key={item.code}
+                className="p-5 rounded-2xl bg-[#0f1d35]/70 border border-cyan-500/20 hover:border-cyan-400/50 transition-all flex flex-col justify-between space-y-3 group shadow-lg"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base font-bold text-white">{item.name}</span>
+                      <span className="text-xs font-mono text-cyan-400 font-semibold">{item.code}</span>
+                    </div>
+                    <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold border ${
+                      item.status === "TRIGGERED"
+                        ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                        : "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
+                    }`}>
+                      {item.status === "TRIGGERED" ? "🎯 信号触发" : "👀 严密监控中"}
+                    </span>
+                  </div>
+
+                  <div className="mt-2.5 flex items-baseline justify-between text-xs font-mono">
+                    <span className="text-slate-400">跟踪参考现价</span>
+                    <span className="text-white font-bold">¥ {Number(item.current_price).toFixed(2)}</span>
+                  </div>
+
+                  <div className="mt-2 p-2.5 rounded-xl bg-[#091220] border border-cyan-950 text-xs space-y-1.5">
+                    <div className="text-amber-300 font-semibold flex items-center gap-1 text-[11px]">
+                      <span>⚡ 触发买入条件:</span>
+                    </div>
+                    <div className="text-slate-300 text-[11px] leading-relaxed">
+                      {item.trigger_condition}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-400 mt-2.5 leading-relaxed line-clamp-2">
+                    {item.reason}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-cyan-950/60 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>策略归属: {item.category}</span>
+                  <span className="text-cyan-400 font-mono">量能异动筛选</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 5. 历史推荐记录与实盘胜率核验表 */}
       <div className="p-6 rounded-3xl bg-[#0c1626]/80 border border-cyan-500/20 shadow-xl backdrop-blur-xl space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-white flex items-center gap-2">

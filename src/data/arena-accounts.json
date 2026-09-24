@@ -1,0 +1,1523 @@
+{
+  "aggressive": {
+    "id": "aggressive",
+    "name": "激进超短龙头策略 (AGGRESSIVE)",
+    "version": "v2.0",
+    "initial_capital": 100000,
+    "total_equity": 137223.1,
+    "cash": 47623.1,
+    "market_value": 89600,
+    "today_pnl": 0,
+    "today_pnl_pct": 0,
+    "total_return_pct": 37.22,
+    "max_drawdown_pct": -1.25,
+    "sharpe_ratio": 3.85,
+    "sortino_ratio": 5.6,
+    "calmar_ratio": 6.2,
+    "win_rate_pct": 83.3,
+    "profit_factor": 5.8,
+    "current_exposure_pct": 65.3,
+    "position_count": 1,
+    "completed_trades": 6,
+    "strategy_score": 98.2,
+    "risk_status": "SAFE",
+    "is_protection_mode": false,
+    "positions": [
+      {
+        "code": "000158",
+        "name": "常山北明",
+        "shares": 8000,
+        "available_shares": 8000,
+        "cost_price": 10.5,
+        "current_price": 11.2,
+        "market_value": 89600,
+        "weight_pct": 65.3,
+        "pnl": 5600,
+        "pnl_pct": 6.67,
+        "stop_loss_price": 10.1,
+        "target_price": 13.5,
+        "holding_days": 2,
+        "buy_date": "2026-09-22",
+        "strategy_reason": "华为鸿蒙与金融IT高标总龙头，断板后次日竞价弱转强，分时逆势放量拉升突破，执行断板反包战法",
+        "sector": "华为概念/软件服务",
+        "beta": 1.95
+      }
+    ],
+    "account_id": "aggressive",
+    "equity_series": [
+      {
+        "date": "09-01",
+        "equity": 99850,
+        "return_pct": -0.15,
+        "benchmark_pct": 0.1,
+        "alpha_pct": -0.25,
+        "drawdown_pct": -0.15
+      },
+      {
+        "date": "09-02",
+        "equity": 100450,
+        "return_pct": 0.45,
+        "benchmark_pct": 0.3,
+        "alpha_pct": 0.15,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-03",
+        "equity": 100600,
+        "return_pct": 0.6,
+        "benchmark_pct": 0.4,
+        "alpha_pct": 0.2,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-04",
+        "equity": 100000,
+        "return_pct": 0,
+        "benchmark_pct": 0.5,
+        "alpha_pct": -0.5,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-07",
+        "equity": 100000,
+        "return_pct": 0,
+        "benchmark_pct": 0.6,
+        "alpha_pct": -0.6,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-08",
+        "equity": 108148,
+        "return_pct": 8.15,
+        "benchmark_pct": 1.1,
+        "alpha_pct": 7.05,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-09",
+        "equity": 117324,
+        "return_pct": 17.32,
+        "benchmark_pct": 1.35,
+        "alpha_pct": 15.97,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-10",
+        "equity": 113145,
+        "return_pct": 13.15,
+        "benchmark_pct": 1.2,
+        "alpha_pct": 11.95,
+        "drawdown_pct": -1.25
+      },
+      {
+        "date": "09-11",
+        "equity": 113145,
+        "return_pct": 13.15,
+        "benchmark_pct": 0.85,
+        "alpha_pct": 12.3,
+        "drawdown_pct": -1.25
+      },
+      {
+        "date": "09-14",
+        "equity": 113145,
+        "return_pct": 13.15,
+        "benchmark_pct": 0.9,
+        "alpha_pct": 12.25,
+        "drawdown_pct": -1.25
+      },
+      {
+        "date": "09-15",
+        "equity": 113145,
+        "return_pct": 13.15,
+        "benchmark_pct": 0.95,
+        "alpha_pct": 12.2,
+        "drawdown_pct": -1.25
+      },
+      {
+        "date": "09-16",
+        "equity": 113125,
+        "return_pct": 13.13,
+        "benchmark_pct": 1.25,
+        "alpha_pct": 11.88,
+        "drawdown_pct": -1.25
+      },
+      {
+        "date": "09-17",
+        "equity": 121285,
+        "return_pct": 21.28,
+        "benchmark_pct": 1.4,
+        "alpha_pct": 19.88,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-18",
+        "equity": 130285,
+        "return_pct": 30.28,
+        "benchmark_pct": 1.65,
+        "alpha_pct": 28.63,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-21",
+        "equity": 132565,
+        "return_pct": 32.56,
+        "benchmark_pct": 1.55,
+        "alpha_pct": 31.01,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-22",
+        "equity": 137223,
+        "return_pct": 37.22,
+        "benchmark_pct": 1.8,
+        "alpha_pct": 35.42,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-23",
+        "equity": 149383.1,
+        "return_pct": 49.38,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 47.43,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-24",
+        "equity": 149063.1,
+        "return_pct": 49.06,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 47.11,
+        "drawdown_pct": -0.21
+      }
+    ],
+    "candles": [
+      {
+        "date": "09-01",
+        "open_pnl_pct": 0,
+        "high_pnl_pct": 0.35,
+        "low_pnl_pct": -0.4,
+        "close_pnl_pct": -0.15,
+        "equity": 99850,
+        "benchmark_pct": 0.1,
+        "alpha_pct": -0.25,
+        "events": []
+      },
+      {
+        "date": "09-02",
+        "open_pnl_pct": -0.15,
+        "high_pnl_pct": 0.8,
+        "low_pnl_pct": -0.2,
+        "close_pnl_pct": 0.45,
+        "equity": 100450,
+        "benchmark_pct": 0.3,
+        "alpha_pct": 0.15,
+        "events": []
+      },
+      {
+        "date": "09-03",
+        "open_pnl_pct": 0.45,
+        "high_pnl_pct": 1.1,
+        "low_pnl_pct": 0.3,
+        "close_pnl_pct": 0.6,
+        "equity": 100600,
+        "benchmark_pct": 0.4,
+        "alpha_pct": 0.2,
+        "events": []
+      },
+      {
+        "date": "09-04",
+        "open_pnl_pct": 0.6,
+        "high_pnl_pct": 1.2,
+        "low_pnl_pct": 0,
+        "close_pnl_pct": 0,
+        "equity": 100000,
+        "benchmark_pct": 0.5,
+        "alpha_pct": -0.5,
+        "events": []
+      },
+      {
+        "date": "09-07",
+        "open_pnl_pct": 0,
+        "high_pnl_pct": 0,
+        "low_pnl_pct": 0,
+        "close_pnl_pct": 0,
+        "equity": 100000,
+        "benchmark_pct": 0.6,
+        "alpha_pct": -0.6,
+        "events": [
+          {
+            "id": "ev-agg-1",
+            "date": "09-07",
+            "time": "09:42",
+            "type": "BUY",
+            "stock_code": "600865",
+            "stock_name": "百大集团",
+            "price": 13.74,
+            "shares": 5000,
+            "amount": 68700,
+            "target_price": 16.63,
+            "stop_loss_price": 12.78,
+            "pnl_pct": 0,
+            "pnl_amount": 0,
+            "reason": "全市场最高5连板空间总龙头(小盘56亿)，早盘一字涨停排板，09:42分时开板换手回封成功撮合成交，按涨停价买入",
+            "entry_price": 13.74,
+            "entry_time": "09-07 09:42",
+            "entry_reason": "全市场最高5连板空间总龙头，换手回封撮合成交",
+            "position_before_pct": 0,
+            "position_after_pct": 68.8,
+            "strategy_win_rate": 83.3,
+            "selection_win_rate": 83.3
+          },
+          {
+            "id": "ev-agg-2",
+            "date": "09-07",
+            "time": "09:35",
+            "type": "BUY",
+            "stock_code": "600108",
+            "stock_name": "亚盛集团",
+            "price": 5.28,
+            "shares": 5900,
+            "amount": 31152,
+            "target_price": 6.39,
+            "stop_loss_price": 4.91,
+            "pnl_pct": 0,
+            "pnl_amount": 0,
+            "reason": "农业连板梯队前排共振高弹性龙头，开盘放量换手走强撮合成交",
+            "entry_price": 5.28,
+            "entry_time": "09-07 09:35",
+            "entry_reason": "连板梯队共振，分时突破买入",
+            "position_before_pct": 0,
+            "position_after_pct": 31.2,
+            "strategy_win_rate": 83.3,
+            "selection_win_rate": 83.3
+          }
+        ]
+      },
+      {
+        "date": "09-08",
+        "open_pnl_pct": 0,
+        "high_pnl_pct": 9.2,
+        "low_pnl_pct": 0,
+        "close_pnl_pct": 8.15,
+        "equity": 108148,
+        "benchmark_pct": 1.1,
+        "alpha_pct": 7.05,
+        "events": []
+      },
+      {
+        "date": "09-09",
+        "open_pnl_pct": 8.15,
+        "high_pnl_pct": 18.2,
+        "low_pnl_pct": 8.15,
+        "close_pnl_pct": 17.32,
+        "equity": 117324,
+        "benchmark_pct": 1.35,
+        "alpha_pct": 15.97,
+        "events": [
+          {
+            "id": "ev-agg-3",
+            "date": "09-09",
+            "time": "09:48",
+            "type": "SELL",
+            "stock_code": "600108",
+            "stock_name": "亚盛集团",
+            "price": 5.78,
+            "shares": 5900,
+            "amount": 34102,
+            "pnl_pct": 9.47,
+            "pnl_amount": 2924,
+            "reason": "【五分钟超短监控触发】冲高+9.5%突破遇阻回落，执行超短快进快出铁律，止盈落袋为安锁定利润(+¥2,924)",
+            "entry_price": 5.28,
+            "entry_time": "09-07 09:35",
+            "entry_reason": "连板前排梯队突破",
+            "exit_reason": "冲高回落止盈离场，腾出资金单挑总龙头",
+            "position_before_pct": 31.2,
+            "position_after_pct": 0,
+            "strategy_win_rate": 83.3,
+            "selection_win_rate": 83.3
+          }
+        ]
+      },
+      {
+        "date": "09-10",
+        "open_pnl_pct": 17.32,
+        "high_pnl_pct": 18.5,
+        "low_pnl_pct": 12.8,
+        "close_pnl_pct": 13.15,
+        "equity": 113145,
+        "benchmark_pct": 1.2,
+        "alpha_pct": 11.95,
+        "events": [
+          {
+            "id": "ev-agg-4",
+            "date": "09-10",
+            "time": "10:24",
+            "type": "SELL",
+            "stock_code": "600865",
+            "stock_name": "百大集团",
+            "price": 15.8,
+            "shares": 5000,
+            "amount": 79000,
+            "pnl_pct": 14.99,
+            "pnl_amount": 10240,
+            "reason": "【严重异动风控触发】7连板触及监管红线，早盘冲高遇阻开板，执行超短防守止盈离场，锁定利润(+¥10,240)，进入100%空仓避险状态",
+            "entry_price": 13.74,
+            "entry_time": "09-07 09:42",
+            "entry_reason": "5连板空间总龙头打板",
+            "exit_reason": "高位巨量开板，主动止盈空仓避险",
+            "position_before_pct": 68.8,
+            "position_after_pct": 0,
+            "strategy_win_rate": 83.3,
+            "selection_win_rate": 83.3
+          }
+        ]
+      },
+      {
+        "date": "09-11",
+        "open_pnl_pct": 13.15,
+        "high_pnl_pct": 13.15,
+        "low_pnl_pct": 13.15,
+        "close_pnl_pct": 13.15,
+        "equity": 113145,
+        "benchmark_pct": 0.85,
+        "alpha_pct": 12.3,
+        "events": [
+          {
+            "id": "ev-agg-rest-1",
+            "date": "09-11",
+            "time": "09:30",
+            "type": "SELL",
+            "stock_code": "CASH",
+            "stock_name": "100%空仓休息",
+            "price": 1,
+            "shares": 0,
+            "amount": 0,
+            "pnl_pct": 0,
+            "pnl_amount": 0,
+            "reason": "【情绪退潮避险】全市场连板高标批量核按钮跌停，情绪极度恶劣，严格执行超短纪律 100% 空仓休息，不盲目接飞刀"
+          }
+        ]
+      },
+      {
+        "date": "09-14",
+        "open_pnl_pct": 13.15,
+        "high_pnl_pct": 13.15,
+        "low_pnl_pct": 13.15,
+        "close_pnl_pct": 13.15,
+        "equity": 113145,
+        "benchmark_pct": 0.9,
+        "alpha_pct": 12.25,
+        "events": []
+      },
+      {
+        "date": "09-15",
+        "open_pnl_pct": 13.15,
+        "high_pnl_pct": 13.15,
+        "low_pnl_pct": 13.15,
+        "close_pnl_pct": 13.15,
+        "equity": 113145,
+        "benchmark_pct": 0.95,
+        "alpha_pct": 12.2,
+        "events": []
+      },
+      {
+        "date": "09-16",
+        "open_pnl_pct": 13.15,
+        "high_pnl_pct": 13.5,
+        "low_pnl_pct": 13.1,
+        "close_pnl_pct": 13.13,
+        "equity": 113125,
+        "benchmark_pct": 1.25,
+        "alpha_pct": 11.88,
+        "events": [
+          {
+            "id": "ev-agg-5",
+            "date": "09-16",
+            "time": "09:35",
+            "type": "BUY",
+            "stock_code": "600550",
+            "stock_name": "保变电气",
+            "price": 6.8,
+            "shares": 12000,
+            "amount": 81600,
+            "target_price": 8.5,
+            "stop_loss_price": 6.3,
+            "pnl_pct": 0,
+            "pnl_amount": 0,
+            "reason": "新周期空间破局总龙头，央企重组主线，早盘爆量弱转强换手封死涨停，单挑建仓",
+            "entry_price": 6.8,
+            "entry_time": "09-16 09:35",
+            "entry_reason": "新题材破局龙头接力",
+            "position_before_pct": 0,
+            "position_after_pct": 72.1,
+            "strategy_win_rate": 83.3,
+            "selection_win_rate": 83.3
+          }
+        ]
+      },
+      {
+        "date": "09-17",
+        "open_pnl_pct": 13.13,
+        "high_pnl_pct": 21.28,
+        "low_pnl_pct": 13.13,
+        "close_pnl_pct": 21.28,
+        "equity": 121285,
+        "benchmark_pct": 1.4,
+        "alpha_pct": 19.88,
+        "events": []
+      },
+      {
+        "date": "09-18",
+        "open_pnl_pct": 21.28,
+        "high_pnl_pct": 30.28,
+        "low_pnl_pct": 21.28,
+        "close_pnl_pct": 30.28,
+        "equity": 130285,
+        "benchmark_pct": 1.65,
+        "alpha_pct": 28.63,
+        "events": []
+      },
+      {
+        "date": "09-21",
+        "open_pnl_pct": 30.28,
+        "high_pnl_pct": 35.8,
+        "low_pnl_pct": 30.28,
+        "close_pnl_pct": 32.56,
+        "equity": 132565,
+        "benchmark_pct": 1.55,
+        "alpha_pct": 31.01,
+        "events": []
+      },
+      {
+        "date": "09-22",
+        "open_pnl_pct": 32.56,
+        "high_pnl_pct": 37.8,
+        "low_pnl_pct": 32,
+        "close_pnl_pct": 37.22,
+        "equity": 137223,
+        "benchmark_pct": 1.8,
+        "alpha_pct": 35.42,
+        "events": [
+          {
+            "id": "ev-agg-6",
+            "date": "09-22",
+            "time": "09:38",
+            "type": "SELL",
+            "stock_code": "600550",
+            "stock_name": "保变电气",
+            "price": 8.35,
+            "shares": 12000,
+            "amount": 100200,
+            "pnl_pct": 22.79,
+            "pnl_amount": 18499,
+            "reason": "高位连板缩量滞涨遇阻，按纪律执行高位止盈离场，落袋为安锁定高额利润(+¥18,499)",
+            "entry_price": 6.8,
+            "entry_time": "09-16 09:35",
+            "entry_reason": "新周期龙头打板",
+            "exit_reason": "高位滞涨止盈，腾挪资金捕捉新高标",
+            "position_before_pct": 72.1,
+            "position_after_pct": 0,
+            "strategy_win_rate": 83.3,
+            "selection_win_rate": 83.3
+          },
+          {
+            "id": "ev-agg-7",
+            "date": "09-22",
+            "time": "10:15",
+            "type": "BUY",
+            "stock_code": "000158",
+            "stock_name": "常山北明",
+            "price": 10.5,
+            "shares": 8000,
+            "amount": 84000,
+            "target_price": 13.5,
+            "stop_loss_price": 10.1,
+            "pnl_pct": 6.67,
+            "pnl_amount": 5600,
+            "reason": "华为鸿蒙与金融IT高标总龙头，断板后次日集合竞价弱转强，分时逆势放量拉升突破，执行断板反包战法",
+            "entry_price": 10.5,
+            "entry_time": "09-22 10:15",
+            "entry_reason": "断板弱转强反包板撮合",
+            "position_before_pct": 0,
+            "position_after_pct": 65.3,
+            "strategy_win_rate": 83.3,
+            "selection_win_rate": 83.3
+          }
+        ]
+      },
+      {
+        "date": "09-23",
+        "open_pnl_pct": 37.22,
+        "high_pnl_pct": 49.38,
+        "low_pnl_pct": 36.8,
+        "close_pnl_pct": 49.38,
+        "equity": 149383.1,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 47.43,
+        "events": []
+      },
+      {
+        "date": "09-24",
+        "open_pnl_pct": 49.38,
+        "high_pnl_pct": 49.38,
+        "low_pnl_pct": 49.06,
+        "close_pnl_pct": 49.06,
+        "equity": 149063.1,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 47.11,
+        "events": []
+      }
+    ],
+    "orders": [],
+    "attribution": {
+      "stock_selection_pct": 0.72,
+      "industry_allocation_pct": 0.18,
+      "timing_pct": 0.06,
+      "position_sizing_pct": 0.02,
+      "market_beta_pct": 0.02,
+      "alpha_pct": 0.9
+    },
+    "risk_metrics": {
+      "volatility_pct": 12.5,
+      "beta": 1.85,
+      "var_95_pct": -1.85,
+      "cvar_95_pct": -2.4,
+      "max_single_position_pct": 65.3,
+      "top_industry": "华为概念/软件服务",
+      "top_industry_pct": 65.3,
+      "concentration_top3_pct": 65.3
+    }
+  },
+  "balanced": {
+    "id": "balanced",
+    "name": "均衡成长GARP策略 (BALANCED)",
+    "version": "v2.0",
+    "initial_capital": 100000,
+    "total_equity": 114600,
+    "cash": 39268.2,
+    "market_value": 75331.8,
+    "today_pnl": 450,
+    "today_pnl_pct": 0.39,
+    "total_return_pct": 14.6,
+    "max_drawdown_pct": -1.8,
+    "sharpe_ratio": 2.65,
+    "sortino_ratio": 3.4,
+    "calmar_ratio": 4.1,
+    "win_rate_pct": 75,
+    "profit_factor": 3.4,
+    "current_exposure_pct": 65.7,
+    "position_count": 3,
+    "completed_trades": 4,
+    "strategy_score": 91.5,
+    "risk_status": "SAFE",
+    "is_protection_mode": false,
+    "positions": [
+      {
+        "code": "300308",
+        "name": "中际旭创",
+        "shares": 30,
+        "available_shares": 30,
+        "cost_price": 814,
+        "current_price": 898.46,
+        "market_value": 26953.8,
+        "weight_pct": 23.5,
+        "pnl": 2533.8,
+        "pnl_pct": 10.38,
+        "stop_loss_price": 775,
+        "target_price": 950,
+        "holding_days": 12,
+        "buy_date": "2026-09-07",
+        "strategy_reason": "全球1.6T算力光模块总龙头，基本面高爆发，均线多头趋势波段持有",
+        "sector": "CPO光模块",
+        "beta": 1.35
+      },
+      {
+        "code": "300502",
+        "name": "新易盛",
+        "shares": 60,
+        "available_shares": 60,
+        "cost_price": 386,
+        "current_price": 417.2,
+        "market_value": 25032,
+        "weight_pct": 21.8,
+        "pnl": 1872,
+        "pnl_pct": 8.08,
+        "stop_loss_price": 365,
+        "target_price": 460,
+        "holding_days": 12,
+        "buy_date": "2026-09-07",
+        "strategy_reason": "创业板CPO核心弹性中军，海外大客户订单加速，多头排列持有",
+        "sector": "通信网络",
+        "beta": 1.42
+      },
+      {
+        "code": "300476",
+        "name": "胜宏科技",
+        "shares": 100,
+        "available_shares": 100,
+        "cost_price": 219.5,
+        "current_price": 233.46,
+        "market_value": 23346,
+        "weight_pct": 20.4,
+        "pnl": 1396,
+        "pnl_pct": 6.36,
+        "stop_loss_price": 208,
+        "target_price": 260,
+        "holding_days": 12,
+        "buy_date": "2026-09-07",
+        "strategy_reason": "AI算力服务器PCB高多层板核心龙头，趋势良性持有",
+        "sector": "PCB电子",
+        "beta": 1.28
+      }
+    ],
+    "account_id": "balanced",
+    "equity_series": [
+      {
+        "date": "09-01",
+        "equity": 100200,
+        "return_pct": 0.2,
+        "benchmark_pct": 0.1,
+        "alpha_pct": 0.1,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-02",
+        "equity": 100550,
+        "return_pct": 0.55,
+        "benchmark_pct": 0.3,
+        "alpha_pct": 0.25,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-03",
+        "equity": 100400,
+        "return_pct": 0.4,
+        "benchmark_pct": 0.4,
+        "alpha_pct": 0,
+        "drawdown_pct": -0.15
+      },
+      {
+        "date": "09-04",
+        "equity": 100850,
+        "return_pct": 0.85,
+        "benchmark_pct": 0.5,
+        "alpha_pct": 0.35,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-07",
+        "equity": 100000,
+        "return_pct": 0,
+        "benchmark_pct": 0.6,
+        "alpha_pct": -0.6,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-08",
+        "equity": 104200,
+        "return_pct": 4.2,
+        "benchmark_pct": 1.1,
+        "alpha_pct": 3.1,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-09",
+        "equity": 106500,
+        "return_pct": 6.5,
+        "benchmark_pct": 1.35,
+        "alpha_pct": 5.15,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-10",
+        "equity": 105800,
+        "return_pct": 5.8,
+        "benchmark_pct": 1.2,
+        "alpha_pct": 4.6,
+        "drawdown_pct": -0.7
+      },
+      {
+        "date": "09-11",
+        "equity": 106200,
+        "return_pct": 6.2,
+        "benchmark_pct": 0.85,
+        "alpha_pct": 5.35,
+        "drawdown_pct": -0.3
+      },
+      {
+        "date": "09-14",
+        "equity": 107500,
+        "return_pct": 7.5,
+        "benchmark_pct": 0.9,
+        "alpha_pct": 6.6,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-15",
+        "equity": 108400,
+        "return_pct": 8.4,
+        "benchmark_pct": 0.95,
+        "alpha_pct": 7.45,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-16",
+        "equity": 110200,
+        "return_pct": 10.2,
+        "benchmark_pct": 1.25,
+        "alpha_pct": 8.95,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-17",
+        "equity": 111800,
+        "return_pct": 11.8,
+        "benchmark_pct": 1.4,
+        "alpha_pct": 10.4,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-18",
+        "equity": 113200,
+        "return_pct": 13.2,
+        "benchmark_pct": 1.65,
+        "alpha_pct": 11.55,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-21",
+        "equity": 112900,
+        "return_pct": 12.9,
+        "benchmark_pct": 1.55,
+        "alpha_pct": 11.35,
+        "drawdown_pct": -0.3
+      },
+      {
+        "date": "09-22",
+        "equity": 114150,
+        "return_pct": 14.15,
+        "benchmark_pct": 1.8,
+        "alpha_pct": 12.35,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-23",
+        "equity": 114600,
+        "return_pct": 14.6,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 12.65,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-24",
+        "equity": 118293.8,
+        "return_pct": 18.29,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 16.34,
+        "drawdown_pct": 0
+      }
+    ],
+    "candles": [
+      {
+        "date": "09-01",
+        "open_pnl_pct": 0,
+        "high_pnl_pct": 0.35,
+        "low_pnl_pct": 0,
+        "close_pnl_pct": 0.2,
+        "equity": 100200,
+        "benchmark_pct": 0.1,
+        "alpha_pct": 0.1,
+        "events": []
+      },
+      {
+        "date": "09-02",
+        "open_pnl_pct": 0.2,
+        "high_pnl_pct": 0.7,
+        "low_pnl_pct": 0.15,
+        "close_pnl_pct": 0.55,
+        "equity": 100550,
+        "benchmark_pct": 0.3,
+        "alpha_pct": 0.25,
+        "events": []
+      },
+      {
+        "date": "09-03",
+        "open_pnl_pct": 0.55,
+        "high_pnl_pct": 0.65,
+        "low_pnl_pct": 0.3,
+        "close_pnl_pct": 0.4,
+        "equity": 100400,
+        "benchmark_pct": 0.4,
+        "alpha_pct": 0,
+        "events": []
+      },
+      {
+        "date": "09-04",
+        "open_pnl_pct": 0.4,
+        "high_pnl_pct": 0.95,
+        "low_pnl_pct": 0.35,
+        "close_pnl_pct": 0.85,
+        "equity": 100850,
+        "benchmark_pct": 0.5,
+        "alpha_pct": 0.35,
+        "events": []
+      },
+      {
+        "date": "09-07",
+        "open_pnl_pct": 0.85,
+        "high_pnl_pct": 0.85,
+        "low_pnl_pct": 0,
+        "close_pnl_pct": 0,
+        "equity": 100000,
+        "benchmark_pct": 0.6,
+        "alpha_pct": -0.6,
+        "events": [
+          {
+            "id": "ev-bal-1",
+            "date": "09-07",
+            "time": "09:35",
+            "type": "BUY",
+            "stock_code": "300308",
+            "stock_name": "中际旭创",
+            "price": 814,
+            "shares": 30,
+            "amount": 24420,
+            "target_price": 950,
+            "stop_loss_price": 775,
+            "pnl_pct": 0,
+            "pnl_amount": 0,
+            "reason": "光模块中军突破建仓，GARP高景气度底仓"
+          }
+        ]
+      },
+      {
+        "date": "09-08",
+        "open_pnl_pct": 0,
+        "high_pnl_pct": 4.5,
+        "low_pnl_pct": 0,
+        "close_pnl_pct": 4.2,
+        "equity": 104200,
+        "benchmark_pct": 1.1,
+        "alpha_pct": 3.1,
+        "events": []
+      },
+      {
+        "date": "09-09",
+        "open_pnl_pct": 4.2,
+        "high_pnl_pct": 6.8,
+        "low_pnl_pct": 4.2,
+        "close_pnl_pct": 6.5,
+        "equity": 106500,
+        "benchmark_pct": 1.35,
+        "alpha_pct": 5.15,
+        "events": []
+      },
+      {
+        "date": "09-10",
+        "open_pnl_pct": 6.5,
+        "high_pnl_pct": 6.6,
+        "low_pnl_pct": 5.5,
+        "close_pnl_pct": 5.8,
+        "equity": 105800,
+        "benchmark_pct": 1.2,
+        "alpha_pct": 4.6,
+        "events": []
+      },
+      {
+        "date": "09-11",
+        "open_pnl_pct": 5.8,
+        "high_pnl_pct": 6.4,
+        "low_pnl_pct": 5.6,
+        "close_pnl_pct": 6.2,
+        "equity": 106200,
+        "benchmark_pct": 0.85,
+        "alpha_pct": 5.35,
+        "events": []
+      },
+      {
+        "date": "09-14",
+        "open_pnl_pct": 6.2,
+        "high_pnl_pct": 7.8,
+        "low_pnl_pct": 6.1,
+        "close_pnl_pct": 7.5,
+        "equity": 107500,
+        "benchmark_pct": 0.9,
+        "alpha_pct": 6.6,
+        "events": []
+      },
+      {
+        "date": "09-15",
+        "open_pnl_pct": 7.5,
+        "high_pnl_pct": 8.6,
+        "low_pnl_pct": 7.4,
+        "close_pnl_pct": 8.4,
+        "equity": 108400,
+        "benchmark_pct": 0.95,
+        "alpha_pct": 7.45,
+        "events": []
+      },
+      {
+        "date": "09-16",
+        "open_pnl_pct": 8.4,
+        "high_pnl_pct": 10.5,
+        "low_pnl_pct": 8.3,
+        "close_pnl_pct": 10.2,
+        "equity": 110200,
+        "benchmark_pct": 1.25,
+        "alpha_pct": 8.95,
+        "events": []
+      },
+      {
+        "date": "09-17",
+        "open_pnl_pct": 10.2,
+        "high_pnl_pct": 12.1,
+        "low_pnl_pct": 10.1,
+        "close_pnl_pct": 11.8,
+        "equity": 111800,
+        "benchmark_pct": 1.4,
+        "alpha_pct": 10.4,
+        "events": []
+      },
+      {
+        "date": "09-18",
+        "open_pnl_pct": 11.8,
+        "high_pnl_pct": 13.5,
+        "low_pnl_pct": 11.6,
+        "close_pnl_pct": 13.2,
+        "equity": 113200,
+        "benchmark_pct": 1.65,
+        "alpha_pct": 11.55,
+        "events": []
+      },
+      {
+        "date": "09-21",
+        "open_pnl_pct": 13.2,
+        "high_pnl_pct": 13.4,
+        "low_pnl_pct": 12.6,
+        "close_pnl_pct": 12.9,
+        "equity": 112900,
+        "benchmark_pct": 1.55,
+        "alpha_pct": 11.35,
+        "events": []
+      },
+      {
+        "date": "09-22",
+        "open_pnl_pct": 12.9,
+        "high_pnl_pct": 14.3,
+        "low_pnl_pct": 12.8,
+        "close_pnl_pct": 14.15,
+        "equity": 114150,
+        "benchmark_pct": 1.8,
+        "alpha_pct": 12.35,
+        "events": []
+      },
+      {
+        "date": "09-23",
+        "open_pnl_pct": 14.15,
+        "high_pnl_pct": 14.8,
+        "low_pnl_pct": 14,
+        "close_pnl_pct": 14.6,
+        "equity": 114600,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 12.65,
+        "events": []
+      },
+      {
+        "date": "09-24",
+        "open_pnl_pct": 14.6,
+        "high_pnl_pct": 18.5,
+        "low_pnl_pct": 14.6,
+        "close_pnl_pct": 18.29,
+        "equity": 118293.8,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 16.34,
+        "events": []
+      }
+    ],
+    "orders": [],
+    "attribution": {
+      "stock_selection_pct": 0.52,
+      "industry_allocation_pct": 0.32,
+      "timing_pct": 0.08,
+      "position_sizing_pct": 0.04,
+      "market_beta_pct": 0.04,
+      "alpha_pct": 0.58
+    },
+    "risk_metrics": {
+      "volatility_pct": 6.8,
+      "beta": 1.15,
+      "var_95_pct": -1.1,
+      "cvar_95_pct": -1.45,
+      "max_single_position_pct": 23.5,
+      "top_industry": "CPO光模块",
+      "top_industry_pct": 23.5,
+      "concentration_top3_pct": 65.7
+    }
+  },
+  "conservative": {
+    "id": "conservative",
+    "name": "高股息防御策略 (CONSERVATIVE)",
+    "version": "v2.0",
+    "initial_capital": 100000,
+    "total_equity": 103320,
+    "cash": 31970,
+    "market_value": 71350,
+    "today_pnl": 120,
+    "today_pnl_pct": 0.12,
+    "total_return_pct": 3.32,
+    "max_drawdown_pct": -0.45,
+    "sharpe_ratio": 2.1,
+    "sortino_ratio": 2.95,
+    "calmar_ratio": 5.1,
+    "win_rate_pct": 80,
+    "profit_factor": 2.8,
+    "current_exposure_pct": 69.1,
+    "position_count": 3,
+    "completed_trades": 2,
+    "strategy_score": 88,
+    "risk_status": "SAFE",
+    "is_protection_mode": false,
+    "positions": [
+      {
+        "code": "600900",
+        "name": "长江电力",
+        "shares": 1000,
+        "available_shares": 1000,
+        "cost_price": 28.42,
+        "current_price": 28.65,
+        "market_value": 28650,
+        "weight_pct": 27.7,
+        "pnl": 230,
+        "pnl_pct": 0.81,
+        "stop_loss_price": 27,
+        "target_price": 31,
+        "holding_days": 12,
+        "buy_date": "2026-09-07",
+        "strategy_reason": "特许经营水电龙头，垄断现金流，低波动抗跌防御底仓",
+        "sector": "公用事业/高股息",
+        "beta": 0.42
+      },
+      {
+        "code": "000998",
+        "name": "隆平高科",
+        "shares": 2000,
+        "available_shares": 2000,
+        "cost_price": 9.39,
+        "current_price": 9.68,
+        "market_value": 19360,
+        "weight_pct": 18.7,
+        "pnl": 580,
+        "pnl_pct": 3.09,
+        "stop_loss_price": 8.9,
+        "target_price": 11.5,
+        "holding_days": 12,
+        "buy_date": "2026-09-07",
+        "strategy_reason": "农业粮食安全龙头，秋粮收获季防御催化",
+        "sector": "农业种植",
+        "beta": 0.65
+      },
+      {
+        "code": "601088",
+        "name": "中国神华",
+        "shares": 600,
+        "available_shares": 600,
+        "cost_price": 38.2,
+        "current_price": 38.9,
+        "market_value": 23340,
+        "weight_pct": 22.6,
+        "pnl": 420,
+        "pnl_pct": 1.83,
+        "stop_loss_price": 36.5,
+        "target_price": 42,
+        "holding_days": 12,
+        "buy_date": "2026-09-07",
+        "strategy_reason": "高股息煤炭央企中军，高分红高安全边际",
+        "sector": "煤炭/红利",
+        "beta": 0.55
+      }
+    ],
+    "account_id": "conservative",
+    "equity_series": [
+      {
+        "date": "09-01",
+        "equity": 100100,
+        "return_pct": 0.1,
+        "benchmark_pct": 0.1,
+        "alpha_pct": 0,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-02",
+        "equity": 100250,
+        "return_pct": 0.25,
+        "benchmark_pct": 0.3,
+        "alpha_pct": -0.05,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-03",
+        "equity": 100350,
+        "return_pct": 0.35,
+        "benchmark_pct": 0.4,
+        "alpha_pct": -0.05,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-04",
+        "equity": 100450,
+        "return_pct": 0.45,
+        "benchmark_pct": 0.5,
+        "alpha_pct": -0.05,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-07",
+        "equity": 100000,
+        "return_pct": 0,
+        "benchmark_pct": 0.6,
+        "alpha_pct": -0.6,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-08",
+        "equity": 100850,
+        "return_pct": 0.85,
+        "benchmark_pct": 1.1,
+        "alpha_pct": -0.25,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-09",
+        "equity": 100924,
+        "return_pct": 0.92,
+        "benchmark_pct": 1.35,
+        "alpha_pct": -0.43,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-10",
+        "equity": 101200,
+        "return_pct": 1.2,
+        "benchmark_pct": 1.2,
+        "alpha_pct": 0,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-11",
+        "equity": 101450,
+        "return_pct": 1.45,
+        "benchmark_pct": 0.85,
+        "alpha_pct": 0.6,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-14",
+        "equity": 101800,
+        "return_pct": 1.8,
+        "benchmark_pct": 0.9,
+        "alpha_pct": 0.9,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-15",
+        "equity": 102100,
+        "return_pct": 2.1,
+        "benchmark_pct": 0.95,
+        "alpha_pct": 1.15,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-16",
+        "equity": 102450,
+        "return_pct": 2.45,
+        "benchmark_pct": 1.25,
+        "alpha_pct": 1.2,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-17",
+        "equity": 102700,
+        "return_pct": 2.7,
+        "benchmark_pct": 1.4,
+        "alpha_pct": 1.3,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-18",
+        "equity": 102950,
+        "return_pct": 2.95,
+        "benchmark_pct": 1.65,
+        "alpha_pct": 1.3,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-21",
+        "equity": 103050,
+        "return_pct": 3.05,
+        "benchmark_pct": 1.55,
+        "alpha_pct": 1.5,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-22",
+        "equity": 103200,
+        "return_pct": 3.2,
+        "benchmark_pct": 1.8,
+        "alpha_pct": 1.4,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-23",
+        "equity": 103320,
+        "return_pct": 3.32,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 1.37,
+        "drawdown_pct": 0
+      },
+      {
+        "date": "09-24",
+        "equity": 106710,
+        "return_pct": 6.71,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 4.76,
+        "drawdown_pct": 0
+      }
+    ],
+    "candles": [
+      {
+        "date": "09-01",
+        "open_pnl_pct": 0,
+        "high_pnl_pct": 0.15,
+        "low_pnl_pct": -0.05,
+        "close_pnl_pct": 0.1,
+        "equity": 100100,
+        "benchmark_pct": 0.1,
+        "alpha_pct": 0,
+        "events": []
+      },
+      {
+        "date": "09-02",
+        "open_pnl_pct": 0.1,
+        "high_pnl_pct": 0.3,
+        "low_pnl_pct": 0.05,
+        "close_pnl_pct": 0.25,
+        "equity": 100250,
+        "benchmark_pct": 0.3,
+        "alpha_pct": -0.05,
+        "events": []
+      },
+      {
+        "date": "09-03",
+        "open_pnl_pct": 0.25,
+        "high_pnl_pct": 0.4,
+        "low_pnl_pct": 0.2,
+        "close_pnl_pct": 0.35,
+        "equity": 100350,
+        "benchmark_pct": 0.4,
+        "alpha_pct": -0.05,
+        "events": []
+      },
+      {
+        "date": "09-04",
+        "open_pnl_pct": 0.35,
+        "high_pnl_pct": 0.5,
+        "low_pnl_pct": 0.3,
+        "close_pnl_pct": 0.45,
+        "equity": 100450,
+        "benchmark_pct": 0.5,
+        "alpha_pct": -0.05,
+        "events": []
+      },
+      {
+        "date": "09-07",
+        "open_pnl_pct": 0.45,
+        "high_pnl_pct": 0.45,
+        "low_pnl_pct": 0,
+        "close_pnl_pct": 0,
+        "equity": 100000,
+        "benchmark_pct": 0.6,
+        "alpha_pct": -0.6,
+        "events": [
+          {
+            "id": "ev-con-1",
+            "date": "09-07",
+            "time": "09:30",
+            "type": "BUY",
+            "stock_code": "600900",
+            "stock_name": "长江电力",
+            "price": 28.42,
+            "shares": 1000,
+            "amount": 28420,
+            "target_price": 31,
+            "stop_loss_price": 27,
+            "pnl_pct": 0,
+            "pnl_amount": 0,
+            "reason": "特许经营水电高股息压舱石建仓"
+          }
+        ]
+      },
+      {
+        "date": "09-08",
+        "open_pnl_pct": 0,
+        "high_pnl_pct": 1.1,
+        "low_pnl_pct": 0,
+        "close_pnl_pct": 0.85,
+        "equity": 100850,
+        "benchmark_pct": 1.1,
+        "alpha_pct": -0.25,
+        "events": []
+      },
+      {
+        "date": "09-09",
+        "open_pnl_pct": 0.85,
+        "high_pnl_pct": 1.25,
+        "low_pnl_pct": 0.8,
+        "close_pnl_pct": 0.92,
+        "equity": 100924,
+        "benchmark_pct": 1.35,
+        "alpha_pct": -0.43,
+        "events": []
+      },
+      {
+        "date": "09-10",
+        "open_pnl_pct": 0.92,
+        "high_pnl_pct": 1.35,
+        "low_pnl_pct": 0.9,
+        "close_pnl_pct": 1.2,
+        "equity": 101200,
+        "benchmark_pct": 1.2,
+        "alpha_pct": 0,
+        "events": []
+      },
+      {
+        "date": "09-11",
+        "open_pnl_pct": 1.2,
+        "high_pnl_pct": 1.55,
+        "low_pnl_pct": 1.15,
+        "close_pnl_pct": 1.45,
+        "equity": 101450,
+        "benchmark_pct": 0.85,
+        "alpha_pct": 0.6,
+        "events": []
+      },
+      {
+        "date": "09-14",
+        "open_pnl_pct": 1.45,
+        "high_pnl_pct": 1.9,
+        "low_pnl_pct": 1.4,
+        "close_pnl_pct": 1.8,
+        "equity": 101800,
+        "benchmark_pct": 0.9,
+        "alpha_pct": 0.9,
+        "events": []
+      },
+      {
+        "date": "09-15",
+        "open_pnl_pct": 1.8,
+        "high_pnl_pct": 2.2,
+        "low_pnl_pct": 1.75,
+        "close_pnl_pct": 2.1,
+        "equity": 102100,
+        "benchmark_pct": 0.95,
+        "alpha_pct": 1.15,
+        "events": []
+      },
+      {
+        "date": "09-16",
+        "open_pnl_pct": 2.1,
+        "high_pnl_pct": 2.55,
+        "low_pnl_pct": 2.05,
+        "close_pnl_pct": 2.45,
+        "equity": 102450,
+        "benchmark_pct": 1.25,
+        "alpha_pct": 1.2,
+        "events": []
+      },
+      {
+        "date": "09-17",
+        "open_pnl_pct": 2.45,
+        "high_pnl_pct": 2.8,
+        "low_pnl_pct": 2.4,
+        "close_pnl_pct": 2.7,
+        "equity": 102700,
+        "benchmark_pct": 1.4,
+        "alpha_pct": 1.3,
+        "events": []
+      },
+      {
+        "date": "09-18",
+        "open_pnl_pct": 2.7,
+        "high_pnl_pct": 3.1,
+        "low_pnl_pct": 2.65,
+        "close_pnl_pct": 2.95,
+        "equity": 102950,
+        "benchmark_pct": 1.65,
+        "alpha_pct": 1.3,
+        "events": []
+      },
+      {
+        "date": "09-21",
+        "open_pnl_pct": 2.95,
+        "high_pnl_pct": 3.2,
+        "low_pnl_pct": 2.9,
+        "close_pnl_pct": 3.05,
+        "equity": 103050,
+        "benchmark_pct": 1.55,
+        "alpha_pct": 1.5,
+        "events": []
+      },
+      {
+        "date": "09-22",
+        "open_pnl_pct": 3.05,
+        "high_pnl_pct": 3.35,
+        "low_pnl_pct": 3,
+        "close_pnl_pct": 3.2,
+        "equity": 103200,
+        "benchmark_pct": 1.8,
+        "alpha_pct": 1.4,
+        "events": []
+      },
+      {
+        "date": "09-23",
+        "open_pnl_pct": 3.2,
+        "high_pnl_pct": 3.45,
+        "low_pnl_pct": 3.15,
+        "close_pnl_pct": 3.32,
+        "equity": 103320,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 1.37,
+        "events": []
+      },
+      {
+        "date": "09-24",
+        "open_pnl_pct": 3.32,
+        "high_pnl_pct": 6.8,
+        "low_pnl_pct": 3.32,
+        "close_pnl_pct": 6.71,
+        "equity": 106710,
+        "benchmark_pct": 1.95,
+        "alpha_pct": 4.76,
+        "events": []
+      }
+    ],
+    "orders": [],
+    "attribution": {
+      "stock_selection_pct": 0.35,
+      "industry_allocation_pct": 0.25,
+      "timing_pct": 0.1,
+      "position_sizing_pct": 0.05,
+      "market_beta_pct": 0.1,
+      "alpha_pct": 0.45
+    },
+    "risk_metrics": {
+      "volatility_pct": 3.8,
+      "beta": 0.45,
+      "var_95_pct": -0.65,
+      "cvar_95_pct": -0.85,
+      "max_single_position_pct": 27.7,
+      "top_industry": "公用事业/高股息",
+      "top_industry_pct": 27.7,
+      "concentration_top3_pct": 69.1
+    }
+  }
+}

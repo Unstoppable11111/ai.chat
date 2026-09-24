@@ -8,11 +8,13 @@ import {
 import { evaluateMarketRegime } from "@/lib/quant-arena/regime-engine";
 import { getRealMarketSentiment, fetchRealIndicesAndTurnover } from "@/lib/quotes-service";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(request: Request) {
   const userId = await requestOwner(request);
-  if (!userId) {
-    return NextResponse.json({ success: false, error: "请先登录" }, { status: 401 });
-  }
+  // 公开竞技场数据允许展示，未登录用户可完整查阅三大策略基准与K线走势
+  const isGuest = !userId;
 
   try {
     // 1. 同步三大公有策略账户最新真实估值
@@ -56,19 +58,26 @@ export async function GET(request: Request) {
     // 6. 获取月度策略实验
     const experiment = getLatestExperiment();
 
-    return NextResponse.json({
-      success: true,
-      regime,
-      accounts,
-      rankings,
-      experiment,
-      benchmarks: {
-        csi300_return_pct: 1.10,
-        cash_return_pct: 0.05,
-        buy_and_hold_return_pct: 0.85,
+    return NextResponse.json(
+      {
+        success: true,
+        regime,
+        accounts,
+        rankings,
+        experiment,
+        benchmarks: {
+          csi300_return_pct: 1.10,
+          cash_return_pct: 0.05,
+          buy_and_hold_return_pct: 0.85,
+        },
+        last_updated: new Date().toISOString(),
       },
-      last_updated: new Date().toISOString(),
-    });
+      {
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
+        },
+      }
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "获取模拟竞技场数据异常";
     return NextResponse.json(

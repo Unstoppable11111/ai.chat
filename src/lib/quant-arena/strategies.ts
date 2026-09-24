@@ -398,8 +398,8 @@ export function generateStrategyRecommendations(
     const factors = calculateStockFactors(code, quote);
     if (!factors) continue;
 
-    // 激进策略候选池评估 (市场最高连板梯队龙头，不限题材，支持满仓单挑，10天100%异动前退出)
-    if (["600865", "600108", "002403", "000158", "002085"].includes(code)) {
+    // 激进策略候选池评估 (市场最高连板梯队龙头、断板弱转强反包，支持满仓单挑，退潮期果断100%空仓避险)
+    if (["600865", "600108", "002403", "000158", "002085", "600550", "000062"].includes(code)) {
       const execCheck = checkLimitUpExecution(quote);
       const agg = evaluateAggressive(factors, dateStr, timeStr);
       const finalAction = execCheck.can_buy ? agg.signal : "WATCH";
