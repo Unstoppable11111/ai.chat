@@ -5,12 +5,13 @@ import {
   syncArenaAccountsWithRealQuotes,
   getDynamicWatchlist,
 } from "@/lib/quant-arena/arena-store";
-import { StrategyType } from "@/lib/quant-arena/types";
+import { StrategyType, ArenaAccount } from "@/lib/quant-arena/types";
 import {
   calculateWinRateStats,
   StockRecommendation,
   PaperAccount,
   AccountStyle,
+  TradeEvent,
 } from "@/lib/recommendations-db";
 import fs from "fs";
 import path from "path";
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
     const arenaMap = await syncArenaAccountsWithRealQuotes();
 
     // 2. 读取用户私有模拟账户 (未登录则直接使用公有策略账户)
-    let privateAccounts: any[] = [];
+    let privateAccounts: ArenaAccount[] = [];
     if (userId) {
       try {
         privateAccounts = await readPrivateArena(userId);
@@ -48,10 +49,10 @@ export async function GET(request: Request) {
 
     if (hasPrivateData) {
       accounts = privateAccounts.map((account) => {
-        const stratKey = (account.account_id || (account as any).id || "aggressive") as StrategyType;
+        const stratKey = (account.account_id || "aggressive") as StrategyType;
         const fallbackItem = arenaMap[stratKey] || arenaMap.aggressive;
         return {
-          account_id: account.account_id || (account as any).id,
+          account_id: account.account_id || "aggressive",
           account_name: account.name,
           style_desc: "个人私有模拟盘",
           initial_capital: account.initial_capital,
@@ -69,7 +70,20 @@ export async function GET(request: Request) {
           max_drawdown_pct: account.max_drawdown_pct,
           start_date: account.equity_series?.[0]?.date || "09-01",
           rules_desc: "多因子量化风控监控中",
-          holdings: account.positions || [],
+          holdings: (account.positions || []).map((p) => ({
+            code: p.code,
+            name: p.name,
+            shares: p.shares,
+            cost_price: p.cost_price,
+            current_price: p.current_price ?? p.cost_price,
+            market_value: p.market_value,
+            pnl: p.pnl,
+            pnl_pct: p.pnl_pct,
+            stop_loss_price: p.stop_loss_price,
+            target_price: p.target_price,
+            action: p.pnl_pct >= 8 ? "分批止盈" : p.pnl_pct <= -5 ? "破位止损" : "顺势持有",
+            advice_reason: p.strategy_reason,
+          })),
           // 关键防护：若私有账户蜡烛天数少于15天，回退使用公有竞技场连续完整日K，彻底解决断档问题
           candles:
             account.candles && account.candles.length >= 15
@@ -78,7 +92,7 @@ export async function GET(request: Request) {
           events:
             account.candles && account.candles.length >= 15
               ? account.events || []
-              : fallbackItem?.candles?.flatMap((c: { events?: any[] }) => c.events || []) || [],
+              : fallbackItem?.candles?.flatMap((c: { events?: TradeEvent[] }) => c.events || []) || [],
         };
       });
     } else {

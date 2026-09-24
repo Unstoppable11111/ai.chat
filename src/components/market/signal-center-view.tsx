@@ -3,21 +3,12 @@
 import { useState, useEffect } from "react";
 import {
   Target,
-  Zap,
-  Scale,
-  ShieldCheck,
   ChevronRight,
   Sparkles,
-  Info,
   Clock,
-  ArrowUpRight,
-  Layers,
-  CheckCircle2,
-  AlertCircle,
   Plus,
-  Sliders,
 } from "lucide-react";
-import { StrategySignal, StrategyType, QuantScoreDetail, DecisionTrace } from "@/lib/quant-arena/types";
+import { StrategySignal, StrategyType } from "@/lib/quant-arena/types";
 
 interface SignalCenterViewProps {
   onAddToPortfolio?: (stock: { code: string; name: string; price: number }) => void;

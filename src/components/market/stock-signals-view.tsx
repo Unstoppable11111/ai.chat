@@ -10,8 +10,6 @@ import {
   Sparkles,
   BarChart2,
   Percent,
-  ShieldCheck,
-  Ban,
 } from "lucide-react";
 import {
   StockRecommendation,
@@ -21,6 +19,7 @@ import {
   TradeEvent,
   AccountStyle,
 } from "@/lib/recommendations-db";
+import { DynamicWatchlistItem } from "@/lib/quant-arena/arena-store";
 import { PnlKlineChart } from "@/components/market/pnl-kline-chart";
 
 interface StockSignalsViewProps {
@@ -37,7 +36,7 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
   const [paperAccount, setPaperAccount] = useState<PaperAccount | undefined>();
   const [pnlKline, setPnlKline] = useState<DailyPnlCandle[]>([]);
   const [tradeEvents, setTradeEvents] = useState<TradeEvent[]>([]);
-  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [watchlist, setWatchlist] = useState<DynamicWatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingCode, setAddingCode] = useState<string | null>(null);
 
@@ -292,7 +291,7 @@ export function StockSignalsView({ onAddToPortfolio, showToast }: StockSignalsVi
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {watchlist.map((item: any) => (
+            {watchlist.map((item: DynamicWatchlistItem) => (
               <div
                 key={item.code}
                 className="p-5 rounded-2xl bg-[#0f1d35]/70 border border-cyan-500/20 hover:border-cyan-400/50 transition-all flex flex-col justify-between space-y-3 group shadow-lg"

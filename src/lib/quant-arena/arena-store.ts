@@ -5,9 +5,7 @@ import {
   StrategyType,
   StrategyRankingItem,
   StrategyExperiment,
-  TradeOrder,
 } from "./types";
-import { TradeEvent } from "@/lib/recommendations-db";
 import { getRealStockQuotes } from "@/lib/quotes-service";
 
 const ARENA_DATA_FILE = path.join(process.cwd(), "src", "data", "arena-accounts.json");

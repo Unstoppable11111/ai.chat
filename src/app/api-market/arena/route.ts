@@ -12,9 +12,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request: Request) {
-  const userId = await requestOwner(request);
+  await requestOwner(request);
   // 公开竞技场数据允许展示，未登录用户可完整查阅三大策略基准与K线走势
-  const isGuest = !userId;
 
   try {
     // 1. 同步三大公有策略账户最新真实估值
