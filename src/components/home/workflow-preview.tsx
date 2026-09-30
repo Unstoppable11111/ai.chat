@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -13,7 +13,11 @@ import {
   Zap,
   Play,
   CheckCircle2,
+  UserCheck,
 } from "lucide-react";
+import { useAuth } from "@/components/auth/auth-provider";
+
+const emptySubscribe = () => () => {};
 
 const PIPELINE_STEPS = [
   {
@@ -60,6 +64,8 @@ const PIPELINE_STEPS = [
 
 export function WorkflowPreview() {
   const [activeStep, setActiveStep] = useState(0);
+  const { user } = useAuth();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   return (
     <section className="container-shell py-12 md:py-20 relative overflow-hidden">
@@ -70,9 +76,17 @@ export function WorkflowPreview() {
       {/* 头部标题与行动引导 */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 relative z-10">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/25 text-purple-600 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-purple-500 animate-pulse" />
-            <span>工业级内容生产线 · 自动化小说 & AI 视频分镜工作流</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/25 text-purple-600 text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-purple-500 animate-pulse" />
+              <span>工业级内容生产线 · 自动化小说 & AI 视频分镜工作流</span>
+            </div>
+            {mounted && user && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 text-[11px] font-mono font-medium">
+                <UserCheck className="w-3 h-3 text-emerald-500" />
+                <span>创作者已就绪: {user.username}</span>
+              </span>
+            )}
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
             从一句话灵感，到商业爆款全套数字资产
@@ -87,7 +101,7 @@ export function WorkflowPreview() {
           className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 hover:scale-[1.02] transition-all shrink-0 cursor-pointer"
         >
           <Play className="w-4 h-4 fill-white" />
-          <span>立即体验工业化工作流</span>
+          <span>{mounted && user ? "进入专属创作者工作台" : "立即体验工业化工作流"}</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { ProjectCard } from "@/components/cards/project-card";
-import { Reveal } from "@/components/shared/reveal";
+import { ProjectsExplorer } from "@/components/pages/projects-explorer";
 import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
@@ -21,17 +20,11 @@ export default async function ProjectsPage() {
       <PageIntro>
         <SectionHeading
           level={1}
-          eyebrow="精选作品"
+          eyebrow="精选作品 · ENGINEERING ARCHIVES"
           title="项目案例"
-          description="精选的系统、视觉实验与数字产品案例。"
+          description="精选的生产系统、着色器视觉实验与端到端数字工程落地案例。"
         />
-        <div className="grid gap-5 xl:grid-cols-2">
-          {items.map((item, index) => (
-            <Reveal key={item.slug} delay={index * 0.05} once>
-              <ProjectCard item={item} eager={index === 0} />
-            </Reveal>
-          ))}
-        </div>
+        <ProjectsExplorer items={items} />
       </PageIntro>
     </PageShell>
   );

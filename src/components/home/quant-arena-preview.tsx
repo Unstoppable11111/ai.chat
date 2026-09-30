@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { 
   Activity, 
@@ -9,9 +9,13 @@ import {
   ShieldCheck, 
   Zap, 
   Layers,
-  ChevronRight
+  ChevronRight,
+  UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth/auth-provider";
+
+const emptySubscribe = () => () => {};
 
 interface StrategyItem {
   id: string;
@@ -46,6 +50,8 @@ export function QuantArenaPreview() {
   const [pulse, setPulse] = useState<MarketPulse | null>(null);
   const [strategies, setStrategies] = useState<StrategyItem[]>([]);
   const [activeStrategy, setActiveStrategy] = useState<string>("aggressive");
+  const { user, openAuthModal } = useAuth();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   useEffect(() => {
     let ignore = false;
@@ -262,19 +268,40 @@ export function QuantArenaPreview() {
 
       {/* 底部联动提示条 */}
       <div className="mt-6 flex flex-col sm:flex-row items-center justify-between p-4 rounded-xl bg-slate-900 text-white text-xs md:text-sm gap-3">
-        <div className="flex items-center gap-2.5">
-          <Layers className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>
-            登录专属账户后，可解锁查看三大策略<strong>完整分时与每日 K 线交易事件穿透</strong>，并同步进行<strong>私有真实持仓诊断</strong>。
-          </span>
-        </div>
-        <Link
-          href="/market"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-colors shrink-0"
-        >
-          <span>登录工作台</span>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
+        {mounted && user ? (
+          <>
+            <div className="flex items-center gap-2.5">
+              <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>
+                已接入专属账户【<strong className="text-emerald-300 font-mono">{user.username}</strong>】· 三大策略<strong>完整分时与每日 K 线交易事件穿透</strong>及<strong>私有持仓诊断</strong>已解锁就绪。
+              </span>
+            </div>
+            <Link
+              href="/market"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-colors shrink-0 shadow-sm"
+            >
+              <span>进入量化工作台</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-2.5">
+              <Layers className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>
+                登录专属账户后，可解锁查看三大策略<strong>完整分时与每日 K 线交易事件穿透</strong>，并同步进行<strong>私有真实持仓诊断</strong>。
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => openAuthModal("login")}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-colors shrink-0 cursor-pointer shadow-sm"
+            >
+              <span>登录工作台</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </>
+        )}
       </div>
     </section>
   );

@@ -20,9 +20,9 @@ export default async function ExperimentsPage() {
       <PageIntro>
         <SectionHeading
           level={1}
-          eyebrow="实验记录"
+          eyebrow="视觉与交互实验室 · CREATIVE CODING LAB"
           title="实验记录"
-          description="一个持续更新的网站视觉、页面构建与技术实验记录。"
+          description="一个持续演进的视觉着色器、提示词工程与三维多模态技术实验档案库。"
         />
         <ExperimentGrid items={items} />
       </PageIntro>
