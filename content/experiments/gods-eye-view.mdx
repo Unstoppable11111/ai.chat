@@ -1,0 +1,52 @@
+---
+title: 上帝之眼 · 3D 全球态势感知与空间智能控制台
+excerpt: 基于 CesiumJS、Google Photorealistic 3D Tiles 与实时开源数据流构建的三维数字孪生地球，集成全球航班追踪、远洋船舶、卫星轨道与红外夜视热成像。
+category: 空间数字孪生
+cover: /images/placeholders/prompt-02.svg
+tools:
+  - CesiumJS
+  - Google 3D Tiles
+  - Next.js
+  - WebGL Shaders
+tags:
+  - 3D地球
+  - 数字孪生
+  - 空间智能
+  - 态势感知
+promptPreview: 全球空间智能控制台，三维数字孪生地球，军工级 FLIR 光学滤镜，实时卫星轨道与航线，科技感 HUD。
+date: 2026-10-13
+featured: true
+---
+
+## Final Result
+
+成功将开源项目 [God's Eye View (by Bilawal Sidhu)](https://github.com/bilawalsidhu/gods-eye-view) 作为独立空间智能实验嵌入到 Chen Tech Studio 中。
+
+在线交互视窗位于：[`/experiments/gods-eye`](/experiments/gods-eye)。用户无需离开主站即可全屏沉浸式漫游 3D 地球，自由俯瞰大城市高清三维建筑群，并实时透视全球空域与洋流态势。
+
+## Original Idea
+
+在建设“贾维斯（JARVIS）”AI 个人终端的过程中，我一直希望能有一个真正具备“好莱坞科幻电影质感”的全球全息态势感知大屏。
+
+过去很多 Web 3D 地球只是简单贴图的低模球体，而 `gods-eye-view` 真正做到了工程级与实用级的结合：
+1. **Google Photorealistic 3D Tiles**：照片级三维城市网格，支持街道级深度漫游。
+2. **多维开源实时数据流**：聚合 OpenSky 民航、AISStream 船舶、CelesTrak 卫星与 NASA FIRMS 火灾监测。
+3. **电影级光学着色器**：不仅有标准视图，还提供微光夜视（Night Vision）和 FLIR 热成像模式。
+
+## Architecture & Integration
+
+为确保主站（Next.js 16 + React 19）的稳定性和首屏加载性能，采用了**架构解耦方案**：
+
+1. **环境与运行隔离**：
+   - CesiumJS 体积极大且重度依赖 WebGL 上下文。通过 iframe 隔离挂载，彻底规避了 React 19 服务端渲染（SSR）兼容性隐患，同时确保页面离开时自动销毁 WebGL 显存，防止单页内存泄漏。
+2. **Embed 模式优化**：
+   - 启用原生支持的 `?embed=1` 模式，自动隐藏多余配置浮窗，保持纯净视窗。
+   - 通过外层 Next.js HUD 控制栏统一接管全屏切换、独立视窗跳转和状态监控。
+3. **空间情报与 AI 联动愿景**：
+   - 预留 `window.postMessage` 事件通道，后续支持贾维斯在 `/chat` 中触发地理定位联动（例如：“调出东京卫星视图”时自动下发经纬度飞行动画）。
+
+## What Worked
+
+- **零依赖污染**：主站 `package.json` 保持精简纯净，构建速度完全不受大体积 GIS 库影响。
+- **降级容错设计**：即使在未配置 Google Maps Key 或 Cesium Ion Token 的离线环境下，原生支持自动降级至 Esri 卫星影像，保证开箱即用。
+- **全屏沉浸体验**：利用 HTML5 Fullscreen API 结合定制科幻边框，提供如同指挥中心的双模浏览体验。
