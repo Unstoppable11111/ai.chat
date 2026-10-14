@@ -7,7 +7,6 @@ import {
   Minimize2,
   RotateCw,
   ExternalLink,
-  ShieldAlert,
   Radio,
   SlidersHorizontal,
   Satellite,
@@ -25,7 +24,7 @@ export function GodsEyeConsole({ initialUrl }: GodsEyeConsoleProps) {
     process.env.NEXT_PUBLIC_GODS_EYE_URL ||
     "/apps/gods-eye/index.html?embed=1";
 
-  const [targetUrl, setTargetUrl] = useState(defaultUrl);
+  const targetUrl = defaultUrl;
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [iframeKey, setIframeKey] = useState(0);
