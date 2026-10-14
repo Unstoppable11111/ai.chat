@@ -8,6 +8,15 @@ export type Thread = { id: string; title: string; messages: Message[] };
 export type History = { current: string; threads: Thread[] };
 const initial: History = { current: "welcome", threads: [{ id: "welcome", title: "新对话", messages: [] }] };
 
+export type ChatQuota = {
+  authenticated: boolean;
+  unlimited: boolean;
+  remaining: number;
+  total: number;
+  resetTime: string;
+  loading: boolean;
+};
+
 export type ChatState = {
   history: History;
   messages: Message[];
@@ -15,6 +24,8 @@ export type ChatState = {
   ready: boolean;
   storageError: string;
   model: string;
+  quota: ChatQuota;
+  refreshQuota: () => Promise<void>;
   setModel: (model: string) => void;
   send: (text: string, retry?: boolean) => Promise<void>;
   stop: () => void;
@@ -27,16 +38,55 @@ export type ChatState = {
 const ChatContext = createContext<ChatState | null>(null);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const [history, setHistory] = useState<History>(initial);
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [model, setModel] = useState("jarvis-balanced");
   const [storageError, setStorageError] = useState("");
+  const [quota, setQuota] = useState<ChatQuota>({
+    authenticated: !!user?.id,
+    unlimited: !!user?.id,
+    remaining: 10,
+    total: 10,
+    resetTime: "北京时间 00:00:00",
+    loading: true,
+  });
   const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
   const abort = useRef<AbortController | null>(null);
   const storageKey = useRef("");
   const storageScope = useRef("");
+
+  const refreshQuota = useCallback(async () => {
+    try {
+      const res = await fetch("/api-chat-backend", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setQuota({
+          authenticated: !!data.authenticated,
+          unlimited: !!data.unlimited,
+          remaining: typeof data.remaining === "number" ? data.remaining : 10,
+          total: data.total || 10,
+          resetTime: data.resetTime || "北京时间 00:00:00",
+          loading: false,
+        });
+      }
+    } catch {
+      // 保持当前状态
+    }
+  }, []);
+
+  // 监听登录态与挂载同步提问配额
+  useEffect(() => {
+    void refreshQuota();
+    const handleAuthChange = () => {
+      void refreshQuota();
+    };
+    window.addEventListener("auth-state-changed", handleAuthChange);
+    return () => {
+      window.removeEventListener("auth-state-changed", handleAuthChange);
+    };
+  }, [user?.id, refreshQuota]);
 
   // 当当前登录用户 ID 变更时（登录/登出/换账号），重新初始化加载专属记忆
   useEffect(() => {
@@ -155,6 +205,33 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const send = async (text: string, retry = false) => {
     if (abort.current || !ready || (!text.trim() && !retry)) return;
+
+    // 未登录访客每日限额检查（超额直接唤起登录弹窗）
+    if (!user?.id && !quota.unlimited && quota.remaining <= 0) {
+      openAuthModal("login");
+      const threadId = history.current;
+      setHistory((current) => ({
+        ...current,
+        threads: current.threads.map((thread) =>
+          thread.id === threadId
+            ? {
+                ...thread,
+                messages: [
+                  ...messages,
+                  { role: "user" as const, content: text.trim() },
+                  {
+                    role: "assistant" as const,
+                    content: "您今日的 10 次游客免费提问额度已用尽（北京时间次日0点自动重置）。请登录账号后继续使用！",
+                    error: true,
+                  },
+                ],
+              }
+            : thread
+        ),
+      }));
+      return;
+    }
+
     let previous = messages;
     if (retry) {
       const lastUser = messages.findLastIndex((message) => message.role === "user");
@@ -223,9 +300,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
+        if (data.requireLogin || response.status === 401) {
+          openAuthModal("login");
+          void refreshQuota();
+        }
         throw new Error(data.text || "请求失败，请重试");
       }
       if (!response.body) throw new Error("回答为空，请重试");
+
+      // 未登录访客扣减 1 次本地剩余次数并尝试从响应头同步
+      if (!quota.unlimited) {
+        const remainingHeader = response.headers.get("X-Chat-Remaining");
+        const parsedRemaining = remainingHeader ? parseInt(remainingHeader, 10) : NaN;
+        setQuota((q) => ({
+          ...q,
+          remaining: Number.isFinite(parsedRemaining) ? Math.max(0, parsedRemaining) : Math.max(0, q.remaining - 1),
+        }));
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -339,6 +430,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         ready,
         storageError,
         model,
+        quota,
+        refreshQuota,
         setModel,
         send,
         stop,

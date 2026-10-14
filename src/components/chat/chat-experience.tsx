@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, User, Send, Square, RotateCcw, Sparkles, Bookmark, ExternalLink } from "lucide-react";
+import { Bot, User, Send, Square, RotateCcw, Sparkles, Bookmark, ExternalLink, BookOpen, LockKeyhole, ShieldCheck } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useChat } from "./chat-provider";
+import { useAuth } from "@/components/auth/auth-provider";
 import { markdownComponents } from "./chat-types";
 import { MemorySelector } from "./memory-selector";
 import { ModelSelector } from "./model-selector";
+import { CuratePostModal } from "./curate-post-modal";
 
 export function ChatExperience({
   compact = false,
@@ -17,9 +19,13 @@ export function ChatExperience({
   initialDraft?: string;
 }) {
   const chat = useChat();
+  const { isAuthenticated, openAuthModal } = useAuth();
   const [input, setInput] = useState(initialDraft);
+  const [curatingMessage, setCuratingMessage] = useState<{ title: string; content: string } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const autoScroll = useRef(true);
+
+  const isGuestExhausted = !isAuthenticated && !chat.quota.unlimited && chat.quota.remaining <= 0;
 
   useEffect(() => {
     if (autoScroll.current && scroller.current) {
@@ -28,6 +34,10 @@ export function ChatExperience({
   }, [chat.messages, chat.loading]);
 
   const submit = () => {
+    if (isGuestExhausted) {
+      openAuthModal("login");
+      return;
+    }
     if (!input.trim() || chat.loading || !chat.ready) return;
     const value = input;
     setInput("");
@@ -158,6 +168,26 @@ export function ChatExperience({
                       </div>
                     )}
 
+                    {!chat.loading && message.content && !message.error && (
+                      <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-zinc-700/60 flex items-center justify-between text-xs">
+                        <span className="text-[10px] font-mono text-slate-400">JARVIS INTELLIGENCE</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const prevUser = chat.messages.slice(0, index).reverse().find(m => m.role === "user");
+                            setCuratingMessage({
+                              title: prevUser?.content.slice(0, 36) || "前沿架构与技术研报",
+                              content: message.content
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-700 text-[11px] font-medium border border-cyan-500/20 transition-all cursor-pointer shadow-2xs"
+                        >
+                          <BookOpen className="w-3 h-3 text-cyan-600" />
+                          <span>沉淀为白皮书</span>
+                        </button>
+                      </div>
+                    )}
+
                     {message.error && index === chat.messages.length - 1 && !chat.loading && (
                       <button
                         type="button"
@@ -176,13 +206,46 @@ export function ChatExperience({
         })}
       </div>
 
-      {/* 底部控制区：模型选择与现代化输入框 */}
+      {/* 底部控制区：模型选择、提问配额提示与现代化输入框 */}
       <div className="shrink-0 space-y-2 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-center justify-between gap-3 px-0.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
           <ModelSelector selectedModel={chat.model} onSelect={chat.setModel} disabled={chat.loading} />
-          <a href="/privacy" className="text-xs text-muted-foreground hover:text-slate-700 underline">
-            隐私与数据
-          </a>
+          
+          <div className="flex items-center gap-2">
+            {!isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer ${
+                  isGuestExhausted
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-medium"
+                    : "bg-slate-100 hover:bg-slate-200/80 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"
+                }`}
+                title="未登录游客每日限提问10次，北京时间0点重置。点击登录免除限制"
+              >
+                {isGuestExhausted ? (
+                  <>
+                    <LockKeyhole className="w-3.5 h-3.5 text-amber-600" />
+                    <span>今日额度已用尽 (0/{chat.quota.total}) · 登录解锁</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                    <span>今日免费: {chat.quota.remaining}/{chat.quota.total}</span>
+                    <span className="text-[10px] text-muted-foreground hidden sm:inline">0点重置</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>已有效登录 · 无限畅享</span>
+              </div>
+            )}
+            <a href="/privacy" className="text-xs text-muted-foreground hover:text-slate-700 underline hidden sm:inline">
+              隐私
+            </a>
+          </div>
         </div>
 
         {/* 现代卡片式输入框 */}
@@ -195,7 +258,11 @@ export function ChatExperience({
         >
           <textarea
             aria-label="输入问题"
-            placeholder="输入您的问题，向 JARVIS 提问…"
+            placeholder={
+              isGuestExhausted
+                ? "今日 10 次游客免费提问额度已用尽，请登录账号后继续使用…"
+                : "输入您的问题，向 JARVIS 提问…"
+            }
             maxLength={4000}
             rows={compact ? 1 : 2}
             value={input}
@@ -231,6 +298,17 @@ export function ChatExperience({
                   <Square className="h-3.5 w-3.5" />
                   <span>停止</span>
                 </button>
+              ) : isGuestExhausted ? (
+                <button
+                  type="button"
+                  aria-label="登录后提问"
+                  title="今日10次额度已用尽，点击登录账号"
+                  onClick={() => openAuthModal("login")}
+                  className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-medium transition-all shadow-xs cursor-pointer"
+                >
+                  <LockKeyhole className="h-3.5 w-3.5" />
+                  <span>登录后提问</span>
+                </button>
               ) : (
                 <button
                   type="submit"
@@ -247,6 +325,13 @@ export function ChatExperience({
           </div>
         </form>
       </div>
+
+      <CuratePostModal
+        isOpen={!!curatingMessage}
+        onClose={() => setCuratingMessage(null)}
+        defaultTitle={curatingMessage?.title || ""}
+        assistantContent={curatingMessage?.content || ""}
+      />
     </div>
   );
 }

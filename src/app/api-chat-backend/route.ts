@@ -1,13 +1,53 @@
 import { NextResponse } from "next/server";
 import { searchKnowledgeBase } from "@/lib/rag-engine";
 import { clientKey, readJsonBody, sameOrigin, takeQuota } from "@/lib/server-security";
+import { getChatQuotaStatus, consumeChatQuota, GUEST_COOKIE_NAME } from "@/lib/chat-quota";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 const fail = (text: string, status: number) => NextResponse.json({ success: false, text }, { status });
 const encoder = new TextEncoder();
 
+export async function GET(request: Request) {
+  const status = await getChatQuotaStatus(request);
+  const response = NextResponse.json(status);
+  if (status.guestTokenToSet) {
+    response.cookies.set(GUEST_COOKIE_NAME, status.guestTokenToSet, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 365,
+      path: "/",
+    });
+  }
+  return response;
+}
+
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return fail("请求来源不允许", 403);
+
+  // 1. 提问频控与有效登录校验（游客每日限额10次，北京时间0点重置，超出需有效登录）
+  const quota = await consumeChatQuota(request);
+  if (!quota.allowed) {
+    const res = NextResponse.json(
+      {
+        success: false,
+        requireLogin: true,
+        text: quota.message || "今日游客免费提问额度（10次）已用尽，北京时间次日0点自动重置。请登录账号后继续使用！",
+        remaining: 0,
+        total: quota.total,
+      },
+      { status: 401 }
+    );
+    if (quota.guestTokenToSet) {
+      res.cookies.set(GUEST_COOKIE_NAME, quota.guestTokenToSet, {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+      });
+    }
+    return res;
+  }
+
   let body: Record<string, unknown>;
   try { body = await readJsonBody(request); }
   catch { return fail("消息格式无效或超过大小限制", 400); }
@@ -55,6 +95,18 @@ export async function POST(request: Request) {
       },
       async cancel() { abort.abort(); cleanup(); await reader.cancel().catch(()=>{}); },
     });
-    return new Response(stream,{headers:{"Content-Type":"text/event-stream","Cache-Control":"no-store","X-Accel-Buffering":"no"}});
+    const headers = new Headers({
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-store",
+      "X-Accel-Buffering": "no",
+      "X-Chat-Remaining": String(quota.remaining ?? -1),
+    });
+    if (quota.guestTokenToSet) {
+      headers.append(
+        "Set-Cookie",
+        `${GUEST_COOKIE_NAME}=${quota.guestTokenToSet}; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly`
+      );
+    }
+    return new Response(stream, { headers });
   } catch { cleanup(); return fail(abort.signal.aborted ? "回答超时，请重试" : "AI 服务连接失败",504); }
 }
