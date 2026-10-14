@@ -230,7 +230,7 @@ export function GodsEyeConsole({ initialUrl }: GodsEyeConsoleProps) {
         <div className="hidden sm:flex items-center gap-2">
           <span className="text-emerald-400">● 空间计算引擎运行中</span>
           <span>·</span>
-          <span>CESIUM 3D TILES & NASA FIRMS READY</span>
+          <span>ESRI SATELLITE &amp; OSINT FEEDS READY</span>
         </div>
       </div>
     </div>
