@@ -21,6 +21,7 @@ export const navigation: NavItem[] = [
   { href: "/prompts", label: "学习笔记" },
   { href: "/gesture", label: "手势互动" },
   { href: "/experiments/pelican", label: "鹈鹕盲测" },
+  { href: "/experiments/gods-eye", label: "上帝之眼" },
   { href: "/about", label: "关于我" },
 ];
 

@@ -203,7 +203,7 @@ export function GodsEyeConsole({ initialUrl }: GodsEyeConsoleProps) {
             </p>
             <div className="mt-4 flex items-center gap-2 text-[11px] text-slate-500 font-mono bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
               <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-              <span>若本地开发环境未启动，请在 gods-eye-view 运行 npm run dev</span>
+              <span>正在装载全球三维卫星图层与实时空天数据流...</span>
             </div>
           </div>
         )}
@@ -218,19 +218,19 @@ export function GodsEyeConsole({ initialUrl }: GodsEyeConsoleProps) {
         />
       </div>
 
-      {/* 底部 HUD 状态与版权 */}
+      {/* 底部 HUD 状态与系统信息 */}
       <div className="flex items-center justify-between border-t border-slate-800/80 bg-slate-950/90 px-4 py-1.5 text-[11px] font-mono text-slate-400 shrink-0 z-10">
         <div className="flex items-center gap-2">
-          <span className="text-cyan-400 font-medium">OSINT CONSOLE</span>
+          <span className="text-cyan-400 font-medium">GOD&apos;S EYE CONSOLE</span>
           <span>·</span>
-          <span>SRC: BILAWAL SIDHU</span>
+          <span>CHEN TECH STUDIO · 三维全球空间态势感知系统</span>
           <span>·</span>
-          <span>POWERED BY CESIUM & NEXT.JS</span>
+          <span>SHENZHEN 114.05°E 22.54°N</span>
         </div>
         <div className="hidden sm:flex items-center gap-2">
-          <span>PORT: 4173</span>
+          <span className="text-emerald-400">● 空间计算引擎运行中</span>
           <span>·</span>
-          <span className="text-emerald-400">LAT/LON ENGINE READY</span>
+          <span>CESIUM 3D TILES & NASA FIRMS READY</span>
         </div>
       </div>
     </div>

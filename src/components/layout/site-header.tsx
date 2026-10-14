@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Hand, Menu, Sparkles, X, User, LogOut, ChevronDown, TrendingUp, Bot, Trophy, BookOpen } from "lucide-react";
+import { Command, Hand, Menu, Sparkles, X, User, LogOut, ChevronDown, TrendingUp, Bot, Trophy, BookOpen, Globe2 } from "lucide-react";
 import { navigation, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -103,6 +103,18 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <Link
+              href="/experiments/gods-eye"
+              className="relative hidden items-center gap-1.5 overflow-hidden rounded-full border border-sky-500/30 bg-sky-500/10 px-3.5 py-2 text-sm font-medium text-sky-700 shadow-sm transition-all duration-300 hover:scale-105 hover:border-sky-500/50 hover:bg-sky-500/15 hover:shadow-md hover:shadow-sky-500/10 sm:flex"
+            >
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
+              </span>
+              <Globe2 className="h-3.5 w-3.5 text-sky-600 animate-spin-slow" />
+              <span>上帝之眼</span>
+            </Link>
+
             <Link
               href="/gesture"
               className="relative hidden items-center gap-1.5 overflow-hidden rounded-full border border-brand-violet/20 bg-brand-violet/5 px-3.5 py-2 text-sm font-medium text-brand-violet shadow-sm transition-all duration-300 hover:scale-105 hover:border-brand-violet/40 hover:bg-brand-violet/10 hover:shadow-md hover:shadow-brand-violet/5 md:flex"
