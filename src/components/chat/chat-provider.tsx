@@ -78,15 +78,38 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   // 监听登录态与挂载同步提问配额
   useEffect(() => {
-    void refreshQuota();
+    let active = true;
+
+    const fetchQuota = async () => {
+      try {
+        const res = await fetch("/api-chat-backend", { cache: "no-store" });
+        if (res.ok && active) {
+          const data = await res.json();
+          setQuota({
+            authenticated: !!data.authenticated,
+            unlimited: !!data.unlimited,
+            remaining: typeof data.remaining === "number" ? data.remaining : 10,
+            total: data.total || 10,
+            resetTime: data.resetTime || "北京时间 00:00:00",
+            loading: false,
+          });
+        }
+      } catch {
+        // 保持当前配额状态
+      }
+    };
+
+    void fetchQuota();
+
     const handleAuthChange = () => {
-      void refreshQuota();
+      void fetchQuota();
     };
     window.addEventListener("auth-state-changed", handleAuthChange);
     return () => {
+      active = false;
       window.removeEventListener("auth-state-changed", handleAuthChange);
     };
-  }, [user?.id, refreshQuota]);
+  }, [user?.id]);
 
   // 当当前登录用户 ID 变更时（登录/登出/换账号），重新初始化加载专属记忆
   useEffect(() => {

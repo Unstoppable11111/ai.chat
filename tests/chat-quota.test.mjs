@@ -15,7 +15,7 @@ const compiledJs = ts.transpileModule(tsSource, {
 
 function loadChatQuotaModule(customVerifySession = null) {
   const exports = {};
-  const module = { exports };
+  const targetModule = { exports };
 
   const mockDb = {
     getDbPool: () => null, // 测试内存降级高可用模式
@@ -37,7 +37,7 @@ function loadChatQuotaModule(customVerifySession = null) {
   };
 
   const sandbox = {
-    module,
+    module: targetModule,
     exports,
     require: (id) => {
       if (id === "./db") return mockDb;
@@ -55,7 +55,7 @@ function loadChatQuotaModule(customVerifySession = null) {
   };
 
   vm.runInNewContext(compiledJs, sandbox);
-  return module.exports;
+  return targetModule.exports;
 }
 
 test("getBeijingDateString returns valid YYYY-MM-DD in Asia/Shanghai timezone", () => {
