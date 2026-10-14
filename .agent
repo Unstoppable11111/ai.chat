@@ -114,4 +114,4 @@
 1. **沟通风格**：始终使用中文；**先给结论，再说明原因和步骤**；避免无关理论套话，直接给出可执行方案。
 2. **数据实事求是**：所有推演与分析必须从系统当前真实数据源提取，回答“为什么买”、“为什么卖”必须严格对应决策链路与策略规则。
 3. **架构稳定性**：任何新功能扩展必须遵循增量原则，不得破坏现有 `/market` 看板中的任何已有模块。
-4. **CI 门禁与提交前检查铁律**：推送前必须在本地依次执行完整检查链（`npm run build`、`npm run typecheck`、`npm test`、`npm run lint`），严禁在 `useEffect` 中直接调用同步 `setState`（`react-hooks/set-state-in-effect`），严禁将变量命名为 `module`（`@next/next/no-assign-module-variable`），彻底杜绝任何低级 ESLint/CI 阻断错误发生。
+4. **CI 门禁与提交前检查铁律**：推送前必须在本地依次执行完整检查链（`npm run build`、`npm run typecheck`、`npm test`、`npm run lint`），严禁在 `useEffect` 中直接调用同步 `setState`（`react-hooks/set-state-in-effect`），严禁将变量命名为 `module`（`@next/next/no-assign-module-variable`），且**提交时必须严格检查组件依赖完整性，绝不可漏提任何子组件或子路由导致远端构建出现 `Module not found`**，彻底杜绝任何低级构建阻断错误发生。

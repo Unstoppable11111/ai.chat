@@ -38,4 +38,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - ❌ **严禁**在任何代码或测试文件（包括 `tests/*.test.mjs`）中声明或对名为 `module` 的变量赋值（如 `const module = { exports };` 会被 Next.js ESLint 判定为覆盖 CommonJS 顶层 `module`）；
 - ✅ **正确做法**：统一使用语义化变量名（如 `mockModule`、`targetModule`、`fakeModule`）。
 
+### 4. 提交依赖完整性自检（严禁漏提组件导致远端 Module not found）
+- ❌ **严禁漏提依赖文件**：在提交修改某个文件（如 `chat-experience.tsx`）时，若该文件引用了新组件或路由（如 `curate-post-modal.tsx`、`api/curate-post/route.ts`），**必须确保所依赖的文件同步加入 Git 暂存区**；
+- ❌ 本地存在该未跟踪文件（Untracked）时本地 build 虽能成功，但一推送到干净环境的 GitHub Actions 就会立即触发 `Module not found: Can't resolve` 构建崩溃；
+- ✅ **正确做法**：提交前仔细核对 `git status`，凡属于页面或组件必需的子模块，必须完整提交，严防线上 CI 缺文件断裂！
+
+
 
