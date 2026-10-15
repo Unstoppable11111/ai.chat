@@ -3,7 +3,7 @@
 <head>
   <link rel="stylesheet" href="/apps/gods-eye/cesium/Widgets/widgets.css">
   <script src="/apps/gods-eye/cesium/Cesium.js"></script>
-  <script src="/apps/gods-eye/china-adapter.js?v=20261015"></script>
+  <script src="/apps/gods-eye/china-adapter.js?v=20261015-photoreal"></script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -516,11 +516,11 @@
       </div>
     </div>
     <div class="pp-toggle-group">
-      <button class="pp-toggle-btn active" id="scope-toggle" title="望远视野 — 圆形遮罩瞄准视域" aria-pressed="true">
+      <button class="pp-toggle-btn" id="scope-toggle" title="望远视野 — 圆形遮罩瞄准视域" aria-pressed="false">
         <span class="pp-icon material-symbols-outlined" aria-hidden="true">adjust</span>
         <span class="pp-label">瞄准视野</span>
       </button>
-      <div class="pp-slider-row visible" id="scope-slider-row">
+      <div class="pp-slider-row" id="scope-slider-row">
         <span class="pp-slider-mini-label">羽化</span>
         <input type="range" class="pp-slider" id="scope-feather-slider" min="0" max="100" value="11" aria-label="遮罩边缘羽化" title="边缘羽化程度" />
         <span class="pp-slider-value" id="scope-feather-value">11%</span>
