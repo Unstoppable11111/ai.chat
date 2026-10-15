@@ -89,11 +89,11 @@ export function GodsEyeConsole({ initialUrl }: GodsEyeConsoleProps) {
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-medium text-emerald-400 border border-emerald-500/30">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                STANDALONE NODE
+                TIANDITU CHINA DIRECT
               </span>
             </div>
             <p className="text-[10px] font-mono text-slate-400 hidden sm:block">
-              CESIUMJS 3D TILES · OSINT REAL-TIME FEEDS · OPTIC FLIR
+              国家天地图 4K 遥感 · 中文地名注记 · 天宫空间站 &amp; 北斗三号态势
             </p>
           </div>
         </div>
