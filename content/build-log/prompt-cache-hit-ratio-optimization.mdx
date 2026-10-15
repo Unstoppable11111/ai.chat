@@ -1,0 +1,41 @@
+---
+title: "动态上下文压缩与 Prompt Cache 命中率极致调优：降低 80% 推理账单"
+excerpt: "深入解析 Anthropic、OpenAI 与主流推理框架的 Prompt Caching 机制：如何通过提示词前缀确定性设计与分块对齐，实现零延迟复用。"
+date: "2026-05-05"
+updated: "2026-10-13"
+tags: ["PromptCache","成本优化","前缀匹配","长上下文"]
+cover: "/images/blog-covers/claude-gemini.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么长提示词不仅昂贵而且缓慢
+
+在企业级 RAG、代码仓库分析和智能客服中，系统提示词、知识库检索资料和历史对话动辄数万 Token。
+如果每次用户提问都将整个长上下文从头重新计算一次 Attention（Prefill 阶段），不仅端到端的首字延迟（TTFT）难以忍受，API 调用费用也会成倍飙升。
+
+**Prompt Caching（提示词缓存）** 允许服务端直接在 GPU 显存中保留此前已计算过的 KV Cache 状态，后续请求若命中相同前缀，费用通常可降低 75%~90%，且首字响应缩短至毫秒级。
+
+## 前缀对齐与确定性排列法则
+
+Prompt Cache 能否生效，完全取决于**严格的前缀一致性（Strict Prefix Matching）**：
+1. **静态前置原则 (Static First)**：系统指令、不可变的工具定义（Tool Schemas）、基底知识库资料必须严格放置在最前缀位置，绝对不能将动态变化的时间戳、用户会话 ID 插入静态内容前方；
+2. **块边界对齐 (Block-Level Alignment)**：主流提供商（如 Anthropic）以 1024 Token 为最小缓存块边界，且有最短 Token 阈值要求（如 1024 或 2048 Tokens）；
+3. **确定性序列化**：传递 JSON 或数组参数时，必须经过确定性排序（Stable Key Sorting），避免因序列化字段顺序随机变化破坏缓存指纹。
+
+## 稳定提示词前缀构建器验证
+
+```js
+import assert from "node:assert/strict";
+function getPrefix(sys, user) {
+  return "SYS:" + sys + "|USER:" + user;
+}
+assert.equal(getPrefix("A", "Q1").split("|")[0], "SYS:A");
+```
+
+## 原始资料与溯源链接
+
+- [Anthropic Prompt Caching Guide](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching)：官方提示词缓存计费机制与工程接入规范。

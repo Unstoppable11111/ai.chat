@@ -1,0 +1,41 @@
+---
+title: "结构化 Text-to-SQL 与非结构化知识统一 RAG 编排：多路路由与统一聚合"
+excerpt: "深入解析复杂企业场景下的混合问答痛点：如何通过动态意图路由打通关系型数据库精确聚合分析与非结构化文档语义问答。"
+date: "2026-05-15"
+updated: "2026-10-13"
+tags: ["Text-to-SQL","混合RAG","意图路由","企业架构"]
+cover: "/images/blog-covers/enterprise-rag.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么单一向量 RAG 永远算不对财务报表
+
+在企业数字化建设中，用户的问题往往是复合型的。例如：“*去年华东区销售额前三的客户是谁？我们对他们的回款账期违约策略有哪些规章？*”
+
+前半句是典型的**结构化关系型查询（需要精准的 SQL 聚合统计与无误差计算）**；后半句则是**非结构化文档分析（需要语义检索规章白皮书）**。如果试图用向量检索来回答数字统计，算出来的数值几乎 100% 存在虚构。
+
+## 动态意图路由与统一合成层架构
+
+构建混合统一 RAG 系统需要三级管线：
+1. **意图路由分发器 (Intent Router)**：将用户原始问题拆解为原子子问题，打上 `STRUCTURED_SQL` 与 `UNSTRUCTURED_DOC` 标签；
+2. **Text-to-SQL 安全执行沙盒**：针对结构化查询，自动匹配数据字典、生成 SQL、在只读从库受限执行并转为表格摘要；
+3. **统一知识上下文编排**：将结构化 SQL 查询出的精确数据，与非结构化向量检索得到的政策条例，共同注入最终 Synthesis Prompt。
+
+## 意图分解与统一组装实现
+
+```js
+import assert from "node:assert/strict";
+function routeIntent(query) {
+  return query.includes("总计") ? "SQL" : "VECTOR";
+}
+assert.equal(routeIntent("计算总计销售额"), "SQL");
+assert.equal(routeIntent("解释退款条款"), "VECTOR");
+```
+
+## 原始资料与溯源链接
+
+- [LlamaIndex Structured Data & Text-to-SQL](https://docs.llamaindex.ai/)：混合结构化与非结构化知识增强标准规范。

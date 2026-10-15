@@ -1,0 +1,43 @@
+---
+title: "零一万物 Yi-Lightning：长上下文与极限推理性价比架构探秘"
+excerpt: "解析 Yi-Lightning 如何在极具竞争力的定价下保持卓越质量：深层 KV 缓存分层置换、吞吐感知调度与混合专家高密度利用。"
+date: "2026-03-20"
+updated: "2026-10-13"
+tags: ["零一万物","Yi-Lightning","推理加速","吞吐量"]
+cover: "/images/blog-covers/sparse-moe.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 推理成本经济学的核心战场
+
+在商业化大模型生态中，算力成本直接决定了大规模工程应用的可行性。零一万物推出的 Yi-Lightning 在 LMSYS 等国际盲测榜单中跻身前列的同时，将推理 API 成本压低至同级旗舰模型的几分之一。
+
+其核心秘密不仅在于模型本身的预训练参数效率，更在于整套**软硬协同的极端低成本推理体系架构**。
+
+## 混合专家 (MoE) 稀疏激活与分层调度
+
+Yi-Lightning 的技术亮点涵盖：
+1. **高密度细粒度专家路由 (High-Granularity MoE)**：将计算任务切分为数量更多、单个参数量更小的专家，每次仅激活极少比例的计算路径；
+2. **KV Cache 分层存储与分级卸载 (Hierarchical KV Offloading)**：将长期对话中不常访问的历史上下文从昂贵的 GPU HBM 显存实时分层迁移到 host 内存甚至 NVMe SSD，只在命中长距离注意力时提前预取；
+3. **动态批处理吞吐最大化**：调度器持续监测 GPU Tensor Core 负载，动态平衡 Prefill 阶段（高算力密集型）与 Decode 阶段（高显存带宽密集型）的交替执行。
+
+## KV 缓存分层置换模拟算法
+
+```js
+import assert from "node:assert/strict";
+function checkCacheHit(hbm, host, key) {
+  if (hbm.includes(key)) return "HBM";
+  if (host.includes(key)) return "HOST";
+  return "MISS";
+}
+assert.equal(checkCacheHit(["a", "b"], ["c"], "a"), "HBM");
+assert.equal(checkCacheHit(["a"], ["c"], "c"), "HOST");
+```
+
+## 原始资料与溯源链接
+
+- [01.AI 官方技术发布](https://www.01.ai/)：零一万物大模型架构演进与极速推理服务实战记录。

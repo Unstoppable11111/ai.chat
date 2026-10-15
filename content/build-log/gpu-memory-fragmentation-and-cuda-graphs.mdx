@@ -1,0 +1,39 @@
+---
+title: "GPU 显存碎片治理与 CUDA Graph 捕获优化策略：压榨最后一滴算力"
+excerpt: "全面拆解线上长周期大模型推理中的隐蔽杀手：如何对抗 PyTorch Caching Allocator 显存碎片，并利用 CUDA Graph 消除主机 CPU 调度瓶颈。"
+date: "2026-07-15"
+updated: "2026-10-13"
+tags: ["CUDA-Graph","显存碎片","PyTorch","系统性能"]
+cover: "/images/blog-covers/speculative-decoding.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么线上服务运行几天后会突然 OOM？
+
+在大模型推理服务稳定运行数天后，运维人员经常遇到诡异现象：当前显存实际占用只有 40GB，但分配一个仅仅 500MB 的张量时系统却抛出 `CUDA out of memory`。
+
+这正是**显存碎片化（Memory Fragmentation）**的典型症状。反复分配与释放形状不同的临时张量，将 GPU 物理连续空间切割成无数无法拼接的细小碎片。
+
+## CUDA Graph 消除 CPU 调度开销
+
+除了显存碎片，另一个被忽视的瓶颈是 **CPU 主机端算子发射开销（Host Overhead）**：
+1. 在 Decode 阶段，单步生成的算子执行时间极短（仅数微秒），CPU 频繁向 GPU 发送 Kernel Launch 指令的时间甚至超过了 GPU 运算本身；
+2. **CUDA Graph 捕获机制**：将一个完整的迭代步内的所有算子执行图一次性预捕获并固化为静态图。后续生成时，CPU 只需发送一次轻量的 Graph Launch 指令，GPU 自动在内部按依赖关系流水线触发，消除几乎全部 CPU 瓶颈并使内存地址静态锁定。
+
+## 显存碎片率评估算法模拟
+
+```js
+import assert from "node:assert/strict";
+function fragRatio(alloc, reserved) {
+  return (reserved - alloc) / reserved;
+}
+assert.equal(fragRatio(40, 80), 0.5);
+```
+
+## 原始资料与溯源链接
+
+- [CUDA Graphs: Fast and Scalable GPU Workloads](https://developer.nvidia.com/blog/cuda-graphs/)：NVIDIA 官方开发者博客关于 CUDA Graph 深度调优指南。

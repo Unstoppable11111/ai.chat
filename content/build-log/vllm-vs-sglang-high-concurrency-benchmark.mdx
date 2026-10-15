@@ -1,0 +1,39 @@
+---
+title: "vLLM 与 SGLang 高并发推理引擎架构对比：RadixAttention 与结构化执行"
+excerpt: "全面横评当前最炙手可热的两大生产级开源推理框架：深入解析 SGLang 的 RadixAttention 前缀树缓存优势与 vLLM 的生态统治力。"
+date: "2026-06-15"
+updated: "2026-10-13"
+tags: ["vLLM","SGLang","RadixAttention","推理基准"]
+cover: "/images/blog-covers/speculative-decoding.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 开源大模型服务框架的巅峰对决
+
+在大模型 API 高并发高吞吐服务领域，vLLM 凭借率先工程化落地 PagedAttention 确立了行业标准地位。然而，伯克利团队推出的 **SGLang** 凭借对复杂多轮对话与结构化生成场景的针对性优化，在多项高并发吞吐基准测试中展现出惊人的超越势头。
+
+理解两者的底层差异，是构建高吞吐大模型私有化集群的核心功课。
+
+## RadixAttention 前缀树状态机革命
+
+两者的核心架构分水岭在于对历史上下文复用的处理粒度：
+1. **vLLM 的传统前缀哈希**：依赖静态前缀匹配，在处理多轮复杂分支（如思维树树搜索、多轮工具调用）时容易发生缓存未命中；
+2. **SGLang 的 RadixAttention**：将 KV Cache 的生命周期交由一棵实时的**基数树（Radix Tree）**管理！不同请求之间哪怕只有中间某个片段相同，或者在树状分叉时，Radix Tree 均能实现无感的前缀共享与自动最近最少使用（LRU）节点淘汰。
+
+## 简易基数树前缀匹配模拟
+
+```js
+import assert from "node:assert/strict";
+function longestMatch(keys, prompt) {
+  return keys.filter(k => prompt.startsWith(k)).sort((a,b) => b.length - a.length)[0] || null;
+}
+assert.equal(longestMatch(["SYS:", "SYS:USER:"], "SYS:USER:HELLO"), "SYS:USER:");
+```
+
+## 原始资料与溯源链接
+
+- [SGLang: Efficient Execution of Structured Language Model Programs](https://arxiv.org/abs/2312.07104)：SGLang 官方技术论文与 RadixAttention 架构详解。

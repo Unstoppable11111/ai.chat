@@ -1,0 +1,43 @@
+---
+title: "KV Cache 极致压缩：PagedAttention 分页管理与 StreamingLLM 滑动窗口"
+excerpt: "拆解现代大模型服务系统的显存命脉：如何借鉴操作系统虚拟内存分页消除 96% 显存碎片，并利用 Attention Sink 实现无限长流式推导。"
+date: "2026-06-05"
+updated: "2026-10-13"
+tags: ["PagedAttention","StreamingLLM","显存优化","vLLM"]
+cover: "/images/blog-covers/sparse-moe.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 传统连续张量分配造成的严重显存浪费
+
+在 vLLM 诞生之前，主流推理系统为请求分配 KV Cache 时，必须提前根据最大可能输出长度预先划定一段连续的物理显存空间。这种做法存在三个致命问题：
+1. **内部碎片 (Internal Fragmentation)**：用户实际只生成了 50 个 Token，系统却预留了 2048 个位置；
+2. **外部碎片 (External Fragmentation)**：显存总余量充足，但没有足够大的连续物理块供新请求使用；
+3. **无法共享上下文**：在多轮对话中，相同的 System Prompt 在每个并发会话中都被重复冗余存储了一份。
+
+## 操作系统级分页思想 (PagedAttention)
+
+PagedAttention 彻底颠覆了连续分配假设：
+- **逻辑块与物理块解耦 (Block Table)**：将每个序列的 KV Cache 切分为固定大小的小物理块（例如 Block Size = 16 Token），物理上离散存储在显存任意位置；
+- **写时复制 (Copy-on-Write)**：同一个 System Prompt 对应的物理块可被无数个并发请求以只读指针的形式共享，直到某个请求需要写入新 Token 时才触发轻量拷贝。
+
+配合 **StreamingLLM** 的注意力陷阱（Attention Sink）机制——固定保留最前方的 4 个起始 Token 与最近的滑动窗口 Token，使大模型能在恒定显存下支撑数十万 Token 的流式对话。
+
+## 简易 Block Table 逻辑块物理映射器
+
+```js
+import assert from "node:assert/strict";
+function allocateBlock(freeList) {
+  return freeList.shift() || null;
+}
+const blocks = [101, 102];
+assert.equal(allocateBlock(blocks), 101);
+```
+
+## 原始资料与溯源链接
+
+- [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180)：vLLM 官方开创性学术论文。

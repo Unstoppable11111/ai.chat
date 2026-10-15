@@ -1,0 +1,41 @@
+---
+title: "现代向量数据库横评：Milvus vs Qdrant vs pgvector 生产选型与基准"
+excerpt: "全面对比三大主流向量基础设施：从单机轻量部署到千亿级分布式扩展，解析过滤性能、HNSW 内存占用与软硬件运维代价。"
+date: "2026-05-02"
+updated: "2026-10-13"
+tags: ["向量数据库","Milvus","Qdrant","pgvector"]
+cover: "/images/blog-covers/enterprise-rag.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 向量数据库的核心选型分水岭
+
+随着 RAG 成为企业标配，市场上的向量存储方案已从最初的狂热走向工程理性。目前主要分为三大阵营：
+1. **云原生分布式巨兽（Milvus）**：专为亿级以上超大规模向量检索设计，存储与计算彻底分离，依赖 MinIO、etcd、Kafka，适合专业大数据团队；
+2. **极速单机与集群利器（Qdrant）**：基于 Rust 构建，原生内存映射（mmap）与有效载荷过滤（Payload Filtering）表现惊艳，单节点即可高效支撑千万级向量，运维极其清爽；
+3. **关系型一体化扩展（pgvector）**：直接在已有的 PostgreSQL 数据库中扩展向量索引类型，完全复用成熟的 ACID 事务、备份容灾体系，是中小团队的最优解。
+
+## HNSW 索引图构建与标量过滤 (Payload Filtering)
+
+在实际业务中，纯向量相似度往往伴随着复杂的业务过滤（例如：`WHERE tenant_id = 't_123' AND status = 'active'`）：
+- **后过滤 (Post-filtering)**：先搜出前 100 条向量，再滤除不合规记录。当过滤条件极其严苛时，容易导致有效结果归零；
+- **单通道迭代过滤 (Single-Stage Filtered HNSW)**：Qdrant 和现代 pgvector 支持在遍历 HNSW 邻居图的过程中直接校验标量条件，大幅提升带条件检索的召回率与响应速度。
+
+## 选型决策打分矩阵
+
+```js
+import assert from "node:assert/strict";
+function pickDB(scaleM) {
+  return scaleM > 50 ? "milvus" : "pgvector";
+}
+assert.equal(pickDB(100), "milvus");
+assert.equal(pickDB(2), "pgvector");
+```
+
+## 原始资料与溯源链接
+
+- [Vector DB Comparison 2024](https://qdrant.tech/benchmarks/)：Qdrant 官方基准测试与向量吞吐横向对比。

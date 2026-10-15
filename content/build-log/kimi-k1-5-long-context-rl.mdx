@@ -1,0 +1,41 @@
+---
+title: "Kimi k1.5 架构前瞻：百万级长文本多模态与长程强化学习探索"
+excerpt: "深入解析月之暗面 Kimi k1.5 的核心攻坚方向：如何克服超长序列下的注意力衰减，并在多模态视觉长链推导中引入强化学习对齐。"
+date: "2026-03-01"
+updated: "2026-10-13"
+tags: ["Kimi","长上下文","强化学习","多模态"]
+cover: "/images/blog-covers/sparse-moe.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 百万长文本的注意力有效性挑战
+
+支持 200 万甚至数千万 Token 的上下文窗口绝非简单将序列输入模型：在极端长距离下，传统的 Softmax 注意力往往会发生**注意稀释（Attention Dilution）**，导致模型虽然没有发生长度截断，却陷入“海中捞针”失败或无法跨章节建立深层因果联系的困境。
+
+Kimi k1.5 在架构上通过局部稀疏注意力与全局引导查询机制的结合，确保在百万上下文深处仍具备清晰的分辨率。
+
+## 长程强化学习 (Long-Horizon RL) 与规划能力
+
+传统的短指令强化学习难以应对复杂的科研论文通读、长篇代码仓库重构或多模态剧本编排。Kimi k1.5 引入长程强化学习（Long-Horizon Reinforcement Learning）：
+1. **多阶段环境交互**：将复杂任务拆解为子目标状态机，每达成一个阶段性检查点给予中间稠密奖励；
+2. **多模态长上下文跨模态对齐**：支持连续数百页 PDF、复杂工业图纸与高清视频帧的端到端交错输入，建立跨时间轴的因果推导链；
+3. **动态记忆压缩**：在解码阶段识别历史高价值 Token，对无信息的冗余填充片段进行动态剪枝。
+
+## 记忆衰减与动态权重保留算法
+
+```js
+import assert from "node:assert/strict";
+function keepTopSalience(items, topK = 2) {
+  return [...items].sort((a,b) => b.salience - a.salience).slice(0, topK).map(i => i.id);
+}
+const stream = [{ id: 1, salience: 0.2 }, { id: 2, salience: 0.9 }, { id: 3, salience: 0.7 }];
+assert.deepEqual(keepTopSalience(stream, 2), [2, 3]);
+```
+
+## 原始资料与溯源链接
+
+- [Moonshot AI 技术动态](https://moonshot.cn/)：关于长文本无损推理与多模态强化学习的官方工程演化记录。

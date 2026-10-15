@@ -1,0 +1,50 @@
+---
+title: "WebGL 吞吐量优化：Three.js 百万粒子实例化与 GPU 顶点着色器动画"
+excerpt: "全面拆解前端 3D 视觉性能极限：如何利用 InstancedMesh 与自定义 GLSL Vertex Shader 将 CPU 批次绘制调用 (Draw Calls) 压缩至 1 次并跑满 120 FPS。"
+date: "2026-09-10"
+updated: "2026-10-13"
+tags: ["WebGL","Three.js","GLSL","粒子系统"]
+cover: "/images/blog-covers/high-throughput-particles.webp"
+featured: true
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么在 CPU 循环中更新粒子位置会导致严重掉帧
+
+很多前端开发者在用 Three.js 开发粒子效果时，习惯在 `requestAnimationFrame` 的循环中使用 JavaScript 逐个遍历 100,000 个粒子的 $(x, y, z)$ 坐标。
+这种做法会瞬间撞上两堵性能铁墙：
+1. **CPU 单核计算瓶颈**：JavaScript 单线程需要对几十万个浮点数进行三角函数运算；
+2. **CPU 到 GPU 内存传输带宽耗尽**：每一帧都需要将庞大的顶点缓冲区（VBO）重新上传至 GPU 显存，导致 Draw Call 延迟爆炸。
+
+真正高性能的 WebGL 3D 粒子系统，必须做到**几何体实例化（InstancedMesh）并将运动方程全量交给 GPU 顶点着色器（Vertex Shader）**。
+
+## GLSL 顶点着色器与基于时间的解析运动方程
+
+让数百万粒子在 GPU 中并行舞动的标准方案：
+1. **单次 Draw Call 实例化**：利用 `THREE.InstancedMesh` 或带实例化属性的 `BufferGeometry`，将 100 万粒子的绘制调用合并为单次 `glDrawElementsInstanced`；
+2. **GPU 并行求值**：在 GLSL Vertex Shader 内部传入统一时间变量 `uniform float uTime`，利用内置并行算子在 GPU Core 上瞬间计算出每个粒子的螺旋、星云或引力形态：
+   ```glsl
+   vec3 pos = position;
+   pos.x += sin(pos.y * 3.0 + uTime) * 0.2;
+   gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+   ```
+3. **视锥体剔除优化 (Frustum Culling)**：根据粒子群外包围球（Bounding Sphere）动态跳过不可见视野的渲染。
+
+## 纯 JS 模拟顶点着色器时间参数更新
+
+```js
+import assert from "node:assert/strict";
+function updateUniformTime(prev, dt) {
+  return (prev + dt) % 1000;
+}
+assert.equal(updateUniformTime(10, 0.016), 10.016);
+```
+
+## 原始资料与溯源链接
+
+- [Chen Tech Studio 3D 粒子与手势交互系统](file:///e:/codex/ai.chat-main/src/app/gesture/page.tsx)：站内基于 WebGL 着色器与 MediaPipe 的生产级高帧率手势粒子场。
+
+- [权威技术规范与白皮书](https://threejs.org/docs/#api/en/objects/InstancedMesh)

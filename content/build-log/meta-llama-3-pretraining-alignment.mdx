@@ -1,0 +1,53 @@
+---
+title: "Meta Llama 3/3.1 架构实战：405B 超大规模稠密预训练与高质量合成数据"
+excerpt: "深入分析 Llama 3 家族的设计哲学：为什么坚持标准稠密架构、如何利用 15T+ Tokens 与多轮 DPO/PPO 迭代实现开源前沿性能突破。"
+date: "2026-02-25"
+updated: "2026-10-13"
+tags: ["Llama3","开源模型","预训练","DPO"]
+cover: "/images/blog-covers/deepseek-r1.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 稠密架构的坚持与超大规模数据红利
+
+在众多团队纷纷转向混合专家（MoE）以降低训练与推理算力门槛的背景下，Meta 在 Llama 3 与 3.1 旗舰 405B 模型上依旧坚持了标准 Dense（稠密）Transformer 架构。
+
+其核心逻辑在于：稠密架构在具备极致工程优化的高性能计算集群（如 16,000+ H100 节点）中，具有极高的硬件利用率（MFU）和确定性的通信模式；结合高达 15.6 万亿（15T+）多语言高质量 Token 的预训练，彻底压榨稠密参数的表征上限。
+
+## 词表扩容与长上下文长程旋转扩展 (RoPE Scaling)
+
+Llama 3 相比 Llama 2 进行了多项关键基础设施重构：
+1. **128k 词表架构 (Tiktoken BPE)**：将词表大小从 32k 剧增至 128k，使得多语言压缩率提升约 15%，显著减少了中文、代码等多语种生成的 Token 总数；
+2. **分组查询注意力 (GQA) 全量覆盖**：全系列（8B、70B、405B）标配 8 个 Key-Value Heads，大幅降低推理端 KV Cache 显存占用；
+3. **RoPE 基频调节与 128k 上下文**：基频参数 $\theta$ 从标准的 10,000 跃升至 500,000，并在后续采用调整版插值算法支持 128,000 完整长上下文。
+
+## 多轮对齐管道与合成数据清洗
+
+Llama 3 的后训练对齐并非一步到位，而是经历连续多轮演进：
+- **拒绝采样 (Rejection Sampling)**：由前序检查点生成候选集合，利用规则引擎、编译器以及评判模型打分筛选最优样本；
+- **直接偏好优化 (DPO) 与近端策略优化 (PPO) 协同**：在数学、编程和遵循指令任务中，多轮交替迭代，有效缓解单一对齐算法带来的模式坍缩。
+
+以下为拒绝采样最优样本筛选的核心校验算法：
+
+```js
+import assert from "node:assert/strict";
+function selectBestSample(candidates) {
+  const passing = candidates.filter(c => c.passesTests);
+  if (!passing.length) return null;
+  return passing.reduce((best, curr) => curr.styleScore > best.styleScore ? curr : best);
+}
+const samples = [
+  { id: "A", passesTests: false, styleScore: 0.9 },
+  { id: "B", passesTests: true, styleScore: 0.8 },
+  { id: "C", passesTests: true, styleScore: 0.95 }
+];
+assert.equal(selectBestSample(samples)?.id, "C");
+```
+
+## 原始资料与溯源链接
+
+- [The Llama 3 Herd of Models](https://arxiv.org/abs/2407.21783)：Meta 官方发布的全技术报告与开源体系深度解析。

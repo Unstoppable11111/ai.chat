@@ -1,0 +1,42 @@
+---
+title: "复杂长程任务的工作流：有向无环图 (DAG) 编排与状态机持久化断点续跑"
+excerpt: "全面剖析构建严肃生产级 Agent 工作流的工业标准：如何结合 DAG 依赖拓扑、严格状态机 (State Machine) 与 MySQL 持久化实现突发宕机零丢失。"
+date: "2026-07-30"
+updated: "2026-10-13"
+tags: ["DAG","工作流","状态机","持久化"]
+cover: "/images/blog-covers/mcp-agent.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么自由放任的“自主 Agent”在严肃工程中无法落地
+
+让大模型完全自主规划并执行几十步长任务（如写一本 10 万字小说或重构复杂工程），常常在第 15 步发生死循环或离题万里。
+严肃的企业级工作流系统（如本站内置的小说与分镜工作台），必须采用**确定性的有向无环图（DAG）与状态机框架**：由人制定严谨的骨架阶段，模型仅在受控的确定节点内发挥创造力。
+
+## 节点拓扑、上下文级联与持久化快照
+
+工业级工作流编排的三大支柱：
+1. **拓扑排序依赖 (DAG Topological Sorting)**：Step 2（逐章正文）强依赖 Step 1（世界观细纲 Bible）；Step 3（视频分镜）强依赖 Step 2 的段落上下文；
+2. **上下文滚动级联 (Context Cascading)**：长序列任务中，只向下游节点传递精炼后的核心上下文，避免爆显存与注意力稀释；
+3. **每步状态落库与幂等断点续跑**：每个 Step 结束后，立即将数据快照写入数据库 JSON 字段。若网络中断或服务重启，用户随时能够从上次暂停的节点原地继续！
+
+## 极简 DAG 拓扑执行器模拟
+
+```js
+import assert from "node:assert/strict";
+function canRun(deps, done) {
+  return deps.every(d => done.includes(d));
+}
+assert.equal(canRun(["step1"], ["step1"]), true);
+assert.equal(canRun(["step1", "step2"], ["step1"]), false);
+```
+
+## 原始资料与溯源链接
+
+- [Chen Tech Studio 自动化小说与分镜编排系统](file:///e:/codex/ai.chat-main/src/app/workflow/page.tsx)：站内基于 DAG 状态机与 SSE 流式打字的生产级工作流参考。
+
+- [权威技术规范与白皮书](https://docs.langchain.com/)

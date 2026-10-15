@@ -1,0 +1,41 @@
+---
+title: "Google Gemini 2.0 Flash Thinking 架构解析：原生多模态与极低时延思考"
+excerpt: "全面拆解 Google Gemini 2.0 原生多模态统一 Transformer：将文本、音频、视频流与动态思考过程合二为一的下一代工程实践。"
+date: "2026-03-10"
+updated: "2026-10-13"
+tags: ["Gemini","多模态","实时流式","端到端"]
+cover: "/images/blog-covers/claude-gemini.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 原生多模态统一 Transformer 的本质
+
+过去的“多模态”大模型多采用“拼盘”方案：由预训练的 CLIP 图像编码器提取视觉特征，再通过线性投影层（Projector）投射到语言大模型的输入空间。这种方案在处理高帧率视频、实时连续音频时存在严重的语义断层和延迟累加。
+
+Google Gemini 2.0 从预训练第一天起就采用**原生统一模态架构（Native Multimodal Transformer）**。视觉、音频波形、文本 Token 被映射到相同的超空间中，模型天然具备跨模态联合表征与时间因果建模能力。
+
+## 极低时延流式思考 (Low-Latency Flash Thinking)
+
+在多模态实时互动（如视频通话中实时问答）场景下，传统的长思考机制会彻底破坏会话体验。Gemini 2.0 Flash Thinking 提出了轻量化动态思考模式：
+1. **多模态交错输入缓存**：高频视频帧（1~5 FPS）经过时空 Patch 编码后持续追加到上下文流中，利用滑动窗口与注意力缓存减少重算；
+2. **渐进式思考标记 (Progressive Thought Tokens)**：在生成正式语音或文本输出前，模型在内部仅生成少量高度浓缩的概念锚点；
+3. **全双工打断支持 (Full-Duplex Interruption)**：在用户随时插话打断时，即时截断正在生成的流并快速切换思考上下文。
+
+## 跨模态时序输入流的伪代码模拟
+
+```js
+import assert from "node:assert/strict";
+function alignTimeline(events) {
+  return [...events].sort((a, b) => a.ts - b.ts).map(e => e.type);
+}
+const events = [{ type: "text", ts: 50 }, { type: "audio", ts: 10 }, { type: "video", ts: 30 }];
+assert.deepEqual(alignTimeline(events), ["audio", "video", "text"]);
+```
+
+## 原始资料与溯源链接
+
+- [Gemini 2.0 官方发布报告](https://blog.google/technology/ai/google-gemini-next-generation-model-december-2024/)：Google DeepMind 关于 Gemini 2.0 原生多模态与实时交互的白皮书。

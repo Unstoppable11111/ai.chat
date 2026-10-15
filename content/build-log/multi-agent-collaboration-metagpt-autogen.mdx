@@ -1,0 +1,43 @@
+---
+title: "多 Agent 协作范式：MetaGPT、AutoGen 与标准作业程序 (SOP) 架构"
+excerpt: "全面拆解复杂多智能体协同框架：为什么将人类组织中的 SOP（标准作业程序）代码化能降低 Agent 协同中的噪音放大与无休止争论。"
+date: "2026-08-10"
+updated: "2026-10-13"
+tags: ["多Agent","MetaGPT","AutoGen","SOP"]
+cover: "/images/blog-covers/mcp-agent.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么简单的“群聊式 Agent”容易退化为无序噪音
+
+在早期 AutoGen 的群聊（GroupChat）模式中，多个角色被赋予不同设定（如产品经理、架构师、程序员）并在同一个上下文中发言。但在复杂任务中，角色之间经常发生循环吹捧、无休止扯皮或重复确认，导致 Token 飞速消耗却没有任何实质代码产出。
+
+**MetaGPT** 提出的颠覆性思想在于：**将人类世界验证成熟的标准作业程序（SOP, Standard Operating Procedure）彻底代码化**。
+
+## 发布-订阅事件总线与确定性产物交接
+
+SOP 架构的精髓在于：
+1. **产物驱动（Artifact-Driven）**：Agent 之间不进行自由闲聊，只交付标准格式的文档产物（PRD 文档 -> API 契约文档 -> 架构图 -> 代码文件）；
+2. **发布-订阅通信（Pub/Sub Message Bus）**：角色只监听自己感兴趣的上一级产物（如架构师只监听已定稿的 PRD，程序员只监听已定稿的 API 契约）；
+3. **单向流水线与阶段门禁（Phase Gates）**：上游产物未经确认前，下游严禁开工，避免噪音向下游指数级放大。
+
+## 极简 SOP 发布订阅总线实现
+
+```js
+import assert from "node:assert/strict";
+function nextStage(current) {
+  const stages = ["PRD", "DESIGN", "CODE"];
+  const idx = stages.indexOf(current);
+  return stages[idx + 1] || null;
+}
+assert.equal(nextStage("PRD"), "DESIGN");
+assert.equal(nextStage("DESIGN"), "CODE");
+```
+
+## 原始资料与溯源链接
+
+- [MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework](https://arxiv.org/abs/2308.00352)：MetaGPT 官方 SOP 协作论文。

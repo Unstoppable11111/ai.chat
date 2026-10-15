@@ -1,0 +1,39 @@
+---
+title: "连续批处理 (Continuous Batching) 调度算法与动态排队队列设计"
+excerpt: "全面拆解 ORCA 与现代推理服务器的核心调度范式：如何摆脱传统静态批处理等待最慢请求的困境，实现毫秒级动态插入与高吞吐并发。"
+date: "2026-06-25"
+updated: "2026-10-13"
+tags: ["ContinuousBatching","调度算法","高并发","吞吐量"]
+cover: "/images/blog-covers/sparse-moe.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 传统静态批处理 (Static Batching) 的短板
+
+在传统机器学习服务中，批处理通常按“组”进行：等待收集齐 16 个请求后打包执行。然而大语言模型自回归生成具有完全不可预测的输出长度（有的请求只需生成 5 个词，有的需要生成 1000 个词）。
+如果采用静态批处理，短请求完成后必须在 GPU 中空转挂起，强制等待最慢的长请求结束，导致算力利用率极度低下。
+
+## 迭代级调度 (Iteration-Level Scheduling)
+
+连续批处理（Continuous Batching）将调度的最小时间颗粒度从“整个请求的生命周期”下沉到“单个 Token 的生成迭代（Iteration-Level）”：
+1. **即时拔除 (Eviction on Completion)**：一旦某个请求输出了 `<end_of_sequence>` 结束符，立即在下一个时间步从当前 Batch 中释放其占用的显存和槽位；
+2. **零等待插入 (Instant Insertion)**：新到达的请求无需等待下一轮大批次，而是在下一个迭代时隙直接作为新成员合流并入计算矩阵；
+3. **抢占与重计算 (Preemption Strategy)**：当突发高负载导致显存不足时，根据优先级将低优先级请求的 KV Cache 卸载或放入重计算队列。
+
+## 连续批处理轮询调度伪代码模拟
+
+```js
+import assert from "node:assert/strict";
+function stepBatch(batch) {
+  return batch.map(r => r - 1).filter(r => r > 0);
+}
+assert.deepEqual(stepBatch([2, 1, 3]), [1, 2]);
+```
+
+## 原始资料与溯源链接
+
+- [Orca: A Distributed Serving System for Transformer-Based Generative Models](https://www.usenix.org/conference/osdi22/presentation/yu)：OSDI 开创性迭代调度论文。

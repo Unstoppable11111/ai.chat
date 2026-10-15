@@ -1,0 +1,42 @@
+---
+title: "RAG 幻觉抑制与可验证引用：行级溯源链接与证据链防御工程"
+excerpt: "深入解析高质量知识问答的护城河：如何通过段落哈希、字符级行号标记与对抗性提示词约束，实现 AI 答案每一句话均可溯源。"
+date: "2026-05-25"
+updated: "2026-10-13"
+tags: ["幻觉抑制","溯源引用","知识库验证","工程安全"]
+cover: "/images/blog-covers/ai-security.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么“不可溯源的答案”在严肃业务中毫无价值
+
+大语言模型最狡猾的特性在于其“充满自信地胡说八道”。如果一个 RAG 系统给出的答案看起来头头是道，但访客无法点击查看该结论究竟来自哪份文档的哪一行，那么该系统在法律、金融、医疗或严肃技术排障中就无法被信任。
+
+构建真正可落地的知识库，必须建立端到端的**可验证溯源链（Verifiable Citations Pipeline）**。
+
+## 字符级锚点与确定性证据注入协议
+
+实现高精度溯源的工程支柱：
+1. **分块元数据包含精准行号与哈希**：切块时必须保留 `{ sourceUrl, startLine, endLine, contentHash }`，并在注入 Prompt 时以固定格式标明；
+2. **对抗性系统提示约束**：强制要求模型“只能引用给定材料中的事实；当材料不足时明确说明没有找到站内证据；禁止编造 URL”；
+3. **后置引用提取器 (Post-Processing Citation Parser)**：利用正则表达式提取回答中的 `[来源 X]` 标记，与注入的证据清单进行交叉断言，若出现虚构编号则直接告警纠正。
+
+## 引用断言解析校验实现
+
+```js
+import assert from "node:assert/strict";
+function checkCitation(text, maxSources) {
+  const matches = [...text.matchAll(/\[来源\s*(\d+)\]/g)];
+  return matches.every(m => Number(m[1]) <= maxSources);
+}
+assert.equal(checkCitation("参考 [来源 1]", 2), true);
+assert.equal(checkCitation("参考 [来源 5]", 2), false);
+```
+
+## 原始资料与溯源链接
+
+- [Towards Verifiable Text Generation](https://arxiv.org/abs/2304.09848)：可验证文本生成与行级证据链学术规范。

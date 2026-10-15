@@ -1,0 +1,46 @@
+---
+title: "Function Calling 容错重试、参数结构校验与防御性降级实战"
+excerpt: "深入解析构建零崩溃大模型函数调用系统的关键：Zod 运行时强类型校验、幻觉参数自动纠偏与下游安全网（Safety Fallback）设计。"
+date: "2026-08-05"
+updated: "2026-10-13"
+tags: ["FunctionCalling","Zod","防御性编程","容错重试"]
+cover: "/images/blog-covers/ai-security.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 大模型函数调用在现实世界中的致命脆弱性
+
+在演示 Demo 中，大模型调用天气查询接口总是返回整齐的 JSON。而在真实生产中，模型会遭遇各种边缘异常：
+- 将数字类型的端口号输出为字符串 `"3306"` 甚至带单位 `"3306端口"`；
+- 将布尔值输出为中文 `"是"` 或 `"true"`；
+- 自行发明额外的未声明字段；
+- 由于截断导致输出半截残缺的非法 JSON 字符串。
+
+如果不经过严格的运行时拦截与修复，后端服务将直接抛出 Unhandled Exception 导致崩溃。
+
+## 结构化修复管线三步法
+
+构建防御性 Function Calling 系统的黄金法则：
+1. **宽松反序列化与修复 (Lenient JSON Repair)**：针对缺损的双引号或尾部逗号，使用 jsonrepair 等容错库尝试自愈；
+2. **模式模式强断言 (Schema Validation)**：利用 Zod 或严谨校验器对入参做强制类型转换（如将 `"123"` 自动类型强制转换为 `123`）；
+3. **错误反馈二次提示 (Error-Feedback Retry)**：若字段仍不合法，将确切的校验错误信息打包成工具返回消息送回模型：“*参数 port 必须是数字，你传递了非法值，请重新输出*”。
+
+## 参数自动纠偏纯 JS 演示
+
+```js
+import assert from "node:assert/strict";
+function parsePort(p) {
+  const m = String(p).match(/\d+/);
+  return m ? parseInt(m[0], 10) : 80;
+}
+assert.equal(parsePort("3306端口"), 3306);
+assert.equal(parsePort(8080), 8080);
+```
+
+## 原始资料与溯源链接
+
+- [OpenAI Function Calling Guide & Structured Outputs](https://platform.openai.com/docs/guides/function-calling)：结构化输出与函数调用官方指南。

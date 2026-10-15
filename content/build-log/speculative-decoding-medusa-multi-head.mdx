@@ -1,0 +1,44 @@
+---
+title: "投机采样进阶：Draft Model 与 Medusa 多头并行验证架构"
+excerpt: "深入解析打破自回归模型单 Token 串行生成瓶颈的技术：如何利用草稿模型多候选投机与 Medusa 多头树状拓扑实现 2~3 倍无损加速。"
+date: "2026-06-10"
+updated: "2026-10-13"
+tags: ["投机采样","Medusa","推理加速","并行验证"]
+cover: "/images/blog-covers/speculative-decoding.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 内存带宽受限 (Memory Bound) 与投机采样的机遇
+
+大模型的解码阶段（Decode Phase）本质是一个**显存带宽受限（Memory-Bound）**过程：每生成 1 个单 Token，GPU 就必须将千亿参数的权重全量从 HBM 读取到计算核心一次，算力单元绝大部分时间在空转等待访存。
+
+**投机采样（Speculative Decoding）**利用了一个关键数学洞见：*单次前向传播验证 $K$ 个连续 Token 的计算代价，几乎与生成 1 个 Token 的代价完全相同*！
+
+## Draft Model 对比 Medusa 多头架构
+
+目前工业界主要有两种流派：
+1. **双模型协作流派 (Draft-Target Speculation)**：使用一个极小的快速小模型（如 0.5B）快速连猜 4 个 Token，再由大模型（如 70B）在单次前向计算中并行计算它们的条件概率并执行拒绝采样接受；
+2. **免小模型流派 (Medusa Multi-Head)**：无需额外维护辅助小模型，直接在原模型主干顶部追加多个轻量前馈头（Medusa Heads），每个头分别预测 $t+1, t+2, t+3$ 位置的 Token，利用树状注意力掩码（Tree Attention）在单次前向中完成投机与验证。
+
+## 投机采样接收/拒绝判定纯 JS 模拟
+
+```js
+import assert from "node:assert/strict";
+function acceptTokens(probs, thresh = 0.5) {
+  let count = 0;
+  for (const p of probs) {
+    if (p >= thresh) count++;
+    else break;
+  }
+  return count;
+}
+assert.equal(acceptTokens([0.9, 0.8, 0.2]), 2);
+```
+
+## 原始资料与溯源链接
+
+- [Medusa: Simple LLM Inference Acceleration with Multiple Decoding Heads](https://arxiv.org/abs/2401.10774)：Medusa 免草稿模型并行多头投机论文。

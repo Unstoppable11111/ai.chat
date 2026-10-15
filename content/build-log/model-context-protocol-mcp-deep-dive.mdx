@@ -1,0 +1,41 @@
+---
+title: "Anthropic MCP (Model Context Protocol) 核心协议与 Agent 生态落地实战"
+excerpt: "深入解析大模型统一连接器协议 MCP：如何通过 JSON-RPC 2.0、Resources/Prompts/Tools 三大支柱彻底消除各家私有插件标准的割裂局面。"
+date: "2026-07-20"
+updated: "2026-10-13"
+tags: ["MCP","Anthropic","JSON-RPC","Agent生态"]
+cover: "/images/blog-covers/mcp-agent.webp"
+featured: true
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么过去的 LLM 插件生态走向了碎片化
+
+在 MCP 诞生之前，每一家 AI 客户端或平台都在发明自己的插件标准：OpenAI GPTs 有一组 OpenAPI 规范，LangChain 有一套 Tool 抽象，各种客户端更是私有实现横行。
+这种局面导致开发者每写一个数据库或 GitHub 集成，就要为不同平台重写数遍。
+
+Anthropic 开放开源的 **Model Context Protocol (MCP)** 借鉴了微软在 IDE 领域统一编程语言支持的 Language Server Protocol (LSP) 成功经验，旨在成为 AI 与数据源之间的通用 USB-C 接口。
+
+## MCP 架构的三层支柱与 JSON-RPC 通信
+
+MCP 客户端（如 Claude Desktop 或 IDE）与 MCP 服务端（如 Postgres MCP、Filesystem MCP）通过标准标准输入输出（Stdio）或 Server-Sent Events (SSE) 建立 JSON-RPC 2.0 会话：
+1. **Resources（只读资源）**：向模型提供上下文文件、日志、数据库表结构等静态/流式数据，支持 URI Scheme 寻址；
+2. **Prompts（结构化提示模板）**：由服务端预置可复用的业务提示词模板与参数占位符；
+3. **Tools（可执行工具）**：由大模型决定调用时机、具备副作用操作的受控函数列表。
+
+## 纯 TypeScript 模拟极简 MCP Tool 处理框架
+
+```js
+import assert from "node:assert/strict";
+function mcpResponse(id, result) {
+  return { jsonrpc: "2.0", id, result };
+}
+assert.equal(mcpResponse(1, { ok: true }).id, 1);
+```
+
+## 原始资料与溯源链接
+
+- [Model Context Protocol Specification](https://modelcontextprotocol.io/)：Anthropic 官方开源规范与 SDK 指南。

@@ -1,0 +1,48 @@
+---
+title: "微软 GraphRAG 工业级落地：实体社区抽取与分层宏观摘要检索"
+excerpt: "深入解析微软 GraphRAG 相比传统向量 RAG 的降维打击：如何构建知识图谱实体、利用 Leiden 社区发现算法生成宏观摘要以回答全局性问题。"
+date: "2026-04-22"
+updated: "2026-10-13"
+tags: ["GraphRAG","知识图谱","Leiden算法","社区摘要"]
+cover: "/images/blog-covers/graph-rag.webp"
+featured: true
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么朴素向量 RAG 在“全局概括型”问题上彻底失效
+
+传统的 Naive RAG 依赖文本分块与稠密向量相似度匹配（Top-K Similarity）。这种机制在回答事实查找型问题（如“某接口的入参是什么？”）时表现优秀，但当用户提出全局性、跨文档的宏观问题时（例如：“这本 30 万字的小说中所有反派势力的权力转移脉络是什么？”），向量检索必然崩溃。
+
+因为没有单一分块能够覆盖全局全貌，向量相似度召回的都是局部零散片段，拼接在一起极易产生幻觉或信息断层。微软 GraphRAG 便是为此而生。
+
+## Leiden 社区发现算法与分层图谱抽取
+
+GraphRAG 的两阶段图谱抽取与摘要生成链路如下：
+1. **实体与关系抽取 (Entity-Relation Extraction)**：利用大模型对文档切块进行结构化提取，识别出节点（Entities）、双向边（Relationships）以及共现证据（Claims）；
+2. **图拓扑聚类 (Leiden Community Detection)**：基于拓扑连接密度，将庞大的图谱递归聚类为互不相交或层级嵌套的“社区（Communities）”；
+3. **分层社区摘要生成 (Community Summaries)**：自底向上为每个子社区生成独立的宏观技术摘要，形成多尺度的层次化报告树。
+
+在用户查询时，系统根据意图选择“全局搜索（Global Search，扫描顶层社区摘要）”或“局部搜索（Local Search，深挖实体一度关系）”。
+
+## 纯 TypeScript 模拟简易社区聚类与聚合摘要路由
+
+```js
+import assert from "node:assert/strict";
+function routeQuery(type, reports) {
+  return type === "global" ? reports.map(r => r.summary).join(";") : "";
+}
+const out = routeQuery("global", [{ summary: "模块A" }, { summary: "模块B" }]);
+assert.ok(out.includes("模块A"));
+```
+
+## 生产落地的成本控制与边缘挑战
+
+1. **图抽取阶段的巨大 Token 开销**：对百万字资料进行全量实体抽取需要消耗数千万 Token，生产中需引入实体缓存、增量合并和小型专家模型蒸馏；
+2. **图谱动态增量更新难题**：新文档增删时，重新运行全局 Leiden 算法开销巨大，通常需采取增量局部图扩散算法进行局部重聚类。
+
+## 原始资料与溯源链接
+
+- [From Local to Global: A Graph RAG Approach to Query-Focused Summarization](https://arxiv.org/abs/2404.16130)：微软官方 GraphRAG 研究论文。

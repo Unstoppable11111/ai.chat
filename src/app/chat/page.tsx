@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ChatExperience } from "@/components/chat/chat-experience";
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, Sparkles, X } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "贾维斯 AI 对话终端",
@@ -31,9 +32,22 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-muted-foreground bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-          <Sparkles className="w-3.5 h-3.5 text-brand-cyan" />
-          <span>全站资料库实时索引就绪</span>
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-muted-foreground bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+            <Sparkles className="w-3.5 h-3.5 text-brand-cyan" />
+            <span>全站资料库实时索引就绪</span>
+          </div>
+
+          {/* 右上角关闭/返回按钮 */}
+          <Link
+            href="/"
+            aria-label="关闭对话回到首页"
+            title="关闭对话回到首页"
+            className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors border border-slate-200/80 cursor-pointer shadow-2xs"
+          >
+            <X className="h-3.5 w-3.5" />
+            <span>关闭</span>
+          </Link>
         </div>
       </div>
 

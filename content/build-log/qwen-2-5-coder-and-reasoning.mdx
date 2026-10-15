@@ -1,0 +1,44 @@
+---
+title: "Qwen 2.5 全尺寸开源模型演进：代码合成对齐与长链数学推理"
+excerpt: "深入解析阿里云通义千问 Qwen 2.5 与 Qwen 2.5-Coder 的训练体系：如何通过沙盒环境反馈与长链思维蒸馏登顶全球开源评测榜。"
+date: "2026-03-05"
+updated: "2026-10-13"
+tags: ["Qwen2.5","代码大模型","数学推理","开源生态"]
+cover: "/images/blog-covers/mcp-agent.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 开源模型的全尺寸矩阵布局
+
+通义千问 Qwen 2.5 覆盖从 0.5B、1.5B、3B、7B、14B、32B 到 72B 的完整参数梯度。在实际工业界落地中，这种全尺寸布局具备极高的实用价值：32B 模型往往可以在单张专业 GPU 上通过 INT4/FP8 无损部署，而其代码和指令遵循能力媲美甚至超越早期的千亿级大模型。
+
+Qwen 2.5-Coder 特别在编程领域展现了卓越的表征能力，其核心归功于高质量代码语料的清洗过滤与沙盒自动编译执行反馈。
+
+## 编译器反馈与强化学习训练闭环
+
+在后训练（Post-Training）阶段，Qwen 团队采用了基于真实代码执行器的强化学习环境：
+1. **多语言执行沙盒矩阵**：针对 Python、TypeScript、C++、Go 等 92 种编程语言，建立即时运行沙盒；
+2. **测试用例生成器与变异测试**：大模型生成代码后，由专用 Critic 模型生成单元测试与对抗性边界用例进行交叉检验；
+3. **确定性奖励与逻辑错误归因**：将编译错误（Syntax Error）、运行超时（Timeout）以及逻辑断言失败（Assertion Failed）细分为阶梯式惩罚信号。
+
+## 纯 JS 模拟沙盒用例评测与惩罚打分机制
+
+```js
+import assert from "node:assert/strict";
+function computeCodeReward(fb) {
+  if (!fb.syntaxOk) return -1.0;
+  if (fb.runtimeError) return -0.5;
+  const passRate = fb.passed / fb.total;
+  return passRate === 1.0 ? 1.0 : passRate * 0.6;
+}
+assert.equal(computeCodeReward({ syntaxOk: true, runtimeError: false, passed: 10, total: 10 }), 1.0);
+assert.equal(computeCodeReward({ syntaxOk: false }), -1.0);
+```
+
+## 原始资料与溯源链接
+
+- [Qwen 2.5 技术报告与开源仓库](https://github.com/QwenLM/Qwen2.5)：通义千问 2.5 官方开源模型架构、Tokenizer 规范与评测详情。

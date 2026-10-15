@@ -1,0 +1,57 @@
+---
+title: "A 股量化实战：双均线金叉死叉与布林带 (Bollinger) 动态网格策略回测"
+excerpt: "全面拆解量化交易的核心数学逻辑：如何在 A 股 T+1 与涨跌停限制下，结合 EMA 趋势跟踪与布林带振荡网格实现高胜率回测闭环。"
+date: "2026-09-01"
+updated: "2026-10-13"
+tags: ["量化交易","双均线","布林带","网格策略"]
+cover: "/images/blog-covers/graph-rag.webp"
+featured: true
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 趋势跟踪与均值回归的天然互补性
+
+在金融二级市场中，单一维度的交易策略往往会在特定行情下遭受重创：
+- **纯趋势跟踪策略（如双均线 EMA）**：在单边大牛市或大熊市中收益惊人，但在长达数月的箱体震荡中，会频繁遭遇“追高杀跌”反复止损；
+- **纯均值回归策略（如网格交易、RSI 超买超卖）**：在震荡市中高抛低吸如鱼得水，但一旦遭遇突破性单边单边暴跌，网格会过早打光子弹深套。
+
+将**EMA 双均线过滤器**与**布林带（Bollinger Bands）动态上下轨**结合，能实现“顺大势，逆小势”的稳健胜率。
+
+## 布林带标准差计算与信号触发机制
+
+核心指标计算逻辑：
+1. **中轨 (Middle Band)**：通常为 20 日简单移动平均线 $SMA_{20}$；
+2. **上轨与下轨 (Upper & Lower Bands)**：
+   $$\text{Upper} = SMA_{20} + k \cdot \sigma, \quad \text{Lower} = SMA_{20} - k \cdot \sigma \quad (k=2.0)$$
+   其中 $\sigma$ 为最近 20 天收盘价的标准差；
+3. **入场与出场信号契约**：
+   - 过滤条件：仅当短期均线高于长期均线（处于上升大趋势通道）时允许做多；
+   - 触发买入：当价格下探触碰布林带下轨且企稳回升；
+   - 触发卖出：当价格冲高触及布林带上轨超买区域分批止盈。
+
+## 纯 TypeScript 生产级指标回测计算逻辑
+
+```js
+import assert from "node:assert/strict";
+function computeBollinger(prices) {
+  const mean = prices.reduce((a,b)=>a+b,0)/prices.length;
+  const std = Math.sqrt(prices.reduce((s,p)=>s+(p-mean)**2,0)/prices.length);
+  return { upper: mean + 2*std, lower: mean - 2*std };
+}
+const b = computeBollinger([10, 11, 12]);
+assert.ok(b.upper > b.lower);
+```
+
+## 生产落地的 A 股真实交易约束
+
+1. **T+1 与日内无法平仓风险**：当日买入的现货无法在日内止损，必须在策略入场时计算最大单日可能下挫空间；
+2. **滑点 (Slippage) 与手续费冲击**：高频换手会迅速被印花税、过户费侵蚀，回测模型必须引入至少 0.1% 的滑点损耗与确定性费率扣除。
+
+## 原始资料与溯源链接
+
+- [Chen Tech Studio 量化投研与策略中心](file:///e:/codex/ai.chat-main/src/app/market/page.tsx)：站内基于真实行情接口与情绪雷达的生产级量化系统。
+
+- [权威技术规范与白皮书](https://www.investopedia.com/terms/b/bollingerbands.asp)

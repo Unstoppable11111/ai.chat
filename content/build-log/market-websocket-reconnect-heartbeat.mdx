@@ -1,0 +1,45 @@
+---
+title: "金融级实时行情 WebSocket 断线重连、心跳保活与去重幂等架构实战"
+excerpt: "深入解析高可用实时行情推送客户端设计：指数退避重连算法、双向心跳 Ping-Pong 探测与消息序列号 (Sequence ID) 防丢防重保活机制。"
+date: "2026-10-01"
+updated: "2026-10-13"
+tags: ["WebSocket","实时行情","断线重连","系统高可用"]
+cover: "/images/blog-covers/graph-rag.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么金融实时行情绝不能简单依赖普通 fetch 轮询
+
+股票与加密货币市场的行情变幻瞬息万变，在毫秒级波动的极端行情下，依靠 HTTP 轮询不仅对服务器造成巨大洪峰冲击，还会因网络延迟错失最佳止损时机。
+长连接 WebSocket 是实时行情推流的标准选择。
+
+然而在移动端或弱网环境下，手机锁屏、基站切换、Wi-Fi 抖动会导致“假死连接”——TCP 链路已经断开，而前端仍未触发 `onclose`。构建金融级客户端必须拥有**主动心跳与自愈重连机制**。
+
+## 双向心跳探测与指数退避重试 (Exponential Backoff with Jitter)
+
+高可用 WebSocket 客户端的四大支柱：
+1. **双向心跳健康巡检 (Ping-Pong Probe)**：前端每隔 15 秒主动向网关发送 `ping`，若连续 2 次（30 秒）未收到 `pong` 应答，强行主动关闭死连接并触发自愈；
+2. **全抖动指数退避重连 (Full Jitter Backoff)**：避免上万客户端在网关重启后同时重连造成惊群效应：
+   $$\text{Delay} = \text{random}(0, \min(\text{MaxDelay}, \text{BaseDelay} \times 2^{\text{attempt}}))$$
+3. **序列号防重与滑动补单 (Sequence-based Deduplication)**：行情包携带全局单调递增的 `seq_id`，前端自动丢弃已处理过的陈旧数据包。
+
+## 指数退避重试计算纯 JS 模拟
+
+```js
+import assert from "node:assert/strict";
+function backoff(attempt) {
+  return Math.min(30000, 1000 * Math.pow(2, attempt));
+}
+assert.equal(backoff(0), 1000);
+assert.equal(backoff(1), 2000);
+```
+
+## 原始资料与溯源链接
+
+- [Chen Tech Studio 实时行情多空雷达服务](file:///e:/codex/ai.chat-main/src/app/market/page.tsx)：站内基于行情轮询与交易时间判断的生产实践。
+
+- [权威技术规范与白皮书](https://websockets.spec.whatwg.org/)

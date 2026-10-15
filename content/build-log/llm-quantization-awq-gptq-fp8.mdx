@@ -1,0 +1,41 @@
+---
+title: "大模型量化终极指南：AWQ、GPTQ、FP8 与 INT4 精度无损转换"
+excerpt: "深入解析大模型权重与激活值量化算法：如何识别‘显著权重’避免精度坍缩，并在消费级显卡上流畅运行千亿大模型。"
+date: "2026-06-20"
+updated: "2026-10-13"
+tags: ["量化","AWQ","GPTQ","FP8"]
+cover: "/images/blog-covers/edge-ai.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么单纯的线性舍入会导致大模型胡言乱语
+
+在计算机体系中，将 FP16（16 位浮点数）转换为 INT4（4 位整数）可以将显存需求直降为 1/4。然而，如果采用朴素的均匀缩放舍入（Round-to-Nearest, RTN），哪怕只是将一个 7B 模型压到 4-bit，其困惑度（Perplexity）也会灾难性飙升，甚至直接输出乱码。
+
+这是因为 Transformer 中存在极其极端的**激活异常值（Activation Outliers）**——仅占 0.1% 的极少数特征通道，决定了模型整体的语义稳定性。
+
+## AWQ (Activation-aware Weight Quantization) 的突破
+
+AWQ 算法发现了核心规律：*保护那些对应较大激活幅度的权重，而非盲目保护绝对值大的权重*：
+1. **基于校准集观察激活**：在少量真实输入文本上运行模型，统计哪些通道的激活均值最大；
+2. **逐通道逆向缩放 (Per-Channel Scaling)**：在量化权重之前，给关键通道的权重施加一个缩放系数 $s > 1$，同时在输入端除以 $s$，在数学上严格保持矩阵乘积恒等，但使得关键权重在舍入时保留了最高信噪比！
+
+结合现代 GPU 原生支持的 **FP8 (E4M3 / E5M2)** 数据类型，已经可以在完全免微调的情况下实现性能近乎零损耗的极致加速。
+
+## 标量对称量化与反量化数学公式
+
+```js
+import assert from "node:assert/strict";
+function quantRound(val, scale) {
+  return Math.max(-8, Math.min(7, Math.round(val / scale)));
+}
+assert.equal(quantRound(1.2, 0.2), 6);
+```
+
+## 原始资料与溯源链接
+
+- [AWQ: Activation-aware Weight Quantization for On-Device LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978)：MIT 官方 AWQ 论文。

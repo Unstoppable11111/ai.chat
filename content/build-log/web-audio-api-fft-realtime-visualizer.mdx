@@ -1,0 +1,44 @@
+---
+title: "音频律动驱动视觉：Web Audio API 快速傅里叶变换 (FFT) 频域分析实战"
+excerpt: "深入解析网页高帧率音频可视化的全套链路：如何利用 AnalyserNode 获取高精度时域与频域数据，并无缝驱动 3D 粒子缩放与色相渐变。"
+date: "2026-09-25"
+updated: "2026-10-13"
+tags: ["WebAudio","FFT","频域分析","音频可视化"]
+cover: "/images/blog-covers/high-throughput-particles.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 声音从连续物理波形到数字离散频谱
+
+音乐在物理上是气压随时间变化的连续模拟振动。计算机通过模数转换（ADC）以固定采样率（如 44.1 kHz）将其离散化为时域 PCM 数组。
+但在做视觉特效（如重低音轰鸣时让 3D 星系粒子猛烈膨胀）时，时域波形无法直接区分“低音提琴”还是“清脆高音”。
+
+必须借助**快速傅里叶变换（FFT, Fast Fourier Transform）**将时域信号拆解为各频率分量的能量幅值。
+
+## AnalyserNode 节点与高保真数据绑定
+
+Web Audio API 的标准分析管线：
+1. **音频图路由 (Audio Graph Routing)**：将解码后的音频源连接到 `AudioContext.createAnalyser()`，再连接到输出扬声器 `audioCtx.destination`；
+2. **频率精度设置 (fftSize)**：设置 `fftSize = 512`，得到 256 个频率区间的离散频段能量；
+3. **划分音频频段能量（低频、中频、高频）**：
+   - 提取前 10% 的频段计算低频均值（重低音 Kick），映射为粒子爆炸半径；
+   - 提取中频映射为粒子流动速度；
+   - 提取高频映射为粒子颜色饱和度。
+
+## 纯 JS 模拟频段能量提取与平滑插值
+
+```js
+import assert from "node:assert/strict";
+function avgBass(bins) {
+  return bins.reduce((a,b)=>a+b,0)/bins.length;
+}
+assert.equal(avgBass([100, 200]), 150);
+```
+
+## 原始资料与溯源链接
+
+- [MDN Web Audio API AnalyserNode 指南](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode)：官方标准频域分析接口规范。

@@ -1,0 +1,41 @@
+---
+title: "端侧 LLM 实践：Llama.cpp、Ollama 与 NPU 硬件级加速调优"
+excerpt: "全面拆解离线端侧 AI 的工程闭环：GGUF 文件格式剖析、CPU AVX-512/NEON 指令集汇编级优化与苹果 Apple Silicon 统一内存红利。"
+date: "2026-07-05"
+updated: "2026-10-13"
+tags: ["端侧AI","Llama.cpp","GGUF","NPU"]
+cover: "/images/blog-covers/edge-ai.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么端侧本地运行大模型正在爆发
+
+虽然云端大模型算力强大，但数据隐私敏感（法务医疗、个人日记）、离线可用性、网络不稳定以及 API 计费成本，驱动着“端侧大模型（On-Device LLM）”的快速繁荣。
+
+借助 **Llama.cpp** 和 **GGUF** 规范，如今在一部轻薄笔记本甚至手机上，即可顺畅运行 7B~14B 甚至 32B 大模型。
+
+## GGUF 格式设计与零拷贝内存映射 (mmap)
+
+端侧推理性能的核心秘诀涵盖：
+1. **GGUF 单文件二进制封装**：统一将模型架构超参数、Tokenizer 词表、分层量化权重打包，彻底杜绝 PyTorch 复杂的运行时依赖；
+2. **零拷贝 mmap 加载**：通过系统级 `mmap` 系统调用，将模型文件直接映射进虚拟内存空间，模型秒级加载启动，无需漫长读取与反序列化；
+3. **硬件统一内存（Unified Memory）**：在 Apple Silicon（M 系列芯片）上，CPU 与 GPU 共享同一块极高带宽的物理统一内存，大模型无需在总线上反复拷贝张量，大幅降低推理功耗。
+
+## GGUF 头部元数据解析轻量验证
+
+```js
+import assert from "node:assert/strict";
+function isGGUF(magic) {
+  return magic === "GGUF";
+}
+assert.equal(isGGUF("GGUF"), true);
+assert.equal(isGGUF("BIN"), false);
+```
+
+## 原始资料与溯源链接
+
+- [ggerganov/llama.cpp 官方开源仓库](https://github.com/ggerganov/llama.cpp)：端侧高性能大模型推理框架。

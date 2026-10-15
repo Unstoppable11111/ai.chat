@@ -1,0 +1,40 @@
+---
+title: "Parent-Child 分块深度实践：Small-to-Big 检索与上下文完整性保留"
+excerpt: "解析 RAG 经典矛盾：细粒度检索精度与宽广上下文理解的平衡。如何通过父子文档关联实现‘小块检索，大块送模’的优雅落地。"
+date: "2026-04-28"
+updated: "2026-10-13"
+tags: ["Parent-Child","分块策略","RAG架构","Small-to-Big"]
+cover: "/images/blog-covers/enterprise-rag.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 传统固定切块（Fixed-Size Chunking）的两难困境
+
+在构建知识库切块时，工程师常常面临不可调和的矛盾：
+- **切块过小（如 128 Token）**：语义高度聚焦，向量余弦相似度能够极其精准地命中用户问题；但在送入大模型生成时，由于丢失了上下文段落的背景与转折，模型容易出现断章取义；
+- **切块过大（如 1024 Token）**：虽然段落完整，但嵌入向量被过多的不同主题平均化，导致检索召回率急剧下滑。
+
+## Small-to-Big 父子分块设计哲学
+
+Parent-Child（Small-to-Big）检索范式完美化解了这一矛盾：
+1. **父文档切分 (Parent Chunk)**：按照文章的自然结构（如 H2/H3 章节或 800~1500 字）切分出具备独立完整逻辑的父块；
+2. **子文档重叠切割 (Child Chunk)**：在每个父块内部，进一步细切出多个 100~200 字的小子块，并为小子块建立稠密向量索引；
+3. **检索与替换还原 (Index on Child, Prompt on Parent)**：向量检索时仅匹配子块以保证超高检索灵敏度；一旦命中某个子块，系统自动追溯到其所属的父块，并将完整的父块注入大模型的 Prompt 上下文中！
+
+## 父子文档映射引擎实现
+
+```js
+import assert from "node:assert/strict";
+function resolveParent(childToParent, hitChild) {
+  return childToParent[hitChild] || null;
+}
+assert.equal(resolveParent({ "c1": "p1" }, "c1"), "p1");
+```
+
+## 原始资料与溯源链接
+
+- [LangChain Parent Document Retriever Guide](https://python.langchain.com/docs/modules/data_connection/retrievers/parent_document_retriever/)：父子文档检索器标准设计模式。

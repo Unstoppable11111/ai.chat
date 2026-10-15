@@ -1,0 +1,45 @@
+---
+title: "动量过滤与多因子选股模型在极端行情下的最大回撤 (Max Drawdown) 控制"
+excerpt: "深入解析多因子选股体系的硬核风控设计：如何通过波动率倒数加权、行业暴露中性化与黑天鹅动态熔断保护投资本金。"
+date: "2026-09-05"
+updated: "2026-10-13"
+tags: ["多因子选股","动量策略","最大回撤","风险控制"]
+cover: "/images/blog-covers/graph-rag.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么“只看年化收益率”是量化投资的致命陷阱
+
+许多初级量化策略在牛市回测中能够跑出 80% 的惊人年化收益率，但在真实实盘中遭遇熊市或流动性危机时，单月最大回撤高达 50%。
+根据复利数学法则：亏损 50% 需要后续上涨 100% 才能回本。**控制最大回撤（Max Drawdown, MDD）与提升夏普比率（Sharpe Ratio），是衡量顶级策略的真正分水岭**。
+
+## 极端行情下的动态熔断与波动率倒数加权
+
+控制回撤的三大防御支柱：
+1. **波动率倒数风险平价 (Inverse-Volatility Weighting)**：标的资产近期实际波动率越大，其配置权重自动等比例下调；
+2. **全市场情绪雷达中立保护**：监控全市场涨跌家数比与恐慌指数（VIX），在情绪跌入冰点且恐慌扩散时，主动强制清仓或转入货币防御资产；
+3. **分层硬止损与动态跟踪止盈 (Trailing Stop)**：单标的最大亏损达到 8% 触发无条件市价单强平，盈利超过 20% 后启动移动止损线。
+
+## 历史序列最大回撤精确计算实现
+
+```js
+import assert from "node:assert/strict";
+function maxDrawdown(curve) {
+  let peak = -Infinity, maxDD = 0;
+  for (const v of curve) {
+    if (v > peak) peak = v;
+    const dd = (peak - v) / peak;
+    if (dd > maxDD) maxDD = dd;
+  }
+  return maxDD;
+}
+assert.equal(maxDrawdown([100, 120, 90, 110]), 0.25);
+```
+
+## 原始资料与溯源链接
+
+- [Active Portfolio Management](https://www.mheducation.com/)：Grinold & Kahn 经典量化多因子风控圣经。

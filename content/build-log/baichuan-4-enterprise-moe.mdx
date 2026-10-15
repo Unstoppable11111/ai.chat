@@ -1,0 +1,40 @@
+---
+title: "百川智能 Baichuan 4：万亿 MoE 与垂直企业级知识增强体系"
+excerpt: "深入解析 Baichuan 4 在医疗、政企垂直领域的工程落地：万亿混合专家结构、知识图谱深度融合与精准行业问答对齐。"
+date: "2026-03-25"
+updated: "2026-10-13"
+tags: ["百川智能","Baichuan4","知识增强","医疗AI"]
+cover: "/images/blog-covers/graph-rag.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 垂直领域大模型的真实痛点
+
+通用大模型在通识聊天中表现亮眼，但一旦深入严肃医疗、金融风控或法务审查，常常由于微弱的幻觉导致严重后果。百川智能 Baichuan 4 主打将**通用基座能力与严肃垂直行业知识图谱**无缝结合。
+
+通过在 MoE 结构中显式划分通用语言专家与专业领域知识专家，使模型既具备流畅的自然语言理解力，又受严格专业知识逻辑约束。
+
+## 结构化知识注入与实体对齐增强
+
+Baichuan 4 的知识增强流程包含：
+1. **多级医学/法律知识图谱抽取**：预先沉淀权威本体库（Ontology），建立实体与三元组关系的强约束关联；
+2. **检索增强融合训练 (Retrieval-Augmented Pretraining)**：在训练数据中主动穿插权威知识检索片段，训练模型识别检索片段中的因果证据；
+3. **领域专属拒绝回答机制**：在信息不足或置信度低于阈值时，坚决输出安全免责与求医指导，而非盲目猜测。
+
+## 实体约束校验核心逻辑
+
+```js
+import assert from "node:assert/strict";
+function hasEntity(text, entities) {
+  return entities.some(e => text.includes(e));
+}
+assert.equal(hasEntity("急性上呼吸道感染诊断报告", ["急性上呼吸道感染", "过敏性鼻炎"]), true);
+```
+
+## 原始资料与溯源链接
+
+- [Baichuan AI 官方技术门户](https://www.baichuan-ai.com/)：百川大模型全栈架构与垂直领域实践。

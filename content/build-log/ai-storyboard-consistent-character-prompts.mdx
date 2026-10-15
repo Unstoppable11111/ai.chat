@@ -1,0 +1,43 @@
+---
+title: "自动化影视分镜生成：短剧故事板与一致性角色提示词编排系统"
+excerpt: "全面拆解 AI 编剧与影视分镜工业化链路：如何通过‘角色 Bible 锚定’、镜头运镜景别标记与统一风格种子实现跨场景角色脸型强一致性。"
+date: "2026-09-28"
+updated: "2026-10-13"
+tags: ["影视分镜","一致性","提示词工程","短剧工作流"]
+cover: "/images/blog-covers/dit-video.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么传统生图在长篇影视故事中屡屡翻车
+
+在单张插画创作中，AI 生成的美女或机甲令人惊叹。但如果尝试制作一部连续短剧，就会遇到致命的“角色崩脸”问题：
+前一个镜头主角还是黑发瓜子脸，下一个中景镜头角色就变成了金发圆脸，整部短剧的故事连续性被彻底撕裂。
+
+构建工业级影视分镜系统，必须在工程上强制植入**角色世界观（Bible）锚定与结构化提示词分镜解耦**。
+
+## 角色特征锚定与提示词分层组合机制
+
+三层分镜提示词编排体系：
+1. **角色 DNA 基础提示词 (Character Anchor)**：为每个主角定义唯一的物理不变特征集合（如 `25-year-old Asian male, silver short undercut hair, scar on left eyebrow, tailored cybernetic trench coat`）；
+2. **运镜与景别语法标记 (Cinematography Schema)**：强制标准化景别（特写 Close-up、中景 Medium Shot、全景 Wide Shot）与运镜动势（Pan Right, Dutch Angle, Dolly Zoom）；
+3. **光影基底与统一渲染种子**：注入全局恒定的渲染画质与艺术流派后缀，确保全片色调风格高度统一。
+
+## 分镜提示词结构化编译生成器
+
+```js
+import assert from "node:assert/strict";
+function buildShotPrompt(dna, shot) {
+  return "[" + shot + "] " + dna;
+}
+assert.equal(buildShotPrompt("银发", "特写"), "[特写] 银发");
+```
+
+## 原始资料与溯源链接
+
+- [Chen Tech Studio 自动化小说与分镜编排系统](file:///e:/codex/ai.chat-main/src/app/workflow/page.tsx)：站内基于 Bible 与分镜卡片生成的完整影视编排参考。
+
+- [权威技术规范与白皮书](https://midjourney.com/)

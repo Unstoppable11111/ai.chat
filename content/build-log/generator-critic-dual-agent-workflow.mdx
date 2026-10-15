@@ -1,0 +1,41 @@
+---
+title: "双 Agent 反思架构：Generator-Critic 模式在自动化编码中的落地"
+excerpt: "拆解代码智能体的高成功率秘诀：如何通过‘生成者’与‘评审者’的角色分离、对抗性审查与循环迭代消除代码逻辑盲点。"
+date: "2026-07-25"
+updated: "2026-10-13"
+tags: ["双Agent","Critic","代码生成","反思架构"]
+cover: "/images/blog-covers/mcp-agent.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么单一 Agent 极易陷入自我确认偏误 (Confirmation Bias)
+
+当要求同一个大模型实例既负责写代码又负责检查自己写的代码时，模型往往表现出强烈的“盲视”：由于注意力路径在生成时已经固定，它几乎总是认为自己的逻辑毫无破绽，即使代码中存在明显的越界漏洞或竞态条件。
+
+**Generator-Critic（生成-评审）双智能体范式**通过设定截然不同的系统提示词与视角，强迫系统进行辩证审查。
+
+## 角色分离与三轮收敛循环
+
+系统由两套独立的 Agent 组成：
+1. **Generator (生成专家)**：专注于理解业务需求，编写结构优雅、功能齐备的完整实现；
+2. **Critic (极端挑剔的代码评审专家)**：不负责写业务逻辑，其 Prompt 包含安全准则、极端边界、并发竞态、单元测试覆盖度等审查清单；
+3. **Loop Termination (收敛终止条件)**：如果 Critic 判定存在 Critical 缺陷，生成具体的缺陷报告并打回 Generator 重写；当且仅当 Critic 给出无异议通过或达到最大重试次数时退出循环。
+
+## 生成-审查循环状态机实现
+
+```js
+import assert from "node:assert/strict";
+function review(code) {
+  return code.includes("assert") ? "PASS" : "REVISE";
+}
+assert.equal(review("assert.ok(true)"), "PASS");
+assert.equal(review("console.log(1)"), "REVISE");
+```
+
+## 原始资料与溯源链接
+
+- [Self-Refine: Iterative Refinement with Self-Feedback](https://arxiv.org/abs/2303.17651)：自省式迭代反馈论文。

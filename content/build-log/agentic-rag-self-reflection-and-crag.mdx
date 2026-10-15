@@ -1,0 +1,43 @@
+---
+title: "Agentic RAG 实战：自省式检索与纠错性 RAG (CRAG) 网络架构"
+excerpt: "拆解从静态检索到自适应智能体 RAG 的演变：如何利用检索评估器（Retrieval Evaluator）、Web 回退纠错与 Query 改写打破检索死局。"
+date: "2026-05-10"
+updated: "2026-10-13"
+tags: ["AgenticRAG","CRAG","自省式检索","Self-RAG"]
+cover: "/images/blog-covers/mcp-agent.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 传统静态检索管线的阿喀琉斯之踵
+
+在传统的静态 RAG 流水线中，“检索 -> 生成”是一条单向不可逆的流水线。如果第一步检索召回的内容完全不相关、包含错误信息或存在矛盾，后端的生成模型只能硬着头皮基于脏数据胡言乱语，产生极其严重的幻觉。
+
+**Corrective RAG (CRAG)** 与 **Self-RAG** 引入了自适应反思机制，赋予系统在检索质量低下时“主动质疑、改写并切换备用信源”的智能体能力。
+
+## CRAG 的三重决策逻辑与纠错流
+
+CRAG 的核心在于引入独立的**检索质量评估器（Retrieval Evaluator）**：
+1. **置信度达标 (Correct)**：召回内容与问题高度匹配，直接进行知识精炼（Knowledge Refinement）与生成；
+2. **置信度偏低 (Incorrect)**：判定本地检索内容彻底不相关，立即触发**外部回退搜索引擎（Web Search Fallback）**重新抓取互联网最新证据；
+3. **置信度模糊 (Ambiguous)**：融合本地片段与外部检索结果，并由大模型触发 **Query Rewrite（问题改写）** 尝试二次精确检索。
+
+## 纠错决策树实现
+
+```js
+import assert from "node:assert/strict";
+function cragDecision(score) {
+  if (score >= 0.8) return "GENERATE";
+  if (score < 0.4) return "SEARCH";
+  return "REWRITE";
+}
+assert.equal(cragDecision(0.9), "GENERATE");
+assert.equal(cragDecision(0.2), "SEARCH");
+```
+
+## 原始资料与溯源链接
+
+- [Corrective Retrieval Augmented Generation (CRAG)](https://arxiv.org/abs/2401.15884)：CRAG 自适应纠错检索开创性论文。

@@ -1,0 +1,41 @@
+---
+title: "MediaPipe Hands 骨骼识别与 Web 摄像头实时手势特征提取实战"
+excerpt: "深入解析无硬件穿戴设备下的隔空人机交互：21 维手部三维关节点提取、向量夹角手势分类算法与移动端高帧率推理优化。"
+date: "2026-09-15"
+updated: "2026-10-13"
+tags: ["MediaPipe","计算机视觉","手势识别","人机交互"]
+cover: "/images/blog-covers/high-throughput-particles.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 从触控鼠标到无感隔空交互 (Zero-Contact Interaction)
+
+随着 WebAssembly（Wasm）与 WebGPU 技术的成熟，现代浏览器已经具备在前端直接运行轻量深度神经网络的能力。Google 推出的 **MediaPipe Hands** 能够在普通单目 RGB 摄像头下，以 30~60 FPS 稳定追踪人手的 21 个 3D 骨骼关节点。
+
+这一突破为网页端带来了宛如科幻电影《少数派报告》般的隔空操控能力。
+
+## 21 关节点拓扑与启发式手势特征分类
+
+手势识别数据流如下：
+1. **掌心检测与骨骼回归双阶段模型**：首先在整幅图像中裁剪出高置信度手掌区域，再由回归网络预测 21 个物理标记点（Landmarks）的归一化坐标 $(x, y, z)$；
+2. **手指屈伸判别（向量点积与欧氏距离）**：通过比较指尖（Tip）与掌指关节（MCP）到手腕（Wrist）的相对欧氏距离，精准判定五指的张开与握拳状态；
+3. **食指与拇指捏合检测 (Pinch Detection)**：计算大拇指尖（Point 4）与食指尖（Point 8）的三维空间距离，小于阈值即触发“捏合拾取”事件。
+
+## 纯 JS 模拟手部捏合与张开状态判别器
+
+```js
+import assert from "node:assert/strict";
+function isPinch(p1, p2, thresh = 0.05) {
+  const d = Math.sqrt((p1.x-p2.x)**2 + (p1.y-p2.y)**2);
+  return d < thresh;
+}
+assert.equal(isPinch({x:0.5, y:0.5}, {x:0.52, y:0.51}), true);
+```
+
+## 原始资料与溯源链接
+
+- [MediaPipe Hands 官方开发者文档](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker)：Google 官方手部标记检测模型规范。

@@ -1,0 +1,40 @@
+---
+title: "网页自主智能体：Playwright DOM 树与视觉双模态驱动实战"
+excerpt: "深入解析构建可靠网页自动化 Agent 的工程难点：可点击元素索引标注 (Set-of-Mark)、DOM 无效节点剪枝与视觉反思纠偏。"
+date: "2026-08-15"
+updated: "2026-10-13"
+tags: ["WebAgent","Playwright","Set-of-Mark","浏览器自动化"]
+cover: "/images/blog-covers/mcp-agent.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 为什么直接把 HTML 传给大模型是低效灾难
+
+现代网页充斥着数十万个 DOM 节点、复杂的 CSS 嵌套和海量跟踪脚本。如果直接把网页的 `document.body.outerHTML` 塞给大模型，不仅超出上下文限制，海量无关的样式与脚本还会彻底掩盖核心业务按钮。
+
+构建高精度 Web Agent，必须在浏览器端执行**DOM 语义投影与视觉标记（Set-of-Mark, SoM）**。
+
+## 标记集合 (Set-of-Mark) 与轻量无障碍树 (Accessibility Tree)
+
+现代网页智能体的交互管线包括：
+1. **无障碍树过滤 (A11y Tree Pruning)**：只保留具有交互属性的节点（按钮、输入框、链接），过滤隐藏与纯装饰元素；
+2. **视觉打标编号 (Set-of-Mark)**：在页面上为所有可交互元素注入一个带有鲜艳背景的数字标签（如 `[1]`, `[2]`, `[3]`），并将截图与编号列表同时发给模型；
+3. **坐标与选择器双重校验**：模型只需输出“点击编号 [2]”，自动化脚本通过事先绑定的元素引用精准派发真实的鼠标指针事件。
+
+## 简易可交互元素索引映射器
+
+```js
+import assert from "node:assert/strict";
+function filterClickable(tags) {
+  return tags.filter(t => ["BUTTON", "A"].includes(t));
+}
+assert.deepEqual(filterClickable(["DIV", "BUTTON", "SPAN"]), ["BUTTON"]);
+```
+
+## 原始资料与溯源链接
+
+- [Set-of-Mark Prompting Unleashes Extraordinary Visual Grounding in GPT-4V](https://arxiv.org/abs/2310.11441)：微观视觉空间打标开创性论文。

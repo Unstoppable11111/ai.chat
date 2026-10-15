@@ -8,6 +8,7 @@ import { LatestBuildLogs } from "@/components/home/latest-build-logs";
 import { ManifestoSection } from "@/components/home/manifesto-section";
 import { PromptLibraryPreview } from "@/components/home/prompt-library-preview";
 import { StackingPanels } from "@/components/home/stacking-panels";
+import { TechBento } from "@/components/home/tech-bento";
 import { PageIntro } from "@/components/shared/page-intro";
 import { promptLibrary } from "@/data/site";
 import { listPublishedPosts, postListItem, experimentListItem } from "@/lib/posts-repository";
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const experimentEntries = (await listPublishedPosts("experiments")).slice(0,6).map(experimentListItem);
-  const buildLogs = (await listPublishedPosts("build-log")).slice(0,3).map(postListItem);
+  const buildLogs = (await listPublishedPosts("build-log")).slice(0,6).map(postListItem);
 
   return (
     <div className="page-flow pb-20 overflow-x-clip">
@@ -29,6 +30,7 @@ export default async function HomePage() {
         <QuantArenaPreview />
         <WorkflowPreview />
         <StackingPanels />
+        <TechBento />
         <FeaturedExperiments items={experimentEntries} />
         <LatestBuildLogs items={buildLogs} />
         <PromptLibraryPreview items={promptLibrary.slice(0, 3)} />

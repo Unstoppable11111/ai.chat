@@ -1,0 +1,42 @@
+---
+title: "阶跃星辰 Step-2：万亿级多模态 MoE 架构与视听多模态深度理解"
+excerpt: "全面拆解阶跃星辰 Step-2 旗舰大模型的万亿 MoE 架构设计：如何实现超长文本与高画质视频、复杂音频流的端到端统一表征。"
+date: "2026-04-01"
+updated: "2026-10-13"
+tags: ["阶跃星辰","Step2","MoE","多模态大模型"]
+cover: "/images/blog-covers/dit-video.webp"
+featured: false
+status: published
+ragReady: true
+views: 0
+likes: 0
+---
+
+## 超大规模 MoE 带来的能力涌现
+
+当模型总参数量扩展到万亿级别时，混合专家（MoE）架构是唯一能平衡训练可行性与推理成本的工业路线。阶跃星辰 Step-2 采用了极致优化的万亿级 MoE 架构，并在预训练阶段深度融合图像、长视频和高保真音频多模态信号。
+
+模型能够在不依赖外部插件的情况下，直接理解复杂电影级分镜、专业电路图纸和实时跨语种对话。
+
+## 多模态时空 Tokenizer 与稀疏路由机制
+
+Step-2 的技术突破涵盖：
+1. **3D 因果时空视觉压缩 (3D Spatiotemporal VAE)**：将高分辨率视频切分为时空立方形（Cube），在保证时序连续性的前提下实现高倍率压缩；
+2. **负载均衡与容量限制 (Expert Capacity Factor)**：在分布式训练集群中，通过自适应辅助损失函数防止特定专家过载或饥饿；
+3. **细粒度长程跨模态交叉注意力**：在深层网络中允许视觉特征向量直接检索历史关键文本锚点。
+
+## 专家负载均衡辅助损失模拟算法
+
+```js
+import assert from "node:assert/strict";
+function routerVariance(loads) {
+  const mean = loads.reduce((a, b) => a + b, 0) / loads.length;
+  return loads.reduce((sum, v) => sum + (v - mean) ** 2, 0) / loads.length;
+}
+assert.equal(routerVariance([2, 2, 2]), 0);
+assert.ok(routerVariance([1, 2, 3]) > 0);
+```
+
+## 原始资料与溯源链接
+
+- [StepFun 阶跃星辰技术动态](https://stepfun.com/)：Step 系列万亿级多模态模型的官方架构演进记录。
