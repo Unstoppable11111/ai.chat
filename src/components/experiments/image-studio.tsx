@@ -299,29 +299,64 @@ export function ImageStudio() {
                     <Cpu className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                     <span>调度引擎</span>
                   </span>
-                  <span className="text-[10px] font-normal text-slate-400">
-                    {balancerStatus.cloudflareConfigured ? "双通道就绪" : "Pollinations"}
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                    balancerStatus.cloudflareConfigured
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  }`}>
+                    {balancerStatus.cloudflareConfigured ? "● 双通道就绪" : "● 待配CF"}
                   </span>
                 </label>
                 <div className="grid grid-cols-3 gap-1">
-                  {[
-                    { id: "auto", name: "智能均衡" },
-                    { id: "cloudflare", name: "仅 CF" },
-                    { id: "pollinations", name: "仅 FLUX" },
-                  ].map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setSelectedProvider(p.id as "auto" | "cloudflare" | "pollinations")}
-                      className={`py-1.5 text-center rounded-lg border transition-all cursor-pointer ${
-                        selectedProvider === p.id
-                          ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
-                          : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
-                      }`}
-                    >
-                      {p.name}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProvider("auto");
+                      setErrorMsg("");
+                    }}
+                    className={`py-1.5 text-center rounded-lg border transition-all cursor-pointer ${
+                      selectedProvider === "auto"
+                        ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
+                        : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
+                    }`}
+                  >
+                    智能均衡
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!balancerStatus.cloudflareConfigured) {
+                        setErrorMsg("⚠️ 当前服务器尚未读取到 Cloudflare 凭据。请在服务器端的 .env.local 中配置 CLOUDFLARE_ACCOUNT_ID 与 CLOUDFLARE_API_TOKEN，并执行 pm2 reload chen-ai-studio --update-env。");
+                      }
+                      setSelectedProvider("cloudflare");
+                    }}
+                    className={`py-1.5 text-center rounded-lg border transition-all cursor-pointer ${
+                      selectedProvider === "cloudflare"
+                        ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
+                        : !balancerStatus.cloudflareConfigured
+                        ? "bg-amber-500/5 border-amber-300 dark:border-amber-800/60 text-amber-600 dark:text-amber-400 text-xs"
+                        : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
+                    }`}
+                    title={balancerStatus.cloudflareConfigured ? "使用 Cloudflare 极速生成" : "服务器未配置 CF 凭据"}
+                  >
+                    仅 CF {!balancerStatus.cloudflareConfigured && "⚠️"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProvider("pollinations");
+                      setErrorMsg("");
+                    }}
+                    className={`py-1.5 text-center rounded-lg border transition-all cursor-pointer ${
+                      selectedProvider === "pollinations"
+                        ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
+                        : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
+                    }`}
+                  >
+                    仅 FLUX
+                  </button>
                 </div>
               </div>
             </div>

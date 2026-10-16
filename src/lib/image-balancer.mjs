@@ -159,6 +159,12 @@ export async function callPollinationsAI(options = {}) {
         });
 
         if (!response.ok) {
+          if (response.status === 402) {
+            const err = new Error("Pollinations 公共算力池对当前机房 IP 限制 (HTTP 402)。请在服务器端配置 Cloudflare 专属凭据即可畅享稳定高速出图。");
+            err.code = "POLLINATIONS_HTTP_402";
+            err.status = 402;
+            throw err;
+          }
           const err = new Error(`Pollinations.ai (${currentModel}) 调用失败 (HTTP ${response.status})`);
           err.code = `POLLINATIONS_HTTP_${response.status}`;
           err.status = response.status;
@@ -214,13 +220,21 @@ export async function generateImageWithBalancer(options = {}) {
   const userPreference = options.provider || "auto";
   const allowFailover = options.allowFailover !== false;
 
+  // 若用户明确要求 Cloudflare，但服务器尚未配置凭证，则直接抛出明确指引
+  if (userPreference === "cloudflare" && !cfReady) {
+    const err = new Error("当前服务器尚未读取到 Cloudflare 凭据。请在服务器端的 .env.local 中添加 CLOUDFLARE_ACCOUNT_ID 与 CLOUDFLARE_API_TOKEN，并执行 pm2 reload chen-ai-studio --update-env。");
+    err.code = "CF_CREDENTIALS_MISSING";
+    err.status = 503;
+    throw err;
+  }
+
   // 确定主通道与备用通道的尝试顺序
   let providerQueue = [];
 
   if (userPreference === "cloudflare") {
-    providerQueue = cfReady ? ["cloudflare", "pollinations"] : ["pollinations"];
+    providerQueue = cfReady && allowFailover ? ["cloudflare", "pollinations"] : ["cloudflare"];
   } else if (userPreference === "pollinations") {
-    providerQueue = cfReady ? ["pollinations", "cloudflare"] : ["pollinations"];
+    providerQueue = cfReady && allowFailover ? ["pollinations", "cloudflare"] : ["pollinations"];
   } else {
     // auto 模式：如果有 CF，则在 Cloudflare 与 Pollinations 间轮询均衡
     if (cfReady) {
