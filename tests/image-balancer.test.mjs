@@ -1,10 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import {
   sanitizePrompt,
   isCloudflareConfigured,
   getBalancerStatus,
   generateImageWithBalancer,
+  resolveCloudflareCredentials,
+  saveCloudflareCredentials,
 } from "../src/lib/image-balancer.mjs";
 
 test("sanitizePrompt handles boundaries and cleans invalid control characters", () => {
@@ -16,9 +20,25 @@ test("sanitizePrompt handles boundaries and cleans invalid control characters", 
   assert.equal(sanitizePrompt(longText).length, 4000);
 });
 
-test("isCloudflareConfigured checks both accountId and token", () => {
+test("isCloudflareConfigured checks both accountId and token", (t) => {
   const origAccount = process.env.CLOUDFLARE_ACCOUNT_ID;
   const origToken = process.env.CLOUDFLARE_API_TOKEN;
+  const runtimePath = path.resolve(process.cwd(), ".runtime", "image-credentials.json");
+  let runtimeBackup = null;
+  if (fs.existsSync(runtimePath)) {
+    runtimeBackup = fs.readFileSync(runtimePath, "utf8");
+    fs.unlinkSync(runtimePath);
+  }
+
+  t.after(() => {
+    if (origAccount !== undefined) process.env.CLOUDFLARE_ACCOUNT_ID = origAccount;
+    else delete process.env.CLOUDFLARE_ACCOUNT_ID;
+    if (origToken !== undefined) process.env.CLOUDFLARE_API_TOKEN = origToken;
+    else delete process.env.CLOUDFLARE_API_TOKEN;
+    if (runtimeBackup !== null) {
+      fs.writeFileSync(runtimePath, runtimeBackup, "utf8");
+    }
+  });
 
   delete process.env.CLOUDFLARE_ACCOUNT_ID;
   delete process.env.CLOUDFLARE_API_TOKEN;
@@ -34,11 +54,6 @@ test("isCloudflareConfigured checks both accountId and token", () => {
   assert.equal(status.cloudflareConfigured, true);
   assert.equal(status.pollinationsAvailable, true);
   assert.deepEqual(status.activeProviders, ["cloudflare", "pollinations"]);
-
-  if (origAccount !== undefined) process.env.CLOUDFLARE_ACCOUNT_ID = origAccount;
-  else delete process.env.CLOUDFLARE_ACCOUNT_ID;
-  if (origToken !== undefined) process.env.CLOUDFLARE_API_TOKEN = origToken;
-  else delete process.env.CLOUDFLARE_API_TOKEN;
 });
 
 test("balancer automatically fails over to alternative provider when primary fails", async (t) => {
@@ -110,3 +125,41 @@ test("balancer aborts gracefully when signal is triggered", async (t) => {
     /User stopped generation/
   );
 });
+
+test("resolveCloudflareCredentials prioritizes explicit options over process.env", () => {
+  const origAccount = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const origToken = process.env.CLOUDFLARE_API_TOKEN;
+
+  delete process.env.CLOUDFLARE_ACCOUNT_ID;
+  delete process.env.CLOUDFLARE_API_TOKEN;
+
+  // Options override
+  const resolved = resolveCloudflareCredentials({
+    cfAccountId: "custom-acc",
+    cfApiToken: "custom-tok",
+  });
+  assert.equal(resolved.accountId, "custom-acc");
+  assert.equal(resolved.token, "custom-tok");
+  assert.equal(resolved.ready, true);
+
+  if (origAccount !== undefined) process.env.CLOUDFLARE_ACCOUNT_ID = origAccount;
+  if (origToken !== undefined) process.env.CLOUDFLARE_API_TOKEN = origToken;
+});
+
+test("saveCloudflareCredentials updates process.env safely", () => {
+  const origAccount = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const origToken = process.env.CLOUDFLARE_API_TOKEN;
+
+  assert.throws(() => saveCloudflareCredentials({ accountId: "", token: "" }));
+
+  const saved = saveCloudflareCredentials({ accountId: "saved-acc", token: "saved-tok" });
+  assert.equal(saved, true);
+  assert.equal(process.env.CLOUDFLARE_ACCOUNT_ID, "saved-acc");
+  assert.equal(process.env.CLOUDFLARE_API_TOKEN, "saved-tok");
+
+  if (origAccount !== undefined) process.env.CLOUDFLARE_ACCOUNT_ID = origAccount;
+  else delete process.env.CLOUDFLARE_ACCOUNT_ID;
+  if (origToken !== undefined) process.env.CLOUDFLARE_API_TOKEN = origToken;
+  else delete process.env.CLOUDFLARE_API_TOKEN;
+});
+

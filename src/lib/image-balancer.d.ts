@@ -8,6 +8,8 @@ export interface BalancerImageOptions {
   signal?: AbortSignal;
   timeoutMs?: number;
   allowFailover?: boolean;
+  cfAccountId?: string;
+  cfApiToken?: string;
 }
 
 export interface BalancerImageResult {
@@ -29,8 +31,10 @@ export interface BalancerStatus {
 }
 
 export function sanitizePrompt(prompt: string): string;
-export function isCloudflareConfigured(): boolean;
-export function getBalancerStatus(): BalancerStatus;
+export function isCloudflareConfigured(options?: BalancerImageOptions): boolean;
+export function resolveCloudflareCredentials(options?: BalancerImageOptions): { accountId: string; token: string; ready: boolean };
+export function saveCloudflareCredentials(creds: { accountId: string; token: string }): boolean;
+export function getBalancerStatus(options?: BalancerImageOptions): BalancerStatus;
 export function callCloudflareWorkersAI(options?: BalancerImageOptions): Promise<BalancerImageResult>;
 export function callPollinationsAI(options?: BalancerImageOptions): Promise<BalancerImageResult>;
 export function generateImageWithBalancer(options?: BalancerImageOptions): Promise<BalancerImageResult>;

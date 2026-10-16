@@ -3,6 +3,7 @@ import {
   generateImageWithBalancer,
   getBalancerStatus,
   sanitizePrompt,
+  saveCloudflareCredentials,
 } from "@/lib/image-balancer.mjs";
 import { saveBase64ImageLocally } from "@/lib/workflow-utils.mjs";
 import {
@@ -61,6 +62,9 @@ export async function POST(request: NextRequest) {
   }
 
   let body: {
+    action?: string;
+    cfAccountId?: string;
+    cfApiToken?: string;
     prompt?: string;
     aspectRatio?: string;
     style?: string;
@@ -75,6 +79,22 @@ export async function POST(request: NextRequest) {
       { success: false, error: "无效的请求格式。" },
       { status: 400 }
     );
+  }
+
+  // 1. 支持前端直接保存凭据至服务器端运行时与 .env.local（无需 SSH 登录终端操作）
+  if (body.action === "save-credentials") {
+    try {
+      const { cfAccountId, cfApiToken } = body;
+      saveCloudflareCredentials({ accountId: cfAccountId, token: cfApiToken });
+      return NextResponse.json({
+        success: true,
+        message: "Cloudflare Workers AI 凭证已成功激活并保存至服务器！",
+        status: getBalancerStatus(),
+      });
+    } catch (err: unknown) {
+      const error = err as Error;
+      return NextResponse.json({ success: false, error: error.message || "保存失败" }, { status: 400 });
+    }
   }
 
   const rawPrompt = sanitizePrompt(body.prompt || "");
@@ -115,6 +135,8 @@ export async function POST(request: NextRequest) {
       width,
       height,
       provider: providerPreference,
+      cfAccountId: body.cfAccountId,
+      cfApiToken: body.cfApiToken,
       signal: request.signal,
       timeoutMs: 50000,
     });

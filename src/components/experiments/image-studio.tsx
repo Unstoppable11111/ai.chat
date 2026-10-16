@@ -17,6 +17,10 @@ import {
   X,
   History,
   AlertTriangle,
+  Key,
+  ShieldCheck,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 interface GenerationHistoryItem {
@@ -75,25 +79,73 @@ export function ImageStudio() {
     pollinationsAvailable: boolean;
   }>({ cloudflareConfigured: true, pollinationsAvailable: true });
 
-  // 初始化加载负载均衡健康状态（符合 React 19 异步规范，避免同步 setState）
+  // Cloudflare 凭据配置状态（支持本地存储与一键同步）
+  const [cfAccountId, setCfAccountId] = useState("");
+  const [cfApiToken, setCfApiToken] = useState("");
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showToken, setShowToken] = useState(false);
+  const [isSavingCreds, setIsSavingCreds] = useState(false);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState("");
+
+  // 初始化加载负载均衡健康状态与凭证自动同步（遵循 React 19 规范）
   useEffect(() => {
     let active = true;
-    const fetchStatus = async () => {
+    const initStudio = async () => {
+      let currentId = "";
+      let currentToken = "";
+
+      try {
+        currentId = localStorage.getItem("chen_cf_account_id") || "";
+        currentToken = localStorage.getItem("chen_cf_api_token") || "";
+      } catch {
+        // 容错处理
+      }
+
+      if (active) {
+        setCfAccountId(currentId);
+        setCfApiToken(currentToken);
+      }
+
       try {
         const res = await fetch("/api-generate-image");
         if (!res.ok) return;
         const data = await res.json();
-        if (active && data.success && data.status) {
+        if (!active) return;
+
+        if (data.success && data.status) {
+          const isConfigured = Boolean(data.status.cloudflareConfigured);
           setBalancerStatus({
-            cloudflareConfigured: Boolean(data.status.cloudflareConfigured),
+            cloudflareConfigured: isConfigured,
             pollinationsAvailable: Boolean(data.status.pollinationsAvailable),
           });
+
+          // 若服务端尚未读取到凭证，自动静默同步写入服务器运行时，实现 0 门槛开箱即用
+          if (!isConfigured && currentId && currentToken) {
+            try {
+              const syncRes = await fetch("/api-generate-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action: "save-credentials",
+                  cfAccountId: currentId,
+                  cfApiToken: currentToken,
+                }),
+              });
+              const syncData = await syncRes.json();
+              if (syncData.success && active) {
+                setBalancerStatus((prev) => ({ ...prev, cloudflareConfigured: true }));
+              }
+            } catch {
+              // 静默容错
+            }
+          }
         }
       } catch {
         // 忽略网络初始读取异常
       }
     };
-    void fetchStatus();
+
+    void initStudio();
     return () => {
       active = false;
     };
@@ -107,6 +159,50 @@ export function ImageStudio() {
     }, 1000);
     return () => clearInterval(interval);
   }, [isGenerating]);
+
+  // 手动保存凭据
+  const handleSaveCredentials = async () => {
+    if (!cfAccountId.trim() || !cfApiToken.trim()) {
+      setErrorMsg("Cloudflare Account ID 与 API Token 不能为空。");
+      return;
+    }
+    setIsSavingCreds(true);
+    setSaveSuccessMsg("");
+    try {
+      const res = await fetch("/api-generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "save-credentials",
+          cfAccountId: cfAccountId.trim(),
+          cfApiToken: cfApiToken.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "保存凭据失败");
+      }
+
+      try {
+        localStorage.setItem("chen_cf_account_id", cfAccountId.trim());
+        localStorage.setItem("chen_cf_api_token", cfApiToken.trim());
+      } catch {
+        // 忽略
+      }
+
+      setBalancerStatus((prev) => ({ ...prev, cloudflareConfigured: true }));
+      setSaveSuccessMsg("凭证已成功保存并激活！");
+      setTimeout(() => {
+        setShowConfigModal(false);
+        setSaveSuccessMsg("");
+      }, 1200);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setErrorMsg(error.message || "激活凭证失败");
+    } finally {
+      setIsSavingCreds(false);
+    }
+  };
 
   const handleGenerate = async (targetPrompt?: string) => {
     const finalPrompt = (targetPrompt || prompt).trim();
@@ -127,6 +223,8 @@ export function ImageStudio() {
           style: selectedStyle,
           aspectRatio: selectedRatio,
           provider: selectedProvider,
+          cfAccountId: cfAccountId.trim() || undefined,
+          cfApiToken: cfApiToken.trim() || undefined,
         }),
       });
 
@@ -299,13 +397,19 @@ export function ImageStudio() {
                     <Cpu className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                     <span>调度引擎</span>
                   </span>
-                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                    balancerStatus.cloudflareConfigured
-                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                      : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                  }`}>
-                    {balancerStatus.cloudflareConfigured ? "● 双通道就绪" : "● 待配CF"}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigModal(true)}
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1 transition-all cursor-pointer ${
+                      balancerStatus.cloudflareConfigured
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-bold animate-pulse"
+                    }`}
+                    title="点击配置 / 激活 Cloudflare 凭据"
+                  >
+                    <Key className="w-2.5 h-2.5" />
+                    <span>{balancerStatus.cloudflareConfigured ? "● 双通道就绪" : "● 待配CF (点击激活)"}</span>
+                  </button>
                 </label>
                 <div className="grid grid-cols-3 gap-1">
                   <button
@@ -327,7 +431,7 @@ export function ImageStudio() {
                     type="button"
                     onClick={() => {
                       if (!balancerStatus.cloudflareConfigured) {
-                        setErrorMsg("⚠️ 当前服务器尚未读取到 Cloudflare 凭据。请在服务器端的 .env.local 中配置 CLOUDFLARE_ACCOUNT_ID 与 CLOUDFLARE_API_TOKEN，并执行 pm2 reload chen-ai-studio --update-env。");
+                        setShowConfigModal(true);
                       }
                       setSelectedProvider("cloudflare");
                     }}
@@ -338,7 +442,7 @@ export function ImageStudio() {
                         ? "bg-amber-500/5 border-amber-300 dark:border-amber-800/60 text-amber-600 dark:text-amber-400 text-xs"
                         : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
                     }`}
-                    title={balancerStatus.cloudflareConfigured ? "使用 Cloudflare 极速生成" : "服务器未配置 CF 凭据"}
+                    title={balancerStatus.cloudflareConfigured ? "使用 Cloudflare 极速生成" : "点击一键激活 CF 专属凭据"}
                   >
                     仅 CF {!balancerStatus.cloudflareConfigured && "⚠️"}
                   </button>
@@ -360,6 +464,23 @@ export function ImageStudio() {
                 </div>
               </div>
             </div>
+
+            {/* 当服务端尚未就绪时显示轻量激活浮条 */}
+            {!balancerStatus.cloudflareConfigured && (
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2 text-xs">
+                <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 text-[11px]">
+                  <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>已预填您的 Cloudflare 凭证，点击一键激活</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(true)}
+                  className="px-2.5 py-1 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] shrink-0 cursor-pointer shadow-xs transition-colors"
+                >
+                  一键激活
+                </button>
+              </div>
+            )}
           </div>
 
           {/* 底部：错误提示与提交生成按钮 */}
@@ -557,6 +678,122 @@ export function ImageStudio() {
                 unoptimized
                 className="object-contain rounded-2xl shadow-2xl"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cloudflare Workers AI 凭证一键配置与激活 Modal */}
+      {showConfigModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowConfigModal(false)}
+        >
+          <div
+            className="relative max-w-md w-full rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4 text-slate-900 dark:text-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">Cloudflare Workers AI 凭证</h3>
+                  <p className="text-[11px] text-slate-400">接入 FLUX.1 Schnell 极速出图引擎</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfigModal(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Account ID
+                </label>
+                <input
+                  type="text"
+                  value={cfAccountId}
+                  onChange={(e) => setCfAccountId(e.target.value)}
+                  placeholder="例如: 812d4f91a75d..."
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  API Token
+                </label>
+                <div className="relative">
+                  <input
+                    type={showToken ? "text" : "password"}
+                    value={cfApiToken}
+                    onChange={(e) => setCfApiToken(e.target.value)}
+                    placeholder="输入 Cloudflare Workers AI Token (例如: cfut_...)"
+                    className="w-full px-3.5 py-2 pr-9 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowToken(!showToken)}
+                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    {showToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-purple-500/5 border border-purple-500/10 text-[11px] text-slate-500 dark:text-slate-400 space-y-1 leading-relaxed">
+                <div className="flex items-center gap-1.5 font-medium text-purple-600 dark:text-purple-400">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>零终端交互 · 安全写入服务器运行时</span>
+                </div>
+                <p>
+                  填入您的 Cloudflare Workers AI 专属凭据（Account ID 与 API Token）。点击保存后将直接同步至服务器运行时与本地缓存，小说工作流与生图实验室即刻可用，无需登录 SSH 终端！
+                </p>
+              </div>
+
+              {saveSuccessMsg && (
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>{saveSuccessMsg}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowConfigModal(false)}
+                className="px-3.5 py-2 rounded-xl text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                disabled={isSavingCreds}
+                onClick={() => void handleSaveCredentials()}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
+              >
+                {isSavingCreds ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>正在激活...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>保存并激活凭证</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

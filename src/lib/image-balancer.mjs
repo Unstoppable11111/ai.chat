@@ -7,6 +7,9 @@
  * 支持 Round-Robin 轮询均衡 + 毫秒级故障自动容灾降级切换 (Automatic Failover)
  */
 
+import fs from "node:fs";
+import path from "node:path";
+
 let roundRobinCounter = 0;
 
 /**
@@ -18,19 +21,89 @@ export function sanitizePrompt(prompt) {
 }
 
 /**
+ * 解析并获取 Cloudflare 凭据（优先级：显式入参 > 环境变量 > .runtime 持久化配置）
+ */
+export function resolveCloudflareCredentials(options = {}) {
+  let accountId = (options.cfAccountId || process.env.CLOUDFLARE_ACCOUNT_ID || "").trim();
+  let token = (options.cfApiToken || process.env.CLOUDFLARE_API_TOKEN || "").trim();
+
+  if (!accountId || !token) {
+    try {
+      const runtimePath = path.resolve(process.cwd(), ".runtime", "image-credentials.json");
+      if (fs.existsSync(runtimePath)) {
+        const raw = fs.readFileSync(runtimePath, "utf8");
+        const parsed = JSON.parse(raw);
+        accountId = accountId || (parsed.CLOUDFLARE_ACCOUNT_ID || "").trim();
+        token = token || (parsed.CLOUDFLARE_API_TOKEN || "").trim();
+      }
+    } catch {
+      // 容错处理
+    }
+  }
+
+  return { accountId, token, ready: Boolean(accountId && token) };
+}
+
+/**
+ * 持久化 Cloudflare 凭据至服务器内存与运行时配置
+ */
+export function saveCloudflareCredentials({ accountId, token }) {
+  const cleanId = (accountId || "").trim();
+  const cleanToken = (token || "").trim();
+  if (!cleanId || !cleanToken) {
+    throw new Error("Cloudflare Account ID 与 Token 不能为空");
+  }
+
+  // 1. 同步到内存环境变量
+  process.env.CLOUDFLARE_ACCOUNT_ID = cleanId;
+  process.env.CLOUDFLARE_API_TOKEN = cleanToken;
+
+  // 2. 持久化到 .runtime/image-credentials.json
+  try {
+    const runtimeDir = path.resolve(process.cwd(), ".runtime");
+    if (!fs.existsSync(runtimeDir)) fs.mkdirSync(runtimeDir, { recursive: true });
+    const configPath = path.join(runtimeDir, "image-credentials.json");
+    fs.writeFileSync(configPath, JSON.stringify({
+      CLOUDFLARE_ACCOUNT_ID: cleanId,
+      CLOUDFLARE_API_TOKEN: cleanToken,
+      updatedAt: new Date().toISOString(),
+    }, null, 2), "utf8");
+  } catch (err) {
+    console.warn("[ImageBalancer] 写入 runtime 配置失败:", err.message);
+  }
+
+  // 3. 尝试更新或创建 .env.local
+  try {
+    const envPath = path.resolve(process.cwd(), ".env.local");
+    let content = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
+    if (content.includes("CLOUDFLARE_ACCOUNT_ID")) {
+      content = content
+        .replace(/CLOUDFLARE_ACCOUNT_ID=.*/g, `CLOUDFLARE_ACCOUNT_ID="${cleanId}"`)
+        .replace(/CLOUDFLARE_API_TOKEN=.*/g, `CLOUDFLARE_API_TOKEN="${cleanToken}"`);
+    } else {
+      content += `\nCLOUDFLARE_ACCOUNT_ID="${cleanId}"\nCLOUDFLARE_API_TOKEN="${cleanToken}"\n`;
+    }
+    fs.writeFileSync(envPath, content, "utf8");
+  } catch (err) {
+    console.warn("[ImageBalancer] 尝试更新 .env.local 失败:", err.message);
+  }
+
+  return true;
+}
+
+/**
  * 检查 Cloudflare Workers AI 服务凭据是否就绪
  */
-export function isCloudflareConfigured() {
-  const accountId = (process.env.CLOUDFLARE_ACCOUNT_ID || "").trim();
-  const token = (process.env.CLOUDFLARE_API_TOKEN || "").trim();
-  return Boolean(accountId && token);
+export function isCloudflareConfigured(options = {}) {
+  const { ready } = resolveCloudflareCredentials(options);
+  return ready;
 }
 
 /**
  * 获取当前负载均衡集群的可用通道状态
  */
-export function getBalancerStatus() {
-  const cfReady = isCloudflareConfigured();
+export function getBalancerStatus(options = {}) {
+  const cfReady = isCloudflareConfigured(options);
   return {
     cloudflareConfigured: cfReady,
     pollinationsAvailable: true,
@@ -42,10 +115,9 @@ export function getBalancerStatus() {
  * 通道 1: Cloudflare Workers AI 生图实现
  */
 export async function callCloudflareWorkersAI(options = {}) {
-  const accountId = (process.env.CLOUDFLARE_ACCOUNT_ID || "").trim();
-  const token = (process.env.CLOUDFLARE_API_TOKEN || "").trim();
+  const { accountId, token, ready } = resolveCloudflareCredentials(options);
 
-  if (!accountId || !token) {
+  if (!ready) {
     const err = new Error("Cloudflare 凭证未配置（需提供 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN）。");
     err.code = "CF_CREDENTIALS_MISSING";
     throw err;
@@ -213,10 +285,12 @@ export async function callPollinationsAI(options = {}) {
  * @param {AbortSignal} [options.signal] 取消信号
  * @param {number} [options.timeoutMs=45000] 单通道超时时间
  * @param {boolean} [options.allowFailover=true] 是否在首选通道失败时自动切换另一通道
+ * @param {string} [options.cfAccountId] 显式传入的 Cloudflare Account ID
+ * @param {string} [options.cfApiToken] 显式传入的 Cloudflare API Token
  */
 export async function generateImageWithBalancer(options = {}) {
   const startTime = Date.now();
-  const cfReady = isCloudflareConfigured();
+  const cfReady = isCloudflareConfigured(options);
   const userPreference = options.provider || "auto";
   const allowFailover = options.allowFailover !== false;
 
