@@ -2,6 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { getImageCooldownStatus, triggerImageCooldown, reportImageSuccess } from "./workflow-cooldown.mjs";
+import { generateImageWithBalancer, isCloudflareConfigured, getBalancerStatus } from "./image-balancer.mjs";
+
+export { generateImageWithBalancer, isCloudflareConfigured, getBalancerStatus };
 
 export const MAX_GENERATED_IMAGE_BYTES = 15 * 1024 * 1024;
 
@@ -781,6 +784,61 @@ export async function generateWorkflowImage(options = {}) {
   const timer = setTimeout(() => controller.abort(imageError("IMAGE_TIMEOUT", "图片生成超时，请稍后重试；上游可能仍在处理本次请求。", 504)), timeoutMs);
   let lastError;
   let usageReserved = false;
+
+  const useBalancer = Boolean(
+    options.useBalancer ||
+    (isCloudflareConfigured() && !options.baseUrl && !process.env.IMAGE_API_BASE_URL)
+  );
+
+  if (useBalancer) {
+    try {
+      controller.signal.throwIfAborted();
+      if (!usageReserved && options.beforeRequest) {
+        await abortable(options.beforeRequest(), controller.signal);
+        usageReserved = true;
+      }
+      controller.signal.throwIfAborted();
+      const match = String(dimensions.size).match(/^(\d+)x(\d+)$/);
+      const width = match ? Number(match[1]) : 1024;
+      const height = match ? Number(match[2]) : 1024;
+
+      const balancerResult = await generateImageWithBalancer({
+        prompt,
+        width,
+        height,
+        provider: options.provider || "auto",
+        signal: controller.signal,
+        timeoutMs: Math.min(timeoutMs, 50000),
+      });
+
+      const saved = await persistGeneratedImage(balancerResult.b64, options.prefix || kind, controller.signal);
+      const actualDimensions = imageDimensions(kind, `${saved.width}x${saved.height}`, true);
+      return {
+        imageUrl: saved.imageUrl,
+        metadata: {
+          provider: balancerResult.provider,
+          model: balancerResult.model,
+          prompt,
+          kind,
+          ...actualDimensions,
+          width: saved.width,
+          height: saved.height,
+          requestedSize: dimensions.size,
+          requestedAspectRatio: dimensions.aspectRatio,
+          failover: balancerResult.failover,
+          durationMs: balancerResult.durationMs,
+        },
+      };
+    } catch (caught) {
+      const error = controller.signal.aborted ? controller.signal.reason : caught;
+      lastError = error;
+      throw error;
+    } finally {
+      clearTimeout(timer);
+      options.signal?.removeEventListener("abort", onCancel);
+    }
+  }
+
   try {
     controller.signal.throwIfAborted();
     for (const provider of providers) {

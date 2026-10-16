@@ -13,8 +13,6 @@ import {
   ArrowRight,
   Sparkles,
   Play,
-  Flame,
-  Layers,
 } from "lucide-react";
 
 export interface PlaygroundItem {
@@ -22,7 +20,7 @@ export interface PlaygroundItem {
   title: string;
   subtitle: string;
   description: string;
-  category: "3D与空间" | "物理力学" | "极客模拟" | "AI智能体";
+  category: "3D与空间" | "物理力学" | "极客模拟" | "AI智能体" | "AI生成视觉";
   tag: string;
   badge: string;
   href: string;
@@ -31,6 +29,18 @@ export interface PlaygroundItem {
 }
 
 export const PLAYGROUND_ITEMS: PlaygroundItem[] = [
+  {
+    id: "image-studio",
+    title: "AI 创意视觉工坊",
+    subtitle: "FLUX.1 真实渲染 / Cloudflare AI / 双通道均衡",
+    description: "高可用双通道生图集群，结合 Cloudflare Workers AI 极速算力与 Pollinations 强力推理，支持多风格与自由画幅。",
+    category: "AI生成视觉",
+    tag: "FLUX RENDER",
+    badge: "双通道均衡",
+    href: "/experiments/image-studio",
+    gradient: "from-purple-500/25 via-pink-600/15 to-transparent",
+    icon: Sparkles,
+  },
   {
     id: "gods-eye",
     title: "上帝之眼 · 全球态势感知",
@@ -117,7 +127,7 @@ export const PLAYGROUND_ITEMS: PlaygroundItem[] = [
   },
 ];
 
-const CATEGORIES = ["全部", "3D与空间", "物理力学", "极客模拟", "AI智能体"] as const;
+const CATEGORIES = ["全部", "AI生成视觉", "3D与空间", "物理力学", "极客模拟", "AI智能体"] as const;
 
 export function InteractivePlaygroundsHub() {
   const [activeCategory, setActiveCategory] = useState<string>("全部");

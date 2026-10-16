@@ -16,6 +16,15 @@ import {
 
 const FEATURED_LABS = [
   {
+    title: "AI 创意视觉工坊",
+    tag: "FLUX RENDER",
+    desc: "双通道 FLUX 极速生图负载均衡，结合 Cloudflare AI 极速算力与容灾故障切换。",
+    href: "/experiments/image-studio",
+    icon: Sparkles,
+    gradient: "from-purple-500/20 to-pink-600/10",
+    color: "text-purple-500",
+  },
+  {
     title: "上帝之眼 · 3D 全球态势",
     tag: "3D SATELLITE",
     desc: "Cesium 直连 4K 高清卫星遥感，全球空天态势大屏与实时遥测。",
@@ -93,7 +102,7 @@ export function InteractiveLabShowcase() {
           href="/experiments"
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-sky-500/30 bg-sky-500/10 text-xs font-semibold text-sky-700 hover:bg-sky-500/20 hover:border-sky-500/50 shadow-2xs transition-all"
         >
-          <span>探索全部 7 款实验</span>
+          <span>探索全部 8 款实验</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
