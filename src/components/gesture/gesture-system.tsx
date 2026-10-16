@@ -323,7 +323,12 @@ export function GestureSystem() {
   };
 
 
-  // 摄像头手势识别启动/关闭
+  const cvCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const prevFrameDataRef = useRef<Uint8ClampedArray | null>(null);
+  const lastWaveTimeRef = useRef<number>(0);
+  const prevHandXRef = useRef<number>(0);
+
+  // 摄像头手势识别启动/关闭与实时视觉分析
   const toggleCamera = async () => {
     if (isCameraActive) {
       if (videoRef.current && videoRef.current.srcObject) {
@@ -333,6 +338,7 @@ export function GestureSystem() {
       }
       setIsCameraActive(false);
       setCurrentGestureText("触控交互就绪");
+      touchStateRef.current.attractor.set(9999, 9999, 0);
       return;
     }
 
@@ -351,7 +357,7 @@ export function GestureSystem() {
         };
       }
       setIsCameraActive(true);
-      setCurrentGestureText("摄像头手势追踪中 (张开/捏合/移动)");
+      setCurrentGestureText("摄像头手势追踪引擎已启动");
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : "无法开启摄像头";
       setCameraError(errMsg);
@@ -359,6 +365,169 @@ export function GestureSystem() {
       setTimeout(() => setCameraError(null), 4000);
     }
   };
+
+  // 实时手势计算机视觉分析循环
+  useEffect(() => {
+    if (!isCameraActive) return;
+
+    let gestureAnimId = 0;
+    const processVideoFrame = () => {
+      const video = videoRef.current;
+      const cvCanvas = cvCanvasRef.current;
+      if (video && cvCanvas && video.readyState >= 2) {
+        const ctx = cvCanvas.getContext("2d", { willReadFrequently: true });
+        if (ctx) {
+          const width = 160;
+          const height = 120;
+          cvCanvas.width = width;
+          cvCanvas.height = height;
+
+          // 镜像翻转绘制
+          ctx.save();
+          ctx.scale(-1, 1);
+          ctx.drawImage(video, -width, 0, width, height);
+          ctx.restore();
+
+          const frame = ctx.getImageData(0, 0, width, height);
+          const data = frame.data;
+          const prev = prevFrameDataRef.current;
+
+          let skinPixelCount = 0;
+          let sumX = 0;
+          let sumY = 0;
+          let minX = width;
+          let maxX = 0;
+          let minY = height;
+          let maxY = 0;
+
+          // 像素级运动与手部肤色感知检测
+          for (let y = 0; y < height; y += 2) {
+            for (let x = 0; x < width; x += 2) {
+              const idx = (y * width + x) * 4;
+              const r = data[idx];
+              const g = data[idx + 1];
+              const b = data[idx + 2];
+
+              // 基础肤色与运动差分模型
+              const isSkin =
+                r > 75 &&
+                g > 40 &&
+                b > 20 &&
+                r > g &&
+                r > b &&
+                r - g > 15 &&
+                Math.abs(r - g) > 15 &&
+                Math.abs(r - b) > 15;
+
+              let hasMotion = false;
+              if (prev) {
+                const diff =
+                  Math.abs(r - prev[idx]) +
+                  Math.abs(g - prev[idx + 1]) +
+                  Math.abs(b - prev[idx + 2]);
+                if (diff > 50) hasMotion = true;
+              }
+
+              if (isSkin || (hasMotion && r > 60)) {
+                skinPixelCount++;
+                sumX += x;
+                sumY += y;
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          // 缓存前一帧
+          prevFrameDataRef.current = new Uint8ClampedArray(data);
+
+          // 绘制半透明黑色蒙层，方便呈现极客 HUD 骨架
+          ctx.fillStyle = "rgba(4, 7, 17, 0.35)";
+          ctx.fillRect(0, 0, width, height);
+
+          // 判断是否捕获到手部区域
+          if (skinPixelCount > 120 && maxX > minX && maxY > minY) {
+            const handX = sumX / skinPixelCount;
+            const handY = sumY / skinPixelCount;
+            const handW = maxX - minX;
+            const handH = maxY - minY;
+            const handSpread = (handW * handH) / (width * height);
+
+            // 映射到 Three.js 3D 吸引子空间
+            const normX = (handX / width) * 2 - 1;
+            const normY = -(handY / height) * 2 + 1;
+            touchStateRef.current.attractor.set(normX * 120, normY * 100, 0);
+
+            // 绘制手势追踪 HUD 准星与边界框
+            ctx.strokeStyle = "rgba(0, 240, 255, 0.85)";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(minX, minY, handW, handH);
+
+            // 绘制中心追踪瞄准点
+            ctx.fillStyle = "#00f0ff";
+            ctx.beginPath();
+            ctx.arc(handX, handY, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制十字线
+            ctx.strokeStyle = "rgba(0, 240, 255, 0.6)";
+            ctx.beginPath();
+            ctx.moveTo(handX - 10, handY);
+            ctx.lineTo(handX + 10, handY);
+            ctx.moveTo(handX, handY - 10);
+            ctx.lineTo(handX, handY + 10);
+            ctx.stroke();
+
+            // 快速挥手检测 (左右位移加速)
+            const now = performance.now();
+            const dx = handX - prevHandXRef.current;
+            if (Math.abs(dx) > 35 && now - lastWaveTimeRef.current > 1200) {
+              lastWaveTimeRef.current = now;
+              touchStateRef.current.pulseStrength = 1.4;
+              setCurrentGestureText("👋 快速挥手 · 能量爆发脉冲");
+              // 自动轮换形状
+              const currentIdx = SHAPES.findIndex((s) => s.id === currentShape);
+              const nextShape = SHAPES[(currentIdx + 1) % SHAPES.length].id;
+              handleSelectShape(nextShape);
+            } else if (handSpread > 0.18) {
+              // 手掌张开：膨胀与排斥
+              touchStateRef.current.targetScale = Math.min(2.0, touchStateRef.current.targetScale + 0.02);
+              setCurrentGestureText("✋ 手掌张开 · 粒子膨胀扩散");
+              ctx.fillStyle = "#38bdf8";
+              ctx.font = "bold 10px monospace";
+              ctx.fillText("OPEN PALM [EXPAND]", minX + 2, minY - 4);
+            } else if (handSpread < 0.08) {
+              // 握拳捏合：聚拢引力
+              touchStateRef.current.targetScale = Math.max(0.6, touchStateRef.current.targetScale - 0.02);
+              setCurrentGestureText("✊ 拳头握拢 · 粒子强引力压缩");
+              ctx.fillStyle = "#a855f7";
+              ctx.font = "bold 10px monospace";
+              ctx.fillText("FIST PINCH [COMPRESS]", minX + 2, minY - 4);
+            } else {
+              setCurrentGestureText("🎯 手掌导引中 · 粒子随动");
+              ctx.fillStyle = "#00f0ff";
+              ctx.font = "bold 10px monospace";
+              ctx.fillText("TRACKING...", minX + 2, minY - 4);
+            }
+
+            prevHandXRef.current = handX;
+          } else {
+            touchStateRef.current.attractor.set(9999, 9999, 0);
+            setCurrentGestureText("手势追踪中：请将手伸入镜头");
+            ctx.fillStyle = "rgba(148, 163, 184, 0.7)";
+            ctx.font = "10px monospace";
+            ctx.fillText("WAITING FOR HAND...", 10, height - 12);
+          }
+        }
+      }
+      gestureAnimId = requestAnimationFrame(processVideoFrame);
+    };
+
+    gestureAnimId = requestAnimationFrame(processVideoFrame);
+    return () => cancelAnimationFrame(gestureAnimId);
+  }, [isCameraActive, currentShape, handleSelectShape]);
 
   // 全屏切换
   const toggleFullscreen = () => {
@@ -740,18 +909,25 @@ export function GestureSystem() {
         </div>
       </div>
 
-      {/* 摄像头小画中画视窗 (开启手势时呈现) */}
+      {/* 摄像头小画中画视窗 (开启手势时呈现，叠加实时手部骨架 HUD) */}
       {isCameraActive && (
-        <div className="absolute bottom-24 right-4 z-20 w-36 h-28 sm:w-48 sm:h-36 rounded-2xl overflow-hidden border-2 border-cyan-500/40 shadow-2xl bg-black/80 backdrop-blur-md">
+        <div className="absolute bottom-24 right-4 z-20 w-44 h-32 sm:w-56 sm:h-40 rounded-2xl overflow-hidden border-2 border-cyan-500/50 shadow-2xl bg-black/90 backdrop-blur-md group">
           <video
             ref={videoRef}
-            className="w-full h-full object-cover scale-x-[-1]"
+            className="hidden"
             playsInline
             muted
             autoPlay
           />
-          <div className="absolute bottom-1 left-2 text-[9px] font-mono text-cyan-400 bg-black/60 px-1.5 py-0.5 rounded">
-            LIVE GESTURE
+          <canvas
+            ref={cvCanvasRef}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute top-1.5 left-2 text-[9px] font-mono text-cyan-400 bg-slate-950/80 border border-cyan-500/30 px-1.5 py-0.5 rounded shadow">
+            VISION HUD // 实时手势引擎
+          </div>
+          <div className="absolute bottom-1.5 left-2 right-2 text-[9px] font-mono text-slate-300 bg-slate-950/80 px-1.5 py-0.5 rounded truncate border border-slate-800">
+            {currentGestureText}
           </div>
         </div>
       )}

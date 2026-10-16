@@ -14,14 +14,12 @@ export const navigation: NavItem[] = [
   { href: "/chat", label: "AI 助手" },
   { href: "/workflow", label: "工作流" },
   { href: "/market", label: "量化投研" },
+  { href: "/experiments", label: "前沿实验室" },
   { href: "/projects", label: "项目案例" },
   { href: "/build-log", label: "技术白皮书" },
   { href: "/news", label: "科技资讯" },
   { href: "/stack", label: "工具整理" },
   { href: "/prompts", label: "学习笔记" },
-  { href: "/gesture", label: "手势互动" },
-  { href: "/experiments/pelican", label: "鹈鹕盲测" },
-  { href: "/experiments/gods-eye", label: "上帝之眼" },
   { href: "/about", label: "关于我" },
 ];
 

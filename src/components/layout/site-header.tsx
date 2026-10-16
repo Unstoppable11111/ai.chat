@@ -18,6 +18,11 @@ import {
   BookOpen,
   Globe2,
   FlaskConical,
+  Droplets,
+  Terminal,
+  Users,
+  Compass,
+  ArrowRight,
 } from "lucide-react";
 import { navigation, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
@@ -88,9 +93,7 @@ export function SiteHeader() {
   const showGlass = !isHome || isScrolled || mobileMenuOpen;
 
   // 判断是否处于特色实验路由下
-  const isExperimentActive = ["/experiments/gods-eye", "/gesture", "/experiments/pelican"].some(
-    (p) => pathname.startsWith(p)
-  );
+  const isExperimentActive = pathname.startsWith("/experiments") || pathname.startsWith("/gesture");
 
   return (
     <>
@@ -145,7 +148,7 @@ export function SiteHeader() {
                   );
                 })}
 
-              {/* 特色实验科技下拉胶囊 */}
+              {/* 前沿极客实验室下拉胶囊 */}
               <div className="relative" ref={experimentsMenuRef}>
                 <button
                   type="button"
@@ -157,13 +160,13 @@ export function SiteHeader() {
                       : "text-muted-foreground hover:bg-slate-900/[0.04] hover:text-foreground"
                   )}
                   aria-expanded={experimentsOpen}
-                  aria-label="特色实验实验室"
+                  aria-label="前沿极客实验室"
                 >
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
                   </span>
-                  <span>特色实验</span>
+                  <span>极客工坊</span>
                   <ChevronDown
                     className={cn(
                       "h-3 w-3 text-muted-foreground transition-transform duration-200",
@@ -173,22 +176,28 @@ export function SiteHeader() {
                 </button>
 
                 {experimentsOpen && (
-                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-72 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-2xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-2.5 py-1.5 border-b border-slate-100 mb-1 flex items-center justify-between">
+                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-2xl p-2.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-2.5 py-1.5 border-b border-slate-100 mb-1.5 flex items-center justify-between">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        前沿交互与空间视效
+                        前沿交互与空间玩具 (7款)
                       </span>
-                      <span className="text-[10px] text-sky-600 bg-sky-50 px-1.5 py-0.2 rounded font-mono">
-                        LABS
-                      </span>
+                      <Link
+                        href="/experiments"
+                        onClick={() => setExperimentsOpen(false)}
+                        className="text-[10px] font-semibold text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-0.5"
+                      >
+                        <span>门户大厅</span>
+                        <ArrowRight className="w-2.5 h-2.5" />
+                      </Link>
                     </div>
-                    <div className="space-y-1">
+
+                    <div className="space-y-1 max-h-[360px] overflow-y-auto no-scrollbar pr-0.5">
                       <Link
                         href="/experiments/gods-eye"
                         onClick={() => setExperimentsOpen(false)}
-                        className="flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-slate-700 hover:bg-sky-50/80 hover:text-sky-900 transition-colors group"
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-sky-50/80 hover:text-sky-900 transition-colors group"
                       >
-                        <div className="p-1.5 rounded-lg bg-sky-100/60 text-sky-700 group-hover:scale-105 transition-transform mt-0.5">
+                        <div className="p-1 rounded-lg bg-sky-100/60 text-sky-700 group-hover:scale-105 transition-transform">
                           <Globe2 className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -200,8 +209,100 @@ export function SiteHeader() {
                               3D 遥感
                             </span>
                           </div>
-                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                            全球空间遥感与数字态势底座
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            Cesium 4K 全球遥感与态势感知
+                          </p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/experiments/fluid"
+                        onClick={() => setExperimentsOpen(false)}
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-purple-50/80 hover:text-purple-900 transition-colors group"
+                      >
+                        <div className="p-1 rounded-lg bg-purple-100/60 text-purple-700 group-hover:scale-105 transition-transform">
+                          <Droplets className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-slate-900 group-hover:text-purple-900">
+                              霓虹流体
+                            </span>
+                            <span className="text-[9px] font-mono text-purple-600 bg-purple-100/50 px-1.5 rounded">
+                              物理动力学
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            触控丝绸光束与流体涡流画布
+                          </p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/experiments/cyber-hack"
+                        onClick={() => setExperimentsOpen(false)}
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-emerald-50/80 hover:text-emerald-900 transition-colors group"
+                      >
+                        <div className="p-1 rounded-lg bg-emerald-100/60 text-emerald-700 group-hover:scale-105 transition-transform">
+                          <Terminal className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-slate-900 group-hover:text-emerald-900">
+                              赛博黑客终端
+                            </span>
+                            <span className="text-[9px] font-mono text-emerald-600 bg-emerald-100/50 px-1.5 rounded">
+                              攻防渗透
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            拟真命令行节点漏洞爆破与数字雨
+                          </p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/experiments/ai-town"
+                        onClick={() => setExperimentsOpen(false)}
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-amber-50/80 hover:text-amber-900 transition-colors group"
+                      >
+                        <div className="p-1 rounded-lg bg-amber-100/60 text-amber-700 group-hover:scale-105 transition-transform">
+                          <Users className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-slate-900 group-hover:text-amber-900">
+                              AI 智能小镇
+                            </span>
+                            <span className="text-[9px] font-mono text-amber-600 bg-amber-100/50 px-1.5 rounded">
+                              像素沙盒
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            NPC 居民自主漫游八卦与全镇广播
+                          </p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/experiments/geo-detective"
+                        onClick={() => setExperimentsOpen(false)}
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-sky-50/80 hover:text-sky-900 transition-colors group"
+                      >
+                        <div className="p-1 rounded-lg bg-sky-100/60 text-sky-700 group-hover:scale-105 transition-transform">
+                          <Compass className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-slate-900 group-hover:text-sky-900">
+                              地理大侦探
+                            </span>
+                            <span className="text-[9px] font-mono text-sky-600 bg-sky-100/50 px-1.5 rounded">
+                              街景探案
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            实景环境勘查与世界地图插旗竞猜
                           </p>
                         </div>
                       </Link>
@@ -209,9 +310,9 @@ export function SiteHeader() {
                       <Link
                         href="/gesture"
                         onClick={() => setExperimentsOpen(false)}
-                        className="flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-slate-700 hover:bg-violet-50/80 hover:text-violet-900 transition-colors group"
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-violet-50/80 hover:text-violet-900 transition-colors group"
                       >
-                        <div className="p-1.5 rounded-lg bg-violet-100/60 text-brand-violet group-hover:scale-105 transition-transform mt-0.5">
+                        <div className="p-1 rounded-lg bg-violet-100/60 text-brand-violet group-hover:scale-105 transition-transform">
                           <Hand className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -220,11 +321,11 @@ export function SiteHeader() {
                               手势互动
                             </span>
                             <span className="text-[9px] font-mono text-violet-600 bg-violet-100/50 px-1.5 rounded">
-                              MediaPipe
+                              视觉跟踪
                             </span>
                           </div>
-                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                            无触觉空间手势粒子视效空间
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            摄像头手掌张开与拳头力场粒子
                           </p>
                         </div>
                       </Link>
@@ -232,9 +333,9 @@ export function SiteHeader() {
                       <Link
                         href="/experiments/pelican"
                         onClick={() => setExperimentsOpen(false)}
-                        className="flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-900 transition-colors group"
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-900 transition-colors group"
                       >
-                        <div className="p-1.5 rounded-lg bg-cyan-100/60 text-cyan-700 group-hover:scale-105 transition-transform mt-0.5">
+                        <div className="p-1 rounded-lg bg-cyan-100/60 text-cyan-700 group-hover:scale-105 transition-transform">
                           <Trophy className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -246,7 +347,7 @@ export function SiteHeader() {
                               ARENA
                             </span>
                           </div>
-                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                          <p className="text-[10px] text-muted-foreground truncate">
                             大语言模型性能双盲对抗竞技
                           </p>
                         </div>
@@ -463,49 +564,107 @@ export function SiteHeader() {
                 </div>
               </div>
 
-              {/* 前沿实验工坊 */}
+              {/* 前沿极客工坊 */}
               <div className="mb-2 pt-2 border-t border-slate-900/8">
-                <div className="flex items-center gap-1.5 px-2 py-1">
-                  <FlaskConical className="h-3 w-3 text-sky-600" />
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    前沿交互实验
-                  </p>
+                <div className="flex items-center justify-between px-2 py-1 mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <FlaskConical className="h-3 w-3 text-sky-600" />
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      极客工坊 (7款高互动实验)
+                    </p>
+                  </div>
+                  <Link
+                    href="/experiments"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-[10px] text-sky-600 font-semibold hover:underline flex items-center gap-0.5"
+                  >
+                    <span>全部</span>
+                    <ArrowRight className="w-2.5 h-2.5" />
+                  </Link>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                   <Link
                     href="/experiments/gods-eye"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium bg-sky-500/5 text-sky-700 hover:bg-sky-500/10 border border-sky-500/20"
+                    className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-sky-500/5 text-sky-700 hover:bg-sky-500/10 border border-sky-500/20"
                   >
                     <div className="flex items-center gap-2">
-                      <Globe2 className="h-3.5 w-3.5 text-sky-600" />
-                      <span>上帝之眼 (3D 遥感)</span>
+                      <Globe2 className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+                      <span className="truncate">上帝之眼 (3D 遥感)</span>
                     </div>
-                    <span className="text-[9px] font-mono px-1 rounded bg-sky-500/10">3D</span>
+                    <span className="text-[9px] font-mono px-1 rounded bg-sky-500/10 shrink-0">3D</span>
+                  </Link>
+
+                  <Link
+                    href="/experiments/fluid"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-purple-500/5 text-purple-700 hover:bg-purple-500/10 border border-purple-500/20"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Droplets className="h-3.5 w-3.5 text-purple-600 shrink-0" />
+                      <span className="truncate">霓虹流体 (物理粒子)</span>
+                    </div>
+                    <span className="text-[9px] font-mono px-1 rounded bg-purple-500/10 shrink-0">PHYS</span>
+                  </Link>
+
+                  <Link
+                    href="/experiments/cyber-hack"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-emerald-500/5 text-emerald-700 hover:bg-emerald-500/10 border border-emerald-500/20"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Terminal className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                      <span className="truncate">赛博黑客 (渗透终端)</span>
+                    </div>
+                    <span className="text-[9px] font-mono px-1 rounded bg-emerald-500/10 shrink-0">HACK</span>
+                  </Link>
+
+                  <Link
+                    href="/experiments/ai-town"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-amber-500/5 text-amber-700 hover:bg-amber-500/10 border border-amber-500/20"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Users className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                      <span className="truncate">AI 智能小镇 (像素沙盒)</span>
+                    </div>
+                    <span className="text-[9px] font-mono px-1 rounded bg-amber-500/10 shrink-0">AGENT</span>
+                  </Link>
+
+                  <Link
+                    href="/experiments/geo-detective"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-sky-500/5 text-sky-700 hover:bg-sky-500/10 border border-sky-500/20"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Compass className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+                      <span className="truncate">地理大侦探 (街景寻踪)</span>
+                    </div>
+                    <span className="text-[9px] font-mono px-1 rounded bg-sky-500/10 shrink-0">GEO</span>
                   </Link>
 
                   <Link
                     href="/gesture"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium bg-violet-500/5 text-brand-violet hover:bg-violet-500/10 border border-violet-500/20"
+                    className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-violet-500/5 text-brand-violet hover:bg-violet-500/10 border border-violet-500/20"
                   >
                     <div className="flex items-center gap-2">
-                      <Hand className="h-3.5 w-3.5 text-brand-violet" />
-                      <span>手势互动 (视效空间)</span>
+                      <Hand className="h-3.5 w-3.5 text-brand-violet shrink-0" />
+                      <span className="truncate">手势互动 (视效空间)</span>
                     </div>
-                    <span className="text-[9px] font-mono px-1 rounded bg-violet-500/10">AI</span>
+                    <span className="text-[9px] font-mono px-1 rounded bg-violet-500/10 shrink-0">VISION</span>
                   </Link>
 
                   <Link
                     href="/experiments/pelican"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium bg-cyan-500/5 text-cyan-700 hover:bg-cyan-500/10 border border-cyan-500/20"
+                    className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-cyan-500/5 text-cyan-700 hover:bg-cyan-500/10 border border-cyan-500/20 sm:col-span-2"
                   >
                     <div className="flex items-center gap-2">
-                      <Trophy className="h-3.5 w-3.5 text-cyan-600" />
-                      <span>鹈鹕盲测 (对抗竞技)</span>
+                      <Trophy className="h-3.5 w-3.5 text-cyan-600 shrink-0" />
+                      <span className="truncate">鹈鹕盲测 (大模型对抗竞技)</span>
                     </div>
-                    <span className="text-[9px] font-mono px-1 rounded bg-cyan-500/10">ARENA</span>
+                    <span className="text-[9px] font-mono px-1 rounded bg-cyan-500/10 shrink-0">ARENA</span>
                   </Link>
                 </div>
               </div>
