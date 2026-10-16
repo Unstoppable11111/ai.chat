@@ -72,20 +72,22 @@ export function saveCloudflareCredentials({ accountId, token }) {
     console.warn("[ImageBalancer] 写入 runtime 配置失败:", err.message);
   }
 
-  // 3. 尝试更新或创建 .env.local
-  try {
-    const envPath = path.resolve(process.cwd(), ".env.local");
-    let content = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
-    if (content.includes("CLOUDFLARE_ACCOUNT_ID")) {
-      content = content
-        .replace(/CLOUDFLARE_ACCOUNT_ID=.*/g, `CLOUDFLARE_ACCOUNT_ID="${cleanId}"`)
-        .replace(/CLOUDFLARE_API_TOKEN=.*/g, `CLOUDFLARE_API_TOKEN="${cleanToken}"`);
-    } else {
-      content += `\nCLOUDFLARE_ACCOUNT_ID="${cleanId}"\nCLOUDFLARE_API_TOKEN="${cleanToken}"\n`;
+  // 3. 尝试更新或创建 .env.local（测试环境下跳过以避免文件污染）
+  if (process.env.NODE_ENV !== "test") {
+    try {
+      const envPath = path.resolve(process.cwd(), ".env.local");
+      let content = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
+      if (content.includes("CLOUDFLARE_ACCOUNT_ID")) {
+        content = content
+          .replace(/CLOUDFLARE_ACCOUNT_ID=.*/g, `CLOUDFLARE_ACCOUNT_ID="${cleanId}"`)
+          .replace(/CLOUDFLARE_API_TOKEN=.*/g, `CLOUDFLARE_API_TOKEN="${cleanToken}"`);
+      } else {
+        content += `\nCLOUDFLARE_ACCOUNT_ID="${cleanId}"\nCLOUDFLARE_API_TOKEN="${cleanToken}"\n`;
+      }
+      fs.writeFileSync(envPath, content, "utf8");
+    } catch (err) {
+      console.warn("[ImageBalancer] 尝试更新 .env.local 失败:", err.message);
     }
-    fs.writeFileSync(envPath, content, "utf8");
-  } catch (err) {
-    console.warn("[ImageBalancer] 尝试更新 .env.local 失败:", err.message);
   }
 
   return true;

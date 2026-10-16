@@ -146,9 +146,27 @@ test("resolveCloudflareCredentials prioritizes explicit options over process.env
   if (origToken !== undefined) process.env.CLOUDFLARE_API_TOKEN = origToken;
 });
 
-test("saveCloudflareCredentials updates process.env safely", () => {
+test("saveCloudflareCredentials updates process.env safely", (t) => {
   const origAccount = process.env.CLOUDFLARE_ACCOUNT_ID;
   const origToken = process.env.CLOUDFLARE_API_TOKEN;
+  const runtimePath = path.resolve(process.cwd(), ".runtime", "image-credentials.json");
+  let runtimeBackup = null;
+  if (fs.existsSync(runtimePath)) {
+    runtimeBackup = fs.readFileSync(runtimePath, "utf8");
+  }
+
+  t.after(() => {
+    if (origAccount !== undefined) process.env.CLOUDFLARE_ACCOUNT_ID = origAccount;
+    else delete process.env.CLOUDFLARE_ACCOUNT_ID;
+    if (origToken !== undefined) process.env.CLOUDFLARE_API_TOKEN = origToken;
+    else delete process.env.CLOUDFLARE_API_TOKEN;
+
+    if (runtimeBackup !== null) {
+      fs.writeFileSync(runtimePath, runtimeBackup, "utf8");
+    } else if (fs.existsSync(runtimePath)) {
+      fs.unlinkSync(runtimePath);
+    }
+  });
 
   assert.throws(() => saveCloudflareCredentials({ accountId: "", token: "" }));
 
@@ -156,10 +174,5 @@ test("saveCloudflareCredentials updates process.env safely", () => {
   assert.equal(saved, true);
   assert.equal(process.env.CLOUDFLARE_ACCOUNT_ID, "saved-acc");
   assert.equal(process.env.CLOUDFLARE_API_TOKEN, "saved-tok");
-
-  if (origAccount !== undefined) process.env.CLOUDFLARE_ACCOUNT_ID = origAccount;
-  else delete process.env.CLOUDFLARE_ACCOUNT_ID;
-  if (origToken !== undefined) process.env.CLOUDFLARE_API_TOKEN = origToken;
-  else delete process.env.CLOUDFLARE_API_TOKEN;
 });
 
