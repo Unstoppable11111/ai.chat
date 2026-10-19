@@ -1005,7 +1005,7 @@ export function saveArenaAccounts(accounts: Record<StrategyType, ArenaAccount>) 
  * 2. 外部指标仅做参考，绝不进入数值结算
  * 3. 空仓时今日盈亏绝对为 0，收益率绝对为 0.00%
  */
-export async function syncArenaAccountsWithRealQuotes(): Promise<Record<StrategyType, ArenaAccount>> {
+export async function syncArenaAccountsWithRealQuotes(benchmarkPct = 1.95): Promise<Record<StrategyType, ArenaAccount>> {
   const accounts = loadArenaAccounts();
 
   // 统一中国标准时间 (Asia/Shanghai) 解析当前日期与五分钟时刻
@@ -1039,7 +1039,7 @@ export async function syncArenaAccountsWithRealQuotes(): Promise<Record<Strategy
         const prevCandle = acc.candles[acc.candles.length - 1];
         const prevClosePnl = prevCandle ? prevCandle.close_pnl_pct : acc.total_return_pct;
         const prevEquity = prevCandle ? prevCandle.equity : acc.total_equity;
-        const benchPct = type === "conservative" ? 1.95 : type === "balanced" ? 1.95 : 1.95;
+        const realBench = benchmarkPct;
         todayCandle = {
           date: todayDate,
           open_pnl_pct: prevClosePnl,
@@ -1047,8 +1047,8 @@ export async function syncArenaAccountsWithRealQuotes(): Promise<Record<Strategy
           low_pnl_pct: prevClosePnl,
           close_pnl_pct: prevClosePnl,
           equity: prevEquity,
-          benchmark_pct: benchPct,
-          alpha_pct: parseFloat((prevClosePnl - benchPct).toFixed(2)),
+          benchmark_pct: realBench,
+          alpha_pct: parseFloat((prevClosePnl - realBench).toFixed(2)),
           events: [],
         };
         acc.candles.push(todayCandle);
@@ -1101,8 +1101,10 @@ export async function syncArenaAccountsWithRealQuotes(): Promise<Record<Strategy
       todayCandle.equity = acc.total_equity;
       todayCandle.high_pnl_pct = Math.max(todayCandle.high_pnl_pct, acc.total_return_pct);
       todayCandle.low_pnl_pct = Math.min(todayCandle.low_pnl_pct, acc.total_return_pct);
+      // 更新当日蜡烛的benchmark为最新传入的真实沪深300涨跌幅
+      todayCandle.benchmark_pct = benchmarkPct;
       todayCandle.alpha_pct = parseFloat(
-        (acc.total_return_pct - (todayCandle.benchmark_pct ?? 1.95)).toFixed(2)
+        (acc.total_return_pct - benchmarkPct).toFixed(2)
       );
 
       // 同步净值曲线序列
@@ -1116,7 +1118,7 @@ export async function syncArenaAccountsWithRealQuotes(): Promise<Record<Strategy
           date: todayDate,
           equity: acc.total_equity,
           return_pct: acc.total_return_pct,
-          benchmark_pct: todayCandle.benchmark_pct ?? 1.95,
+          benchmark_pct: benchmarkPct,
           alpha_pct: todayCandle.alpha_pct,
           drawdown_pct: 0,
         });

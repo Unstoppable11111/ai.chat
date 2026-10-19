@@ -11,7 +11,6 @@ import {
   Sparkles,
   ArrowRight,
   Play,
-  Flame,
 } from "lucide-react";
 
 const FEATURED_LABS = [
@@ -82,7 +81,7 @@ const FEATURED_LABS = [
 
 export function InteractiveLabShowcase() {
   return (
-    <section className="relative my-20 w-full overflow-hidden">
+    <section className="container-shell my-16 sm:my-20">
       {/* 模块标题与描述 */}
       <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 mb-8">
         <div>

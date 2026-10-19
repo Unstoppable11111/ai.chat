@@ -1,5 +1,4 @@
 import { RealQuote } from "@/lib/quotes-service";
-import { QuantScoreDetail } from "./types";
 
 export interface StockBasicProfile {
   code: string;
@@ -625,12 +624,25 @@ export function calculateStockFactors(
   const preClose = quote.pre_close;
   const dayChangePct = quote.change_pct;
 
-  // 动量与突破测算
+  // 动量与突破测算（无历史 K 线时，基于当日价格与涨跌幅进行保守推断）
+  // is_20d_breakout: 当日涨幅 > 3% 且价格高于昨收视为短期突破
   const is20dBreakout = currentPrice > preClose * 1.03;
+  // is_60d_breakout: 当日涨幅 > 6% 视为中期突破信号
   const is60dBreakout = currentPrice > preClose * 1.06;
+  // ma20_slope_up: 当日涨跌幅 > -1.5% 视为短期均线方向偏多
   const ma20SlopeUp = dayChangePct > -1.5;
-  const ma60SlopeUp = true;
-  const aboveMa60 = true;
+  // ma60_slope_up: 当日涨跌幅 > -3% 且价格没有大幅跌破，保守判断中期趋势
+  const ma60SlopeUp = dayChangePct > -3.0;
+  // above_ma60: 当价格高于昨收且涨幅为正，推断大概率在中期均线上方
+  const aboveMa60 = currentPrice >= preClose && dayChangePct >= 0;
+
+  // volume_ratio: 结合成交额与涨跌幅估算活跃度（无直接历史分钟量比时的稳健代理）
+  const amountYi = (quote.amount || 0) / 100000000;
+  const volume_ratio = Math.abs(dayChangePct) > 5 ? 2.0
+    : Math.abs(dayChangePct) > 3 ? 1.5
+    : amountYi > 10 ? 1.4
+    : amountYi > 3 ? 1.2
+    : 1.0;
 
   return {
     code,
@@ -647,7 +659,7 @@ export function calculateStockFactors(
       ma60_slope_up: ma60SlopeUp,
       above_ma60: aboveMa60,
       sector_rank: sectorRank,
-      volume_ratio: quote.volume > 0 ? 1.35 : 1.0,
+      volume_ratio,
     },
   };
 }

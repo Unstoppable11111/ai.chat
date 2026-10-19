@@ -38,6 +38,9 @@ import { MarketSentimentMetricsBar } from "@/components/market/market-sentiment-
 import { checkAShareTradingTime, AShareTradingStatus } from "@/lib/trading-hours";
 import type { MarketSentimentMetrics } from "@/lib/quotes-service";
 import { PaperTradeForm } from "@/components/market/paper-trade-form";
+import { DailyTradeLog } from "@/components/market/daily-trade-log";
+import { GoldStockPanel } from "@/components/market/gold-stock-panel";
+
 import { WorkspaceLogout } from "@/components/market/workspace-access";
 import {
   ArenaAccount,
@@ -133,6 +136,11 @@ export default function MarketDashboardPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [tradingStatus, setTradingStatus] = useState<AShareTradingStatus>({ isTrading:false, phase:"PRE_OPEN", statusText:"正在校准时钟", detail:"正在读取北京时间", cstTimeStr:"--:--:--", nextSessionHint:"" });
   const [toastMsg, setToastMsg] = useState<{ text: string; type: "info" | "success" | "warning" } | null>(null);
+  // 信号Tab子页切换：量化信号 | 金股推荐
+  const [signalSubTab, setSignalSubTab] = useState<"signals" | "gold">("signals");
+  // 沪深300当日真实涨跌幅（来自arena API benchmarks字段）
+  const [arenaBenchmarkPct, setArenaBenchmarkPct] = useState<number | undefined>(undefined);
+
 
   // 严格核验 A 股交易时钟：每 10 秒评估一次开盘/闭市状态
   useEffect(() => {
@@ -190,12 +198,17 @@ export default function MarketDashboardPage() {
           setMarketRegime(json.regime);
           setStrategyRankings(json.rankings || []);
           setExperiment(json.experiment || null);
+          // 存储真实沪深300涨跌幅（用于DailyTradeLog收益对比）
+          if (json.benchmarks?.csi300_return_pct != null) {
+            setArenaBenchmarkPct(json.benchmarks.csi300_return_pct);
+          }
         }
       }
     } catch (err) {
       console.error("加载三大策略竞技场失败:", err);
     }
   }, []);
+
 
   // 拉取私有持仓
   const fetchPortfolioData = useCallback(async () => {
@@ -819,26 +832,61 @@ export default function MarketDashboardPage() {
             {arenaAccounts && <>
               <StrategyArenaCards accounts={arenaAccounts} rankings={strategyRankings} activeStrategy={activeStrategy} onSelectStrategy={setActiveStrategy} />
               <PnlKlineChart account={arenaAccounts[activeStrategy]} accounts={Object.values(arenaAccounts)} activeAccountId={activeStrategy} onSelectAccount={setActiveStrategy} />
+              {/* 每日交易日志：当日买卖记录 + 账户/HS300/Alpha 三方对比 */}
+              <DailyTradeLog
+                account={arenaAccounts[activeStrategy]}
+                benchmarkPct={arenaBenchmarkPct}
+              />
             </>}
           </div>
         )}
 
         {activeTab === "signals" && (
-          <div className="animate-in fade-in duration-300">
-            <SignalCenterView
-              showToast={showToast}
-              onAddToPortfolio={(stock) => {
-                setShowAddModal(true);
-                setFormData((prev) => ({
-                  ...prev,
-                  stock_code: stock.code,
-                  stock_name: stock.name,
-                  cost_price: String(stock.price),
-                }));
-              }}
-            />
+          <div className="space-y-4 animate-in fade-in duration-300">
+            {/* 子Tab切换器：量化信号 / 金股推荐 */}
+            <div className="flex items-center gap-1 border-b border-cyan-900/40">
+              {[
+                { id: "signals" as const, label: "⚡ 量化信号", desc: "全市场多维信号扫描" },
+                { id: "gold" as const, label: "⭐ 金股推荐", desc: "三策略精选 · 历史胜率" },
+              ].map((sub) => (
+                <button
+                  key={sub.id}
+                  onClick={() => setSignalSubTab(sub.id)}
+                  title={sub.desc}
+                  className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap -mb-px ${
+                    signalSubTab === sub.id
+                      ? "border-cyan-400 text-cyan-300"
+                      : "border-transparent text-slate-400 hover:text-white hover:border-slate-500"
+                  }`}
+                >
+                  {sub.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 量化信号中心 */}
+            {signalSubTab === "signals" && (
+              <SignalCenterView
+                showToast={showToast}
+                onAddToPortfolio={(stock) => {
+                  setShowAddModal(true);
+                  setFormData((prev) => ({
+                    ...prev,
+                    stock_code: stock.code,
+                    stock_name: stock.name,
+                    cost_price: String(stock.price),
+                  }));
+                }}
+              />
+            )}
+
+            {/* 金股推荐（三策略精选 + 历史成功率统计） */}
+            {signalSubTab === "gold" && (
+              <GoldStockPanel showToast={showToast} />
+            )}
           </div>
         )}
+
 
         {/* ========================================================================= */}
         {/* TAB 3: 组合持仓穿透 (PORTFOLIO) */}

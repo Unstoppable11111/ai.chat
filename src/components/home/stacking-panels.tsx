@@ -60,15 +60,16 @@ export function StackingPanels() {
 
     const cards = gsap.utils.toArray<HTMLElement>(".stack-panel");
     const ctx = gsap.context(() => {
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
       cards.forEach((card, index) => {
         if (index === cards.length - 1) return; // 最后一张卡片不需要被后续遮盖缩放
 
         const nextCard = cards[index + 1];
 
         gsap.to(card, {
-          scale: 0.9,
-          opacity: 0.5,
-          filter: "blur(8px)",
+          scale: isMobile ? 0.96 : 0.94,
+          opacity: isMobile ? 0.8 : 0.6,
           ease: "power1.inOut",
           scrollTrigger: {
             trigger: nextCard,

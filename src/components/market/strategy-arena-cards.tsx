@@ -4,14 +4,10 @@ import {
   Zap,
   Scale,
   ShieldCheck,
-  TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
   Award,
-  AlertTriangle,
-  Layers,
   ChevronRight,
-  Sparkles,
 } from "lucide-react";
 import { ArenaAccount, StrategyType, StrategyRankingItem } from "@/lib/quant-arena/types";
 
@@ -197,24 +193,28 @@ export function StrategyArenaCards({
                 </div>
               </div>
 
-              {/* 核心量化指标网格 */}
+              {/* 核心收益与仓位指标网格（通俗易懂，无晦涩量化术语） */}
               <div className="grid grid-cols-3 gap-2 text-xs font-mono">
                 <div className="p-2 rounded-xl bg-black/30 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Max DD</div>
+                  <div className="text-[10px] text-slate-400">当日收益率</div>
+                  <div className={`font-bold font-mono ${isTodayUp ? "text-rose-400" : "text-emerald-400"}`}>
+                    {isTodayUp ? "+" : ""}{acc.today_pnl_pct}%
+                  </div>
+                </div>
+                <div className="p-2 rounded-xl bg-black/30 border border-white/5">
+                  <div className="text-[10px] text-slate-400">当日盈亏</div>
+                  <div className={`font-bold font-mono ${isTodayUp ? "text-rose-400" : "text-emerald-400"}`}>
+                    {isTodayUp ? "+" : ""}¥{formatMoney(acc.today_pnl)}
+                  </div>
+                </div>
+                <div className="p-2 rounded-xl bg-black/30 border border-white/5">
+                  <div className="text-[10px] text-slate-400">历史最大回撤</div>
                   <div className="text-amber-300 font-bold font-mono">{acc.max_drawdown_pct}%</div>
                 </div>
                 <div className="p-2 rounded-xl bg-black/30 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Sharpe</div>
-                  <div className="text-cyan-300 font-bold font-mono">--</div>
-                </div>
-                <div className="p-2 rounded-xl bg-black/30 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Calmar</div>
-                  <div className="text-slate-200 font-bold font-mono">--</div>
-                </div>
-                <div className="p-2 rounded-xl bg-black/30 border border-white/5">
-                  <div className="text-[10px] text-slate-400">胜率 / 盈亏比</div>
-                  <div className="text-slate-200 font-mono">
-                    -- / --
+                  <div className="text-[10px] text-slate-400">持仓胜率</div>
+                  <div className="text-slate-200 font-bold font-mono">
+                    {acc.win_rate_pct.toFixed(1)}%
                   </div>
                 </div>
                 <div className="p-2 rounded-xl bg-black/30 border border-white/5">

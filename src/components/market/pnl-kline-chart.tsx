@@ -257,7 +257,11 @@ export function PnlKlineChart({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
-                  <span className="text-amber-300">零收益参考线</span>
+                  <span className="text-amber-300">沪深300基准</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-0.5 bg-slate-500 border-dashed border-t border-slate-500" />
+                  <span className="text-slate-400">0% 盈亏线</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
@@ -282,7 +286,11 @@ export function PnlKlineChart({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
-                  <span className="text-amber-300">零收益参考线 (0%)</span>
+                  <span className="text-amber-300">沪深300基准</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-0.5 bg-slate-500 border-dashed border-t border-slate-500" />
+                  <span className="text-slate-400">0% 盈亏线</span>
                 </div>
               </>
             )}
@@ -329,7 +337,21 @@ export function PnlKlineChart({
               );
             })}
 
-            {/* 零收益参考线线 */}
+            {/* 0% 盈亏平衡分界线 */}
+            {0 >= yMin && 0 <= yMax && (
+              <line
+                x1={padding.left}
+                y1={getY(0)}
+                x2={width - padding.right}
+                y2={getY(0)}
+                stroke="#64748b"
+                strokeWidth="1.2"
+                strokeDasharray="4 4"
+                opacity="0.7"
+              />
+            )}
+
+            {/* 沪深300基准走势虚线 */}
             {dates.length > 1 && (
               <path
                 d={benchmarkLinePath}
@@ -636,7 +658,7 @@ export function PnlKlineChart({
                   账户总资产: ¥{activeCandle.equity.toLocaleString()}
                 </span>
                 <span className="text-amber-300">
-                  零收益参考线: {activeCandle.benchmark_pct > 0 ? `+${activeCandle.benchmark_pct}%` : `${activeCandle.benchmark_pct}%`}
+                  沪深300基准: {activeCandle.benchmark_pct > 0 ? `+${activeCandle.benchmark_pct}%` : `${activeCandle.benchmark_pct}%`}
                 </span>
                 <span className={`font-bold ${activeCandle.alpha_pct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
                   超额收益: {activeCandle.alpha_pct > 0 ? `+${activeCandle.alpha_pct}%` : `${activeCandle.alpha_pct}%`}

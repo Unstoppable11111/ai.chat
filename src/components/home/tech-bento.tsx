@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Terminal, Copy, Check, Sparkles, Code2, ArrowUpRight, Zap, Layers, Binary } from "lucide-react";
+import { Terminal, Copy, Check, Code2, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SnippetItem {
@@ -26,7 +26,8 @@ const SNIPPETS: SnippetItem[] = [
     relatedSlug: "flashattention-3-hopper-tma-acceleration",
     note: "避免保存庞大 N×N 注意力矩阵，利用局部最大值在常数显存下在线合并",
     code: `const mNew = Math.max(mPrev, mBlock);
-const dNew = dPrev * Math.exp(mPrev - mNew) + dBlock * Math.exp(mBlock - mNew);`,
+const dNew = dPrev * Math.exp(mPrev - mNew)
+  + dBlock * Math.exp(mBlock - mNew);`,
   },
   {
     id: "snip-2",
@@ -36,7 +37,8 @@ const dNew = dPrev * Math.exp(mPrev - mNew) + dBlock * Math.exp(mBlock - mNew);`
     language: "ts",
     relatedSlug: "hybrid-search-bm25-dense-rerank",
     note: "融合 BM25 与 Dense 向量排名，解决量纲不一，提升稀疏与语义召回精度",
-    code: `scoreMap.set(id, (scoreMap.get(id) || 0) + 1 / (60 + rank));`,
+    code: `const prevScore = scoreMap.get(id) || 0;
+scoreMap.set(id, prevScore + 1 / (60 + rank));`,
   },
   {
     id: "snip-3",
@@ -57,7 +59,8 @@ const lower = sma20 - 2.0 * Math.sqrt(variance);`,
     language: "ts",
     relatedSlug: "prompt-cache-hit-ratio-optimization",
     note: "静态规则与知识库前置，动态变量后置，实现 80%+ 显存 KV 状态秒级命中",
-    code: `const prompt = \`SYSTEM:\\n\${system}\\n\\nKB:\\n\${kbDocs.sort().join('\\n')}\\n\\nQ:\${userQuery}\`;`,
+    code: `const kb = kbDocs.sort().join('\\n');
+const prompt = \`SYS:\${system}\\n\\nKB:\${kb}\\n\\nQ:\${userQuery}\`;`,
   },
   {
     id: "snip-5",
@@ -69,7 +72,7 @@ const lower = sma20 - 2.0 * Math.sqrt(variance);`,
     note: "单次 Draw Call 实例化百万粒子，运动全量交给 GPU 顶点着色器",
     code: `vec3 pos = position;
 pos.x += sin(pos.y * 3.0 + uTime) * 0.2;
-gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);`,
+gl_Position = projMatrix * mvMatrix * vec4(pos, 1.0);`,
   },
 ];
 
@@ -141,8 +144,8 @@ export function TechBento() {
                 </p>
 
                 {/* 代码卡片 */}
-                <div className="relative mt-3 rounded-xl bg-slate-950 p-3 font-mono text-[11px] text-slate-200 overflow-x-auto shadow-inner">
-                  <pre className="overflow-x-auto leading-relaxed">
+                <div className="relative mt-3 rounded-xl bg-slate-950 p-3 font-mono text-[11px] text-slate-200 shadow-inner overflow-hidden">
+                  <pre className="whitespace-pre-wrap break-words leading-relaxed overflow-hidden pr-6">
                     <code>{snip.code}</code>
                   </pre>
                   <button
