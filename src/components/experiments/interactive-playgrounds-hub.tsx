@@ -144,7 +144,7 @@ export function InteractivePlaygroundsHub() {
         <div>
           <div className="flex items-center gap-2 text-xs font-mono font-bold text-sky-600 uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4 text-sky-500 animate-pulse" />
-            <span>PLAYABLE LABS // 7 款高互动极客实验矩阵</span>
+            <span>PLAYABLE LABS // 8 款高互动极客实验矩阵</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             高可玩性互动工坊

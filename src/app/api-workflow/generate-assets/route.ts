@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
     style?: string;
     worldview?: string;
     plot?: string;
+    provider?: "auto" | "cloudflare" | "pollinations";
     usePlaceholder?: boolean;
   };
   try {
@@ -104,6 +105,8 @@ export async function POST(request: NextRequest) {
       kind: type,
       signal: request.signal,
       prefix: type,
+      provider: body.provider || "cloudflare",
+      useBalancer: true,
       beforeRequest: async () => {
         if (!(await reserveWorkflowUsage(userId, "asset", isAdmin))) {
           throw Object.assign(new Error("今日图片生成尝试次数已达上限（每日 10 次，失败或取消也计入已发起次数）。"), {

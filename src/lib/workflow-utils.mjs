@@ -2,9 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { getImageCooldownStatus, triggerImageCooldown, reportImageSuccess } from "./workflow-cooldown.mjs";
-import { generateImageWithBalancer, isCloudflareConfigured, getBalancerStatus } from "./image-balancer.mjs";
+import { generateImageWithBalancer, isCloudflareConfigured, getBalancerStatus, enhancePromptForFlux } from "./image-balancer.mjs";
 
-export { generateImageWithBalancer, isCloudflareConfigured, getBalancerStatus };
+export { generateImageWithBalancer, isCloudflareConfigured, getBalancerStatus, enhancePromptForFlux };
 
 export const MAX_GENERATED_IMAGE_BYTES = 15 * 1024 * 1024;
 
@@ -787,7 +787,8 @@ export async function generateWorkflowImage(options = {}) {
 
   const useBalancer = Boolean(
     options.useBalancer ||
-    (isCloudflareConfigured() && !options.baseUrl && !process.env.IMAGE_API_BASE_URL)
+    Boolean(options.provider) ||
+    (isCloudflareConfigured() && !options.baseUrl)
   );
 
   if (useBalancer) {
@@ -802,11 +803,14 @@ export async function generateWorkflowImage(options = {}) {
       const width = match ? Number(match[1]) : 1024;
       const height = match ? Number(match[2]) : 1024;
 
+      const provider = options.provider || (isCloudflareConfigured() ? "cloudflare" : "auto");
+      const enhancedPrompt = enhancePromptForFlux(prompt, options.style || "cinematic");
+
       const balancerResult = await generateImageWithBalancer({
-        prompt,
+        prompt: enhancedPrompt,
         width,
         height,
-        provider: options.provider || "auto",
+        provider,
         signal: controller.signal,
         timeoutMs: Math.min(timeoutMs, 50000),
       });
@@ -818,7 +822,8 @@ export async function generateWorkflowImage(options = {}) {
         metadata: {
           provider: balancerResult.provider,
           model: balancerResult.model,
-          prompt,
+          prompt: enhancedPrompt,
+          rawPrompt: prompt,
           kind,
           ...actualDimensions,
           width: saved.width,

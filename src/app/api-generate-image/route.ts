@@ -4,6 +4,7 @@ import {
   getBalancerStatus,
   sanitizePrompt,
   saveCloudflareCredentials,
+  enhancePromptForFlux,
 } from "@/lib/image-balancer.mjs";
 import { saveBase64ImageLocally } from "@/lib/workflow-utils.mjs";
 import {
@@ -17,14 +18,6 @@ import {
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-const STYLE_ENHANCERS: Record<string, string> = {
-  cinematic: "cinematic lighting, ultra-detailed, photorealistic, 8k resolution, dramatic atmosphere, blockbuster movie still",
-  anime: "Japanese anime aesthetic, Makoto Shinkai style, vibrant colors, beautiful lighting, detailed digital illustration",
-  photorealistic: "award-winning photography, Hasselblad 85mm lens, f/1.8, hyper-realistic, natural textures, perfect lighting",
-  cyberpunk: "cyberpunk aesthetic, vibrant neon glow, rainy streets, holographic HUDs, dark moody futuristic cityscape",
-  fantasy: "epic fantasy concept art, mystical volumetric glow, magical particles, grandiose scale, ethereal lighting",
-  ink: "traditional Chinese ink wash painting, atmospheric mist, elegant brush strokes, poetic and serene, masterpiece",
-};
 
 const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
   "1:1": { width: 1024, height: 1024 },
@@ -121,8 +114,8 @@ export async function POST(request: NextRequest) {
   }
 
   const styleKey = body.style || "none";
-  const enhancer = STYLE_ENHANCERS[styleKey] || "";
-  const finalPrompt = enhancer ? `${rawPrompt}, ${enhancer}` : rawPrompt;
+  // 专门针对 FLUX.1 模型进行概念语义直译、风格强化及负向文字抑制
+  const enhancedPrompt = enhancePromptForFlux(rawPrompt, styleKey);
 
   const ratio = body.aspectRatio || "1:1";
   const { width, height } = ASPECT_RATIO_DIMENSIONS[ratio] || { width: 1024, height: 1024 };
@@ -131,7 +124,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await generateImageWithBalancer({
-      prompt: finalPrompt,
+      prompt: enhancedPrompt,
       width,
       height,
       provider: providerPreference,
@@ -156,6 +149,7 @@ export async function POST(request: NextRequest) {
       failover: result.failover,
       failoverReason: result.failoverReason,
       prompt: rawPrompt,
+      enhancedPrompt,
     });
   } catch (err: unknown) {
     const error = err as { message?: string; code?: string; status?: number };

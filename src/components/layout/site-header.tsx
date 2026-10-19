@@ -179,7 +179,7 @@ export function SiteHeader() {
                   <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-2xl p-2.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-2.5 py-1.5 border-b border-slate-100 mb-1.5 flex items-center justify-between">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        前沿交互与空间玩具 (7款)
+                        高可用工坊与交互空间 (8款)
                       </span>
                       <Link
                         href="/experiments"
@@ -192,6 +192,29 @@ export function SiteHeader() {
                     </div>
 
                     <div className="space-y-1 max-h-[360px] overflow-y-auto no-scrollbar pr-0.5">
+                      <Link
+                        href="/experiments/image-studio"
+                        onClick={() => setExperimentsOpen(false)}
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-purple-50/80 hover:text-purple-900 transition-colors group"
+                      >
+                        <div className="p-1 rounded-lg bg-purple-100/60 text-purple-700 group-hover:scale-105 transition-transform">
+                          <Sparkles className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-slate-900 group-hover:text-purple-900">
+                              AI 生图工坊
+                            </span>
+                            <span className="text-[9px] font-mono text-purple-600 bg-purple-100/50 px-1.5 rounded font-bold">
+                              FLUX 极速
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            Cloudflare & Pollinations 智能双通道
+                          </p>
+                        </div>
+                      </Link>
+
                       <Link
                         href="/experiments/gods-eye"
                         onClick={() => setExperimentsOpen(false)}
@@ -421,6 +444,17 @@ export function SiteHeader() {
                           <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">书架</span>
                         </Link>
                         <Link
+                          href="/experiments/image-studio"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-purple-50/80 hover:text-purple-800 transition-colors group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="h-3.5 w-3.5 text-purple-600 group-hover:scale-110 transition-transform" />
+                            <span className="font-medium">AI 创意视觉与生图工坊</span>
+                          </div>
+                          <span className="text-[10px] text-purple-600 bg-purple-100/50 px-1.5 py-0.5 rounded font-bold">FLUX</span>
+                        </Link>
+                        <Link
                           href="/chat"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
@@ -570,7 +604,7 @@ export function SiteHeader() {
                   <div className="flex items-center gap-1.5">
                     <FlaskConical className="h-3 w-3 text-sky-600" />
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      极客工坊 (7款高互动实验)
+                      极客工坊 (8款高互动实验)
                     </p>
                   </div>
                   <Link
@@ -583,6 +617,18 @@ export function SiteHeader() {
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  <Link
+                    href="/experiments/image-studio"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-purple-500/5 text-purple-700 hover:bg-purple-500/10 border border-purple-500/20 sm:col-span-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-3.5 w-3.5 text-purple-600 shrink-0" />
+                      <span className="truncate">AI 生图工坊 (FLUX.1 智能双通道)</span>
+                    </div>
+                    <span className="text-[9px] font-mono px-1 rounded bg-purple-500/10 font-bold shrink-0">STUDIO</span>
+                  </Link>
+
                   <Link
                     href="/experiments/gods-eye"
                     onClick={() => setMobileMenuOpen(false)}

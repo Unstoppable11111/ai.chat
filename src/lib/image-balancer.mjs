@@ -21,6 +21,68 @@ export function sanitizePrompt(prompt) {
 }
 
 /**
+ * 针对 FLUX.1 (T5-XXL 编码器) 核心视觉模型的高精度提示词智能翻译、光影增强与防文字污染过滤器
+ * @param {string} rawPrompt 原始用户提示词
+ * @param {string} [style="none"] 预设风格
+ * @returns {string} 优化后的高质量 FLUX 英文提示词
+ */
+export function enhancePromptForFlux(rawPrompt, style = "none") {
+  const sanitized = sanitizePrompt(rawPrompt);
+  if (!sanitized) return "";
+
+  let prompt = sanitized;
+
+  // 1. 中文常见概念智能转写（消除 T5 编码器对中文汉字的文字招牌幻觉）
+  const TRANSLATIONS = [
+    [/咖啡猫|加菲猫/g, "Garfield, adorable plump orange tabby cat, fluffy ginger fur, expressive charming eyes, cozy warm lighting"],
+    [/波斯猫/g, "fluffy white Persian cat, striking copper eyes, silky long coat"],
+    [/布偶猫/g, "gorgeous Ragdoll cat, sapphire blue eyes, fluffy plush coat"],
+    [/小猫|猫咪|猫/g, "cute domestic cat, detailed fur texture, curious glowing eyes, soft natural lighting"],
+    [/柯基/g, "cute Welsh Corgi dog, fluffy coat, happy smiling expression, perky ears"],
+    [/柴犬/g, "adorable Shiba Inu dog, spirited expression, curled tail, natural lighting"],
+    [/小狗|狗狗|狗/g, "adorable domestic dog, glossy fur, expressive eyes, playful stance"],
+    [/白衣仙侠|剑仙|仙侠|修真|修仙/g, "charismatic Chinese immortal cultivator in flowing pure white silk robes, ethereal glowing jade sword, misty mountain peaks, ethereal aura"],
+    [/赛博朋克|赛博/g, "cyberpunk aesthetic, vibrant neon reflections, futuristic megacity street, holographic displays, volumetric haze"],
+    [/戴森球|戴森环/g, "colossal sci-fi Dyson ring megastructure encircling a radiant star, epic interstellar cosmic scale, hard sci-fi"],
+    [/微距|露珠/g, "macro photography, crystal clear morning water dew drop on succulent plant, reflective mini galaxy, soft morning bokeh"],
+    [/水墨|国风/g, "traditional Chinese ink wash painting aesthetic, poetic misty atmosphere, dynamic black and vermilion brushwork, elegant negative space"],
+    [/机甲|机器人/g, "sleek futuristic battle exoskeleton robot, carbon fiber plating, glowing cyan energy core, intricate mechanical joints"],
+    [/飞艇|蒸汽朋克/g, "steampunk brass airship breaking through storm clouds, intricate copper gears and steam exhaust, sunset golden hour"],
+    [/美女|少女|女孩/g, "stunningly beautiful young woman, graceful posture, natural skin texture, delicate facial features, gentle rim lighting"],
+    [/帅哥|少年|男主/g, "handsome charismatic young protagonist, sharp determined gaze, cinematic lighting"],
+    [/星空|深空|宇宙/g, "breathtaking deep space cosmos, swirling colorful nebulae, distant glowing galaxies"],
+    [/海报|封面/g, "cinematic master key visual, epic composition, dramatic lighting"],
+    [/雨夜/g, "nocturnal rainy street, asphalt reflections, cinematic rim lighting"],
+  ];
+
+  for (const [regex, replacement] of TRANSLATIONS) {
+    if (regex.test(prompt)) {
+      prompt = prompt.replace(regex, replacement);
+    }
+  }
+
+  // 2. 风格增益修饰词
+  const STYLE_MODIFIERS = {
+    cinematic: "cinematic film still, 35mm photograph, dramatic volumetric rim lighting, shallow depth of field, anamorphic lens flare, award-winning cinematography, photorealistic 8k",
+    anime: "Makoto Shinkai anime aesthetic, vibrant high-contrast colors, atmospheric luminous lighting, exquisitely detailed digital artwork, master illustration",
+    photorealistic: "hyperrealistic 8k photography, Hasselblad medium format camera, natural authentic textures, soft studio lighting, ultra-sharp focus, highly detailed",
+    cyberpunk: "cyberpunk neo-noir visual, dense rainy street, glowing neon signs reflections, dark moody atmosphere, volumetric haze, octane render",
+    fantasy: "epic high-fantasy digital concept art, glowing magical particles, majestic scale, ethereal lighting, grand atmosphere, ArtStation trending",
+    ink: "traditional Chinese master ink wash painting, dynamic black and vermilion brushwork, atmospheric mist, elegant negative space, museum quality",
+    none: "masterpiece, ultra-detailed, sharp focus, 8k resolution, professional photography, natural lighting",
+  };
+
+  const modifier = STYLE_MODIFIERS[style] || STYLE_MODIFIERS.none;
+
+  // 3. 严格排斥文字的 Guardrail（防止 FLUX 生成乱码汉字、字体招牌和水印）
+  const qualityGuardrail = "masterpiece, best quality, highly detailed, clean composition";
+  const antiTextGuardrail = "no text, no letters, no words, no signs, no typography, no watermark, no signature, no username, no logo";
+
+  // 组合最终提示词
+  return `${prompt}, ${modifier}, ${qualityGuardrail}, ${antiTextGuardrail}`;
+}
+
+/**
  * 解析并获取 Cloudflare 凭据（优先级：显式入参 > 环境变量 > .runtime 持久化配置）
  */
 export function resolveCloudflareCredentials(options = {}) {

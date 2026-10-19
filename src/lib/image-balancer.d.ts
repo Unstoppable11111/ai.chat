@@ -31,6 +31,7 @@ export interface BalancerStatus {
 }
 
 export function sanitizePrompt(prompt: string): string;
+export function enhancePromptForFlux(prompt: string, style?: string): string;
 export function isCloudflareConfigured(options?: BalancerImageOptions): boolean;
 export function resolveCloudflareCredentials(options?: BalancerImageOptions): { accountId: string; token: string; ready: boolean };
 export function saveCloudflareCredentials(creds: { accountId: string; token: string }): boolean;
@@ -38,3 +39,4 @@ export function getBalancerStatus(options?: BalancerImageOptions): BalancerStatu
 export function callCloudflareWorkersAI(options?: BalancerImageOptions): Promise<BalancerImageResult>;
 export function callPollinationsAI(options?: BalancerImageOptions): Promise<BalancerImageResult>;
 export function generateImageWithBalancer(options?: BalancerImageOptions): Promise<BalancerImageResult>;
+

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Sparkles,
   User,
@@ -16,6 +17,8 @@ import {
   Upload,
   Link as LinkIcon,
   X,
+  Zap,
+  ArrowRight,
 } from "lucide-react";
 import type { BibleData, ChapterData, CharacterCard, VisualAssetItem, WorkflowConfig } from "@/types/workflow";
 
@@ -92,6 +95,17 @@ export function VisualAssetsBoard({
   const controllersRef = React.useRef(new Map<string, AbortController>());
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [cooldownRemaining] = useState<number>(0);
+  const [selectedProvider, setSelectedProvider] = useState<"cloudflare" | "pollinations" | "auto">("cloudflare");
+
+  // 防止浏览器强缓存旧图导致"延迟并返回上一张图片"
+  const getRenderUrl = (url?: string, createdAt?: string) => {
+    if (!url) return "";
+    if (url.startsWith("/generated/")) {
+      const ts = createdAt ? new Date(createdAt).getTime() : Date.now();
+      return `${url}?v=${ts}`;
+    }
+    return url;
+  };
 
   // 替换封面模态框与输入状态
   const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
@@ -166,7 +180,16 @@ export function VisualAssetsBoard({
       const response = await fetch("/api-workflow/generate-assets", {
         method: "POST", headers: { "Content-Type": "application/json" },
         signal: controller.signal,
-        body: JSON.stringify({ projectId, type, ...details, description, style: config.style || "", worldview: bible.worldview, genre: config.genre || "都市异能" }),
+        body: JSON.stringify({
+          projectId,
+          type,
+          ...details,
+          description,
+          style: config.style || "",
+          worldview: bible.worldview,
+          genre: config.genre || "都市异能",
+          provider: selectedProvider,
+        }),
       });
       const data = await response.json().catch(() => null);
       if (controller.signal.aborted) return;
@@ -259,20 +282,80 @@ export function VisualAssetsBoard({
         </div>
       )}
 
-      {/* 顶部通告条 */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-purple-500/20 text-purple-700 shrink-0">
-            <Sparkles className="w-4 h-4 animate-pulse" />
+      {/* 顶部通告与引擎配置条 */}
+      <div className="p-4 rounded-3xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/20 flex flex-col gap-3.5 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-purple-500/20 text-purple-700 shrink-0">
+              <Sparkles className="w-4 h-4 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold text-slate-900">
+                  小说视觉资产库 & 生图引擎中枢
+                </h4>
+                <span className="text-[10px] font-mono text-purple-700 bg-purple-100/60 border border-purple-300/60 px-1.5 py-0.2 rounded-full font-semibold">
+                  FLUX.1 级联优化
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                人物立绘与场景概念图生成服务。支持自由切换底层出图引擎，优先推荐使用 Cloudflare 极速通道。
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 className="text-xs font-bold text-slate-900">
-              小说视觉资产库
-            </h4>
-            <p className="text-[11px] text-slate-500">
-              人物画像与场景概念图为可选生成资产。用户手动确认后即时生成，并永久绑定至当前小说的数字资产包。
-            </p>
-          </div>
+
+          <Link
+            href="/experiments/image-studio"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs hover:shadow transition-all shrink-0 self-start sm:self-auto cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-200" />
+            <span>独立 AI 生图工坊</span>
+            <ArrowRight className="w-3.5 h-3.5 text-purple-200" />
+          </Link>
+        </div>
+
+        {/* 模型/引擎选择器 */}
+        <div className="pt-2 border-t border-purple-500/10 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
+            <Zap className="w-3.5 h-3.5 text-purple-600" />
+            <span>出图通道：</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setSelectedProvider("cloudflare")}
+            className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedProvider === "cloudflare"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80"
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>Cloudflare FLUX.1 (推荐·4秒极速)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedProvider("pollinations")}
+            className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedProvider === "pollinations"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80"
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span>Pollinations FLUX (开源备用)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedProvider("auto")}
+            className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedProvider === "auto"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80"
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <span>智能多通道均衡容灾</span>
+          </button>
         </div>
       </div>
 
@@ -392,16 +475,31 @@ export function VisualAssetsBoard({
                   {existingAsset?.image_url ? (
                     <>
                       <Image
-                        src={existingAsset.image_url}
+                        src={getRenderUrl(existingAsset.image_url, existingAsset.created_at)}
                         alt={char.name}
                         fill
                         unoptimized
                         loading="lazy"
                         className="object-cover"
                       />
+                      {/* 出图通道标识徽章 */}
+                      {existingAsset.status === "fallback" ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-amber-500/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
+                          矢量预览保底
+                        </div>
+                      ) : existingAsset.metadata?.provider === "cloudflare" ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                          <Zap className="w-2.5 h-2.5 text-yellow-300 fill-yellow-300" />
+                          <span>CF FLUX.1</span>
+                        </div>
+                      ) : existingAsset.metadata?.provider === "pollinations" ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-cyan-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
+                          Pollinations FLUX
+                        </div>
+                      ) : null}
                       <button
                         type="button"
-                        onClick={() => setPreviewImage(existingAsset.image_url)}
+                        onClick={() => setPreviewImage(getRenderUrl(existingAsset.image_url, existingAsset.created_at))}
                         className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
                         title="查看大图"
                       >
@@ -494,16 +592,31 @@ export function VisualAssetsBoard({
                   {existingAsset?.image_url ? (
                     <>
                       <Image
-                        src={existingAsset.image_url}
+                        src={getRenderUrl(existingAsset.image_url, existingAsset.created_at)}
                         alt={sceneTitle}
                         fill
                         unoptimized
                         loading="lazy"
                         className="object-cover"
                       />
+                      {/* 出图通道标识徽章 */}
+                      {existingAsset.status === "fallback" ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-amber-500/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
+                          矢量预览保底
+                        </div>
+                      ) : existingAsset.metadata?.provider === "cloudflare" ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                          <Zap className="w-2.5 h-2.5 text-yellow-300 fill-yellow-300" />
+                          <span>CF FLUX.1</span>
+                        </div>
+                      ) : existingAsset.metadata?.provider === "pollinations" ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-cyan-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
+                          Pollinations FLUX
+                        </div>
+                      ) : null}
                       <button
                         type="button"
-                        onClick={() => setPreviewImage(existingAsset.image_url)}
+                        onClick={() => setPreviewImage(getRenderUrl(existingAsset.image_url, existingAsset.created_at))}
                         className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
                         title="查看大图"
                       >
