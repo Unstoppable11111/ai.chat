@@ -40,6 +40,8 @@ import type { MarketSentimentMetrics } from "@/lib/quotes-service";
 import { PaperTradeForm } from "@/components/market/paper-trade-form";
 import { DailyTradeLog } from "@/components/market/daily-trade-log";
 import { GoldStockPanel } from "@/components/market/gold-stock-panel";
+import { AccountDailyLedgerTable } from "@/components/market/account-daily-ledger-table";
+
 
 import { WorkspaceLogout } from "@/components/market/workspace-access";
 import {
@@ -832,10 +834,14 @@ export default function MarketDashboardPage() {
             {arenaAccounts && <>
               <StrategyArenaCards accounts={arenaAccounts} rankings={strategyRankings} activeStrategy={activeStrategy} onSelectStrategy={setActiveStrategy} />
               <PnlKlineChart account={arenaAccounts[activeStrategy]} accounts={Object.values(arenaAccounts)} activeAccountId={activeStrategy} onSelectAccount={setActiveStrategy} />
-              {/* 每日交易日志：当日买卖记录 + 账户/HS300/Alpha 三方对比 */}
+              {/* 每日交易日志：当日买卖记录与金额对比 */}
               <DailyTradeLog
                 account={arenaAccounts[activeStrategy]}
                 benchmarkPct={arenaBenchmarkPct}
+              />
+              {/* 每个账户历史每日收益公开账本（满足公开透明与每日收益查看诉求） */}
+              <AccountDailyLedgerTable
+                account={arenaAccounts[activeStrategy]}
               />
             </>}
           </div>

@@ -38,8 +38,8 @@ export function PnlKlineChart({
 
   // 视图模式：'single_k' (经典日K与操作明细) | 'all_pk' (三大策略同图PK)
   const [viewMode, setViewMode] = useState<"single_k" | "all_pk">("single_k");
-  // 指标模式：'nav' (净值收益率) | 'alpha' (超额收益) | 'drawdown' (回撤曲线)
-  const [metricMode] = useState<"nav" | "alpha" | "drawdown">("nav");
+  // 指标模式：'nav' (净值收益率) | 'drawdown' (回撤曲线)
+  const [metricMode] = useState<"nav" | "drawdown">("nav");
 
   // 解析当前选中账户 (兼容 id 与 account_id)
   const currentAccount =
@@ -130,7 +130,6 @@ export function PnlKlineChart({
   // 多账户PK折线路径
   const getValuesForPk = (candlesList: DailyPnlCandle[]) => {
     return candlesList.map((c) => {
-      if (metricMode === "alpha") return c.alpha_pct ?? (c.close_pnl_pct - c.benchmark_pct);
       if (metricMode === "drawdown") return -Math.abs(c.low_pnl_pct < 0 ? c.low_pnl_pct : 0);
       return c.close_pnl_pct;
     });
@@ -524,64 +523,96 @@ export function PnlKlineChart({
                         onMouseLeave={() => setHoveredIndex(null)}
                       />
 
-                      {/* 悬浮 Popover Tooltip：展示当天的操作 */}
-                      {isHovered && (
-                        <g
-                          transform={`translate(${
-                            x > width - 210 ? x - 195 : x + 15
-                          }, ${Math.max(padding.top + 5, yHigh - 35)})`}
-                          className="pointer-events-none"
-                        >
-                          <rect
-                            width="190"
-                            height={d.events && d.events.length > 0 ? 36 + d.events.length * 20 : 44}
-                            fill="rgba(9, 19, 36, 0.95)"
-                            stroke="#06b6d4"
-                            strokeWidth="1"
-                            rx="8"
-                            filter="drop-shadow(0 4px 12px rgba(0,0,0,0.5))"
-                          />
-                          <text
-                            x="10"
-                            y="16"
-                            fill="#22d3ee"
-                            fontSize="10.5"
-                            fontWeight="bold"
-                            fontFamily="monospace"
-                          >
-                            {d.date} 收益: {d.close_pnl_pct > 0 ? `+${d.close_pnl_pct}%` : `${d.close_pnl_pct}%`} (超额{d.alpha_pct > 0 ? `+${d.alpha_pct}%` : `${d.alpha_pct}%`})
-                          </text>
-                          <line x1="10" y1="22" x2="180" y2="22" stroke="rgba(6, 182, 212, 0.3)" />
+                      {/* 悬浮 Popover Tooltip：展示当天的当日收益率与具体金额 (遵循国内股民看盘习惯) */}
+                      {isHovered && (() => {
+                        const prevCandle = idx > 0 ? currentCandles[idx - 1] : null;
+                        const dayPnlPct = prevCandle
+                          ? parseFloat((d.close_pnl_pct - prevCandle.close_pnl_pct).toFixed(2))
+                          : d.close_pnl_pct;
+                        const dayPnlAmount = prevCandle
+                          ? Math.round(d.equity - prevCandle.equity)
+                          : Math.round(d.equity - 100000);
+                        const isDayUp = dayPnlPct >= 0;
 
-                          {d.events && d.events.length > 0 ? (
-                            d.events.map((ev, i) => (
-                              <text
-                                key={ev.id || i}
-                                x="10"
-                                y={36 + i * 18}
-                                fill="#ffffff"
-                                fontSize="9.5"
-                                fontWeight="bold"
-                                fontFamily="sans-serif"
-                              >
-                                {ev.type === "BUY" ? "🟢买入" : "🔴卖出"} {ev.stock_name} {ev.shares}股 @¥{ev.price.toFixed(2)}
+                        return (
+                          <g
+                            transform={`translate(${
+                              x > width - 230 ? x - 215 : x + 15
+                            }, ${Math.max(padding.top + 5, yHigh - 45)})`}
+                            className="pointer-events-none"
+                          >
+                            <rect
+                              width="210"
+                              height={d.events && d.events.length > 0 ? 82 + d.events.length * 18 : 88}
+                              fill="rgba(9, 19, 36, 0.96)"
+                              stroke="#06b6d4"
+                              strokeWidth="1.2"
+                              rx="10"
+                              filter="drop-shadow(0 6px 16px rgba(0,0,0,0.6))"
+                            />
+                            {/* 标题：日期与当日收益率 */}
+                            <text
+                              x="12"
+                              y="18"
+                              fill="#ffffff"
+                              fontSize="11"
+                              fontWeight="bold"
+                              fontFamily="monospace"
+                            >
+                              📅 {d.date}  当日: <tspan fill={isDayUp ? "#fb7185" : "#34d399"}>{isDayUp ? "+" : ""}{dayPnlPct}%</tspan>
+                            </text>
+                            <line x1="12" y1="25" x2="198" y2="25" stroke="rgba(6, 182, 212, 0.3)" />
+
+                            {/* Hover 才展示金额：当日实际盈亏金额 (国内核心看点) */}
+                            <text
+                              x="12"
+                              y="41"
+                              fill={isDayUp ? "#fb7185" : "#34d399"}
+                              fontSize="11"
+                              fontWeight="bold"
+                              fontFamily="monospace"
+                            >
+                              当日盈亏: {dayPnlAmount >= 0 ? "+" : ""}¥{dayPnlAmount.toLocaleString()} 元
+                            </text>
+
+                            {/* 账户总资产与累计总收益 */}
+                            <text
+                              x="12"
+                              y="57"
+                              fill="#94a3b8"
+                              fontSize="9.5"
+                              fontFamily="monospace"
+                            >
+                              总资产: <tspan fill="#ffffff" fontWeight="bold">¥{d.equity.toLocaleString()}</tspan> (累计: <tspan fill={d.close_pnl_pct >= 0 ? "#fb7185" : "#34d399"}>{d.close_pnl_pct > 0 ? `+${d.close_pnl_pct}%` : `${d.close_pnl_pct}%`}</tspan>)
+                            </text>
+
+                            {/* 当日操作提示 */}
+                            {d.events && d.events.length > 0 ? (
+                              d.events.slice(0, 2).map((ev, i) => (
+                                <text
+                                  key={ev.id || i}
+                                  x="12"
+                                  y={75 + i * 16}
+                                  fill="#facc15"
+                                  fontSize="9.5"
+                                  fontWeight="bold"
+                                  fontFamily="sans-serif"
+                                >
+                                  {ev.type === "BUY" ? "🟢 买入" : "🔴 卖出"} {ev.stock_name} @¥{ev.price.toFixed(2)} {ev.pnl_amount != null && ev.type !== "BUY" ? `(盈亏${ev.pnl_amount >= 0 ? "+" : ""}¥${ev.pnl_amount})` : ""}
+                                </text>
+                              ))
+                            ) : isRestDay ? (
+                              <text x="12" y="75" fill="#64748b" fontSize="9" fontFamily="sans-serif">
+                                🛡️ 空仓观望避险 · 资金安全在手
                               </text>
-                            ))
-                          ) : isRestDay ? (
-                            <text x="10" y="34" fill="#94a3b8" fontSize="9.5" fontFamily="sans-serif">
-                              🛡️ 100%空仓休整避险中 · 资金安全锁定
-                            </text>
-                          ) : d.close_pnl_pct !== 0 || d.equity > 100000 ? (
-                            <text x="10" y="34" fill="#38bdf8" fontSize="9.5" fontFamily="sans-serif">
-                              📈 当日无调仓买卖 · 顺势耐心持股
-                            </text>
-                          ) : (
-                            <text x="10" y="34" fill="#94a3b8" fontSize="9.5" fontFamily="sans-serif">
-                              🎯 赛季启动前准备期 · 资金安全就绪
-                            </text>
-                          )}
-                        </g>
-                      )}
+                            ) : (
+                              <text x="12" y="75" fill="#38bdf8" fontSize="9" fontFamily="sans-serif">
+                                📌 强势就留 · 持股坐轿主升中
+                              </text>
+                            )}
+                          </g>
+                        );
+                      })()}
                     </g>
                   );
                 })}
@@ -634,34 +665,31 @@ export function PnlKlineChart({
           </svg>
         </div>
 
-        {/* 点击某日柱体锁定的归因明细卡片 */}
+        {/* 点击某日柱体锁定的归因明细卡片 (展示具体调仓买卖时间、价格与盈亏金额) */}
         {activeCandle && (
           <div className="p-4 rounded-2xl bg-[#0f1d35]/90 border border-cyan-500/30 shadow-lg space-y-3 animate-in fade-in duration-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-900/40 pb-2">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-cyan-400" />
                 <span className="text-sm font-bold text-white font-mono">
-                  {activeCandle.date} 当日策略量化复盘
+                  {activeCandle.date} 当日交易操作与盈亏明细
                   {selectedIndex !== null && selectedIndex === activeIdx ? (
-                    <span className="text-[11px] text-cyan-400 font-normal ml-1.5">(已锁定明细)</span>
+                    <span className="text-[11px] text-cyan-400 font-normal ml-1.5">(已锁定点击明细)</span>
                   ) : (
-                    <span className="text-[11px] text-slate-400 font-normal ml-1.5">(悬停实时预览)</span>
+                    <span className="text-[11px] text-slate-400 font-normal ml-1.5">(点击日K可锁定)</span>
                   )}
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-mono font-bold">
-                  累计收益: {activeCandle.close_pnl_pct > 0 ? `+${activeCandle.close_pnl_pct}%` : `${activeCandle.close_pnl_pct}%`}
+                  累计总收益: {activeCandle.close_pnl_pct > 0 ? `+${activeCandle.close_pnl_pct}%` : `${activeCandle.close_pnl_pct}%`}
                 </span>
               </div>
 
               <div className="flex items-center gap-3 text-xs font-mono">
                 <span className="text-slate-300">
-                  账户总资产: ¥{activeCandle.equity.toLocaleString()}
+                  总资产: ¥{activeCandle.equity.toLocaleString()}
                 </span>
                 <span className="text-amber-300">
-                  沪深300基准: {activeCandle.benchmark_pct > 0 ? `+${activeCandle.benchmark_pct}%` : `${activeCandle.benchmark_pct}%`}
-                </span>
-                <span className={`font-bold ${activeCandle.alpha_pct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
-                  超额收益: {activeCandle.alpha_pct > 0 ? `+${activeCandle.alpha_pct}%` : `${activeCandle.alpha_pct}%`}
+                  沪深300: {activeCandle.benchmark_pct > 0 ? `+${activeCandle.benchmark_pct}%` : `${activeCandle.benchmark_pct}%`}
                 </span>
                 {selectedIndex !== null && (
                   <button
@@ -868,23 +896,23 @@ export function PnlKlineChart({
               </div>
             </div>
             ) : activeCandle.equity > 100000 || activeCandle.close_pnl_pct !== 0 ? (
-              /* 情况2：无调仓但有持股待涨日 (如 09-08) */
+              /* 情况2：无调仓但有持股待涨日 (如 09-08, 09-23) */
               <div className="space-y-2 pt-1">
                 <div className="text-xs font-bold text-cyan-300 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    🛡️ 当日操作逻辑：无调仓买卖记录 · 顺势耐心持股待涨
+                    🔥 当日操作逻辑：【强势就留】无调仓买卖 · 标的处于多头强势通道，顺势持股待涨
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <div className="p-3 rounded-xl bg-[#0a1426] border border-cyan-500/30 space-y-2 shadow-md">
                     <div className="text-xs font-bold text-white flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      持仓标的均在良性通道内，执行锁仓持股策略
+                      持仓标的强势未改，严格执行“强势就留，走弱就卖”
                     </div>
                     <div className="p-2 rounded-lg bg-[#070f1e] border border-cyan-950 text-[11px] text-slate-300 leading-relaxed">
-                      <span className="text-cyan-400 font-semibold">量化风控研判：</span>
-                      根据量化风控系统实时监测，当前持仓标的均在5日/10日均线多头排列通道内良性放量运行，盘中价格波动未触及动态止盈警戒线，更未跌破硬止损风控线。策略严格执行“让利润奔跑，规避盘中洗盘杂波”纪律，锁仓等待主升浪冲高或次日择机兑现。
+                      <span className="text-cyan-400 font-semibold">量化执行纪律：</span>
+                      系统实时跟踪盘面分时均线与成交量能，当前持仓个股处于强势主升区间，未出现断板、跌破分时均线或冲高回落等走弱特征，符合【强势就留】持仓纪律；若后续一旦盘中走弱或触及止损警戒，将第一时间果断清仓离场，绝不死扛！
                     </div>
                   </div>
 

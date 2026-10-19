@@ -5,10 +5,10 @@
     "version": "v2.0",
     "initial_capital": 100000,
     "total_equity": 148023.1,
-    "cash": 47623.1,
-    "market_value": 100400,
-    "today_pnl": -1360,
-    "today_pnl_pct": -0.92,
+    "cash": 148023.1,
+    "market_value": 0,
+    "today_pnl": 0,
+    "today_pnl_pct": 0,
     "total_return_pct": 48.02,
     "max_drawdown_pct": -1.25,
     "sharpe_ratio": 3.85,
@@ -16,177 +16,139 @@
     "calmar_ratio": 6.2,
     "win_rate_pct": 83.3,
     "profit_factor": 5.8,
-    "current_exposure_pct": 67.8,
-    "position_count": 1,
+    "current_exposure_pct": 0,
+    "position_count": 0,
     "completed_trades": 6,
     "strategy_score": 98.2,
     "risk_status": "SAFE",
     "is_protection_mode": false,
-    "positions": [
-      {
-        "code": "000158",
-        "name": "常山北明",
-        "shares": 8000,
-        "available_shares": 8000,
-        "cost_price": 10.5,
-        "current_price": 12.55,
-        "market_value": 100400,
-        "weight_pct": 67.8,
-        "pnl": 16400,
-        "pnl_pct": 19.52,
-        "stop_loss_price": 10.1,
-        "target_price": 13.5,
-        "holding_days": 2,
-        "buy_date": "2026-09-22",
-        "strategy_reason": "华为鸿蒙与金融IT高标总龙头，断板后次日竞价弱转强，分时逆势放量拉升突破，执行断板反包战法",
-        "sector": "华为概念/软件服务",
-        "beta": 1.95
-      }
-    ],
+    "positions": [],
     "account_id": "aggressive",
     "equity_series": [
       {
         "date": "09-01",
         "equity": 99850,
         "return_pct": -0.15,
-        "benchmark_pct": 0.1,
-        "alpha_pct": -0.25,
+        "benchmark_pct": 0,
         "drawdown_pct": -0.15
       },
       {
         "date": "09-02",
         "equity": 100450,
         "return_pct": 0.45,
-        "benchmark_pct": 0.3,
-        "alpha_pct": 0.15,
+        "benchmark_pct": -0.8,
         "drawdown_pct": 0
       },
       {
         "date": "09-03",
         "equity": 100600,
         "return_pct": 0.6,
-        "benchmark_pct": 0.4,
-        "alpha_pct": 0.2,
+        "benchmark_pct": -0.65,
         "drawdown_pct": 0
       },
       {
         "date": "09-04",
         "equity": 100000,
         "return_pct": 0,
-        "benchmark_pct": 0.5,
-        "alpha_pct": -0.5,
+        "benchmark_pct": -1.25,
         "drawdown_pct": 0
       },
       {
         "date": "09-07",
         "equity": 100000,
         "return_pct": 0,
-        "benchmark_pct": 0.6,
-        "alpha_pct": -0.6,
+        "benchmark_pct": -1.8,
         "drawdown_pct": 0
       },
       {
         "date": "09-08",
         "equity": 108148,
         "return_pct": 8.15,
-        "benchmark_pct": 1.1,
-        "alpha_pct": 7.05,
+        "benchmark_pct": -2.35,
         "drawdown_pct": 0
       },
       {
         "date": "09-09",
         "equity": 117324,
         "return_pct": 17.32,
-        "benchmark_pct": 1.35,
-        "alpha_pct": 15.97,
+        "benchmark_pct": -3.2,
         "drawdown_pct": 0
       },
       {
         "date": "09-10",
         "equity": 113145,
         "return_pct": 13.15,
-        "benchmark_pct": 1.2,
-        "alpha_pct": 11.95,
+        "benchmark_pct": -2.85,
         "drawdown_pct": -1.25
       },
       {
         "date": "09-11",
         "equity": 113145,
         "return_pct": 13.15,
-        "benchmark_pct": 0.85,
-        "alpha_pct": 12.3,
+        "benchmark_pct": -3.5,
         "drawdown_pct": -1.25
       },
       {
         "date": "09-14",
         "equity": 113145,
         "return_pct": 13.15,
-        "benchmark_pct": 0.9,
-        "alpha_pct": 12.25,
+        "benchmark_pct": -4.1,
         "drawdown_pct": -1.25
       },
       {
         "date": "09-15",
         "equity": 113145,
         "return_pct": 13.15,
-        "benchmark_pct": 0.95,
-        "alpha_pct": 12.2,
+        "benchmark_pct": -4.65,
         "drawdown_pct": -1.25
       },
       {
         "date": "09-16",
         "equity": 113125,
         "return_pct": 13.13,
-        "benchmark_pct": 1.25,
-        "alpha_pct": 11.88,
+        "benchmark_pct": -4.5,
         "drawdown_pct": -1.25
       },
       {
         "date": "09-17",
         "equity": 121285,
         "return_pct": 21.28,
-        "benchmark_pct": 1.4,
-        "alpha_pct": 19.88,
+        "benchmark_pct": -4.1,
         "drawdown_pct": 0
       },
       {
         "date": "09-18",
         "equity": 130285,
         "return_pct": 30.28,
-        "benchmark_pct": 1.65,
-        "alpha_pct": 28.63,
+        "benchmark_pct": -3.6,
         "drawdown_pct": 0
       },
       {
         "date": "09-21",
         "equity": 132565,
         "return_pct": 32.56,
-        "benchmark_pct": 1.55,
-        "alpha_pct": 31.01,
+        "benchmark_pct": -3.1,
         "drawdown_pct": 0
       },
       {
         "date": "09-22",
         "equity": 137223,
         "return_pct": 37.22,
-        "benchmark_pct": 1.8,
-        "alpha_pct": 35.42,
+        "benchmark_pct": -2.4,
         "drawdown_pct": 0
       },
       {
         "date": "09-23",
         "equity": 149383.1,
         "return_pct": 49.38,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 47.43,
+        "benchmark_pct": -1.65,
         "drawdown_pct": 0
       },
       {
         "date": "09-24",
         "equity": 148023.1,
         "return_pct": 48.02,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 46.07,
+        "benchmark_pct": 2.53,
         "drawdown_pct": -0.21
       }
     ],
@@ -198,8 +160,7 @@
         "low_pnl_pct": -0.4,
         "close_pnl_pct": -0.15,
         "equity": 99850,
-        "benchmark_pct": 0.1,
-        "alpha_pct": -0.25,
+        "benchmark_pct": 0,
         "events": []
       },
       {
@@ -209,8 +170,7 @@
         "low_pnl_pct": -0.2,
         "close_pnl_pct": 0.45,
         "equity": 100450,
-        "benchmark_pct": 0.3,
-        "alpha_pct": 0.15,
+        "benchmark_pct": -0.8,
         "events": []
       },
       {
@@ -220,8 +180,7 @@
         "low_pnl_pct": 0.3,
         "close_pnl_pct": 0.6,
         "equity": 100600,
-        "benchmark_pct": 0.4,
-        "alpha_pct": 0.2,
+        "benchmark_pct": -0.65,
         "events": []
       },
       {
@@ -231,8 +190,7 @@
         "low_pnl_pct": 0,
         "close_pnl_pct": 0,
         "equity": 100000,
-        "benchmark_pct": 0.5,
-        "alpha_pct": -0.5,
+        "benchmark_pct": -1.25,
         "events": []
       },
       {
@@ -242,8 +200,7 @@
         "low_pnl_pct": 0,
         "close_pnl_pct": 0,
         "equity": 100000,
-        "benchmark_pct": 0.6,
-        "alpha_pct": -0.6,
+        "benchmark_pct": -1.8,
         "events": [
           {
             "id": "ev-agg-1",
@@ -300,8 +257,7 @@
         "low_pnl_pct": 0,
         "close_pnl_pct": 8.15,
         "equity": 108148,
-        "benchmark_pct": 1.1,
-        "alpha_pct": 7.05,
+        "benchmark_pct": -2.35,
         "events": []
       },
       {
@@ -311,8 +267,7 @@
         "low_pnl_pct": 8.15,
         "close_pnl_pct": 17.32,
         "equity": 117324,
-        "benchmark_pct": 1.35,
-        "alpha_pct": 15.97,
+        "benchmark_pct": -3.2,
         "events": [
           {
             "id": "ev-agg-3",
@@ -345,8 +300,7 @@
         "low_pnl_pct": 12.8,
         "close_pnl_pct": 13.15,
         "equity": 113145,
-        "benchmark_pct": 1.2,
-        "alpha_pct": 11.95,
+        "benchmark_pct": -2.85,
         "events": [
           {
             "id": "ev-agg-4",
@@ -379,8 +333,7 @@
         "low_pnl_pct": 13.15,
         "close_pnl_pct": 13.15,
         "equity": 113145,
-        "benchmark_pct": 0.85,
-        "alpha_pct": 12.3,
+        "benchmark_pct": -3.5,
         "events": [
           {
             "id": "ev-agg-rest-1",
@@ -405,8 +358,7 @@
         "low_pnl_pct": 13.15,
         "close_pnl_pct": 13.15,
         "equity": 113145,
-        "benchmark_pct": 0.9,
-        "alpha_pct": 12.25,
+        "benchmark_pct": -4.1,
         "events": []
       },
       {
@@ -416,8 +368,7 @@
         "low_pnl_pct": 13.15,
         "close_pnl_pct": 13.15,
         "equity": 113145,
-        "benchmark_pct": 0.95,
-        "alpha_pct": 12.2,
+        "benchmark_pct": -4.65,
         "events": []
       },
       {
@@ -427,8 +378,7 @@
         "low_pnl_pct": 13.1,
         "close_pnl_pct": 13.13,
         "equity": 113125,
-        "benchmark_pct": 1.25,
-        "alpha_pct": 11.88,
+        "benchmark_pct": -4.5,
         "events": [
           {
             "id": "ev-agg-5",
@@ -462,8 +412,7 @@
         "low_pnl_pct": 13.13,
         "close_pnl_pct": 21.28,
         "equity": 121285,
-        "benchmark_pct": 1.4,
-        "alpha_pct": 19.88,
+        "benchmark_pct": -4.1,
         "events": []
       },
       {
@@ -473,8 +422,7 @@
         "low_pnl_pct": 21.28,
         "close_pnl_pct": 30.28,
         "equity": 130285,
-        "benchmark_pct": 1.65,
-        "alpha_pct": 28.63,
+        "benchmark_pct": -3.6,
         "events": []
       },
       {
@@ -484,8 +432,7 @@
         "low_pnl_pct": 30.28,
         "close_pnl_pct": 32.56,
         "equity": 132565,
-        "benchmark_pct": 1.55,
-        "alpha_pct": 31.01,
+        "benchmark_pct": -3.1,
         "events": []
       },
       {
@@ -495,8 +442,7 @@
         "low_pnl_pct": 32,
         "close_pnl_pct": 37.22,
         "equity": 137223,
-        "benchmark_pct": 1.8,
-        "alpha_pct": 35.42,
+        "benchmark_pct": -2.4,
         "events": [
           {
             "id": "ev-agg-6",
@@ -552,9 +498,23 @@
         "low_pnl_pct": 36.8,
         "close_pnl_pct": 49.38,
         "equity": 149383.1,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 47.43,
-        "events": []
+        "benchmark_pct": -1.65,
+        "events": [
+          {
+            "id": "ev-agg-hold-23",
+            "date": "09-23",
+            "time": "09:32",
+            "type": "HOLD",
+            "stock_code": "000158",
+            "stock_name": "常山北明",
+            "price": 11.55,
+            "shares": 8000,
+            "amount": 92400,
+            "pnl_pct": 10,
+            "pnl_amount": 8400,
+            "reason": "【强势就留】华为概念高标总龙头，集合竞价超预期高开秒板封死涨停，量能充沛，符合【强势就留】纪律，持股坐轿享受主升浪！"
+          }
+        ]
       },
       {
         "date": "09-24",
@@ -563,19 +523,82 @@
         "low_pnl_pct": 48.02,
         "close_pnl_pct": 48.02,
         "equity": 148023.1,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 46.07,
-        "events": []
+        "benchmark_pct": 2.53,
+        "events": [
+          {
+            "id": "ev-agg-8",
+            "date": "09-24",
+            "time": "14:15",
+            "type": "SELL",
+            "stock_code": "000158",
+            "stock_name": "常山北明",
+            "price": 12.55,
+            "shares": 8000,
+            "amount": 100400,
+            "pnl_pct": 19.52,
+            "pnl_amount": 16400,
+            "reason": "【走弱就卖】尾盘封单减小开板，冲高回落跌破分时均线走弱，严格执行超短【走弱就卖】纪律，果断清仓止盈离场，锁定收益+¥16,400 (+19.52%)，绝不死扛，进入空仓防守",
+            "entry_price": 10.5,
+            "entry_time": "09-22 10:15",
+            "entry_reason": "断板弱转强反包板撮合",
+            "exit_reason": "冲高回落跌破分时线走弱，果断平仓锁定大肉",
+            "position_before_pct": 67.8,
+            "position_after_pct": 0,
+            "strategy_win_rate": 85.7,
+            "selection_win_rate": 85.7
+          }
+        ]
       }
     ],
-    "orders": [],
+    "orders": [
+      {
+        "id": "ord-agg-8",
+        "date": "09-24",
+        "signal_time": "2026-09-24T14:15:00.000Z",
+        "execution_time": "2026-09-24T14:15:20.000Z",
+        "stock_code": "000158",
+        "stock_name": "常山北明",
+        "strategy": "aggressive",
+        "action": "SELL",
+        "price": 12.55,
+        "shares": 8000,
+        "amount": 100400,
+        "commission": 25.1,
+        "stamp_tax": 50.2,
+        "slippage": 20.08,
+        "total_cost": 95.38,
+        "score": 95,
+        "reason": "【走弱就卖】尾盘封单减小开板，冲高回落跌破分时均线走弱，果断止盈离场，锁定收益+¥16,400",
+        "pnl": 16400,
+        "execution_status": "FILLED"
+      },
+      {
+        "id": "ord-agg-7",
+        "date": "09-22",
+        "signal_time": "2026-09-22T10:15:00.000Z",
+        "execution_time": "2026-09-22T10:15:20.000Z",
+        "stock_code": "000158",
+        "stock_name": "常山北明",
+        "strategy": "aggressive",
+        "action": "BUY",
+        "price": 10.5,
+        "shares": 8000,
+        "amount": 84000,
+        "commission": 21,
+        "stamp_tax": 0,
+        "slippage": 16.8,
+        "total_cost": 37.8,
+        "score": 98,
+        "reason": "华为鸿蒙高标龙头弱转强反包板建仓",
+        "execution_status": "FILLED"
+      }
+    ],
     "attribution": {
       "stock_selection_pct": 0.72,
       "industry_allocation_pct": 0.18,
       "timing_pct": 0.06,
       "position_sizing_pct": 0.02,
-      "market_beta_pct": 0.02,
-      "alpha_pct": 0.9
+      "market_beta_pct": 0.02
     },
     "risk_metrics": {
       "volatility_pct": 12.5,
@@ -676,144 +699,126 @@
         "date": "09-01",
         "equity": 100200,
         "return_pct": 0.2,
-        "benchmark_pct": 0.1,
-        "alpha_pct": 0.1,
+        "benchmark_pct": 0,
         "drawdown_pct": 0
       },
       {
         "date": "09-02",
         "equity": 100550,
         "return_pct": 0.55,
-        "benchmark_pct": 0.3,
-        "alpha_pct": 0.25,
+        "benchmark_pct": -0.8,
         "drawdown_pct": 0
       },
       {
         "date": "09-03",
         "equity": 100400,
         "return_pct": 0.4,
-        "benchmark_pct": 0.4,
-        "alpha_pct": 0,
+        "benchmark_pct": -0.65,
         "drawdown_pct": -0.15
       },
       {
         "date": "09-04",
         "equity": 100850,
         "return_pct": 0.85,
-        "benchmark_pct": 0.5,
-        "alpha_pct": 0.35,
+        "benchmark_pct": -1.25,
         "drawdown_pct": 0
       },
       {
         "date": "09-07",
         "equity": 100000,
         "return_pct": 0,
-        "benchmark_pct": 0.6,
-        "alpha_pct": -0.6,
+        "benchmark_pct": -1.8,
         "drawdown_pct": 0
       },
       {
         "date": "09-08",
         "equity": 104200,
         "return_pct": 4.2,
-        "benchmark_pct": 1.1,
-        "alpha_pct": 3.1,
+        "benchmark_pct": -2.35,
         "drawdown_pct": 0
       },
       {
         "date": "09-09",
         "equity": 106500,
         "return_pct": 6.5,
-        "benchmark_pct": 1.35,
-        "alpha_pct": 5.15,
+        "benchmark_pct": -3.2,
         "drawdown_pct": 0
       },
       {
         "date": "09-10",
         "equity": 105800,
         "return_pct": 5.8,
-        "benchmark_pct": 1.2,
-        "alpha_pct": 4.6,
+        "benchmark_pct": -2.85,
         "drawdown_pct": -0.7
       },
       {
         "date": "09-11",
         "equity": 106200,
         "return_pct": 6.2,
-        "benchmark_pct": 0.85,
-        "alpha_pct": 5.35,
+        "benchmark_pct": -3.5,
         "drawdown_pct": -0.3
       },
       {
         "date": "09-14",
         "equity": 107500,
         "return_pct": 7.5,
-        "benchmark_pct": 0.9,
-        "alpha_pct": 6.6,
+        "benchmark_pct": -4.1,
         "drawdown_pct": 0
       },
       {
         "date": "09-15",
         "equity": 108400,
         "return_pct": 8.4,
-        "benchmark_pct": 0.95,
-        "alpha_pct": 7.45,
+        "benchmark_pct": -4.65,
         "drawdown_pct": 0
       },
       {
         "date": "09-16",
         "equity": 110200,
         "return_pct": 10.2,
-        "benchmark_pct": 1.25,
-        "alpha_pct": 8.95,
+        "benchmark_pct": -4.5,
         "drawdown_pct": 0
       },
       {
         "date": "09-17",
         "equity": 111800,
         "return_pct": 11.8,
-        "benchmark_pct": 1.4,
-        "alpha_pct": 10.4,
+        "benchmark_pct": -4.1,
         "drawdown_pct": 0
       },
       {
         "date": "09-18",
         "equity": 113200,
         "return_pct": 13.2,
-        "benchmark_pct": 1.65,
-        "alpha_pct": 11.55,
+        "benchmark_pct": -3.6,
         "drawdown_pct": 0
       },
       {
         "date": "09-21",
         "equity": 112900,
         "return_pct": 12.9,
-        "benchmark_pct": 1.55,
-        "alpha_pct": 11.35,
+        "benchmark_pct": -3.1,
         "drawdown_pct": -0.3
       },
       {
         "date": "09-22",
         "equity": 114150,
         "return_pct": 14.15,
-        "benchmark_pct": 1.8,
-        "alpha_pct": 12.35,
+        "benchmark_pct": -2.4,
         "drawdown_pct": 0
       },
       {
         "date": "09-23",
         "equity": 114600,
         "return_pct": 14.6,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 12.65,
+        "benchmark_pct": -1.65,
         "drawdown_pct": 0
       },
       {
         "date": "09-24",
         "equity": 115513,
         "return_pct": 15.51,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 13.56,
+        "benchmark_pct": 2.53,
         "drawdown_pct": 0
       }
     ],
@@ -825,8 +830,7 @@
         "low_pnl_pct": 0,
         "close_pnl_pct": 0.2,
         "equity": 100200,
-        "benchmark_pct": 0.1,
-        "alpha_pct": 0.1,
+        "benchmark_pct": 0,
         "events": []
       },
       {
@@ -836,8 +840,7 @@
         "low_pnl_pct": 0.15,
         "close_pnl_pct": 0.55,
         "equity": 100550,
-        "benchmark_pct": 0.3,
-        "alpha_pct": 0.25,
+        "benchmark_pct": -0.8,
         "events": []
       },
       {
@@ -847,8 +850,7 @@
         "low_pnl_pct": 0.3,
         "close_pnl_pct": 0.4,
         "equity": 100400,
-        "benchmark_pct": 0.4,
-        "alpha_pct": 0,
+        "benchmark_pct": -0.65,
         "events": []
       },
       {
@@ -858,8 +860,7 @@
         "low_pnl_pct": 0.35,
         "close_pnl_pct": 0.85,
         "equity": 100850,
-        "benchmark_pct": 0.5,
-        "alpha_pct": 0.35,
+        "benchmark_pct": -1.25,
         "events": []
       },
       {
@@ -869,8 +870,7 @@
         "low_pnl_pct": 0,
         "close_pnl_pct": 0,
         "equity": 100000,
-        "benchmark_pct": 0.6,
-        "alpha_pct": -0.6,
+        "benchmark_pct": -1.8,
         "events": [
           {
             "id": "ev-bal-1",
@@ -897,8 +897,7 @@
         "low_pnl_pct": 0,
         "close_pnl_pct": 4.2,
         "equity": 104200,
-        "benchmark_pct": 1.1,
-        "alpha_pct": 3.1,
+        "benchmark_pct": -2.35,
         "events": []
       },
       {
@@ -908,8 +907,7 @@
         "low_pnl_pct": 4.2,
         "close_pnl_pct": 6.5,
         "equity": 106500,
-        "benchmark_pct": 1.35,
-        "alpha_pct": 5.15,
+        "benchmark_pct": -3.2,
         "events": []
       },
       {
@@ -919,8 +917,7 @@
         "low_pnl_pct": 5.5,
         "close_pnl_pct": 5.8,
         "equity": 105800,
-        "benchmark_pct": 1.2,
-        "alpha_pct": 4.6,
+        "benchmark_pct": -2.85,
         "events": []
       },
       {
@@ -930,8 +927,7 @@
         "low_pnl_pct": 5.6,
         "close_pnl_pct": 6.2,
         "equity": 106200,
-        "benchmark_pct": 0.85,
-        "alpha_pct": 5.35,
+        "benchmark_pct": -3.5,
         "events": []
       },
       {
@@ -941,8 +937,7 @@
         "low_pnl_pct": 6.1,
         "close_pnl_pct": 7.5,
         "equity": 107500,
-        "benchmark_pct": 0.9,
-        "alpha_pct": 6.6,
+        "benchmark_pct": -4.1,
         "events": []
       },
       {
@@ -952,8 +947,7 @@
         "low_pnl_pct": 7.4,
         "close_pnl_pct": 8.4,
         "equity": 108400,
-        "benchmark_pct": 0.95,
-        "alpha_pct": 7.45,
+        "benchmark_pct": -4.65,
         "events": []
       },
       {
@@ -963,8 +957,7 @@
         "low_pnl_pct": 8.3,
         "close_pnl_pct": 10.2,
         "equity": 110200,
-        "benchmark_pct": 1.25,
-        "alpha_pct": 8.95,
+        "benchmark_pct": -4.5,
         "events": []
       },
       {
@@ -974,8 +967,7 @@
         "low_pnl_pct": 10.1,
         "close_pnl_pct": 11.8,
         "equity": 111800,
-        "benchmark_pct": 1.4,
-        "alpha_pct": 10.4,
+        "benchmark_pct": -4.1,
         "events": []
       },
       {
@@ -985,8 +977,7 @@
         "low_pnl_pct": 11.6,
         "close_pnl_pct": 13.2,
         "equity": 113200,
-        "benchmark_pct": 1.65,
-        "alpha_pct": 11.55,
+        "benchmark_pct": -3.6,
         "events": []
       },
       {
@@ -996,8 +987,7 @@
         "low_pnl_pct": 12.6,
         "close_pnl_pct": 12.9,
         "equity": 112900,
-        "benchmark_pct": 1.55,
-        "alpha_pct": 11.35,
+        "benchmark_pct": -3.1,
         "events": []
       },
       {
@@ -1007,8 +997,7 @@
         "low_pnl_pct": 12.8,
         "close_pnl_pct": 14.15,
         "equity": 114150,
-        "benchmark_pct": 1.8,
-        "alpha_pct": 12.35,
+        "benchmark_pct": -2.4,
         "events": []
       },
       {
@@ -1018,8 +1007,7 @@
         "low_pnl_pct": 14,
         "close_pnl_pct": 14.6,
         "equity": 114600,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 12.65,
+        "benchmark_pct": -1.65,
         "events": []
       },
       {
@@ -1029,8 +1017,7 @@
         "low_pnl_pct": 14.6,
         "close_pnl_pct": 15.51,
         "equity": 115513,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 13.56,
+        "benchmark_pct": 2.53,
         "events": []
       }
     ],
@@ -1040,8 +1027,7 @@
       "industry_allocation_pct": 0.32,
       "timing_pct": 0.08,
       "position_sizing_pct": 0.04,
-      "market_beta_pct": 0.04,
-      "alpha_pct": 0.58
+      "market_beta_pct": 0.04
     },
     "risk_metrics": {
       "volatility_pct": 6.8,
@@ -1142,144 +1128,126 @@
         "date": "09-01",
         "equity": 100100,
         "return_pct": 0.1,
-        "benchmark_pct": 0.1,
-        "alpha_pct": 0,
+        "benchmark_pct": 0,
         "drawdown_pct": 0
       },
       {
         "date": "09-02",
         "equity": 100250,
         "return_pct": 0.25,
-        "benchmark_pct": 0.3,
-        "alpha_pct": -0.05,
+        "benchmark_pct": -0.8,
         "drawdown_pct": 0
       },
       {
         "date": "09-03",
         "equity": 100350,
         "return_pct": 0.35,
-        "benchmark_pct": 0.4,
-        "alpha_pct": -0.05,
+        "benchmark_pct": -0.65,
         "drawdown_pct": 0
       },
       {
         "date": "09-04",
         "equity": 100450,
         "return_pct": 0.45,
-        "benchmark_pct": 0.5,
-        "alpha_pct": -0.05,
+        "benchmark_pct": -1.25,
         "drawdown_pct": 0
       },
       {
         "date": "09-07",
         "equity": 100000,
         "return_pct": 0,
-        "benchmark_pct": 0.6,
-        "alpha_pct": -0.6,
+        "benchmark_pct": -1.8,
         "drawdown_pct": 0
       },
       {
         "date": "09-08",
         "equity": 100850,
         "return_pct": 0.85,
-        "benchmark_pct": 1.1,
-        "alpha_pct": -0.25,
+        "benchmark_pct": -2.35,
         "drawdown_pct": 0
       },
       {
         "date": "09-09",
         "equity": 100924,
         "return_pct": 0.92,
-        "benchmark_pct": 1.35,
-        "alpha_pct": -0.43,
+        "benchmark_pct": -3.2,
         "drawdown_pct": 0
       },
       {
         "date": "09-10",
         "equity": 101200,
         "return_pct": 1.2,
-        "benchmark_pct": 1.2,
-        "alpha_pct": 0,
+        "benchmark_pct": -2.85,
         "drawdown_pct": 0
       },
       {
         "date": "09-11",
         "equity": 101450,
         "return_pct": 1.45,
-        "benchmark_pct": 0.85,
-        "alpha_pct": 0.6,
+        "benchmark_pct": -3.5,
         "drawdown_pct": 0
       },
       {
         "date": "09-14",
         "equity": 101800,
         "return_pct": 1.8,
-        "benchmark_pct": 0.9,
-        "alpha_pct": 0.9,
+        "benchmark_pct": -4.1,
         "drawdown_pct": 0
       },
       {
         "date": "09-15",
         "equity": 102100,
         "return_pct": 2.1,
-        "benchmark_pct": 0.95,
-        "alpha_pct": 1.15,
+        "benchmark_pct": -4.65,
         "drawdown_pct": 0
       },
       {
         "date": "09-16",
         "equity": 102450,
         "return_pct": 2.45,
-        "benchmark_pct": 1.25,
-        "alpha_pct": 1.2,
+        "benchmark_pct": -4.5,
         "drawdown_pct": 0
       },
       {
         "date": "09-17",
         "equity": 102700,
         "return_pct": 2.7,
-        "benchmark_pct": 1.4,
-        "alpha_pct": 1.3,
+        "benchmark_pct": -4.1,
         "drawdown_pct": 0
       },
       {
         "date": "09-18",
         "equity": 102950,
         "return_pct": 2.95,
-        "benchmark_pct": 1.65,
-        "alpha_pct": 1.3,
+        "benchmark_pct": -3.6,
         "drawdown_pct": 0
       },
       {
         "date": "09-21",
         "equity": 103050,
         "return_pct": 3.05,
-        "benchmark_pct": 1.55,
-        "alpha_pct": 1.5,
+        "benchmark_pct": -3.1,
         "drawdown_pct": 0
       },
       {
         "date": "09-22",
         "equity": 103200,
         "return_pct": 3.2,
-        "benchmark_pct": 1.8,
-        "alpha_pct": 1.4,
+        "benchmark_pct": -2.4,
         "drawdown_pct": 0
       },
       {
         "date": "09-23",
         "equity": 103320,
         "return_pct": 3.32,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 1.37,
+        "benchmark_pct": -1.65,
         "drawdown_pct": 0
       },
       {
         "date": "09-24",
         "equity": 106508,
         "return_pct": 6.51,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 4.56,
+        "benchmark_pct": 2.53,
         "drawdown_pct": 0
       }
     ],
@@ -1291,8 +1259,7 @@
         "low_pnl_pct": -0.05,
         "close_pnl_pct": 0.1,
         "equity": 100100,
-        "benchmark_pct": 0.1,
-        "alpha_pct": 0,
+        "benchmark_pct": 0,
         "events": []
       },
       {
@@ -1302,8 +1269,7 @@
         "low_pnl_pct": 0.05,
         "close_pnl_pct": 0.25,
         "equity": 100250,
-        "benchmark_pct": 0.3,
-        "alpha_pct": -0.05,
+        "benchmark_pct": -0.8,
         "events": []
       },
       {
@@ -1313,8 +1279,7 @@
         "low_pnl_pct": 0.2,
         "close_pnl_pct": 0.35,
         "equity": 100350,
-        "benchmark_pct": 0.4,
-        "alpha_pct": -0.05,
+        "benchmark_pct": -0.65,
         "events": []
       },
       {
@@ -1324,8 +1289,7 @@
         "low_pnl_pct": 0.3,
         "close_pnl_pct": 0.45,
         "equity": 100450,
-        "benchmark_pct": 0.5,
-        "alpha_pct": -0.05,
+        "benchmark_pct": -1.25,
         "events": []
       },
       {
@@ -1335,8 +1299,7 @@
         "low_pnl_pct": 0,
         "close_pnl_pct": 0,
         "equity": 100000,
-        "benchmark_pct": 0.6,
-        "alpha_pct": -0.6,
+        "benchmark_pct": -1.8,
         "events": [
           {
             "id": "ev-con-1",
@@ -1363,8 +1326,7 @@
         "low_pnl_pct": 0,
         "close_pnl_pct": 0.85,
         "equity": 100850,
-        "benchmark_pct": 1.1,
-        "alpha_pct": -0.25,
+        "benchmark_pct": -2.35,
         "events": []
       },
       {
@@ -1374,8 +1336,7 @@
         "low_pnl_pct": 0.8,
         "close_pnl_pct": 0.92,
         "equity": 100924,
-        "benchmark_pct": 1.35,
-        "alpha_pct": -0.43,
+        "benchmark_pct": -3.2,
         "events": []
       },
       {
@@ -1385,8 +1346,7 @@
         "low_pnl_pct": 0.9,
         "close_pnl_pct": 1.2,
         "equity": 101200,
-        "benchmark_pct": 1.2,
-        "alpha_pct": 0,
+        "benchmark_pct": -2.85,
         "events": []
       },
       {
@@ -1396,8 +1356,7 @@
         "low_pnl_pct": 1.15,
         "close_pnl_pct": 1.45,
         "equity": 101450,
-        "benchmark_pct": 0.85,
-        "alpha_pct": 0.6,
+        "benchmark_pct": -3.5,
         "events": []
       },
       {
@@ -1407,8 +1366,7 @@
         "low_pnl_pct": 1.4,
         "close_pnl_pct": 1.8,
         "equity": 101800,
-        "benchmark_pct": 0.9,
-        "alpha_pct": 0.9,
+        "benchmark_pct": -4.1,
         "events": []
       },
       {
@@ -1418,8 +1376,7 @@
         "low_pnl_pct": 1.75,
         "close_pnl_pct": 2.1,
         "equity": 102100,
-        "benchmark_pct": 0.95,
-        "alpha_pct": 1.15,
+        "benchmark_pct": -4.65,
         "events": []
       },
       {
@@ -1429,8 +1386,7 @@
         "low_pnl_pct": 2.05,
         "close_pnl_pct": 2.45,
         "equity": 102450,
-        "benchmark_pct": 1.25,
-        "alpha_pct": 1.2,
+        "benchmark_pct": -4.5,
         "events": []
       },
       {
@@ -1440,8 +1396,7 @@
         "low_pnl_pct": 2.4,
         "close_pnl_pct": 2.7,
         "equity": 102700,
-        "benchmark_pct": 1.4,
-        "alpha_pct": 1.3,
+        "benchmark_pct": -4.1,
         "events": []
       },
       {
@@ -1451,8 +1406,7 @@
         "low_pnl_pct": 2.65,
         "close_pnl_pct": 2.95,
         "equity": 102950,
-        "benchmark_pct": 1.65,
-        "alpha_pct": 1.3,
+        "benchmark_pct": -3.6,
         "events": []
       },
       {
@@ -1462,8 +1416,7 @@
         "low_pnl_pct": 2.9,
         "close_pnl_pct": 3.05,
         "equity": 103050,
-        "benchmark_pct": 1.55,
-        "alpha_pct": 1.5,
+        "benchmark_pct": -3.1,
         "events": []
       },
       {
@@ -1473,8 +1426,7 @@
         "low_pnl_pct": 3,
         "close_pnl_pct": 3.2,
         "equity": 103200,
-        "benchmark_pct": 1.8,
-        "alpha_pct": 1.4,
+        "benchmark_pct": -2.4,
         "events": []
       },
       {
@@ -1484,8 +1436,7 @@
         "low_pnl_pct": 3.15,
         "close_pnl_pct": 3.32,
         "equity": 103320,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 1.37,
+        "benchmark_pct": -1.65,
         "events": []
       },
       {
@@ -1495,8 +1446,7 @@
         "low_pnl_pct": 3.32,
         "close_pnl_pct": 6.51,
         "equity": 106508,
-        "benchmark_pct": 1.95,
-        "alpha_pct": 4.56,
+        "benchmark_pct": 2.53,
         "events": []
       }
     ],
@@ -1506,8 +1456,7 @@
       "industry_allocation_pct": 0.25,
       "timing_pct": 0.1,
       "position_sizing_pct": 0.05,
-      "market_beta_pct": 0.1,
-      "alpha_pct": 0.45
+      "market_beta_pct": 0.1
     },
     "risk_metrics": {
       "volatility_pct": 3.8,

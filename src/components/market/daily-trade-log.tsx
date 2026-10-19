@@ -25,7 +25,6 @@ export function DailyTradeLog({ account, benchmarkPct }: DailyTradeLogProps) {
     : account.today_pnl_pct;
 
   const benchPct = benchmarkPct ?? latestCandle?.benchmark_pct ?? 0;
-  const alphaPct = parseFloat((dailyAcctChangePct - benchPct).toFixed(2));
 
   // 当日买卖事件
   const todayEvents: TradeEvent[] = latestCandle?.events ?? [];
@@ -37,7 +36,6 @@ export function DailyTradeLog({ account, benchmarkPct }: DailyTradeLogProps) {
 
   const isAcctUp = dailyAcctChangePct >= 0;
   const isBenchUp = benchPct >= 0;
-  const isAlphaUp = alphaPct >= 0;
 
   return (
     <div className="rounded-2xl bg-[#091322]/90 border border-cyan-500/20 overflow-hidden">
@@ -52,33 +50,33 @@ export function DailyTradeLog({ account, benchmarkPct }: DailyTradeLogProps) {
             {todayDate}
           </span>
         </div>
-        {/* 三路收益对比 */}
+        {/* 收益与大盘对比 (彻底去除学术Alpha) */}
         <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono">
           <span className={`flex items-center gap-0.5 font-bold ${isAcctUp ? "text-rose-400" : "text-emerald-400"}`}>
             {isAcctUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            账户 {fmt(dailyAcctChangePct)}
+            当日收益 {fmt(dailyAcctChangePct)}
           </span>
           <span className="text-slate-600">|</span>
-          <span className={`${isBenchUp ? "text-rose-300/70" : "text-emerald-300/70"}`}>
+          <span className={`${isBenchUp ? "text-rose-300/80" : "text-emerald-300/80"}`}>
             沪深300 {fmt(benchPct)}
           </span>
           <span className="text-slate-600">|</span>
-          <span className={`${isAlphaUp ? "text-cyan-400" : "text-amber-400"}`}>
-            Alpha {fmt(alphaPct)}
+          <span className="text-cyan-300 font-bold">
+            总资产 ¥{fmtMoney(account.total_equity)}
           </span>
         </div>
       </div>
 
-      {/* 移动端三路收益 */}
+      {/* 移动端两路收益 */}
       <div className="sm:hidden flex items-center justify-around px-4 py-2 border-b border-cyan-900/30 text-[11px] font-mono">
         <span className={`font-bold ${isAcctUp ? "text-rose-400" : "text-emerald-400"}`}>
-          账户 {fmt(dailyAcctChangePct)}
+          当日 {fmt(dailyAcctChangePct)}
         </span>
-        <span className={isBenchUp ? "text-rose-300/70" : "text-emerald-300/70"}>
-          300 {fmt(benchPct)}
+        <span className={isBenchUp ? "text-rose-300/80" : "text-emerald-300/80"}>
+          沪深300 {fmt(benchPct)}
         </span>
-        <span className={isAlphaUp ? "text-cyan-400" : "text-amber-400"}>
-          α {fmt(alphaPct)}
+        <span className="text-cyan-300 font-bold">
+          总资产 ¥{Math.round(account.total_equity / 1000)}k
         </span>
       </div>
 
