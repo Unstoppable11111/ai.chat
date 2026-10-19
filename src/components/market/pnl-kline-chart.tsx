@@ -36,11 +36,6 @@ export function PnlKlineChart({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
 
-  // 视图模式：'single_k' (经典日K与操作明细) | 'all_pk' (三大策略同图PK)
-  const [viewMode, setViewMode] = useState<"single_k" | "all_pk">("single_k");
-  // 指标模式：'nav' (净值收益率) | 'drawdown' (回撤曲线)
-  const [metricMode] = useState<"nav" | "drawdown">("nav");
-
   // 解析当前选中账户 (兼容 id 与 account_id)
   const currentAccount =
     account ||
@@ -50,11 +45,6 @@ export function PnlKlineChart({
   const currentStrategyKey: string =
     currentAccount?.id || currentAccount?.account_id || activeAccountId || "aggressive";
 
-  // 解析多账户
-  const aggAcc = accounts.find((a) => (a.account_id || a.id) === "aggressive") || currentAccount;
-  const balAcc = accounts.find((a) => (a.account_id || a.id) === "balanced");
-  const conAcc = accounts.find((a) => (a.account_id || a.id) === "conservative");
-
   // 获取当前账户的日K蜡烛数据 (多重安全保底，确保绝不为空)
   const resolveCandles = (acc: ChartAccount | undefined, key: string): DailyPnlCandle[] => {
     if (acc?.candles && acc.candles.length > 0) return acc.candles;
@@ -63,15 +53,12 @@ export function PnlKlineChart({
   };
 
   const currentCandles = resolveCandles(currentAccount, currentStrategyKey);
-  const aggCandles = resolveCandles(aggAcc, "aggressive");
-  const balCandles = resolveCandles(balAcc, "balanced");
-  const conCandles = resolveCandles(conAcc, "conservative");
 
   if (!currentCandles.length) return <p className="border-y border-cyan-900/40 py-12 text-center text-sm text-slate-300">暂无收益历史，完成模拟交易后开始积累。</p>;
 
   const dates = currentCandles.map((c) => c.date);
 
-  // 默认显示选中日或悬浮日，最后一天作为默认
+  // 默认选中最新一天（如果没有手动锁定选中）
   const activeIdx =
     selectedIndex !== null
       ? selectedIndex
@@ -118,7 +105,7 @@ export function PnlKlineChart({
     yTicks.push(Number(val.toFixed(1)));
   }
 
-  // 单账户折线路径
+  // 单账户日K收盘折线与沪深300基准折线路径
   const closeLinePath = currentCandles
     .map((d, i) => `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(d.close_pnl_pct)}`)
     .join(" ");
@@ -126,27 +113,6 @@ export function PnlKlineChart({
   const benchmarkLinePath = currentCandles
     .map((d, i) => `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(d.benchmark_pct)}`)
     .join(" ");
-
-  // 多账户PK折线路径
-  const getValuesForPk = (candlesList: DailyPnlCandle[]) => {
-    return candlesList.map((c) => {
-      if (metricMode === "drawdown") return -Math.abs(c.low_pnl_pct < 0 ? c.low_pnl_pct : 0);
-      return c.close_pnl_pct;
-    });
-  };
-
-  const aggPkValues = getValuesForPk(aggCandles);
-  const balPkValues = getValuesForPk(balCandles);
-  const conPkValues = getValuesForPk(conCandles);
-
-  const buildLinePath = (values: number[]) => {
-    if (!values || values.length === 0) return "";
-    return values.map((val, i) => `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(val)}`).join(" ");
-  };
-
-  const aggPath = buildLinePath(aggPkValues);
-  const balPath = buildLinePath(balPkValues);
-  const conPath = buildLinePath(conPkValues);
 
   return (
     <div className="space-y-4">
@@ -179,28 +145,9 @@ export function PnlKlineChart({
           })}
         </div>
 
-        {/* 视图模式切换 */}
-        <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-mono shrink-0">
-          <button
-            onClick={() => setViewMode("single_k")}
-            className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-              viewMode === "single_k"
-                ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            📊 每日K线与操作
-          </button>
-          <button
-            onClick={() => setViewMode("all_pk")}
-            className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-              viewMode === "all_pk"
-                ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-sm"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            🏁 三策略同图PK
-          </button>
+        {/* 提示信息 */}
+        <div className="flex items-center gap-2 text-xs font-mono text-cyan-300/80 bg-black/40 px-3 py-1.5 rounded-xl border border-white/10 shrink-0">
+          <span>💡 悬浮看当日收益与盈亏金额 · 点击看调仓明细</span>
         </div>
       </div>
 
@@ -213,86 +160,48 @@ export function PnlKlineChart({
             </span>
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                {viewMode === "single_k" ? (
-                  <>
-                    <span>
-                      {currentStrategyKey === "aggressive"
-                        ? "激进主升浪策略"
-                        : currentStrategyKey === "balanced"
-                        ? "均衡价值成长策略"
-                        : "稳健低波红利策略"}
-                    </span>
-                    <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
-                      日K实体 · 买卖事件打标 · 悬浮交互
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span>三策略同图竞赛曲线 (多策略横向对决)</span>
-                    <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
-                      严格同起点(10万) · 同环境横向对决
-                    </span>
-                  </>
-                )}
+                <span>
+                  {currentStrategyKey === "aggressive"
+                    ? "🚀 激进主升浪策略"
+                    : currentStrategyKey === "balanced"
+                    ? "⚖️ 均衡价值成长策略"
+                    : "🛡️ 稳健低波红利策略"}
+                </span>
+                <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
+                  日K收益实体 · 调仓买卖标记 · 对比沪深300
+                </span>
               </h3>
             </div>
           </div>
 
           {/* 图例 */}
           <div className="flex items-center flex-wrap gap-3 text-xs font-mono">
-            {viewMode === "single_k" ? (
-              <>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-xs bg-rose-500" />
-                  <span className="text-slate-300">阳线上涨</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-xs bg-emerald-500" />
-                  <span className="text-slate-300">阴线下跌</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-1 bg-cyan-400 rounded-full" />
-                  <span className="text-cyan-300">收盘净值</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
-                  <span className="text-amber-300">沪深300基准</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-slate-500 border-dashed border-t border-slate-500" />
-                  <span className="text-slate-400">0% 盈亏线</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                  <span className="text-slate-300">🔴买入</span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 ml-1" />
-                  <span className="text-slate-300">🔵卖出</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-1 bg-rose-500 rounded-full" />
-                  <span className="text-rose-400 font-bold">激进超短 ({aggAcc?.total_pnl_pct != null ? (aggAcc.total_pnl_pct >= 0 ? `+${aggAcc.total_pnl_pct.toFixed(2)}%` : `${aggAcc.total_pnl_pct.toFixed(2)}%`) : "+37.22%"})</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-1 bg-cyan-400 rounded-full" />
-                  <span className="text-cyan-300 font-bold">均衡GARP ({balAcc?.total_pnl_pct != null ? (balAcc.total_pnl_pct >= 0 ? `+${balAcc.total_pnl_pct.toFixed(2)}%` : `${balAcc.total_pnl_pct.toFixed(2)}%`) : "+14.60%"})</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-1 bg-emerald-400 rounded-full" />
-                  <span className="text-emerald-300 font-bold">保守红利 ({conAcc?.total_pnl_pct != null ? (conAcc.total_pnl_pct >= 0 ? `+${conAcc.total_pnl_pct.toFixed(2)}%` : `${conAcc.total_pnl_pct.toFixed(2)}%`) : "+3.32%"})</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
-                  <span className="text-amber-300">沪深300基准</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-slate-500 border-dashed border-t border-slate-500" />
-                  <span className="text-slate-400">0% 盈亏线</span>
-                </div>
-              </>
-            )}
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-xs bg-rose-500" />
+              <span className="text-slate-300">阳线上涨</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-xs bg-emerald-500" />
+              <span className="text-slate-300">阴线下跌</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-1 bg-cyan-400 rounded-full" />
+              <span className="text-cyan-300">收盘净值</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 bg-amber-400 border-dashed border-t border-amber-400" />
+              <span className="text-amber-300">沪深300基准</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 bg-slate-500 border-dashed border-t border-slate-500" />
+              <span className="text-slate-400">0% 盈亏线</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+              <span className="text-slate-300">🔴买入</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 ml-1" />
+              <span className="text-slate-300">🔵卖出</span>
+            </div>
           </div>
         </div>
 
@@ -362,10 +271,8 @@ export function PnlKlineChart({
               />
             )}
 
-            {viewMode === "single_k" ? (
-              <>
-                {/* 策略净值收盘线 */}
-                {dates.length > 1 && (
+            {/* 策略净值收盘线 */}
+            {dates.length > 1 && (
                   <path
                     d={closeLinePath}
                     fill="none"
@@ -523,145 +430,126 @@ export function PnlKlineChart({
                         onMouseLeave={() => setHoveredIndex(null)}
                       />
 
-                      {/* 悬浮 Popover Tooltip：展示当天的当日收益率与具体金额 (遵循国内股民看盘习惯) */}
-                      {isHovered && (() => {
-                        const prevCandle = idx > 0 ? currentCandles[idx - 1] : null;
-                        const dayPnlPct = prevCandle
-                          ? parseFloat((d.close_pnl_pct - prevCandle.close_pnl_pct).toFixed(2))
-                          : d.close_pnl_pct;
-                        const dayPnlAmount = prevCandle
-                          ? Math.round(d.equity - prevCandle.equity)
-                          : Math.round(d.equity - 100000);
-                        const isDayUp = dayPnlPct >= 0;
-
-                        return (
-                          <g
-                            transform={`translate(${
-                              x > width - 230 ? x - 215 : x + 15
-                            }, ${Math.max(padding.top + 5, yHigh - 45)})`}
-                            className="pointer-events-none"
-                          >
-                            <rect
-                              width="210"
-                              height={d.events && d.events.length > 0 ? 82 + d.events.length * 18 : 88}
-                              fill="rgba(9, 19, 36, 0.96)"
-                              stroke="#06b6d4"
-                              strokeWidth="1.2"
-                              rx="10"
-                              filter="drop-shadow(0 6px 16px rgba(0,0,0,0.6))"
-                            />
-                            {/* 标题：日期与当日收益率 */}
-                            <text
-                              x="12"
-                              y="18"
-                              fill="#ffffff"
-                              fontSize="11"
-                              fontWeight="bold"
-                              fontFamily="monospace"
-                            >
-                              📅 {d.date}  当日: <tspan fill={isDayUp ? "#fb7185" : "#34d399"}>{isDayUp ? "+" : ""}{dayPnlPct}%</tspan>
-                            </text>
-                            <line x1="12" y1="25" x2="198" y2="25" stroke="rgba(6, 182, 212, 0.3)" />
-
-                            {/* Hover 才展示金额：当日实际盈亏金额 (国内核心看点) */}
-                            <text
-                              x="12"
-                              y="41"
-                              fill={isDayUp ? "#fb7185" : "#34d399"}
-                              fontSize="11"
-                              fontWeight="bold"
-                              fontFamily="monospace"
-                            >
-                              当日盈亏: {dayPnlAmount >= 0 ? "+" : ""}¥{dayPnlAmount.toLocaleString()} 元
-                            </text>
-
-                            {/* 账户总资产与累计总收益 */}
-                            <text
-                              x="12"
-                              y="57"
-                              fill="#94a3b8"
-                              fontSize="9.5"
-                              fontFamily="monospace"
-                            >
-                              总资产: <tspan fill="#ffffff" fontWeight="bold">¥{d.equity.toLocaleString()}</tspan> (累计: <tspan fill={d.close_pnl_pct >= 0 ? "#fb7185" : "#34d399"}>{d.close_pnl_pct > 0 ? `+${d.close_pnl_pct}%` : `${d.close_pnl_pct}%`}</tspan>)
-                            </text>
-
-                            {/* 当日操作提示 */}
-                            {d.events && d.events.length > 0 ? (
-                              d.events.slice(0, 2).map((ev, i) => (
-                                <text
-                                  key={ev.id || i}
-                                  x="12"
-                                  y={75 + i * 16}
-                                  fill="#facc15"
-                                  fontSize="9.5"
-                                  fontWeight="bold"
-                                  fontFamily="sans-serif"
-                                >
-                                  {ev.type === "BUY" ? "🟢 买入" : "🔴 卖出"} {ev.stock_name} @¥{ev.price.toFixed(2)} {ev.pnl_amount != null && ev.type !== "BUY" ? `(盈亏${ev.pnl_amount >= 0 ? "+" : ""}¥${ev.pnl_amount})` : ""}
-                                </text>
-                              ))
-                            ) : isRestDay ? (
-                              <text x="12" y="75" fill="#64748b" fontSize="9" fontFamily="sans-serif">
-                                🛡️ 空仓观望避险 · 资金安全在手
-                              </text>
-                            ) : (
-                              <text x="12" y="75" fill="#38bdf8" fontSize="9" fontFamily="sans-serif">
-                                📌 强势就留 · 持股坐轿主升中
-                              </text>
-                            )}
-                          </g>
-                        );
-                      })()}
                     </g>
                   );
                 })}
-              </>
-            ) : (
-              <>
-                {/* 三策略同图PK多曲线 */}
-                {dates.length > 1 && (
-                  <>
-                    <path
-                      d={aggPath}
-                      fill="none"
-                      stroke="#f43f5e"
-                      strokeWidth="2.5"
-                      className="drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]"
-                    />
-                    <path
-                      d={balPath}
-                      fill="none"
-                      stroke="#06b6d4"
-                      strokeWidth="2.5"
-                      className="drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]"
-                    />
-                    <path
-                      d={conPath}
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="2.5"
-                      className="drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]"
-                    />
-                  </>
-                )}
 
-                {/* X 轴日期文本 */}
-                {dates.map((date, idx) => (
+            {/* 顶层悬浮 Popover Tooltip：移至 SVG 最末节点渲染，保证最高物理层深，绝对不被任何 K 线或折线遮挡 */}
+            {hoveredIndex !== null && currentCandles[hoveredIndex] && (() => {
+              const idx = hoveredIndex;
+              const d = currentCandles[idx];
+              const x = getX(idx);
+              const yHigh = getY(d.high_pnl_pct);
+              const prevCandle = idx > 0 ? currentCandles[idx - 1] : null;
+              const dayPnlPct = prevCandle
+                ? parseFloat((d.close_pnl_pct - prevCandle.close_pnl_pct).toFixed(2))
+                : d.close_pnl_pct;
+              const dayPnlAmount = prevCandle
+                ? Math.round(d.equity - prevCandle.equity)
+                : Math.round(d.equity - 100000);
+              const prevBench = prevCandle ? prevCandle.benchmark_pct : 0;
+              const dayBenchPct = prevCandle
+                ? parseFloat((d.benchmark_pct - prevBench).toFixed(2))
+                : d.benchmark_pct;
+              const diffPct = parseFloat((dayPnlPct - dayBenchPct).toFixed(2));
+              const isDayUp = dayPnlPct >= 0;
+              const isBeatingBench = diffPct >= 0;
+              const isRestDay = d.high_pnl_pct === d.low_pnl_pct && d.open_pnl_pct === d.close_pnl_pct;
+
+              const tipWidth = 236;
+              const tipHeight = d.events && d.events.length > 0 ? 98 + d.events.length * 18 : 102;
+              const tipX = x > width - tipWidth - 25 ? x - tipWidth - 12 : Math.max(10, x + 15);
+              const tipY = Math.max(padding.top + 5, Math.min(height - tipHeight - 12, yHigh - 50));
+
+              return (
+                <g
+                  transform={`translate(${tipX}, ${tipY})`}
+                  className="pointer-events-none"
+                >
+                  <rect
+                    width={tipWidth}
+                    height={tipHeight}
+                    fill="rgba(9, 19, 36, 0.98)"
+                    stroke="#06b6d4"
+                    strokeWidth="1.5"
+                    rx="10"
+                    filter="drop-shadow(0 8px 24px rgba(0,0,0,0.8))"
+                  />
+                  {/* 标题：日期与当日收益率 */}
                   <text
-                    key={date}
-                    x={getX(idx)}
-                    y={height - padding.bottom + 20}
-                    textAnchor="middle"
-                    fill="#94a3b8"
-                    fontSize="10"
+                    x="12"
+                    y="18"
+                    fill="#ffffff"
+                    fontSize="11"
+                    fontWeight="bold"
                     fontFamily="monospace"
                   >
-                    {date}
+                    📅 {d.date}  当日: <tspan fill={isDayUp ? "#fb7185" : "#34d399"}>{isDayUp ? "+" : ""}{dayPnlPct}%</tspan>
                   </text>
-                ))}
-              </>
-            )}
+                  <line x1="12" y1="25" x2={tipWidth - 12} y2="25" stroke="rgba(6, 182, 212, 0.3)" />
+
+                  {/* 沪深300对比：直观突出当日表现 */}
+                  <text
+                    x="12"
+                    y="40"
+                    fill="#facc15"
+                    fontSize="10"
+                    fontWeight="bold"
+                    fontFamily="monospace"
+                  >
+                    沪深300: {dayBenchPct >= 0 ? "+" : ""}{dayBenchPct}% ({isBeatingBench ? "跑赢" : "落后"} {diffPct >= 0 ? `+${diffPct}%` : `${diffPct}%`})
+                  </text>
+
+                  {/* Hover 才展示金额：当日实际盈亏金额 (国内核心看点) */}
+                  <text
+                    x="12"
+                    y="57"
+                    fill={isDayUp ? "#fb7185" : "#34d399"}
+                    fontSize="11"
+                    fontWeight="bold"
+                    fontFamily="monospace"
+                  >
+                    当日盈亏: {dayPnlAmount >= 0 ? "+" : ""}¥{dayPnlAmount.toLocaleString()} 元
+                  </text>
+
+                  {/* 账户总资产与累计总收益 */}
+                  <text
+                    x="12"
+                    y="73"
+                    fill="#94a3b8"
+                    fontSize="9.5"
+                    fontFamily="monospace"
+                  >
+                    总资产: <tspan fill="#ffffff" fontWeight="bold">¥{d.equity.toLocaleString()}</tspan> (累计: <tspan fill={d.close_pnl_pct >= 0 ? "#fb7185" : "#34d399"}>{d.close_pnl_pct > 0 ? `+${d.close_pnl_pct}%` : `${d.close_pnl_pct}%`}</tspan>)
+                  </text>
+
+                  {/* 当日操作提示 */}
+                  {d.events && d.events.length > 0 ? (
+                    d.events.slice(0, 2).map((ev, i) => (
+                      <text
+                        key={ev.id || i}
+                        x="12"
+                        y={91 + i * 16}
+                        fill="#facc15"
+                        fontSize="9.5"
+                        fontWeight="bold"
+                        fontFamily="sans-serif"
+                      >
+                        {ev.type === "BUY" ? "🟢 买入" : "🔴 卖出"} {ev.stock_name} @¥{ev.price.toFixed(2)} {ev.pnl_amount != null && ev.type !== "BUY" ? `(盈亏${ev.pnl_amount >= 0 ? "+" : ""}¥${ev.pnl_amount})` : ""}
+                      </text>
+                    ))
+                  ) : isRestDay ? (
+                    <text x="12" y="91" fill="#64748b" fontSize="9" fontFamily="sans-serif">
+                      🛡️ 空仓观望避险 · 资金安全在手
+                    </text>
+                  ) : (
+                    <text x="12" y="91" fill="#38bdf8" fontSize="9" fontFamily="sans-serif">
+                      📌 强势就留 · 持股坐轿主升中
+                    </text>
+                  )}
+                </g>
+              );
+            })()}
           </svg>
         </div>
 
@@ -684,13 +572,34 @@ export function PnlKlineChart({
                 </span>
               </div>
 
-              <div className="flex items-center gap-3 text-xs font-mono">
+              <div className="flex items-center flex-wrap gap-2 text-xs font-mono">
                 <span className="text-slate-300">
                   总资产: ¥{activeCandle.equity.toLocaleString()}
                 </span>
-                <span className="text-amber-300">
-                  沪深300: {activeCandle.benchmark_pct > 0 ? `+${activeCandle.benchmark_pct}%` : `${activeCandle.benchmark_pct}%`}
-                </span>
+                {(() => {
+                  const prevCandle = activeIdx !== null && activeIdx > 0 ? currentCandles[activeIdx - 1] : null;
+                  const dayPnlPct = prevCandle
+                    ? parseFloat((activeCandle.close_pnl_pct - prevCandle.close_pnl_pct).toFixed(2))
+                    : activeCandle.close_pnl_pct;
+                  const prevBench = prevCandle ? prevCandle.benchmark_pct : 0;
+                  const dayBenchPct = prevCandle
+                    ? parseFloat((activeCandle.benchmark_pct - prevBench).toFixed(2))
+                    : activeCandle.benchmark_pct;
+                  const diffPct = parseFloat((dayPnlPct - dayBenchPct).toFixed(2));
+                  const isBeating = diffPct >= 0;
+
+                  return (
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1 ${
+                      isBeating
+                        ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                        : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                    }`}>
+                      <span>沪深300: {dayBenchPct >= 0 ? `+${dayBenchPct}%` : `${dayBenchPct}%`}</span>
+                      <span className="opacity-60">|</span>
+                      <span>{isBeating ? "🔥 跑赢大盘" : "🛡️ 弱于大盘"} {diffPct >= 0 ? `+${diffPct}%` : `${diffPct}%`}</span>
+                    </span>
+                  );
+                })()}
                 {selectedIndex !== null && (
                   <button
                     onClick={() => setSelectedIndex(null)}

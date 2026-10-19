@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { QuantumRadar3D } from "@/components/market/quantum-radar-3d";
 import { SparklineChart } from "@/components/market/sparkline-chart";
-import { SentimentRadarVisual } from "@/components/market/sentiment-radar-visual";
 import { DailyReportsView } from "@/components/market/daily-reports-view";
 import { PnlKlineChart } from "@/components/market/pnl-kline-chart";
 import { StrategyArenaCards } from "@/components/market/strategy-arena-cards";
@@ -38,7 +37,6 @@ import { MarketSentimentMetricsBar } from "@/components/market/market-sentiment-
 import { checkAShareTradingTime, AShareTradingStatus } from "@/lib/trading-hours";
 import type { MarketSentimentMetrics } from "@/lib/quotes-service";
 import { PaperTradeForm } from "@/components/market/paper-trade-form";
-import { DailyTradeLog } from "@/components/market/daily-trade-log";
 import { GoldStockPanel } from "@/components/market/gold-stock-panel";
 import { AccountDailyLedgerTable } from "@/components/market/account-daily-ledger-table";
 
@@ -140,8 +138,6 @@ export default function MarketDashboardPage() {
   const [toastMsg, setToastMsg] = useState<{ text: string; type: "info" | "success" | "warning" } | null>(null);
   // 信号Tab子页切换：量化信号 | 金股推荐
   const [signalSubTab, setSignalSubTab] = useState<"signals" | "gold">("signals");
-  // 沪深300当日真实涨跌幅（来自arena API benchmarks字段）
-  const [arenaBenchmarkPct, setArenaBenchmarkPct] = useState<number | undefined>(undefined);
 
 
   // 严格核验 A 股交易时钟：每 10 秒评估一次开盘/闭市状态
@@ -200,10 +196,6 @@ export default function MarketDashboardPage() {
           setMarketRegime(json.regime);
           setStrategyRankings(json.rankings || []);
           setExperiment(json.experiment || null);
-          // 存储真实沪深300涨跌幅（用于DailyTradeLog收益对比）
-          if (json.benchmarks?.csi300_return_pct != null) {
-            setArenaBenchmarkPct(json.benchmarks.csi300_return_pct);
-          }
         }
       }
     } catch (err) {
@@ -557,8 +549,41 @@ export default function MarketDashboardPage() {
         {/* ========================================================================= */}
         {activeTab === "cockpit" && (
           <div className="space-y-6 animate-in fade-in duration-300">
-            {/* 全市场短线量化盘口与独家特色指标大屏 (黄金首屏呈现，一目了然) */}
-            <MarketSentimentMetricsBar initialMetrics={marketData?.sentiment_metrics} />
+            {/* 核心第一屏：三大独立模拟策略账户 (激进/均衡/稳健 核心资产与收益率首屏呈现) */}
+            {arenaAccounts && (
+              <StrategyArenaCards
+                accounts={arenaAccounts}
+                rankings={strategyRankings}
+                activeStrategy={activeStrategy}
+                onSelectStrategy={setActiveStrategy}
+              />
+            )}
+
+            {/* 核心第二屏：标准日K收益率走势与每日操作穿透 (点击日K联动展示当天操作与对比沪深300) */}
+            {arenaAccounts && (
+              <PnlKlineChart
+                account={arenaAccounts[activeStrategy]}
+                accounts={Object.values(arenaAccounts)}
+                activeAccountId={activeStrategy}
+                onSelectAccount={setActiveStrategy}
+              />
+            )}
+
+            {/* 核心第三屏：每个账户历史每日收益公开账本 (历史每天收益率、盈亏金额、操作透明公开) */}
+            {arenaAccounts && (
+              <AccountDailyLedgerTable
+                account={arenaAccounts[activeStrategy]}
+              />
+            )}
+
+            {/* 辅助参考：全市场短线量化盘口与独家特色指标 */}
+            <div className="pt-4 border-t border-cyan-900/40">
+              <div className="text-xs font-bold text-slate-400 font-mono mb-3 uppercase tracking-wider flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                <span>市场全景与大盘宏观盘口参考</span>
+              </div>
+              <MarketSentimentMetricsBar initialMetrics={marketData?.sentiment_metrics} />
+            </div>
 
             {/* 全景核心 4 联指标看板 */}
             {marketData || marketRegime ? (
@@ -620,7 +645,7 @@ export default function MarketDashboardPage() {
                         <PieChart className="w-3.5 h-3.5 text-cyan-400" />
                         建议总仓位
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono">
                         动态风控
                       </span>
                     </div>
@@ -641,7 +666,7 @@ export default function MarketDashboardPage() {
                         <Flame className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
                         两市成交额
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-medium">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-medium">
                         {(marketData?.volume_metrics as { status_label?: string })?.status_label || "充沛活跃区间"}
                       </span>
                     </div>
@@ -829,21 +854,6 @@ export default function MarketDashboardPage() {
                 <p className="text-xs text-slate-500">正在重新建立行情通信链路，全景量能与分析指标将在数据到达后实时展现。</p>
               </div>
             )}
-
-            <SentimentRadarVisual />
-            {arenaAccounts && <>
-              <StrategyArenaCards accounts={arenaAccounts} rankings={strategyRankings} activeStrategy={activeStrategy} onSelectStrategy={setActiveStrategy} />
-              <PnlKlineChart account={arenaAccounts[activeStrategy]} accounts={Object.values(arenaAccounts)} activeAccountId={activeStrategy} onSelectAccount={setActiveStrategy} />
-              {/* 每日交易日志：当日买卖记录与金额对比 */}
-              <DailyTradeLog
-                account={arenaAccounts[activeStrategy]}
-                benchmarkPct={arenaBenchmarkPct}
-              />
-              {/* 每个账户历史每日收益公开账本（满足公开透明与每日收益查看诉求） */}
-              <AccountDailyLedgerTable
-                account={arenaAccounts[activeStrategy]}
-              />
-            </>}
           </div>
         )}
 
