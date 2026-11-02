@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/workflow',
     '/gesture',
     '/experiments',
+    '/experiments/ziwei',
     '/experiments/pelican',
     '/news',
     '/projects',

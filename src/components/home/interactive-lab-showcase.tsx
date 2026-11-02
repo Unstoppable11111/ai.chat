@@ -15,6 +15,15 @@ import {
 
 const FEATURED_LABS = [
   {
+    title: "天纪 · 紫微斗数与双人合盘",
+    tag: "ZIWEI ASTRO",
+    desc: "融合倪海厦《天纪》与《斗数全书》金标准盘，支持真太阳时、四化叠层、双人合盘与 AI 宗师流式批断。",
+    href: "/experiments/ziwei",
+    icon: Compass,
+    gradient: "from-amber-500/20 to-rose-600/10",
+    color: "text-amber-500",
+  },
+  {
     title: "AI 创意视觉工坊",
     tag: "FLUX RENDER",
     desc: "双通道 FLUX 极速生图负载均衡，结合 Cloudflare AI 极速算力与容灾故障切换。",
@@ -101,7 +110,7 @@ export function InteractiveLabShowcase() {
           href="/experiments"
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-sky-500/30 bg-sky-500/10 text-xs font-semibold text-sky-700 hover:bg-sky-500/20 hover:border-sky-500/50 shadow-2xs transition-all"
         >
-          <span>探索全部 8 款实验</span>
+          <span>探索全部 9 款实验</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
