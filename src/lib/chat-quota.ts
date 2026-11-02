@@ -7,6 +7,7 @@ import { sessionToken, verifySession, clientKey } from "./server-security";
 const memoryQuotaStore = new Map<string, { used: number; expiresAt: number }>();
 
 export const GUEST_CHAT_DAILY_LIMIT = 10;
+export const GUEST_ZIWEI_LIMIT = 3;
 export const GUEST_COOKIE_NAME = "studio_guest_token";
 
 /**
@@ -269,3 +270,100 @@ export async function consumeChatQuota(request: Request): Promise<ConsumeChatQuo
     guestTokenToSet,
   };
 }
+
+function getZiweiGuestIdentifierKey(request: Request): { key: string; guestTokenToSet?: string } {
+  const cookies = request.headers.get("cookie");
+  let guestToken = parseCookie(cookies, GUEST_COOKIE_NAME);
+  let guestTokenToSet: string | undefined = undefined;
+
+  if (!guestToken || guestToken.length < 16) {
+    guestToken = randomUUID();
+    guestTokenToSet = guestToken;
+  }
+
+  const ipHash = clientKey(request);
+  const rawKey = `ziwei:guest:quota:${guestToken}:${ipHash}`;
+  const hashedId = createHash("sha256").update(rawKey).digest("hex");
+  return { key: hashedId, guestTokenToSet };
+}
+
+/**
+ * 查询紫微斗数 AI 解读/合盘额度状态（游客免费 3 次，登录后不限次数）
+ */
+export async function getZiweiQuotaStatus(request: Request): Promise<ChatQuotaStatus> {
+  const token = sessionToken(request);
+  const userId = await verifySession(token);
+
+  if (userId) {
+    return {
+      authenticated: true,
+      unlimited: true,
+      total: GUEST_ZIWEI_LIMIT,
+      remaining: -1,
+      resetTime: "登录用户无限畅享",
+    };
+  }
+
+  const { key, guestTokenToSet } = getZiweiGuestIdentifierKey(request);
+  const used = await getUsedCount(key);
+  const remaining = Math.max(0, GUEST_ZIWEI_LIMIT - used);
+
+  return {
+    authenticated: false,
+    unlimited: false,
+    total: GUEST_ZIWEI_LIMIT,
+    used,
+    remaining,
+    resetTime: "登录解锁无限次",
+    guestTokenToSet,
+  };
+}
+
+/**
+ * 校验并扣减紫微斗数 AI 额度（游客免费 3 次，超出要求登录；登录用户直接放行）
+ */
+export async function consumeZiweiQuota(request: Request): Promise<ConsumeChatQuotaResult> {
+  const token = sessionToken(request);
+  const userId = await verifySession(token);
+
+  if (userId) {
+    return {
+      allowed: true,
+      authenticated: true,
+      unlimited: true,
+      remaining: -1,
+      total: GUEST_ZIWEI_LIMIT,
+    };
+  }
+
+  const { key, guestTokenToSet } = getZiweiGuestIdentifierKey(request);
+  const ttlMs = 30 * 24 * 60 * 60 * 1000; // 30天有效期，累计免费3次后需登录
+
+  const { success, used } = await consumeQuota(key, GUEST_ZIWEI_LIMIT, ttlMs);
+  const remaining = Math.max(0, GUEST_ZIWEI_LIMIT - used);
+
+  if (!success) {
+    return {
+      allowed: false,
+      authenticated: false,
+      requireLogin: true,
+      total: GUEST_ZIWEI_LIMIT,
+      used,
+      remaining: 0,
+      resetTime: "登录解锁无限次",
+      guestTokenToSet,
+      message: "游客免费 AI 解盘额度（3次）已用尽，请登录账号后解锁无限次 AI 深度批断与合盘分析！",
+    };
+  }
+
+  return {
+    allowed: true,
+    authenticated: false,
+    total: GUEST_ZIWEI_LIMIT,
+    used,
+    remaining,
+    resetTime: "登录解锁无限次",
+    guestTokenToSet,
+  };
+}
+

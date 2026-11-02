@@ -30,6 +30,19 @@ export interface PlaygroundItem {
 
 export const PLAYGROUND_ITEMS: PlaygroundItem[] = [
   {
+    id: "ziwei-studio",
+    title: "天纪 · 紫微斗数 AI 命理与合盘",
+    subtitle: "倪海厦《天纪》 / 真太阳时排盘 / 双人合盘 / 古籍原典",
+    description:
+      "融合倪海厦《天纪》体系与《紫微斗数全书》金标准盘引擎，支持本命/大限/流年四化叠层、双人姻缘合盘、13维断语及 AI 宗师流式精批。",
+    category: "AI智能体",
+    tag: "ZIWEI ASTRO",
+    badge: "天纪命盘",
+    href: "/experiments/ziwei",
+    gradient: "from-amber-500/25 via-rose-600/15 to-transparent",
+    icon: Compass,
+  },
+  {
     id: "image-studio",
     title: "AI 创意视觉工坊",
     subtitle: "FLUX.1 真实渲染 / Cloudflare AI / 双通道均衡",
@@ -144,7 +157,7 @@ export function InteractivePlaygroundsHub() {
         <div>
           <div className="flex items-center gap-2 text-xs font-mono font-bold text-sky-600 uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4 text-sky-500 animate-pulse" />
-            <span>PLAYABLE LABS // 8 款高互动极客实验矩阵</span>
+            <span>PLAYABLE LABS // 9 款高互动极客实验矩阵</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             高可玩性互动工坊

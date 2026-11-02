@@ -175,3 +175,55 @@ test("independent guests have separate daily quotas", async () => {
   const statusB = await getChatQuotaStatus(guestBReq);
   assert.equal(statusB.remaining, 10);
 });
+
+test("consumeZiweiQuota restricts guest to 3 free AI interpretations and requires login on 4th", async () => {
+  const {
+    GUEST_ZIWEI_LIMIT,
+    GUEST_COOKIE_NAME,
+    consumeZiweiQuota,
+    getZiweiQuotaStatus,
+    resetMemoryQuotaStore,
+  } = loadChatQuotaModule();
+
+  resetMemoryQuotaStore();
+  assert.equal(GUEST_ZIWEI_LIMIT, 3);
+
+  const guestReq = new Request("http://localhost:3000/api-ziwei", {
+    headers: {
+      cookie: `${GUEST_COOKIE_NAME}=ziwei-guest-token-1234567890`,
+      "x-forwarded-for": "192.168.88.10",
+    },
+  });
+
+  // 前 3 次必须放行，remaining 从 2 递减到 0
+  for (let i = 1; i <= 3; i++) {
+    const res = await consumeZiweiQuota(guestReq);
+    assert.equal(res.allowed, true, `Ziwei attempt #${i} should be allowed`);
+    assert.equal(res.authenticated, false);
+    assert.equal(res.remaining, 3 - i);
+  }
+
+  const statusAfter3 = await getZiweiQuotaStatus(guestReq);
+  assert.equal(statusAfter3.remaining, 0);
+  assert.equal(statusAfter3.used, 3);
+
+  // 第 4 次必须拦截并要求登录
+  const fourthAttempt = await consumeZiweiQuota(guestReq);
+  assert.equal(fourthAttempt.allowed, false, "4th attempt must be blocked");
+  assert.equal(fourthAttempt.requireLogin, true, "4th attempt must require login");
+  assert.equal(fourthAttempt.remaining, 0);
+
+  // 已登录用户不受 3 次限制
+  const authedReq = new Request("http://localhost:3000/api-ziwei", {
+    headers: {
+      cookie: "studio_session=valid-user-token",
+      "x-forwarded-for": "192.168.88.10",
+    },
+  });
+  for (let i = 1; i <= 5; i++) {
+    const authedRes = await consumeZiweiQuota(authedReq);
+    assert.equal(authedRes.allowed, true);
+    assert.equal(authedRes.authenticated, true);
+    assert.equal(authedRes.unlimited, true);
+  }
+});
