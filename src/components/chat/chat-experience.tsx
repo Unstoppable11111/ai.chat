@@ -140,7 +140,10 @@ export function ChatExperience({
 
                     <div className="min-w-0 break-words leading-7">
                       <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                        {message.content || (chat.loading ? "正在深度思考生成中…" : "")}
+                        {(message.content || "")
+                          .replace(/<ElicitationsGroup>[\s\S]*?<\/ElicitationsGroup>/gi, "")
+                          .replace(/<\/?(?:ElicitationsGroup|Elicitation)\b[^>]*>/gi, "")
+                          .trim() || (chat.loading ? "正在深度思考生成中…" : "")}
                       </ReactMarkdown>
                     </div>
 

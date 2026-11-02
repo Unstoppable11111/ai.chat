@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useAuth } from "@/components/auth/auth-provider";
 import {
   generateChart,
@@ -1175,19 +1177,25 @@ export function ZiweiStudio() {
                             key={i}
                             className={`rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
                               msg.role === "user"
-                                ? "bg-amber-900 text-amber-50 ml-auto max-w-2xl font-medium"
-                                : "bg-white border border-stone-200/90 text-stone-800 shadow-2xs whitespace-pre-wrap"
+                                ? "bg-amber-900 text-amber-50 ml-auto max-w-2xl font-medium whitespace-pre-wrap"
+                                : "bg-white border border-stone-200/90 text-stone-800 shadow-2xs"
                             }`}
                           >
                             <div className="text-[10px] font-mono uppercase opacity-70 mb-1">
                               {msg.role === "user" ? "命主提问" : "天纪 AI 命理宗师"}
                             </div>
-                            <div>
-                              {msg.content ||
-                                (aiStreaming && i === aiMessages.length - 1
-                                  ? "正在推演三方四正与四化星象，请稍候..."
-                                  : "")}
-                            </div>
+                            {msg.role === "user" ? (
+                              <div>{msg.content}</div>
+                            ) : (
+                              <div className="prose prose-stone prose-sm max-w-none dark:prose-invert leading-relaxed break-words">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {msg.content ||
+                                    (aiStreaming && i === aiMessages.length - 1
+                                      ? "正在推演三方四正与四化星象，请稍候..."
+                                      : "")}
+                                </ReactMarkdown>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
