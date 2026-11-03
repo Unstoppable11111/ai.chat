@@ -9,13 +9,29 @@ export type Message = {
   error?: boolean;
 };
 
-export const CHAT_MODELS = [
-  { id: 'jarvis-balanced', name: '均衡', desc: '日常问答' },
-  { id: 'jarvis-speed', name: '快速', desc: '简短问题' },
-  { id: 'jarvis-ultra', name: '深入', desc: '复杂问题' },
+export interface ChatModelConfig {
+  id: string;
+  name: string;
+  desc: string;
+  adminOnly?: boolean;
+}
+
+export const CHAT_MODELS: ChatModelConfig[] = [
+  { id: 'gemini-3.5-flash-lite', name: '3.5 Flash-Lite', desc: '轻量极速 · 全员默认' },
+  { id: 'gemini-3.8-flash', name: '3.8 Flash', desc: '平衡推理 · 日常推荐' },
+  { id: '4argon', name: '4 Argon', desc: '旗舰超算 · 深度推导', adminOnly: true },
+];
+
+export type ChatModelId = string;
+
+export const THINKING_LEVELS = [
+  { id: 'off', name: '思考: 关', desc: '不展开思考链，极速响应' },
+  { id: 'low', name: '思考: 浅层', desc: '快速轻度推导' },
+  { id: 'medium', name: '思考: 适中', desc: '平衡思考深度' },
+  { id: 'high', name: '思考: 深度', desc: '长思维链全量推导' },
 ] as const;
 
-export type ChatModelId = typeof CHAT_MODELS[number]['id'];
+export type ThinkingLevelId = typeof THINKING_LEVELS[number]['id'];
 
 export const markdownComponents: Components = {
   p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,

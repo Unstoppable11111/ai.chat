@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import type { Message } from "./chat-types";
+import type { Message, ThinkingLevelId } from "./chat-types";
 import { useAuth } from "@/components/auth/auth-provider";
 
 export type Thread = { id: string; title: string; messages: Message[] };
@@ -24,9 +24,11 @@ export type ChatState = {
   ready: boolean;
   storageError: string;
   model: string;
+  thinkingLevel: ThinkingLevelId;
   quota: ChatQuota;
   refreshQuota: () => Promise<void>;
   setModel: (model: string) => void;
+  setThinkingLevel: (level: ThinkingLevelId) => void;
   send: (text: string, retry?: boolean) => Promise<void>;
   stop: () => void;
   newThread: () => void;
@@ -42,7 +44,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [history, setHistory] = useState<History>(initial);
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
-  const [model, setModel] = useState("jarvis-balanced");
+  // 普通与未登录用户默认使用最低档的 3.5 Flash-Lite
+  const [model, setModel] = useState("gemini-3.5-flash-lite");
+  const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevelId>("off");
   const [storageError, setStorageError] = useState("");
   const [quota, setQuota] = useState<ChatQuota>({
     authenticated: !!user?.id,
@@ -317,6 +321,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         signal: controller.signal,
         body: JSON.stringify({
           model,
+          thinkingLevel,
           messages: requestMessages.map(({ role, content }) => ({ role, content })),
         }),
       });
@@ -453,9 +458,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         ready,
         storageError,
         model,
+        thinkingLevel,
         quota,
         refreshQuota,
         setModel,
+        setThinkingLevel,
         send,
         stop,
         newThread,

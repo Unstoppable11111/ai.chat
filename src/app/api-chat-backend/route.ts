@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { searchKnowledgeBase } from "@/lib/rag-engine";
-import { clientKey, readJsonBody, sameOrigin, takeQuota } from "@/lib/server-security";
+import { clientKey, readJsonBody, sameOrigin, takeQuota, requestOwner } from "@/lib/server-security";
 import { getChatQuotaStatus, consumeChatQuota, GUEST_COOKIE_NAME } from "@/lib/chat-quota";
+import { isSuperAdmin } from "@/lib/auth-db";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 const fail = (text: string, status: number) => NextResponse.json({ success: false, text }, { status });
@@ -54,10 +55,38 @@ export async function POST(request: Request) {
   if (!Array.isArray(body.messages) || !body.messages.length || body.messages.length > 30 || body.messages.some(item => !item || !["user","assistant"].includes(item.role) || typeof item.content !== "string" || item.content.length > 4000)) return fail("消息格式或长度不正确", 400);
   const messages = (body.messages as ChatMessage[]).slice(-15);
   if (messages[messages.length - 1].role !== "user") return fail("最后一条消息必须是问题", 400);
-  const models: Record<string, string | undefined> = { "jarvis-balanced": process.env.UPSTREAM_BALANCED_MODEL, "jarvis-speed": process.env.UPSTREAM_SPEED_MODEL, "jarvis-ultra": process.env.UPSTREAM_ULTRA_MODEL };
-  const modelKey = typeof body.model === "string" ? body.model : "jarvis-balanced";
+  const models: Record<string, string> = {
+    "gemini-3.5-flash-lite": "gemini-3.5-flash-lite",
+    "gemini-3.8-flash": "gemini-3.8-flash",
+    "4argon": "gemini-argon",
+    "gemini-argon": "gemini-argon",
+    // 兼容历史老客户端模型键
+    "jarvis-speed": "gemini-3.5-flash-lite",
+    "jarvis-balanced": "gemini-3.8-flash",
+    "jarvis-ultra": "gemini-3.1-pro",
+  };
+
+  // 普通与未登录用户默认使用最低档的 3.5 Flash-Lite
+  const modelKey = typeof body.model === "string" ? body.model : "gemini-3.5-flash-lite";
   if (!(modelKey in models)) return fail("模型选项无效", 400);
-  const model = models[modelKey] || process.env.UPSTREAM_BALANCED_MODEL;
+
+  // 4 Argon 权限防护：超级管理员账户 chen 独享，其他账户只能看不可体验
+  if (modelKey === "4argon" || modelKey === "gemini-argon") {
+    const owner = await requestOwner(request);
+    const isAdmin = await isSuperAdmin(owner);
+    if (!isAdmin) {
+      return fail("4 Argon 旗舰推理核心为超级管理员 chen 专享模型，当前账户仅支持预览，无体验权限。", 403);
+    }
+  }
+
+  let model = models[modelKey] || "gemini-3.5-flash-lite";
+
+  // 思考等级组合 (Thinking Level)
+  const thinkingLevel = typeof body.thinkingLevel === "string" ? body.thinkingLevel : "off";
+  if (["low", "medium", "high", "off"].includes(thinkingLevel)) {
+    model = `${model}@think=${thinkingLevel}`;
+  }
+
   if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_BASE_URL || !model) return fail("AI 服务暂未就绪", 503);
   try {
     const daily = Math.max(1,Math.min(10000,Number(process.env.CHAT_DAILY_REQUESTS) || 100));

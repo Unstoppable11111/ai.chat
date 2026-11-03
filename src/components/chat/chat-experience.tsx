@@ -9,6 +9,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { markdownComponents } from "./chat-types";
 import { MemorySelector } from "./memory-selector";
 import { ModelSelector } from "./model-selector";
+import { ThinkingSelector } from "./thinking-selector";
 import { CuratePostModal } from "./curate-post-modal";
 
 export function ChatExperience({
@@ -209,10 +210,13 @@ export function ChatExperience({
         })}
       </div>
 
-      {/* 底部控制区：模型选择、提问配额提示与现代化输入框 */}
+      {/* 底部控制区：模型选择、思考等级、提问配额提示与现代化输入框 */}
       <div className="shrink-0 space-y-2 pb-[env(safe-area-inset-bottom)]">
         <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
-          <ModelSelector selectedModel={chat.model} onSelect={chat.setModel} disabled={chat.loading} />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <ModelSelector selectedModel={chat.model} onSelect={chat.setModel} disabled={chat.loading} />
+            <ThinkingSelector selectedLevel={chat.thinkingLevel} onSelect={chat.setThinkingLevel} disabled={chat.loading} />
+          </div>
           
           <div className="flex items-center gap-2">
             {!isAuthenticated ? (
