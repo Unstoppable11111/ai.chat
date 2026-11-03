@@ -13,7 +13,9 @@ import {
   detectPromptInjection,
   clientKey,
   takeQuota,
+  requestOwner,
 } from "@/lib/server-security";
+import { isSuperAdmin } from "@/lib/auth-db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -61,7 +63,7 @@ export async function POST(request: NextRequest) {
     prompt?: string;
     aspectRatio?: string;
     style?: string;
-    provider?: "auto" | "cloudflare" | "pollinations";
+    provider?: "auto" | "cloudflare" | "pollinations" | "gemini";
   };
 
   try {
@@ -111,6 +113,26 @@ export async function POST(request: NextRequest) {
       { success: false, error: "提示词包含系统越狱指令，请调整后重试。" },
       { status: 400 }
     );
+  }
+
+  // 每日生图额度校验：普通用户每人每日限 3 次，管理员账户 chen 享有不限量特权
+  const userId = await requestOwner(request);
+  const isAdmin = await isSuperAdmin(userId);
+  if (!isAdmin) {
+    const quotaTarget = userId || clientKey(request);
+    const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai" }).format(new Date());
+    const quotaKey = `img_studio:daily_quota:${quotaTarget}:${day}`;
+    const allowedDaily = await takeQuota(quotaKey, 3, 48 * 60 * 60 * 1000);
+    if (!allowedDaily) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "DAILY_ASSET_QUOTA_EXCEEDED",
+          error: "今日图片生成尝试次数已达上限（每人每日 3 次）。管理员账户 chen 享有不限量特权。",
+        },
+        { status: 429 }
+      );
+    }
   }
 
   const styleKey = body.style || "none";

@@ -95,7 +95,7 @@ export function VisualAssetsBoard({
   const controllersRef = React.useRef(new Map<string, AbortController>());
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [cooldownRemaining] = useState<number>(0);
-  const [selectedProvider, setSelectedProvider] = useState<"cloudflare" | "pollinations" | "auto">("cloudflare");
+  const [selectedProvider, setSelectedProvider] = useState<"cloudflare" | "pollinations" | "gemini" | "auto">("gemini");
 
   // 防止浏览器强缓存旧图导致"延迟并返回上一张图片"
   const getRenderUrl = (url?: string, createdAt?: string) => {
@@ -322,6 +322,18 @@ export function VisualAssetsBoard({
           </span>
           <button
             type="button"
+            onClick={() => setSelectedProvider("gemini")}
+            className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedProvider === "gemini"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80"
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+            <span>Gemini Imagen 3 (本站AI专线·电影级质感)</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setSelectedProvider("cloudflare")}
             className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedProvider === "cloudflare"
@@ -330,7 +342,7 @@ export function VisualAssetsBoard({
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span>Cloudflare FLUX.1 (推荐·4秒极速)</span>
+            <span>Cloudflare FLUX.1 (4秒极速)</span>
           </button>
           <button
             type="button"
@@ -487,6 +499,11 @@ export function VisualAssetsBoard({
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-amber-500/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
                           矢量预览保底
                         </div>
+                      ) : existingAsset.metadata?.provider === "gemini" ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-blue-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                          <Sparkles className="w-2.5 h-2.5 text-cyan-200" />
+                          <span>本站 Gemini</span>
+                        </div>
                       ) : existingAsset.metadata?.provider === "cloudflare" ? (
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
                           <Zap className="w-2.5 h-2.5 text-yellow-300 fill-yellow-300" />
@@ -603,6 +620,11 @@ export function VisualAssetsBoard({
                       {existingAsset.status === "fallback" ? (
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-amber-500/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
                           矢量预览保底
+                        </div>
+                      ) : existingAsset.metadata?.provider === "gemini" ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-blue-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                          <Sparkles className="w-2.5 h-2.5 text-cyan-200" />
+                          <span>本站 Gemini</span>
                         </div>
                       ) : existingAsset.metadata?.provider === "cloudflare" ? (
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">

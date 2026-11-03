@@ -66,7 +66,7 @@ export function ImageStudio() {
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("cinematic");
   const [selectedRatio, setSelectedRatio] = useState("1:1");
-  const [selectedProvider, setSelectedProvider] = useState<"auto" | "cloudflare" | "pollinations">("auto");
+  const [selectedProvider, setSelectedProvider] = useState<"auto" | "gemini" | "cloudflare" | "pollinations">("gemini");
   const [isGenerating, setIsGenerating] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [currentResult, setCurrentResult] = useState<GenerationHistoryItem | null>(null);
@@ -77,7 +77,8 @@ export function ImageStudio() {
   const [balancerStatus, setBalancerStatus] = useState<{
     cloudflareConfigured: boolean;
     pollinationsAvailable: boolean;
-  }>({ cloudflareConfigured: true, pollinationsAvailable: true });
+    geminiConfigured?: boolean;
+  }>({ cloudflareConfigured: true, pollinationsAvailable: true, geminiConfigured: true });
 
   // Cloudflare 凭据配置状态（支持本地存储与一键同步）
   const [cfAccountId, setCfAccountId] = useState("");
@@ -408,17 +409,33 @@ export function ImageStudio() {
                     title="点击配置 / 激活 Cloudflare 凭据"
                   >
                     <Key className="w-2.5 h-2.5" />
-                    <span>{balancerStatus.cloudflareConfigured ? "● 双通道就绪" : "● 待配CF (点击激活)"}</span>
+                    <span>{balancerStatus.cloudflareConfigured ? "● 多通道就绪" : "● 待配CF (点击激活)"}</span>
                   </button>
                 </label>
-                <div className="grid grid-cols-3 gap-1">
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProvider("gemini");
+                      setErrorMsg("");
+                    }}
+                    className={`py-1 text-center rounded-lg border transition-all cursor-pointer ${
+                      selectedProvider === "gemini"
+                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-600 font-bold shadow-xs text-xs"
+                        : "bg-purple-50/60 dark:bg-purple-950/30 border-purple-200/80 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:border-purple-300 text-xs"
+                    }`}
+                    title="本站 AI 专线 (Gemini Imagen 3)"
+                  >
+                    本站专线 ✨
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedProvider("auto");
                       setErrorMsg("");
                     }}
-                    className={`py-1.5 text-center rounded-lg border transition-all cursor-pointer ${
+                    className={`py-1 text-center rounded-lg border transition-all cursor-pointer ${
                       selectedProvider === "auto"
                         ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
                         : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
@@ -435,7 +452,7 @@ export function ImageStudio() {
                       }
                       setSelectedProvider("cloudflare");
                     }}
-                    className={`py-1.5 text-center rounded-lg border transition-all cursor-pointer ${
+                    className={`py-1 text-center rounded-lg border transition-all cursor-pointer ${
                       selectedProvider === "cloudflare"
                         ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
                         : !balancerStatus.cloudflareConfigured
@@ -453,7 +470,7 @@ export function ImageStudio() {
                       setSelectedProvider("pollinations");
                       setErrorMsg("");
                     }}
-                    className={`py-1.5 text-center rounded-lg border transition-all cursor-pointer ${
+                    className={`py-1 text-center rounded-lg border transition-all cursor-pointer ${
                       selectedProvider === "pollinations"
                         ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
                         : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
@@ -463,6 +480,15 @@ export function ImageStudio() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* 每日配额与权限规则 */}
+            <div className="p-2.5 rounded-2xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-800/40 flex items-center justify-between gap-2 text-xs">
+              <span className="flex items-center gap-1.5 text-purple-800 dark:text-purple-300 text-[11px]">
+                <ShieldCheck className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span>每日生成配额：每人每日 3 张（超管 chen 享有不限量特权）</span>
+              </span>
+              <span className="text-[10px] text-purple-600 dark:text-purple-400 font-mono font-medium shrink-0">0点重置</span>
             </div>
 
             {/* 当服务端尚未就绪时显示轻量激活浮条 */}
@@ -532,11 +558,13 @@ export function ImageStudio() {
                 <div>
                   <h3 className="text-base font-bold text-white">正在调度 AI 渲染引擎</h3>
                   <p className="text-xs text-slate-400 mt-1 max-w-xs">
-                    {selectedProvider === "cloudflare"
+                    {selectedProvider === "gemini"
+                      ? "本站专线 Gemini Imagen 3 引擎高精渲染中..."
+                      : selectedProvider === "cloudflare"
                       ? "Cloudflare Workers AI 专属节点极速生成..."
                       : selectedProvider === "pollinations"
                       ? "Pollinations FLUX.1 引擎多步降噪推理..."
-                      : "双通道智能轮询已分派，全速神经运算中..."}
+                      : "多通道智能均衡调度中，全速神经运算..."}
                   </p>
                 </div>
                 <div className="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs font-mono text-purple-300">
@@ -572,7 +600,11 @@ export function ImageStudio() {
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-medium flex items-center gap-1">
                       <Zap className="w-3 h-3 text-purple-400" />
-                      {currentResult.provider === "cloudflare" ? "Cloudflare AI" : "Pollinations"}
+                      {currentResult.provider === "gemini"
+                        ? "本站 Gemini (Imagen 3)"
+                        : currentResult.provider === "cloudflare"
+                        ? "Cloudflare AI"
+                        : "Pollinations"}
                     </span>
                     <span className="text-[11px] font-mono text-slate-400">
                       {(currentResult.durationMs / 1000).toFixed(1)}s

@@ -156,6 +156,15 @@ export function saveCloudflareCredentials({ accountId, token }) {
 }
 
 /**
+ * 检查 Gemini 生图服务（本地或网关）是否就绪
+ */
+export function isGeminiConfigured() {
+  const baseUrl = (process.env.IMAGE_API_BASE_URL || "").trim();
+  const apiKey = (process.env.IMAGE_API_KEY || "").trim();
+  return Boolean(baseUrl && apiKey);
+}
+
+/**
  * 检查 Cloudflare Workers AI 服务凭据是否就绪
  */
 export function isCloudflareConfigured(options = {}) {
@@ -168,11 +177,86 @@ export function isCloudflareConfigured(options = {}) {
  */
 export function getBalancerStatus(options = {}) {
   const cfReady = isCloudflareConfigured(options);
+  const geminiReady = isGeminiConfigured();
+  const activeProviders = [];
+  if (geminiReady) activeProviders.push("gemini");
+  if (cfReady) activeProviders.push("cloudflare");
+  activeProviders.push("pollinations");
+
   return {
+    geminiConfigured: geminiReady,
     cloudflareConfigured: cfReady,
     pollinationsAvailable: true,
-    activeProviders: cfReady ? ["cloudflare", "pollinations"] : ["pollinations"],
+    activeProviders: cfReady && !geminiReady ? ["cloudflare", "pollinations"] : activeProviders,
   };
+}
+
+/**
+ * 通道 0: Google Gemini Imagen 3 图像生成实现 (本站 AI 专线)
+ */
+export async function callGeminiImagen(options = {}) {
+  const prompt = sanitizePrompt(options.prompt);
+  if (!prompt) {
+    const err = new Error("提示词不能为空");
+    err.code = "PROMPT_EMPTY";
+    throw err;
+  }
+
+  const baseUrl = (process.env.IMAGE_API_BASE_URL || process.env.OPENAI_BASE_URL || "https://newapi.chenyc.chat/v1").replace(/\/+$/, "");
+  const apiKey = (process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY || "").trim();
+  const model = options.model || process.env.IMAGE_MODEL || "gemini-3.1-pro-image";
+  const endpoint = `${baseUrl}/images/generations`;
+
+  const timeoutMs = Number(options.timeoutMs || 50000);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error("Gemini Imagen 3 生图请求超时")), timeoutMs);
+
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, controller.signal])
+    : controller.signal;
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+      },
+      body: JSON.stringify({
+        model,
+        prompt,
+        response_format: "b64_json",
+        n: 1,
+        size: `${options.width || 1024}x${options.height || 1024}`,
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "");
+      const err = new Error(`Gemini Imagen 3 生图调用失败 (HTTP ${response.status}): ${errText.slice(0, 200)}`);
+      err.code = `GEMINI_HTTP_${response.status}`;
+      err.status = response.status;
+      throw err;
+    }
+
+    const data = await response.json();
+    const base64 = data?.data?.[0]?.b64_json;
+    if (!base64) {
+      throw new Error("Gemini 生图未返回有效图像数据");
+    }
+
+    return {
+      b64: base64,
+      mimeType: "image/png",
+      provider: "gemini",
+      model,
+      width: options.width || 1024,
+      height: options.height || 1024,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**
@@ -345,7 +429,7 @@ export async function callPollinationsAI(options = {}) {
  * @param {string} options.prompt 提示词
  * @param {number} [options.width=1024] 宽度
  * @param {number} [options.height=1024] 高度
- * @param {"auto" | "cloudflare" | "pollinations"} [options.provider="auto"] 偏好通道
+ * @param {"auto" | "gemini" | "cloudflare" | "pollinations"} [options.provider="auto"] 偏好通道
  * @param {AbortSignal} [options.signal] 取消信号
  * @param {number} [options.timeoutMs=45000] 单通道超时时间
  * @param {boolean} [options.allowFailover=true] 是否在首选通道失败时自动切换另一通道
@@ -369,15 +453,25 @@ export async function generateImageWithBalancer(options = {}) {
   // 确定主通道与备用通道的尝试顺序
   let providerQueue = [];
 
-  if (userPreference === "cloudflare") {
+  if (userPreference === "gemini") {
+    providerQueue = allowFailover
+      ? ["gemini", ...(cfReady ? ["cloudflare"] : []), "pollinations"]
+      : ["gemini"];
+  } else if (userPreference === "cloudflare") {
     providerQueue = cfReady && allowFailover ? ["cloudflare", "pollinations"] : ["cloudflare"];
   } else if (userPreference === "pollinations") {
     providerQueue = cfReady && allowFailover ? ["pollinations", "cloudflare"] : ["pollinations"];
   } else {
-    // auto 模式：如果有 CF，则在 Cloudflare 与 Pollinations 间轮询均衡
-    if (cfReady) {
-      const pickFirst = (roundRobinCounter++) % 2 === 0 ? "cloudflare" : "pollinations";
-      providerQueue = pickFirst === "cloudflare" ? ["cloudflare", "pollinations"] : ["pollinations", "cloudflare"];
+    // auto 模式：如果有 Gemini 或 CF，则优先高质量通道
+    const geminiReady = isGeminiConfigured();
+    const primaryCandidates = [];
+    if (geminiReady) primaryCandidates.push("gemini");
+    if (cfReady) primaryCandidates.push("cloudflare");
+
+    if (primaryCandidates.length > 0) {
+      const pick = primaryCandidates[(roundRobinCounter++) % primaryCandidates.length];
+      const others = primaryCandidates.filter(p => p !== pick);
+      providerQueue = [pick, ...others, "pollinations"];
     } else {
       providerQueue = ["pollinations"];
     }
@@ -400,7 +494,9 @@ export async function generateImageWithBalancer(options = {}) {
       }
 
       let result;
-      if (targetProvider === "cloudflare") {
+      if (targetProvider === "gemini") {
+        result = await callGeminiImagen(options);
+      } else if (targetProvider === "cloudflare") {
         result = await callCloudflareWorkersAI(options);
       } else {
         result = await callPollinationsAI(options);

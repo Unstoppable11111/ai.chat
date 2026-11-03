@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     style?: string;
     worldview?: string;
     plot?: string;
-    provider?: "auto" | "cloudflare" | "pollinations";
+    provider?: "auto" | "cloudflare" | "pollinations" | "gemini";
     usePlaceholder?: boolean;
   };
   try {
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       useBalancer: true,
       beforeRequest: async () => {
         if (!(await reserveWorkflowUsage(userId, "asset", isAdmin))) {
-          throw Object.assign(new Error("今日图片生成尝试次数已达上限（每日 10 次，失败或取消也计入已发起次数）。"), {
+          throw Object.assign(new Error("今日图片生成尝试次数已达上限（每人每日 3 次）。管理员账户 chen 享有不限量生成特权。"), {
             code: "DAILY_ASSET_QUOTA_EXCEEDED", status: 429,
           });
         }
