@@ -4,19 +4,27 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Bot, X } from "lucide-react";
 import { ChatExperience } from "@/components/chat/chat-experience";
+import { useChat } from "@/components/chat/chat-provider";
 
 export function ChatWidget() {
   const pathname = usePathname();
+  const chat = useChat();
   const [open, setOpen] = useState(false);
+  const [hasUnreadReply, setHasUnreadReply] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState("");
+  const prevLoadingRef = useRef(false);
 
   useEffect(() => {
-    const handler = () => setOpen(true);
+    const handler = () => {
+      setHasUnreadReply(false);
+      setOpen(true);
+    };
     const prepare = (event: Event) => {
       const prompt = (event as CustomEvent<{ prompt?: string }>).detail?.prompt;
       setDraft(typeof prompt === "string" ? prompt.slice(0, 4000) : "");
+      setHasUnreadReply(false);
       setOpen(true);
     };
 
@@ -28,6 +36,21 @@ export function ChatWidget() {
       window.removeEventListener("trigger-ai-chat", prepare);
     };
   }, []);
+
+  useEffect(() => {
+    // 监听 AI 流式结束瞬间：从 loading=true 切换为 false
+    const wasLoading = prevLoadingRef.current;
+    prevLoadingRef.current = chat.loading;
+
+    if (wasLoading && !chat.loading && !open) {
+      const last = chat.messages[chat.messages.length - 1];
+      if (last && last.role === "assistant" && last.content && !last.error) {
+        queueMicrotask(() => {
+          setHasUnreadReply(true);
+        });
+      }
+    }
+  }, [chat.loading, chat.messages, open]);
 
   useEffect(() => {
     if (open) {
@@ -49,14 +72,19 @@ export function ChatWidget() {
           type="button"
           aria-label="打开 AI 助手"
           title="向 JARVIS 提问"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setHasUnreadReply(false);
+            setOpen(true);
+          }}
           className="fixed bottom-5 right-4 z-40 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg hover:shadow-cyan-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white/20 sm:right-6 sm:bottom-6 group"
         >
           <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-cyan-400 group-hover:rotate-6 transition-transform" />
-          <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
-          </span>
+          {hasUnreadReply && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
+            </span>
+          )}
         </button>
       )}
 

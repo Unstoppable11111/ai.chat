@@ -23,8 +23,8 @@ const MODEL_ICONS: Record<string, typeof Sparkles> = {
 };
 
 const MODEL_TAGS: Record<string, string> = {
-  "gemini-3.5-flash-lite": "默认",
-  "gemini-3.8-flash": "日常",
+  "gemini-3.5-flash-lite": "默认极速",
+  "gemini-3.8-flash": "日常推荐",
   "4argon": "站长专享",
 };
 
@@ -106,7 +106,7 @@ export function ModelSelector({
         >
           <div className="px-2.5 py-1.5 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
             <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-              GEMINI CORES // 选择核心
+              STUDIO CORES // 智能核心
             </span>
             <span className="text-[10px] font-mono text-brand-cyan">
               {isAdmin ? "超管权限激活" : "标准账户"}

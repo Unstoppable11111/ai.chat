@@ -17,9 +17,9 @@ export interface ChatModelConfig {
 }
 
 export const CHAT_MODELS: ChatModelConfig[] = [
-  { id: 'gemini-3.5-flash-lite', name: '3.5 Flash-Lite', desc: '轻量极速 · 全员默认' },
-  { id: 'gemini-3.8-flash', name: '3.8 Flash', desc: '平衡推理 · 日常推荐' },
-  { id: '4argon', name: '4 Argon', desc: '旗舰超算 · 深度推导', adminOnly: true },
+  { id: 'gemini-3.5-flash-lite', name: 'CTS-3.5 疾速引擎', desc: '轻量极速响应 · 全员默认' },
+  { id: 'gemini-3.8-flash', name: 'CTS-3.8 认知推理', desc: '深度逻辑平衡 · 日常推荐' },
+  { id: '4argon', name: '4 Argon 旗舰超算', desc: '自研终极核心 · 深度长思维链', adminOnly: true },
 ];
 
 export type ChatModelId = string;

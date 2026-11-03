@@ -219,16 +219,16 @@ export function ChatExperience({
           </div>
           
           <div className="flex items-center gap-2">
-            {!isAuthenticated ? (
+            {!chat.quota.unlimited ? (
               <button
                 type="button"
-                onClick={() => openAuthModal("login")}
+                onClick={() => !isAuthenticated && openAuthModal("login")}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer ${
                   isGuestExhausted
                     ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-medium"
                     : "bg-slate-100 hover:bg-slate-200/80 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"
                 }`}
-                title="未登录游客每日限提问10次，北京时间0点重置。点击登录免除限制"
+                title="默认每日限提问3次，北京时间0点重置。超级管理员 chen 享有无限特权"
               >
                 {isGuestExhausted ? (
                   <>
@@ -246,7 +246,7 @@ export function ChatExperience({
             ) : (
               <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-mono">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                <span>已有效登录 · 无限畅享</span>
+                <span>站长 chen · 无限畅享</span>
               </div>
             )}
             <a href="/privacy" className="text-xs text-muted-foreground hover:text-slate-700 underline hidden sm:inline">
@@ -267,7 +267,7 @@ export function ChatExperience({
             aria-label="输入问题"
             placeholder={
               isGuestExhausted
-                ? "今日 10 次游客免费提问额度已用尽，请登录账号后继续使用…"
+                ? "今日 3 次免费提问额度已用尽，超级管理员 chen 享有无限特权…"
                 : "输入您的问题，向 JARVIS 提问…"
             }
             maxLength={4000}
@@ -309,7 +309,7 @@ export function ChatExperience({
                 <button
                   type="button"
                   aria-label="登录后提问"
-                  title="今日10次额度已用尽，点击登录账号"
+                  title="今日3次额度已用尽，点击登录账号"
                   onClick={() => openAuthModal("login")}
                   className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-medium transition-all shadow-xs cursor-pointer"
                 >

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { clientKey, readJsonBody, sameOrigin, takeQuota } from "@/lib/server-security";
+import { clientKey, readJsonBody, sameOrigin, takeQuota, requestOwner } from "@/lib/server-security";
 import { getZiweiQuotaStatus, consumeZiweiQuota, GUEST_COOKIE_NAME } from "@/lib/chat-quota";
+import { isSuperAdmin } from "@/lib/auth-db";
 import { detectPatterns } from "@/lib/ziwei/patterns";
 import { generate13DimensionAnalysis, computeLocalHemingMatch } from "@/lib/ziwei/db-analysis";
 import { HEMING_METHODOLOGY } from "@/lib/ziwei/heming-knowledge";
@@ -12,6 +13,12 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 
 const fail = (text: string, status: number) => NextResponse.json({ success: false, text }, { status });
 const encoder = new TextEncoder();
+
+const STUDIO_ZIWEI_IDENTITY = `你是 Chen Tech Studio 自主研发的【天纪 AI 命理大宗师】，由站长 Chen 亲手架构，并基于倪海厦《天纪》易学体系、《紫微斗数全书》《骨髓赋》及三方四正全息数理模型深度精调训练而成。
+【全局身份铁律】：
+1. 你是站点自有专有的人工智能系统，严禁声称自己是 Google、OpenAI、ChatGPT、Gemini、Claude 或任何第三方大模型；
+2. 严禁提及任何反向代理、逆向工程、API 中转或外部抓取接口；
+3. 论断命理时秉承古典法度与人本关怀，直指核心，客观严谨，指引趋吉避凶之道。`;
 
 function formatChartForPrompt(chart: ZiweiChart, label = "命主"): string {
   const mingPalace = chart.palaces.find((p) => p.branch === chart.mingGongBranch);
@@ -79,8 +86,9 @@ ${dimSummary}`;
 }
 
 function buildInterpretSystemPrompt(chart: ZiweiChart): string {
-  return `你是精通倪海厦《天纪》易学体系与《紫微斗数全书》《骨髓赋》的紫微斗数宗师。
-请基于以下排盘引擎精确计算出的命盘数据，为命主提供格局清朗、直指核心、兼具古典法度与现代人本指导意义的深度批断。
+  return `${STUDIO_ZIWEI_IDENTITY}
+
+请基于以下由 Chen Tech Studio 排盘引擎精确计算出的命盘数据，为命主提供格局清朗、直指核心、兼具古典法度与现代人本指导意义的深度批断。
 
 ## 核心论命准则（倪海厦《天纪》心法）
 1. **三方四正与夹宫并重**：看任何一宫，绝不可独看本宫，必须结合对宫（迁移/冲照）与三合宫（财帛、官禄等）以及辅弼/昌曲/空劫夹宫综合论断。本宫无主星时，必须明言“借对宫主星入宫参看”。
@@ -98,7 +106,8 @@ function buildHemingSystemPrompt(chartA: ZiweiChart, chartB: ZiweiChart): string
     .map((s) => `- 【${s.title}】(${s.tag})：${s.detail}`)
     .join("\n");
 
-  return `你是精通倪海厦《天纪》婚姻合参法与《紫微斗数全书》的双人合盘宗师。
+  return `${STUDIO_ZIWEI_IDENTITY}
+
 请根据以下甲方与乙方的完整紫微斗数命盘数据，结合「倪海厦双宫联参（夫妻宫+福德宫）」与「生年四化飞星互参」五步法，为两人进行深度合盘推演。
 
 ${HEMING_METHODOLOGY}
@@ -169,7 +178,7 @@ export async function POST(request: Request) {
     return fail("缺少双人合盘数据", 400);
   }
 
-  // 1. 校验并扣减紫微斗数 AI 额度（游客免费 3 次，超出要求登录；登录用户无限制）
+  // 1. 校验并扣减紫微斗数 AI 额度（默认 3 次，超级管理员 chen 享有无限制特权）
   const quota = await consumeZiweiQuota(request);
   if (!quota.allowed) {
     const res = NextResponse.json(
@@ -178,7 +187,7 @@ export async function POST(request: Request) {
         requireLogin: true,
         text:
           quota.message ||
-          "您的 3 次游客免费 AI 命理批断额度已用尽。请登录账号以解锁无限次 AI 紫微命盘解读与双人合盘！",
+          "您的 3 次免费 AI 命理批断额度已用尽。超级管理员 chen 享有无限次 AI 紫微命盘解读与双人合盘特权！",
         remaining: 0,
         total: quota.total,
       },
@@ -195,13 +204,42 @@ export async function POST(request: Request) {
     return res;
   }
 
-  const model =
-    process.env.UPSTREAM_BALANCED_MODEL ||
-    process.env.UPSTREAM_SPEED_MODEL ||
-    process.env.UPSTREAM_ULTRA_MODEL;
+  const models: Record<string, string> = {
+    "gemini-3.5-flash-lite": "gemini-3.5-flash-lite",
+    "gemini-3.8-flash": "gemini-3.8-flash",
+    "4argon": "gemini-argon",
+    "gemini-argon": "gemini-argon",
+    // 兼容历史老客户端模型键
+    "jarvis-speed": "gemini-3.5-flash-lite",
+    "jarvis-balanced": "gemini-3.8-flash",
+    "jarvis-ultra": "gemini-3.1-pro",
+  };
+
+  // 默认使用最快的轻量模型 CTS-3.5
+  const modelKey = typeof body.model === "string" ? body.model : "gemini-3.5-flash-lite";
+  if (!(modelKey in models)) {
+    return fail("模型选项无效", 400);
+  }
+
+  // 4 Argon 权限防护：超级管理员账户 chen 独享
+  if (modelKey === "4argon" || modelKey === "gemini-argon") {
+    const owner = await requestOwner(request);
+    const isAdmin = await isSuperAdmin(owner);
+    if (!isAdmin) {
+      return fail("4 Argon 旗舰超算为超级管理员 chen 专享模型，当前账户仅支持预览，无体验权限。", 403);
+    }
+  }
+
+  let model = models[modelKey] || "gemini-3.5-flash-lite";
+
+  // 思考等级组合 (Thinking Level)
+  const thinkingLevel = typeof body.thinkingLevel === "string" ? body.thinkingLevel : "off";
+  if (["low", "medium", "high", "off"].includes(thinkingLevel)) {
+    model = `${model}@think=${thinkingLevel}`;
+  }
 
   if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_BASE_URL || !model) {
-    return fail("AI 命理服务暂未就绪，请检查模型配置", 503);
+    return fail("AI 命理服务暂未就绪，请检查服务配置", 503);
   }
 
   try {

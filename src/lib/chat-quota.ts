@@ -2,11 +2,12 @@ import { createHash, randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2/promise";
 import { getDbPool } from "./db";
 import { sessionToken, verifySession, clientKey } from "./server-security";
+import { isSuperAdmin } from "./auth-db";
 
 // 内存降级存储（针对无数据库环境或数据库偶发闪断）
 const memoryQuotaStore = new Map<string, { used: number; expiresAt: number }>();
 
-export const GUEST_CHAT_DAILY_LIMIT = 10;
+export const GUEST_CHAT_DAILY_LIMIT = 3;
 export const GUEST_ZIWEI_LIMIT = 3;
 export const GUEST_COOKIE_NAME = "studio_guest_token";
 
@@ -180,14 +181,15 @@ export type ChatQuotaStatus = {
 export async function getChatQuotaStatus(request: Request): Promise<ChatQuotaStatus> {
   const token = sessionToken(request);
   const userId = await verifySession(token);
+  const isAdmin = await isSuperAdmin(userId);
 
-  if (userId) {
+  if (isAdmin) {
     return {
       authenticated: true,
       unlimited: true,
       total: GUEST_CHAT_DAILY_LIMIT,
       remaining: Infinity,
-      resetTime: "北京时间 00:00:00",
+      resetTime: "超级管理员无限畅享",
     };
   }
 
@@ -196,7 +198,7 @@ export async function getChatQuotaStatus(request: Request): Promise<ChatQuotaSta
   const remaining = Math.max(0, GUEST_CHAT_DAILY_LIMIT - used);
 
   return {
-    authenticated: false,
+    authenticated: Boolean(userId),
     unlimited: false,
     total: GUEST_CHAT_DAILY_LIMIT,
     used,
@@ -221,15 +223,16 @@ export type ConsumeChatQuotaResult = {
 
 /**
  * 校验并扣减当前客户端提问额度
- * 1. 登录用户经过有效验证：直接放行
- * 2. 游客按每日 10 次限制（北京时间 0 点重置）：超出则要求登录
+ * 1. 仅超级管理员 chen 享有无限制特权
+ * 2. 普通用户与游客按每日 3 次限制（北京时间 0 点重置）：超出则提示限额或要求登录
  */
 export async function consumeChatQuota(request: Request): Promise<ConsumeChatQuotaResult> {
   const token = sessionToken(request);
   const userId = await verifySession(token);
+  const isAdmin = await isSuperAdmin(userId);
 
-  // 1. 必须是有效登录用户才免除游客限额
-  if (userId) {
+  // 1. 超级管理员 chen 享有不限量特权
+  if (isAdmin) {
     return {
       allowed: true,
       authenticated: true,
@@ -239,7 +242,7 @@ export async function consumeChatQuota(request: Request): Promise<ConsumeChatQuo
     };
   }
 
-  // 2. 游客每日配额扣减
+  // 2. 游客与普通用户每日配额扣减
   const { key, guestTokenToSet } = getGuestIdentifierKey(request);
   const ttlMs = getMsUntilNextBeijingMidnight();
 
@@ -249,20 +252,22 @@ export async function consumeChatQuota(request: Request): Promise<ConsumeChatQuo
   if (!success) {
     return {
       allowed: false,
-      authenticated: false,
-      requireLogin: true,
+      authenticated: Boolean(userId),
+      requireLogin: !userId,
       total: GUEST_CHAT_DAILY_LIMIT,
       used,
       remaining: 0,
       resetTime: "北京时间 00:00:00",
       guestTokenToSet,
-      message: "今日游客免费提问额度（10次）已用尽，北京时间次日0点自动重置。请登录账号后继续使用！",
+      message: userId
+        ? "今日免费提问额度（3次）已用尽，北京时间次日0点自动重置。超级管理员 chen 享有无限制畅享特权。"
+        : "今日游客免费提问额度（3次）已用尽，北京时间次日0点自动重置。请登录账号后继续使用！",
     };
   }
 
   return {
     allowed: true,
-    authenticated: false,
+    authenticated: Boolean(userId),
     total: GUEST_CHAT_DAILY_LIMIT,
     used,
     remaining,
@@ -288,19 +293,20 @@ function getZiweiGuestIdentifierKey(request: Request): { key: string; guestToken
 }
 
 /**
- * 查询紫微斗数 AI 解读/合盘额度状态（游客免费 3 次，登录后不限次数）
+ * 查询紫微斗数 AI 解读/合盘额度状态（默认 3 次，超管 chen 不限次数）
  */
 export async function getZiweiQuotaStatus(request: Request): Promise<ChatQuotaStatus> {
   const token = sessionToken(request);
   const userId = await verifySession(token);
+  const isAdmin = await isSuperAdmin(userId);
 
-  if (userId) {
+  if (isAdmin) {
     return {
       authenticated: true,
       unlimited: true,
       total: GUEST_ZIWEI_LIMIT,
       remaining: -1,
-      resetTime: "登录用户无限畅享",
+      resetTime: "超级管理员无限畅享",
     };
   }
 
@@ -309,24 +315,25 @@ export async function getZiweiQuotaStatus(request: Request): Promise<ChatQuotaSt
   const remaining = Math.max(0, GUEST_ZIWEI_LIMIT - used);
 
   return {
-    authenticated: false,
+    authenticated: Boolean(userId),
     unlimited: false,
     total: GUEST_ZIWEI_LIMIT,
     used,
     remaining,
-    resetTime: "登录解锁无限次",
+    resetTime: userId ? "普通账户限3次 · 超管无限" : "登录解锁更多功能",
     guestTokenToSet,
   };
 }
 
 /**
- * 校验并扣减紫微斗数 AI 额度（游客免费 3 次，超出要求登录；登录用户直接放行）
+ * 校验并扣减紫微斗数 AI 额度（默认 3 次；超级管理员 chen 享有无限制特权）
  */
 export async function consumeZiweiQuota(request: Request): Promise<ConsumeChatQuotaResult> {
   const token = sessionToken(request);
   const userId = await verifySession(token);
+  const isAdmin = await isSuperAdmin(userId);
 
-  if (userId) {
+  if (isAdmin) {
     return {
       allowed: true,
       authenticated: true,
@@ -337,7 +344,7 @@ export async function consumeZiweiQuota(request: Request): Promise<ConsumeChatQu
   }
 
   const { key, guestTokenToSet } = getZiweiGuestIdentifierKey(request);
-  const ttlMs = 30 * 24 * 60 * 60 * 1000; // 30天有效期，累计免费3次后需登录
+  const ttlMs = 30 * 24 * 60 * 60 * 1000; // 30天有效期，累计免费3次后需超管特权
 
   const { success, used } = await consumeQuota(key, GUEST_ZIWEI_LIMIT, ttlMs);
   const remaining = Math.max(0, GUEST_ZIWEI_LIMIT - used);
@@ -345,24 +352,26 @@ export async function consumeZiweiQuota(request: Request): Promise<ConsumeChatQu
   if (!success) {
     return {
       allowed: false,
-      authenticated: false,
-      requireLogin: true,
+      authenticated: Boolean(userId),
+      requireLogin: !userId,
       total: GUEST_ZIWEI_LIMIT,
       used,
       remaining: 0,
-      resetTime: "登录解锁无限次",
+      resetTime: "超管 chen 享有无限特权",
       guestTokenToSet,
-      message: "游客免费 AI 解盘额度（3次）已用尽，请登录账号后解锁无限次 AI 深度批断与合盘分析！",
+      message: userId
+        ? "您的免费 AI 命理批断额度（3次）已用尽。超级管理员 chen 享有无限次 AI 批断特权。"
+        : "游客免费 AI 解盘额度（3次）已用尽，请登录账号。超级管理员 chen 享有无限次特权！",
     };
   }
 
   return {
     allowed: true,
-    authenticated: false,
+    authenticated: Boolean(userId),
     total: GUEST_ZIWEI_LIMIT,
     used,
     remaining,
-    resetTime: "登录解锁无限次",
+    resetTime: "超管 chen 享有无限特权",
     guestTokenToSet,
   };
 }

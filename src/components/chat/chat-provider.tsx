@@ -48,11 +48,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [model, setModel] = useState("gemini-3.5-flash-lite");
   const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevelId>("off");
   const [storageError, setStorageError] = useState("");
+  const isAdmin = Boolean(
+    user && (user.username?.toLowerCase() === "chen" || user.username?.toLowerCase().startsWith("chen"))
+  );
   const [quota, setQuota] = useState<ChatQuota>({
     authenticated: !!user?.id,
-    unlimited: !!user?.id,
-    remaining: 10,
-    total: 10,
+    unlimited: isAdmin,
+    remaining: 3,
+    total: 3,
     resetTime: "北京时间 00:00:00",
     loading: true,
   });
@@ -69,8 +72,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setQuota({
           authenticated: !!data.authenticated,
           unlimited: !!data.unlimited,
-          remaining: typeof data.remaining === "number" ? data.remaining : 10,
-          total: data.total || 10,
+          remaining: typeof data.remaining === "number" ? data.remaining : 3,
+          total: data.total || 3,
           resetTime: data.resetTime || "北京时间 00:00:00",
           loading: false,
         });
@@ -92,8 +95,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           setQuota({
             authenticated: !!data.authenticated,
             unlimited: !!data.unlimited,
-            remaining: typeof data.remaining === "number" ? data.remaining : 10,
-            total: data.total || 10,
+            remaining: typeof data.remaining === "number" ? data.remaining : 3,
+            total: data.total || 3,
             resetTime: data.resetTime || "北京时间 00:00:00",
             loading: false,
           });

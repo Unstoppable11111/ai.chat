@@ -29,11 +29,16 @@ function loadChatQuotaModule(customVerifySession = null) {
     },
     verifySession: async (token) => {
       if (customVerifySession) return customVerifySession(token);
+      if (token === "admin-session-token") return "chen";
       return token === "valid-user-token" ? "user-mock-id" : null;
     },
     clientKey: (req) => {
       return req.headers.get("x-forwarded-for") || "ip-mock-client";
     },
+  };
+
+  const mockAuthDb = {
+    isSuperAdmin: async (uid) => uid === "chen" || uid === "admin-user-id",
   };
 
   const sandbox = {
@@ -42,6 +47,7 @@ function loadChatQuotaModule(customVerifySession = null) {
     require: (id) => {
       if (id === "./db") return mockDb;
       if (id === "./server-security") return mockServerSecurity;
+      if (id === "./auth-db") return mockAuthDb;
       return require(id);
     },
     Intl,
@@ -76,7 +82,7 @@ test("getMsUntilNextBeijingMidnight returns accurate TTL to next 00:00:00", () =
   assert.ok(ttl <= 24 * 60 * 60 * 1000, "TTL must not exceed 24 hours");
 });
 
-test("consumeChatQuota restricts guest to 10 questions per day and requires login on 11th", async () => {
+test("consumeChatQuota restricts guest to 3 questions per day and requires login on 4th", async () => {
   const {
     GUEST_CHAT_DAILY_LIMIT,
     GUEST_COOKIE_NAME,
@@ -86,6 +92,7 @@ test("consumeChatQuota restricts guest to 10 questions per day and requires logi
   } = loadChatQuotaModule();
 
   resetMemoryQuotaStore();
+  assert.equal(GUEST_CHAT_DAILY_LIMIT, 3);
 
   const testGuestToken = "test-guest-device-unique-token-999";
   const mockReq = new Request("http://localhost:3000/api-chat-backend", {
@@ -95,7 +102,7 @@ test("consumeChatQuota restricts guest to 10 questions per day and requires logi
     },
   });
 
-  // 前 10 次提问必须全部成功，remaining 依次从 9 递减到 0
+  // 前 3 次提问必须全部成功，remaining 依次从 2 递减到 0
   for (let i = 1; i <= GUEST_CHAT_DAILY_LIMIT; i++) {
     const result = await consumeChatQuota(mockReq);
     assert.equal(result.allowed, true, `Attempt #${i} should be allowed`);
@@ -106,36 +113,36 @@ test("consumeChatQuota restricts guest to 10 questions per day and requires logi
   // 状态查询应显示 0 次可用
   const status = await getChatQuotaStatus(mockReq);
   assert.equal(status.remaining, 0, "Guest remaining quota should be 0");
-  assert.equal(status.used, 10, "Guest used quota should be 10");
+  assert.equal(status.used, 3, "Guest used quota should be 3");
 
-  // 第 11 次提问必须被拦截，并返回 requireLogin
+  // 第 4 次提问必须被拦截，并返回 requireLogin
   const blockedResult = await consumeChatQuota(mockReq);
-  assert.equal(blockedResult.allowed, false, "Attempt #11 must be blocked");
+  assert.equal(blockedResult.allowed, false, "Attempt #4 must be blocked");
   assert.equal(blockedResult.requireLogin, true, "Must require login");
   assert.equal(blockedResult.remaining, 0);
   assert.ok(blockedResult.message.includes("登录"), "Message should mention login");
 });
 
-test("valid authenticated users bypass guest daily limit completely", async () => {
+test("super admin chen bypasses daily limit completely", async () => {
   const { consumeChatQuota, getChatQuotaStatus } = loadChatQuotaModule();
 
-  // 携带合法有效的 session token
-  const authedReq = new Request("http://localhost:3000/api-chat-backend", {
+  // 携带管理员 session token
+  const adminReq = new Request("http://localhost:3000/api-chat-backend", {
     headers: {
-      cookie: "studio_session=valid-user-token",
+      cookie: "studio_session=admin-session-token",
       "x-forwarded-for": "192.168.1.100",
     },
   });
 
-  // 连续提问 15 次，全部放行不受 10 次限制
+  // 连续提问 15 次，全部放行不受限制
   for (let i = 1; i <= 15; i++) {
-    const res = await consumeChatQuota(authedReq);
-    assert.equal(res.allowed, true, "Authenticated user should be allowed");
+    const res = await consumeChatQuota(adminReq);
+    assert.equal(res.allowed, true, "Super admin user should be allowed");
     assert.equal(res.authenticated, true, "User must be authenticated");
     assert.equal(res.unlimited, true, "User quota should be unlimited");
   }
 
-  const status = await getChatQuotaStatus(authedReq);
+  const status = await getChatQuotaStatus(adminReq);
   assert.equal(status.authenticated, true);
   assert.equal(status.unlimited, true);
 });
@@ -164,16 +171,16 @@ test("independent guests have separate daily quotas", async () => {
     },
   });
 
-  // 访客 A 提问 3 次
-  for (let i = 0; i < 3; i++) {
+  // 访客 A 提问 2 次
+  for (let i = 0; i < 2; i++) {
     await consumeChatQuota(guestAReq);
   }
   const statusA = await getChatQuotaStatus(guestAReq);
-  assert.equal(statusA.remaining, 7);
+  assert.equal(statusA.remaining, 1);
 
-  // 访客 B 依然拥有满额 10 次
+  // 访客 B 依然拥有满额 3 次
   const statusB = await getChatQuotaStatus(guestBReq);
-  assert.equal(statusB.remaining, 10);
+  assert.equal(statusB.remaining, 3);
 });
 
 test("consumeZiweiQuota restricts guest to 3 free AI interpretations and requires login on 4th", async () => {
@@ -213,15 +220,15 @@ test("consumeZiweiQuota restricts guest to 3 free AI interpretations and require
   assert.equal(fourthAttempt.requireLogin, true, "4th attempt must require login");
   assert.equal(fourthAttempt.remaining, 0);
 
-  // 已登录用户不受 3 次限制
-  const authedReq = new Request("http://localhost:3000/api-ziwei", {
+  // 超级管理员 chen 不受 3 次限制
+  const adminReq = new Request("http://localhost:3000/api-ziwei", {
     headers: {
-      cookie: "studio_session=valid-user-token",
+      cookie: "studio_session=admin-session-token",
       "x-forwarded-for": "192.168.88.10",
     },
   });
   for (let i = 1; i <= 5; i++) {
-    const authedRes = await consumeZiweiQuota(authedReq);
+    const authedRes = await consumeZiweiQuota(adminReq);
     assert.equal(authedRes.allowed, true);
     assert.equal(authedRes.authenticated, true);
     assert.equal(authedRes.unlimited, true);

@@ -32,6 +32,9 @@ import {
   type TopicKey,
 } from "@/lib/ziwei/db-analysis";
 import { ZiweiChartBoard } from "@/components/ziwei/ziwei-chart-board";
+import { ModelSelector } from "@/components/chat/model-selector";
+import { ThinkingSelector } from "@/components/chat/thinking-selector";
+import type { ThinkingLevelId } from "@/components/chat/chat-types";
 import {
   ZiweiKnowledgeView,
   ZiweiClassicsLibraryView,
@@ -203,6 +206,8 @@ export function ZiweiStudio() {
   const [aiInput, setAiInput] = useState<string>("");
   const [aiStreaming, setAiStreaming] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [aiModel, setAiModel] = useState<string>("gemini-3.5-flash-lite");
+  const [aiThinkingLevel, setAiThinkingLevel] = useState<ThinkingLevelId>("off");
   const abortRef = useRef<AbortController | null>(null);
 
   // 双人合盘状态
@@ -357,6 +362,8 @@ export function ZiweiStudio() {
             mode: "interpret",
             chart,
             messages: nextMessages,
+            model: aiModel,
+            thinkingLevel: aiThinkingLevel,
           }),
         });
 
@@ -426,7 +433,7 @@ export function ZiweiStudio() {
         setAiStreaming(false);
       }
     },
-    [chart, aiStreaming, isAuthenticated, quota, aiMessages, openAuthModal]
+    [chart, aiStreaming, isAuthenticated, quota, aiMessages, openAuthModal, aiModel, aiThinkingLevel]
   );
 
   // 发送双人合盘 AI 批断请求
@@ -458,6 +465,8 @@ export function ZiweiStudio() {
             chartA: chart,
             chartB: chartB,
             messages: nextMessages,
+            model: aiModel,
+            thinkingLevel: aiThinkingLevel,
           }),
         });
 
@@ -517,7 +526,7 @@ export function ZiweiStudio() {
         setHemingStreaming(false);
       }
     },
-    [chart, chartB, hemingStreaming, isAuthenticated, quota, hemingMessages, openAuthModal]
+    [chart, chartB, hemingStreaming, isAuthenticated, quota, hemingMessages, openAuthModal, aiModel, aiThinkingLevel]
   );
 
   // 载入名人案例
@@ -1201,6 +1210,32 @@ export function ZiweiStudio() {
                       </div>
                     )}
 
+                    {/* 模型引擎与思考等级控制栏 */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <ModelSelector selectedModel={aiModel} onSelect={setAiModel} disabled={aiStreaming} />
+                        <ThinkingSelector selectedLevel={aiThinkingLevel} onSelect={setAiThinkingLevel} disabled={aiStreaming} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {quota.unlimited ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 text-xs font-mono">
+                            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>站长特权 · 无限批断</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => !isAuthenticated && openAuthModal("login")}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 text-xs font-medium transition cursor-pointer"
+                            title="默认免费3次，登录账号后解锁无限畅享"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            <span>免费批断: {quota.remaining}/{quota.total}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
                     {/* 自由追问输入框 */}
                     <form
                       onSubmit={(e) => {
@@ -1662,6 +1697,32 @@ export function ZiweiStudio() {
                   ))}
                 </div>
               )}
+
+              {/* 双人合盘模型与思考控制栏 */}
+              <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <ModelSelector selectedModel={aiModel} onSelect={setAiModel} disabled={hemingStreaming} />
+                  <ThinkingSelector selectedLevel={aiThinkingLevel} onSelect={setAiThinkingLevel} disabled={hemingStreaming} />
+                </div>
+                <div className="flex items-center gap-2">
+                  {quota.unlimited ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 text-xs font-mono">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>站长特权 · 无限合盘</span>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => !isAuthenticated && openAuthModal("login")}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 text-xs font-medium transition cursor-pointer"
+                      title="默认免费3次，登录账号后解锁无限畅享"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <span>免费合盘: {quota.remaining}/{quota.total}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               <form
                 onSubmit={(e) => {
