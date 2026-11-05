@@ -204,15 +204,18 @@ export async function POST(request: Request) {
     return res;
   }
 
+  // 上游 gemini-3.8-flash / gemini-3.1-pro 通道实测故障（超时或返回机械拒答模板），
+  // 默认熔断到实测稳定的 gemini-3.5-flash-lite；通道恢复后可通过 CHAT_BALANCED_UPSTREAM 环境变量切回，无需改代码。
+  const balancedUpstream = process.env.CHAT_BALANCED_UPSTREAM || "gemini-3.5-flash-lite";
   const models: Record<string, string> = {
     "gemini-3.5-flash-lite": "gemini-3.5-flash-lite",
-    "gemini-3.8-flash": "gemini-3.8-flash",
+    "gemini-3.8-flash": balancedUpstream,
     "4argon": "gemini-argon",
     "gemini-argon": "gemini-argon",
     // 兼容历史老客户端模型键
     "jarvis-speed": "gemini-3.5-flash-lite",
-    "jarvis-balanced": "gemini-3.8-flash",
-    "jarvis-ultra": "gemini-3.1-pro",
+    "jarvis-balanced": balancedUpstream,
+    "jarvis-ultra": balancedUpstream,
   };
 
   // 默认使用最快的轻量模型 CTS-3.5

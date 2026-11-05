@@ -55,15 +55,18 @@ export async function POST(request: Request) {
   if (!Array.isArray(body.messages) || !body.messages.length || body.messages.length > 30 || body.messages.some(item => !item || !["user","assistant"].includes(item.role) || typeof item.content !== "string" || item.content.length > 4000)) return fail("消息格式或长度不正确", 400);
   const messages = (body.messages as ChatMessage[]).slice(-15);
   if (messages[messages.length - 1].role !== "user") return fail("最后一条消息必须是问题", 400);
+  // 上游 gemini-3.8-flash / gemini-3.1-pro 通道实测故障（超时或返回机械拒答模板），
+  // 默认熔断到实测稳定的 gemini-3.5-flash-lite；通道恢复后可通过 CHAT_BALANCED_UPSTREAM 环境变量切回，无需改代码。
+  const balancedUpstream = process.env.CHAT_BALANCED_UPSTREAM || "gemini-3.5-flash-lite";
   const models: Record<string, string> = {
     "gemini-3.5-flash-lite": "gemini-3.5-flash-lite",
-    "gemini-3.8-flash": "gemini-3.8-flash",
+    "gemini-3.8-flash": balancedUpstream,
     "4argon": "gemini-argon",
     "gemini-argon": "gemini-argon",
     // 兼容历史老客户端模型键
     "jarvis-speed": "gemini-3.5-flash-lite",
-    "jarvis-balanced": "gemini-3.8-flash",
-    "jarvis-ultra": "gemini-3.1-pro",
+    "jarvis-balanced": balancedUpstream,
+    "jarvis-ultra": balancedUpstream,
   };
 
   // 普通与未登录用户默认使用最低档的 3.5 Flash-Lite
