@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { motion } from "motion/react";
 import { 
   Activity, 
   ArrowRight, 
@@ -14,6 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
+import { Reveal } from "@/components/shared/reveal";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 
 const emptySubscribe = () => () => {};
 
@@ -75,7 +78,7 @@ export function QuantArenaPreview() {
   return (
     <section className="container-shell py-12 md:py-16">
       {/* 头部标题区 */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+      <Reveal className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-semibold mb-3">
             <Activity className="w-3.5 h-3.5 animate-pulse" />
@@ -91,15 +94,15 @@ export function QuantArenaPreview() {
 
         <Link
           href="/market"
-          className="inline-flex items-center gap-2 self-start md:self-auto px-4 py-2 rounded-xl bg-slate-900 text-white text-xs md:text-sm font-medium hover:bg-slate-800 transition-colors group shadow-sm"
+          className="shimmer-beam inline-flex items-center gap-2 self-start md:self-auto px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs md:text-sm font-medium hover:bg-slate-800 hover:-translate-y-0.5 transition-all group shadow-sm"
         >
           <span>进入完整量化实验室</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
         </Link>
-      </div>
+      </Reveal>
 
       {/* 市场环境脉搏条 */}
-      <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-slate-50 p-4 md:p-5 mb-6 shadow-sm">
+      <Reveal delay={0.05} className="glass-panel rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-slate-50 p-4 md:p-5 mb-6 shadow-sm">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
           <div className="col-span-2 md:col-span-1 border-b md:border-b-0 md:border-r border-slate-200/60 pb-3 md:pb-0">
             <span className="text-xs text-slate-500 font-medium block mb-1">大盘环境周期</span>
@@ -148,120 +151,131 @@ export function QuantArenaPreview() {
             </div>
           </div>
         </div>
-      </div>
+      </Reveal>
 
       {/* 三大策略卡片网格 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {strategies.map((strategy) => {
+        {strategies.map((strategy, idx) => {
           const isSelected = strategy.id === activeStrategy;
           const isAggressive = strategy.id === "aggressive";
           const isBalanced = strategy.id === "balanced";
 
           return (
-            <div
-              key={strategy.id}
-              onClick={() => setActiveStrategy(strategy.id)}
-              className={cn(
-                "rounded-2xl border p-5 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between",
-                isSelected
-                  ? "border-slate-900 bg-white shadow-md ring-1 ring-slate-900"
-                  : "border-slate-200/80 bg-white/70 hover:border-slate-300 hover:bg-white"
-              )}
-            >
-              {/* 顶部标签 */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    {isAggressive ? (
-                      <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200/50 flex items-center justify-center text-rose-600">
-                        <Flame className="w-4 h-4" />
+            <Reveal key={strategy.id} delay={idx * 0.08}>
+              <SpotlightCard
+                onClick={() => setActiveStrategy(strategy.id)}
+                className={cn(
+                  "h-full rounded-2xl border p-5 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between hover:-translate-y-1",
+                  isSelected
+                    ? "border-slate-900 bg-white shadow-lg ring-1 ring-slate-900"
+                    : "border-slate-200/80 bg-white/75 hover:border-slate-300 hover:bg-white hover:shadow-md"
+                )}
+              >
+                {isSelected && (
+                  <motion.div
+                    layoutId="quant-strategy-top-bar"
+                    className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-cyan via-emerald-500 to-brand-violet"
+                    transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                  />
+                )}
+                {/* 顶部标签 */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {isAggressive ? (
+                        <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200/50 flex items-center justify-center text-rose-600">
+                          <Flame className="w-4 h-4" />
+                        </div>
+                      ) : isBalanced ? (
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200/50 flex items-center justify-center text-blue-600">
+                          <Zap className="w-4 h-4" />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/50 flex items-center justify-center text-emerald-600">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 leading-tight">
+                          {strategy.name}
+                        </h3>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {strategy.badge}
+                        </span>
                       </div>
-                    ) : isBalanced ? (
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200/50 flex items-center justify-center text-blue-600">
-                        <Zap className="w-4 h-4" />
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/50 flex items-center justify-center text-emerald-600">
-                        <ShieldCheck className="w-4 h-4" />
-                      </div>
+                    </div>
+
+                    {isSelected && (
+                      <motion.span
+                        layoutId="quant-strategy-pill"
+                        className="px-2 py-0.5 rounded-full bg-slate-900 text-[10px] text-white font-medium"
+                      >
+                        当前选中
+                      </motion.span>
                     )}
+                  </div>
+
+                  {/* 核心收益数据 */}
+                  <div className="my-4 py-3 px-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-baseline justify-between">
                     <div>
-                      <h3 className="text-base font-bold text-slate-900 leading-tight">
-                        {strategy.name}
-                      </h3>
-                      <span className="text-[11px] text-slate-500 font-medium">
-                        {strategy.badge}
+                      <span className="text-[11px] text-slate-500 block mb-0.5">累计真实收益率</span>
+                      <span
+                        className={cn(
+                          "text-2xl font-extrabold tracking-tight",
+                          strategy.total_return_pct >= 0 ? "text-rose-600" : "text-emerald-600"
+                        )}
+                      >
+                        {strategy.total_return_pct >= 0 ? "+" : ""}
+                        {strategy.total_return_pct.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">夏普比率</span>
+                      <span className="text-base font-bold text-slate-800">
+                        {strategy.sharpe_ratio.toFixed(2)}
                       </span>
                     </div>
                   </div>
 
-                  {isSelected && (
-                    <span className="px-2 py-0.5 rounded-full bg-slate-900 text-[10px] text-white font-medium">
-                      当前选中
-                    </span>
-                  )}
-                </div>
+                  {/* 关键指标概览 */}
+                  <div className="grid grid-cols-3 gap-2 text-xs py-2 border-t border-b border-slate-100 mb-3">
+                    <div>
+                      <span className="text-slate-500 block text-[11px]">胜率</span>
+                      <span className="font-semibold text-slate-800">
+                        {strategy.win_rate_pct.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[11px]">最大回撤</span>
+                      <span className="font-semibold text-emerald-600">
+                        {strategy.max_drawdown_pct.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[11px]">当前仓位</span>
+                      <span className="font-semibold text-slate-800">
+                        {strategy.current_exposure_pct.toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
 
-                {/* 核心收益数据 */}
-                <div className="my-4 py-3 px-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-baseline justify-between">
-                  <div>
-                    <span className="text-[11px] text-slate-500 block mb-0.5">累计真实收益率</span>
-                    <span
-                      className={cn(
-                        "text-2xl font-extrabold tracking-tight",
-                        strategy.total_return_pct >= 0 ? "text-rose-600" : "text-emerald-600"
-                      )}
-                    >
-                      {strategy.total_return_pct >= 0 ? "+" : ""}
-                      {strategy.total_return_pct.toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[11px] text-slate-500 block mb-0.5">夏普比率</span>
-                    <span className="text-base font-bold text-slate-800">
-                      {strategy.sharpe_ratio.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 关键指标概览 */}
-                <div className="grid grid-cols-3 gap-2 text-xs py-2 border-t border-b border-slate-100 mb-3">
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">胜率</span>
-                    <span className="font-semibold text-slate-800">
-                      {strategy.win_rate_pct.toFixed(0)}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">最大回撤</span>
-                    <span className="font-semibold text-emerald-600">
-                      {strategy.max_drawdown_pct.toFixed(2)}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">当前仓位</span>
-                    <span className="font-semibold text-slate-800">
-                      {strategy.current_exposure_pct.toFixed(0)}%
+                  {/* 当前重仓龙头 */}
+                  <div className="text-xs flex items-center justify-between text-slate-600 py-1">
+                    <span>当前持仓聚焦：</span>
+                    <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                      {strategy.top_stock} ({strategy.top_stock_code})
                     </span>
                   </div>
                 </div>
 
-                {/* 当前重仓龙头 */}
-                <div className="text-xs flex items-center justify-between text-slate-600 py-1">
-                  <span>当前持仓聚焦：</span>
-                  <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                    {strategy.top_stock} ({strategy.top_stock_code})
-                  </span>
+                {/* 底部策略理念 */}
+                <div className="pt-3 border-t border-slate-100 mt-2">
+                  <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                    {strategy.reason}
+                  </p>
                 </div>
-              </div>
-
-              {/* 底部策略理念 */}
-              <div className="pt-3 border-t border-slate-100 mt-2">
-                <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                  {strategy.reason}
-                </p>
-              </div>
-            </div>
+              </SpotlightCard>
+            </Reveal>
           );
         })}
       </div>

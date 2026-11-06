@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Reveal } from "@/components/shared/reveal";
 
 type SectionHeadingProps = {
   eyebrow?: string;
@@ -18,12 +19,15 @@ export function SectionHeading({
   const Heading = level === 1 ? "h1" : "h2";
 
   return (
-    <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <Reveal className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between" distance={16}>
       <div className="max-w-2xl">
         {eyebrow ? (
-          <p className="mb-3 text-xs font-medium uppercase tracking-[0.24em] text-brand-cyan">
-            {eyebrow}
-          </p>
+          <div className="mb-3 inline-flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-brand-cyan">
+              {eyebrow}
+            </p>
+          </div>
         ) : null}
         <Heading className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
           {title}
@@ -35,6 +39,6 @@ export function SectionHeading({
         ) : null}
       </div>
       {action}
-    </div>
+    </Reveal>
   );
 }

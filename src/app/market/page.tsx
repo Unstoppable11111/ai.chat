@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { motion } from "motion/react";
 import {
   Activity,
   ArrowDownRight,
@@ -531,14 +532,21 @@ export default function MarketDashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
                   isActive
-                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-[0_0_18px_rgba(6,182,212,0.35)] border border-cyan-400/40 font-bold"
+                    ? "text-white font-bold"
                     : "text-slate-400 hover:text-white hover:bg-cyan-950/30"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
+                {isActive && (
+                  <motion.span
+                    layoutId="market-main-tab-pill"
+                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 shadow-[0_0_18px_rgba(6,182,212,0.35)] border border-cyan-400/40"
+                    transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                  />
+                )}
+                <Icon className="relative z-10 w-3.5 h-3.5" />
+                <span className="relative z-10">{tab.label}</span>
               </button>
             );
           })}

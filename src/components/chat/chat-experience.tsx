@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { Bot, User, Send, Square, RotateCcw, Sparkles, Bookmark, ExternalLink, BookOpen, LockKeyhole, ShieldCheck } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -73,9 +74,14 @@ export function ChatExperience({
       >
         {/* 空状态欢迎界面 */}
         {!chat.messages.length && (
-          <div className="space-y-4 py-4 sm:py-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-4 py-4 sm:py-6"
+          >
             <div className="text-center space-y-1.5">
-              <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 text-cyan-600 border border-cyan-500/30 mb-1 shadow-2xs">
+              <div className="animate-float-slow inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 text-cyan-600 border border-cyan-500/30 mb-1 shadow-2xs">
                 <Sparkles className="h-5 w-5" />
               </div>
               <h2 className="text-base font-bold text-slate-900">你好，我是 JARVIS</h2>
@@ -86,18 +92,22 @@ export function ChatExperience({
                 "RAG 如何提供可验证的段落引用？",
                 "如何设计安全的工具调用？",
                 "KV cache 为什么影响推理显存？",
-              ].map((text) => (
-                <button
+              ].map((text, idx) => (
+                <motion.button
                   key={text}
                   type="button"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.08 * idx, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ y: -2 }}
                   onClick={() => setInput(text)}
-                  className="rounded-xl border border-slate-200/90 bg-white/80 hover:bg-white hover:border-cyan-500/40 hover:shadow-xs p-3 text-left text-xs font-medium text-slate-700 hover:text-cyan-700 transition-all cursor-pointer"
+                  className="shimmer-beam rounded-xl border border-slate-200/90 bg-white/85 hover:bg-white hover:border-cyan-500/40 hover:shadow-sm p-3 text-left text-xs font-medium text-slate-700 hover:text-cyan-700 transition-all cursor-pointer"
                 >
                   {text}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* 消息气泡列表 */}
@@ -105,8 +115,11 @@ export function ChatExperience({
           const isUser = message.role === "user";
 
           return (
-            <div
+            <motion.div
               key={index}
+              initial={{ opacity: 0, y: 12, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className={`flex items-start gap-2.5 sm:gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
             >
               {/* 头像 */}
@@ -205,7 +218,7 @@ export function ChatExperience({
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           );
         })}
       </div>

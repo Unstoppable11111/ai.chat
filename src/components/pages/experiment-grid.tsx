@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "motion/react";
 import { ExperimentCard } from "@/components/cards/experiment-card";
 import { Reveal } from "@/components/shared/reveal";
 import type { ExperimentCategory, ExperimentEntry } from "@/lib/types";
@@ -93,15 +94,22 @@ export function ExperimentGrid({ items }: ExperimentGridProps) {
                   type="button"
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
+                  className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer ${
                     isSelected
-                      ? "bg-slate-900 text-white shadow-sm font-semibold scale-105"
+                      ? "text-white font-semibold"
                       : "bg-white/70 border border-slate-900/8 text-muted-foreground hover:bg-white hover:text-foreground"
                   }`}
                 >
-                  <span>{filter}</span>
+                  {isSelected && (
+                    <motion.span
+                      layoutId="experiment-filter-pill"
+                      className="absolute inset-0 rounded-full bg-slate-900 shadow-sm"
+                      transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                    />
+                  )}
+                  <span className="relative z-10">{filter}</span>
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                    className={`relative z-10 text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
                       isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
                     }`}
                   >

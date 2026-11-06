@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Command,
   Hand,
@@ -137,22 +138,32 @@ export function SiteHeader() {
             {/* 桌面端居中主导航体系（>= xl 屏幕展示，呼吸感充裕） */}
             <nav className="hidden shrink-0 items-center gap-0.5 xl:flex" aria-label="主导航">
               {navigation
-                .filter((item) => ["/", "/chat", "/workflow", "/projects", "/build-log", "/news"].includes(item.href))
+                .filter((item) =>
+                  ["/", "/chat", "/workflow", "/market", "/projects", "/build-log", "/news"].includes(item.href)
+                )
                 .map((item) => {
-                  const active = pathname === item.href;
+                  const active =
+                    item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "inline-flex shrink-0 whitespace-nowrap justify-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+                        "relative inline-flex shrink-0 whitespace-nowrap justify-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
                         active
-                          ? "bg-slate-900/[0.08] text-foreground font-semibold shadow-2xs"
+                          ? "text-foreground font-semibold"
                           : "text-muted-foreground hover:bg-slate-900/[0.04] hover:text-foreground"
                       )}
                     >
-                      {item.label}
+                      {active && (
+                        <motion.span
+                          layoutId="header-nav-pill"
+                          className="absolute inset-0 rounded-full bg-slate-900/[0.08] border border-slate-900/10 shadow-2xs"
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                      <span className="relative z-10">{item.label}</span>
                     </Link>
                   );
                 })}
@@ -184,8 +195,15 @@ export function SiteHeader() {
                   />
                 </button>
 
+                <AnimatePresence>
                 {experimentsOpen && (
-                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-2xl p-2.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-2xl p-2.5 shadow-2xl z-50"
+                  >
                     <div className="px-2.5 py-1.5 border-b border-slate-100 mb-1.5 flex items-center justify-between">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         高可用工坊与交互空间 (9款)
@@ -408,8 +426,9 @@ export function SiteHeader() {
                         </div>
                       </Link>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
+                </AnimatePresence>
               </div>
             </nav>
 

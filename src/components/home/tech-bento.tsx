@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Terminal, Copy, Check, Code2, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Reveal } from "@/components/shared/reveal";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 
 interface SnippetItem {
   id: string;
@@ -88,7 +90,7 @@ export function TechBento() {
   return (
     <section className="container-shell py-8">
       {/* 模块标头 */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-3 border-b border-slate-900/5">
+      <Reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-3 border-b border-slate-900/5">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-600 border border-cyan-500/20 text-xs font-mono font-medium mb-2">
             <Terminal className="w-3.5 h-3.5 text-cyan-600" />
@@ -109,7 +111,7 @@ export function TechBento() {
           <span>查看全部 65 篇技术白皮书</span>
           <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </Link>
-      </div>
+      </Reveal>
 
       {/* Bento Grid 布局 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -117,60 +119,63 @@ export function TechBento() {
           const isCopied = copiedId === snip.id;
 
           return (
-            <div
+            <Reveal
               key={snip.id}
-              className={cn(
-                "group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/70 backdrop-blur-sm p-4 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/5",
-                index === 0 && "md:col-span-2 lg:col-span-1"
-              )}
+              delay={index * 0.06}
+              className={cn(index === 0 && "md:col-span-2 lg:col-span-1")}
             >
-              <div>
-                {/* 顶部标签 */}
-                <div className="flex items-center justify-between gap-2 mb-2.5">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-[11px] font-mono font-medium text-slate-700 border border-slate-200">
-                    <Code2 className="w-3 h-3 text-cyan-600" />
-                    {snip.category}
-                  </span>
-                  <span className="text-[10px] font-mono text-muted-foreground uppercase">
-                    {snip.tag}
-                  </span>
+              <SpotlightCard
+                enableTilt={false}
+                className="group relative flex h-full flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/75 backdrop-blur-sm p-4 transition-all duration-300 hover:border-cyan-500/35 hover:shadow-lg hover:shadow-cyan-500/5 hover:-translate-y-0.5"
+              >
+                <div>
+                  {/* 顶部标签 */}
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-[11px] font-mono font-medium text-slate-700 border border-slate-200">
+                      <Code2 className="w-3 h-3 text-cyan-600" />
+                      {snip.category}
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                      {snip.tag}
+                    </span>
+                  </div>
+
+                  <h3 className="font-bold text-sm text-slate-900 group-hover:text-cyan-700 transition-colors leading-snug">
+                    {snip.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                    {snip.note}
+                  </p>
+
+                  {/* 代码卡片 */}
+                  <div className="relative mt-3 rounded-xl bg-slate-950 p-3 font-mono text-[11px] text-slate-200 shadow-inner overflow-hidden">
+                    <pre className="whitespace-pre-wrap break-words leading-relaxed overflow-hidden pr-6">
+                      <code>{snip.code}</code>
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(snip.id, snip.code)}
+                      aria-label="复制代码"
+                      className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all cursor-pointer"
+                    >
+                      {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
                 </div>
 
-                <h3 className="font-bold text-sm text-slate-900 group-hover:text-cyan-700 transition-colors leading-snug">
-                  {snip.title}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                  {snip.note}
-                </p>
-
-                {/* 代码卡片 */}
-                <div className="relative mt-3 rounded-xl bg-slate-950 p-3 font-mono text-[11px] text-slate-200 shadow-inner overflow-hidden">
-                  <pre className="whitespace-pre-wrap break-words leading-relaxed overflow-hidden pr-6">
-                    <code>{snip.code}</code>
-                  </pre>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(snip.id, snip.code)}
-                    aria-label="复制代码"
-                    className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-md bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all cursor-pointer"
+                {/* 底部关联文章跳转 */}
+                <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <Link
+                    href={`/build-log/${snip.relatedSlug}`}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-cyan-600 hover:text-cyan-700 transition-colors"
                   >
-                    {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  </button>
+                    <span>阅读深度原理解析</span>
+                    <ArrowUpRight className="w-3 h-3" />
+                  </Link>
+                  <span className="text-[10px] font-mono text-slate-400">RAG READY</span>
                 </div>
-              </div>
-
-              {/* 底部关联文章跳转 */}
-              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
-                <Link
-                  href={`/build-log/${snip.relatedSlug}`}
-                  className="inline-flex items-center gap-1 text-[11px] font-medium text-cyan-600 hover:text-cyan-700 transition-colors"
-                >
-                  <span>阅读深度原理解析</span>
-                  <ArrowUpRight className="w-3 h-3" />
-                </Link>
-                <span className="text-[10px] font-mono text-slate-400">RAG READY</span>
-              </div>
-            </div>
+              </SpotlightCard>
+            </Reveal>
           );
         })}
       </div>

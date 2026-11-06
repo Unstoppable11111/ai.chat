@@ -13,7 +13,7 @@ interface SpotlightCardProps extends HTMLMotionProps<"div"> {
 export function SpotlightCard({
   children,
   className = "",
-  spotlightColor = "rgba(255, 255, 255, 0.08)",
+  spotlightColor = "rgba(14, 165, 233, 0.12)",
   enableTilt = true,
   ...props
 }: SpotlightCardProps) {
@@ -33,8 +33,8 @@ export function SpotlightCard({
     if (enableTilt && !reduceMotion) {
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
-      const rotateX = ((y - centerY) / centerY) * -6; // 最大倾斜 6 度
-      const rotateY = ((x - centerX) / centerX) * 6;
+      const rotateX = ((y - centerY) / centerY) * -4.5; // 柔和 4.5 度物理倾角
+      const rotateY = ((x - centerX) / centerX) * 4.5;
       setTilt({ rotateX, rotateY });
     }
   };
@@ -53,17 +53,25 @@ export function SpotlightCard({
         rotateX: tilt.rotateX,
         rotateY: tilt.rotateY,
       }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      transition={{ type: "spring", stiffness: 280, damping: 22 }}
       style={{ transformStyle: "preserve-3d" }}
       className={`relative overflow-hidden ${className}`}
       {...props}
     >
-      {/* 光束 Spotlight 跟随层 */}
+      {/* 极光双色 Spotlight 跟随光晕层 */}
       <div
         className="pointer-events-none absolute -inset-px transition-opacity duration-500 rounded-[inherit] z-10"
         style={{
           opacity: cursorPos.opacity,
-          background: `radial-gradient(600px circle at ${cursorPos.x}px ${cursorPos.y}px, ${spotlightColor}, transparent 40%)`,
+          background: `radial-gradient(520px circle at ${cursorPos.x}px ${cursorPos.y}px, ${spotlightColor}, rgba(139, 92, 246, 0.05) 35%, transparent 65%)`,
+        }}
+      />
+      {/* 边缘高光折射层 */}
+      <div
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500 rounded-[inherit] z-10"
+        style={{
+          opacity: cursorPos.opacity,
+          boxShadow: "inset 0 0 0 1px rgba(14, 165, 233, 0.22)",
         }}
       />
       {children}

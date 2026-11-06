@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "motion/react";
 import { Search, FolderGit2, Layers } from "lucide-react";
 import { ProjectCard } from "@/components/cards/project-card";
 import { Reveal } from "@/components/shared/reveal";
@@ -68,13 +69,20 @@ export function ProjectsExplorer({ items }: ProjectsExplorerProps) {
                   key={type}
                   type="button"
                   onClick={() => setActiveType(type)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
+                  className={`relative px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer ${
                     isSelected
-                      ? "bg-slate-900 text-white shadow-sm font-semibold scale-105"
+                      ? "text-white font-semibold"
                       : "bg-white/70 border border-slate-900/8 text-muted-foreground hover:bg-white hover:text-foreground"
                   }`}
                 >
-                  {type}
+                  {isSelected && (
+                    <motion.span
+                      layoutId="projects-filter-pill"
+                      className="absolute inset-0 rounded-full bg-slate-900 shadow-sm"
+                      transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                    />
+                  )}
+                  <span className="relative z-10">{type}</span>
                 </button>
               );
             })}

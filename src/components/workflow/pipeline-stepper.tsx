@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion } from "motion/react";
 import {
   CheckCircle2,
   Circle,
@@ -73,8 +74,22 @@ export function PipelineStepper({
       </div>
 
       <div className="relative mt-4 space-y-4">
-        {/* 连接竖线 */}
-        <div className="absolute left-[17px] top-3 bottom-3 w-0.5 bg-slate-100 -z-0" />
+        {/* 连接竖线与动态进度填充 */}
+        <div className="absolute left-[17px] top-3 bottom-3 w-0.5 bg-slate-100 -z-0 overflow-hidden rounded-full">
+          <motion.div
+            className="w-full bg-gradient-to-b from-emerald-500 via-cyan-500 to-blue-500 origin-top"
+            initial={{ height: "0%" }}
+            animate={{
+              height: `${Math.min(
+                100,
+                Math.round(
+                  (steps.filter((s) => s.status === "completed").length / Math.max(1, steps.length - 1)) * 100
+                )
+              )}%`,
+            }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </div>
 
         {steps.map((step, idx) => {
           const Icon = STEP_ICONS[step.id] || Circle;

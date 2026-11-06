@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "motion/react";
-import { ArrowDown, Hand } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
+import { ArrowDown, Hand, Sparkles, TrendingUp, Cpu } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
+import { MagneticButton } from "@/components/ui/magnetic-button";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -119,7 +120,16 @@ export function HeroSection() {
       <div ref={containerRef} className="sticky top-0 h-[100svh] flex flex-col justify-between p-4 sm:p-6 md:h-screen md:p-12 pt-20 sm:pt-28 z-10">
         
         {/* Top Minimal Info Bar */}
-        <div ref={topBarRef} className="flex justify-end items-center z-20 w-full max-w-7xl mx-auto pointer-events-none">
+        <div ref={topBarRef} className="flex justify-between items-center z-20 w-full max-w-7xl mx-auto pointer-events-none">
+          <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-slate-900/8 bg-white/75 px-3 py-1 backdrop-blur-xs shadow-2xs">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-foreground/85 font-semibold">
+              STUDIO OS v2.6 // ONLINE
+            </span>
+          </div>
           <p className="text-[10px] md:text-xs uppercase tracking-[0.28em] text-muted-foreground/80 font-mono hidden sm:block">
             BUILD · EXPERIMENT · RECORD
           </p>
@@ -127,6 +137,49 @@ export function HeroSection() {
 
         {/* Central Hero Block */}
         <div className="flex-1 flex flex-col items-center justify-center z-10 w-full relative">
+          {/* Desktop Floating Telemetry Chips */}
+          <div className="pointer-events-auto hidden lg:block">
+            <Link
+              href="/market"
+              className="animate-float-slow absolute left-[6%] top-[18%] flex items-center gap-2.5 rounded-2xl border border-slate-900/8 bg-white/80 px-3.5 py-2 backdrop-blur-md shadow-sm hover:border-emerald-500/40 hover:shadow-md transition-all"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                <TrendingUp className="h-3.5 w-3.5" />
+              </span>
+              <div className="text-left">
+                <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">QUANT ARENA</p>
+                <p className="text-xs font-semibold text-foreground">三大实盘策略在线</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/build-log"
+              style={{ animationDelay: "1.6s" }}
+              className="animate-float-slow absolute right-[6%] top-[20%] flex items-center gap-2.5 rounded-2xl border border-slate-900/8 bg-white/80 px-3.5 py-2 backdrop-blur-md shadow-sm hover:border-brand-cyan/40 hover:shadow-md transition-all"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-brand-cyan/10 text-brand-cyan">
+                <Cpu className="h-3.5 w-3.5" />
+              </span>
+              <div className="text-left">
+                <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">RAG ENGINE</p>
+                <p className="text-xs font-semibold text-foreground">65+ 深度技术白皮书</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/workflow"
+              style={{ animationDelay: "2.8s" }}
+              className="animate-float-slow absolute left-[9%] bottom-[16%] flex items-center gap-2.5 rounded-2xl border border-slate-900/8 bg-white/80 px-3.5 py-2 backdrop-blur-md shadow-sm hover:border-brand-violet/40 hover:shadow-md transition-all"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-brand-violet/10 text-brand-violet">
+                <Sparkles className="h-3.5 w-3.5" />
+              </span>
+              <div className="text-left">
+                <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">AI WORKFLOW</p>
+                <p className="text-xs font-semibold text-foreground">小说 & 影视分镜流水线</p>
+              </div>
+            </Link>
+          </div>
           
           {/* Main Title */}
           <h1 
@@ -143,47 +196,69 @@ export function HeroSection() {
               {displayLines[1]}
               {(!reduceMotion && typingState.line === 1) && <i className="type-caret" aria-hidden="true" />}
             </span>
-            <span className="block min-h-[0.9em] text-slate-300 dark:text-zinc-700">
+            <span className="block min-h-[0.9em] bg-gradient-to-r from-brand-cyan via-brand-violet to-sky-500 bg-clip-text text-transparent">
               {displayLines[2]}
-              {(!reduceMotion && typingState.line === 2) && <i className="type-caret" aria-hidden="true" />}
+              {(!reduceMotion && typingState.line === 2) && <i className="type-caret text-brand-cyan" aria-hidden="true" />}
             </span>
           </h1>
 
-          {/* 移动端专属：快捷探索胶囊栏与 3D 入口 */}
-          <div ref={quickPillsRef} className="mt-6 flex flex-col items-center gap-3 md:hidden z-20">
-            <p className="text-[11px] text-muted-foreground font-medium tracking-wide text-center max-w-[260px]">
-              个人技术展示 · WebGL 实验 · 知识系统
+          {/* 全端快捷探索胶囊栏与磁吸入口 */}
+          <motion.div
+            ref={quickPillsRef}
+            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-6 sm:mt-8 flex flex-col items-center gap-3.5 z-20"
+          >
+            <p className="text-[11px] sm:text-xs text-muted-foreground font-medium tracking-wide text-center max-w-[320px] sm:max-w-md">
+              个人全栈工程 · A股量化竞技场 · WebGL 交互实验 · RAG 知识库
             </p>
 
-            {/* 核心功能直达芯片 */}
-            <div className="flex flex-wrap items-center justify-center gap-2 max-w-xs">
-              <Link 
-                href="/projects"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-900/10 bg-white/80 dark:bg-zinc-800/80 text-[11px] font-medium text-foreground shadow-2xs hover:border-brand-cyan transition-colors"
-              >
-                <span>🚀 精选项目</span>
-              </Link>
-              <Link 
-                href="/experiments"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-900/10 bg-white/80 dark:bg-zinc-800/80 text-[11px] font-medium text-foreground shadow-2xs hover:border-brand-cyan transition-colors"
-              >
-                <span>🧪 视觉实验</span>
-              </Link>
-              <Link 
-                href="/build-log"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-900/10 bg-white/80 dark:bg-zinc-800/80 text-[11px] font-medium text-foreground shadow-2xs hover:border-brand-cyan transition-colors"
-              >
-                <span>📑 技术白皮书</span>
-              </Link>
-              <Link 
-                href="/gesture"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-brand-violet/25 bg-brand-violet/10 text-[11px] font-medium text-brand-violet shadow-2xs hover:bg-brand-violet/15 transition-colors"
-              >
-                <Hand className="h-3 w-3" />
-                <span>3D 手势交互</span>
-              </Link>
+            {/* 核心功能直达芯片（桌面端支持 Magnetic 磁吸） */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 max-w-xs sm:max-w-xl">
+              <MagneticButton strength={0.25}>
+                <Link 
+                  href="/projects"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-900/10 bg-white/85 text-[11px] sm:text-xs font-medium text-foreground shadow-2xs hover:border-brand-cyan/50 hover:shadow-sm transition-all"
+                >
+                  <span>🚀 精选项目</span>
+                </Link>
+              </MagneticButton>
+              <MagneticButton strength={0.25}>
+                <Link 
+                  href="/experiments"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-900/10 bg-white/85 text-[11px] sm:text-xs font-medium text-foreground shadow-2xs hover:border-brand-cyan/50 hover:shadow-sm transition-all"
+                >
+                  <span>🧪 极客工坊</span>
+                </Link>
+              </MagneticButton>
+              <MagneticButton strength={0.25}>
+                <Link 
+                  href="/market"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 text-[11px] sm:text-xs font-medium text-emerald-700 shadow-2xs hover:bg-emerald-500/15 transition-all"
+                >
+                  <span>📈 量化投研</span>
+                </Link>
+              </MagneticButton>
+              <MagneticButton strength={0.25}>
+                <Link 
+                  href="/build-log"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-900/10 bg-white/85 text-[11px] sm:text-xs font-medium text-foreground shadow-2xs hover:border-brand-cyan/50 hover:shadow-sm transition-all"
+                >
+                  <span>📑 技术白皮书</span>
+                </Link>
+              </MagneticButton>
+              <MagneticButton strength={0.25}>
+                <Link 
+                  href="/gesture"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-brand-violet/25 bg-brand-violet/10 text-[11px] sm:text-xs font-medium text-brand-violet shadow-2xs hover:bg-brand-violet/15 transition-all"
+                >
+                  <Hand className="h-3 w-3" />
+                  <span>3D 手势交互</span>
+                </Link>
+              </MagneticButton>
             </div>
-          </div>
+          </motion.div>
 
         </div>
 

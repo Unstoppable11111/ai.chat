@@ -8,24 +8,55 @@ type RevealProps = {
   className?: string;
   delay?: number;
   once?: boolean;
+  direction?: "up" | "down" | "left" | "right" | "none";
+  distance?: number;
+  blur?: boolean;
 };
 
 export function Reveal({
   children,
   className,
   delay = 0,
-  once = false,
+  once = true,
+  direction = "up",
+  distance = 22,
+  blur = true,
 }: RevealProps) {
   const reduceMotion = useReducedMotion();
+
+  const xOffset =
+    direction === "left" ? distance : direction === "right" ? -distance : 0;
+  const yOffset =
+    direction === "up" ? distance : direction === "down" ? -distance : 0;
 
   return (
     <motion.div
       className={cn(className)}
-      initial={false}
-      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once, amount: 0.16, margin: "0px 0px -8% 0px" }}
+      initial={
+        reduceMotion
+          ? false
+          : {
+              opacity: 0,
+              x: xOffset,
+              y: yOffset,
+              scale: 0.985,
+              filter: blur ? "blur(5px)" : "blur(0px)",
+            }
+      }
+      whileInView={
+        reduceMotion
+          ? undefined
+          : {
+              opacity: 1,
+              x: 0,
+              y: 0,
+              scale: 1,
+              filter: "blur(0px)",
+            }
+      }
+      viewport={{ once, amount: 0.12, margin: "0px 0px -6% 0px" }}
       transition={{
-        duration: 0.62,
+        duration: 0.58,
         delay,
         ease: [0.22, 1, 0.36, 1],
       }}

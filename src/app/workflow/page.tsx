@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion } from "motion/react";
 import { useWorkflowProjects } from "@/components/workflow/use-workflow-projects";
 import { canResumeWorkflow, publicWorkflowConfig } from "@/components/workflow/project-state.mjs";
 import {
@@ -1038,16 +1039,23 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("novel")}
-                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "novel"
-                    ? "bg-slate-900 text-white shadow-xs"
+                    ? "text-white"
                     : "text-slate-600 hover:bg-white"
                 }`}
               >
-                <FileText className="h-3.5 w-3.5" />
-                <span>章节正文打字机</span>
+                {activeTab === "novel" && (
+                  <motion.span
+                    layoutId="workflow-output-tab-pill"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
+                    transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                  />
+                )}
+                <FileText className="relative z-10 h-3.5 w-3.5" />
+                <span className="relative z-10">章节正文打字机</span>
                 {chapters.length > 0 && (
-                  <span className="rounded-full bg-slate-700 px-1.5 py-0.2 text-[10px] font-mono">
+                  <span className="relative z-10 rounded-full bg-slate-700 px-1.5 py-0.2 text-[10px] font-mono text-white">
                     {chapters.length}章
                   </span>
                 )}
@@ -1056,16 +1064,23 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("video")}
-                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "video"
-                    ? "bg-slate-900 text-white shadow-xs"
+                    ? "text-white"
                     : "text-slate-600 hover:bg-white"
                 }`}
               >
-                <Clapperboard className="h-3.5 w-3.5" />
-                <span>电影级分镜提示词</span>
+                {activeTab === "video" && (
+                  <motion.span
+                    layoutId="workflow-output-tab-pill"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
+                    transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                  />
+                )}
+                <Clapperboard className="relative z-10 h-3.5 w-3.5" />
+                <span className="relative z-10">电影级分镜提示词</span>
                 {chapters.some((c) => c.video_prompts?.length) && (
-                  <span className="rounded-full bg-blue-500 px-1.5 py-0.2 text-[10px] font-mono text-white">
+                  <span className="relative z-10 rounded-full bg-blue-500 px-1.5 py-0.2 text-[10px] font-mono text-white">
                     {chapters.reduce((a, c) => a + (c.video_prompts?.length || 0), 0)}
                   </span>
                 )}
@@ -1074,16 +1089,23 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("assets")}
-                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "assets"
-                    ? "bg-slate-900 text-white shadow-xs"
+                    ? "text-white"
                     : "text-slate-600 hover:bg-white"
                 }`}
               >
-                <ImageIcon className="h-3.5 w-3.5" />
-                <span>视觉资产</span>
+                {activeTab === "assets" && (
+                  <motion.span
+                    layoutId="workflow-output-tab-pill"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
+                    transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                  />
+                )}
+                <ImageIcon className="relative z-10 h-3.5 w-3.5" />
+                <span className="relative z-10">视觉资产</span>
                 {visualAssets.length > 0 && (
-                  <span className="rounded-full bg-purple-500 px-1.5 py-0.2 text-[10px] font-mono text-white">
+                  <span className="relative z-10 rounded-full bg-purple-500 px-1.5 py-0.2 text-[10px] font-mono text-white">
                     {visualAssets.length}
                   </span>
                 )}
@@ -1092,30 +1114,44 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("pitch")}
-                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "pitch"
-                    ? "bg-slate-900 text-white shadow-xs"
+                    ? "text-white"
                     : "text-slate-600 hover:bg-white"
                 }`}
               >
-                <FileSpreadsheet className="h-3.5 w-3.5" />
-                <span>商业投稿包装</span>
+                {activeTab === "pitch" && (
+                  <motion.span
+                    layoutId="workflow-output-tab-pill"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
+                    transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                  />
+                )}
+                <FileSpreadsheet className="relative z-10 h-3.5 w-3.5" />
+                <span className="relative z-10">商业投稿包装</span>
                 {pitch && (
-                  <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                  <span className="relative z-10 h-2 w-2 rounded-full bg-emerald-500"></span>
                 )}
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab("bible")}
-                className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "bible"
-                    ? "bg-slate-900 text-white shadow-xs"
+                    ? "text-white"
                     : "text-slate-600 hover:bg-white"
                 }`}
               >
-                <BookOpen className="h-3.5 w-3.5" />
-                <span>专属设定集 Bible</span>
+                {activeTab === "bible" && (
+                  <motion.span
+                    layoutId="workflow-output-tab-pill"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
+                    transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                  />
+                )}
+                <BookOpen className="relative z-10 h-3.5 w-3.5" />
+                <span className="relative z-10">专属设定集 Bible</span>
               </button>
             </div>
           </div>

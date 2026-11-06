@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "motion/react";
 import { ModernBlogCard } from "@/components/cards/modern-blog-card";
 import { Pagination } from "@/components/shared/pagination";
 import { Reveal } from "@/components/shared/reveal";
@@ -74,13 +75,20 @@ export function PaginatedBlogList({
                   setActiveTag(tag);
                   setCurrentPage(1);
                 }}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                className={`relative px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                   isSelected
-                    ? "bg-slate-900 text-white font-semibold shadow-xs scale-105"
+                    ? "text-white font-semibold"
                     : "bg-white/70 border border-slate-900/8 text-muted-foreground hover:bg-white hover:text-foreground"
                 }`}
               >
-                {tag}
+                {isSelected && (
+                  <motion.span
+                    layoutId="blog-tag-pill"
+                    className="absolute inset-0 rounded-full bg-slate-900 shadow-xs"
+                    transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                  />
+                )}
+                <span className="relative z-10">{tag}</span>
               </button>
             );
           })}

@@ -55,13 +55,25 @@ export function InteractiveEffects() {
       );
     };
 
+    const handlePointerDown = () => {
+      markRef.current?.classList.add("is-pressing");
+    };
+
+    const handlePointerUp = () => {
+      markRef.current?.classList.remove("is-pressing");
+    };
+
     window.addEventListener("pointermove", updateCursor, { passive: true });
     window.addEventListener("pointerover", updateHoverState, { passive: true });
+    window.addEventListener("pointerdown", handlePointerDown, { passive: true });
+    window.addEventListener("pointerup", handlePointerUp, { passive: true });
 
     return () => {
       document.documentElement.classList.remove("has-custom-cursor");
       window.removeEventListener("pointermove", updateCursor);
       window.removeEventListener("pointerover", updateHoverState);
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("pointerup", handlePointerUp);
     };
   }, [finePointer, reduceMotion]);
 
