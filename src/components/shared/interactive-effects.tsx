@@ -6,7 +6,6 @@ import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
 export function InteractiveEffects() {
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
-  const [hovering, setHovering] = useState(false);
   const [ready, setReady] = useState(false);
   const [finePointer, setFinePointer] = useState(false);
   const markRef = useRef<HTMLDivElement | null>(null);
@@ -49,7 +48,9 @@ export function InteractiveEffects() {
     const updateHoverState = (event: Event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      setHovering(
+      // 性能优化：直接切换 DOM class，避免每次 pointerover 都触发 React 重渲染
+      markRef.current?.classList.toggle(
+        "is-hovering",
         Boolean(target.closest("a, button, [role='button'], input, textarea, select, summary")),
       );
     };
@@ -70,7 +71,7 @@ export function InteractiveEffects() {
       {!reduceMotion && finePointer ? (
         <div
           ref={markRef}
-          className={`cursor-mark${ready ? " is-ready" : ""}${hovering ? " is-hovering" : ""}`}
+          className={`cursor-mark${ready ? " is-ready" : ""}`}
           aria-hidden="true"
         >
           <div className="cursor-dot" />

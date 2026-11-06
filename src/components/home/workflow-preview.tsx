@@ -70,8 +70,8 @@ export function WorkflowPreview() {
   return (
     <section className="container-shell py-12 md:py-20 relative overflow-hidden">
       {/* 渐变装饰背景 */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/10 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 -translate-y-1/2 w-[450px] h-[450px] bg-cyan-500/10 blur-[130px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-[radial-gradient(closest-side,rgba(168,85,247,0.1),transparent)] pointer-events-none" />
+      <div className="absolute top-1/3 right-1/4 -translate-y-1/2 w-[450px] h-[450px] bg-[radial-gradient(closest-side,rgba(6,182,212,0.1),transparent)] pointer-events-none" />
 
       {/* 头部标题与行动引导 */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 relative z-10">

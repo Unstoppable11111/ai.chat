@@ -114,7 +114,7 @@ export default function AboutPage() {
           <Reveal once>
             <section className="glass-panel relative flex h-full flex-col justify-between overflow-hidden rounded-[32px] p-7 sm:p-9 border border-slate-900/10 shadow-[0_12px_40px_rgba(15,23,42,0.04)]">
               {/* 背景装饰微发光 */}
-              <div className="absolute -top-24 -left-24 w-72 h-72 bg-brand-cyan/[0.04] blur-[90px] rounded-full pointer-events-none" />
+              <div className="absolute -top-24 -left-24 w-72 h-72 bg-[radial-gradient(closest-side,rgba(14,165,233,0.04),transparent)] pointer-events-none" />
 
               <div className="relative z-10">
                 <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground mb-4 uppercase tracking-widest">
@@ -172,7 +172,7 @@ export default function AboutPage() {
           <Reveal delay={0.08} once>
             <aside className="glass-panel relative flex h-full flex-col justify-between overflow-hidden rounded-[32px] p-7 sm:p-9 border border-slate-900/10 shadow-[0_12px_40px_rgba(15,23,42,0.04)]">
               {/* 背景微光 */}
-              <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-brand-violet/[0.04] blur-[80px] rounded-full pointer-events-none" />
+              <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-[radial-gradient(closest-side,rgba(139,92,246,0.04),transparent)] pointer-events-none" />
 
               <div className="relative z-10">
                 <div className="flex items-center justify-between gap-2 mb-3">

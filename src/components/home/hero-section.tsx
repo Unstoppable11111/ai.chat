@@ -107,9 +107,10 @@ export function HeroSection() {
     <section ref={sectionRef} className="relative min-h-[100svh] w-full bg-background overflow-x-clip md:min-h-[165vh]">
       {/* 极光微光环境背景 */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[15%] w-[70vw] h-[60vh] bg-brand-cyan/[0.045] blur-[130px] rounded-full" />
-        <div className="absolute top-[15%] right-[-5%] w-[55vw] h-[60vh] bg-brand-violet/[0.04] blur-[110px] rounded-full" />
-        <div className="absolute top-[35%] left-[-5%] w-[50vw] h-[50vh] bg-brand-lime/[0.025] blur-[100px] rounded-full" />
+        {/* 性能优化：用 radial-gradient 替代超大半径 CSS blur 滤镜，视觉等效，但避免滚动/scrub 动画时每帧重算高斯模糊 */}
+        <div className="absolute top-[-10%] left-[15%] w-[70vw] h-[60vh] bg-[radial-gradient(closest-side,rgba(14,165,233,0.045),transparent)]" />
+        <div className="absolute top-[15%] right-[-5%] w-[55vw] h-[60vh] bg-[radial-gradient(closest-side,rgba(139,92,246,0.04),transparent)]" />
+        <div className="absolute top-[35%] left-[-5%] w-[50vw] h-[50vh] bg-[radial-gradient(closest-side,rgba(101,163,13,0.025),transparent)]" />
         
         {/* Animated Scanline / Grid */}
         <div className="absolute inset-0 bg-grid opacity-[0.04] pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, transparent, white 20%, white 80%, transparent)' }} />

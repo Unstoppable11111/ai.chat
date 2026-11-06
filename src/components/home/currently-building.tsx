@@ -87,8 +87,8 @@ export function CurrentlyBuilding() {
     >
       {/* 背景微发光装饰与网格底纹 */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-brand-cyan/[0.025] blur-[120px] rounded-full" />
-        <div className="absolute bottom-1/4 right-1/10 w-96 h-96 bg-brand-violet/[0.025] blur-[120px] rounded-full" />
+        <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-[radial-gradient(closest-side,rgba(14,165,233,0.025),transparent)]" />
+        <div className="absolute bottom-1/4 right-1/10 w-96 h-96 bg-[radial-gradient(closest-side,rgba(139,92,246,0.025),transparent)]" />
       </div>
 
       <div className="container-shell max-w-7xl mx-auto relative z-10">

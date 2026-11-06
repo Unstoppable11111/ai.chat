@@ -10,7 +10,31 @@ export function projectListItem(post: PublishedPost): import("./types").ProjectE
 export function experimentListItem(post: PublishedPost): import("./types").ExperimentEntry {
   return {...postListItem(post),category:post.metadata.category||"网站视觉",tools:Array.isArray(post.metadata.tools)?post.metadata.tools:[],promptPreview:String(post.metadata.promptPreview||"")};
 }
+// 性能优化：进程级短时缓存（TTL 30s）。
+// 首页、列表页、文章页（相关推荐）、站内搜索、RAG 都会调用 listPublishedPosts，
+// 且页面为 force-dynamic，原实现每个请求都会从 MySQL 拉取全部文章的 LONGTEXT 正文，TTFB 偏高。
+// 30 秒内复用同一结果（含进行中的 Promise，避免并发请求击穿），新文章最多延迟 30 秒出现在列表中。
+const LIST_CACHE_TTL_MS = 30_000;
+const listCache = new Map<string, { expiresAt: number; promise: Promise<PublishedPost[]> }>();
+
+/** 新增/更新文章后调用，立即让列表缓存失效 */
+export function invalidatePublishedPostsCache() {
+  listCache.clear();
+}
+
 export const listPublishedPosts = cache(async (collection?: string): Promise<PublishedPost[]> => {
+  const key = collection || "__all__";
+  const hit = listCache.get(key);
+  if (hit && hit.expiresAt > Date.now()) return hit.promise;
+
+  const promise = queryPublishedPosts(collection);
+  listCache.set(key, { expiresAt: Date.now() + LIST_CACHE_TTL_MS, promise });
+  // 查询异常时不缓存失败结果
+  promise.catch(() => listCache.delete(key));
+  return promise;
+});
+
+async function queryPublishedPosts(collection?: string): Promise<PublishedPost[]> {
   // 核心原则：数据库优先，本地兜底
   let dbPosts: PublishedPost[] | null = null;
 
@@ -34,7 +58,7 @@ export const listPublishedPosts = cache(async (collection?: string): Promise<Pub
   return posts
     .filter(post => post.status === "published" && (!collection || post.collection === collection))
     .sort((a,b) => (b.publishedAt || "").localeCompare(a.publishedAt || ""));
-});
+}
 
 export const getPublishedPost = cache(async (collection: string, slug: string): Promise<PublishedPost | undefined> => {
   // 单篇查询：数据库优先，本地兜底

@@ -70,8 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let ignore = false;
+    let lastSyncAt = 0;
 
     const syncSession = async () => {
+      lastSyncAt = Date.now();
       try {
         const res = await fetch("/api-workspace-session", { cache: "no-store" });
         if (!res.ok) {
@@ -105,6 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void syncSession();
 
     const handleFocus = () => {
+      // 性能优化：窗口频繁切换焦点时 30 秒内不重复请求会话接口（登录/登出仍通过 auth-state-changed 立即同步）
+      if (Date.now() - lastSyncAt < 30_000) return;
       void syncSession();
     };
     const handleAuthChange = () => {

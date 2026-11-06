@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { sameOrigin, readJsonBody } from "@/lib/server-security";
 import { executeQuery, getDbPool } from "@/lib/db";
+import { invalidatePublishedPostsCache } from "@/lib/posts-repository";
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) {
@@ -65,6 +66,8 @@ likes: 0
     } catch {
       // 数据库异常不阻断本地文件生成
     }
+    // 新文章入库后立即刷新文章列表缓存
+    invalidatePublishedPostsCache();
 
     return NextResponse.json({
       success: true,

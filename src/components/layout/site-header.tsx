@@ -59,7 +59,9 @@ export function SiteHeader() {
   // 滚动时智能隐藏/展示 Header
   useEffect(() => {
     let lastScrollY = window.scrollY;
-    const handleScroll = () => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
       const currentScrollY = window.scrollY;
       setIsScrolled(currentScrollY > 20);
 
@@ -75,8 +77,15 @@ export function SiteHeader() {
       }
       lastScrollY = currentScrollY;
     };
+    // 性能优化：requestAnimationFrame 节流，每帧最多计算一次，避免高频 scroll 事件反复触发 setState
+    const handleScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   // 路由跳转时自动收起所有浮层

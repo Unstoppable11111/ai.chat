@@ -20,8 +20,13 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
-  const experimentEntries = (await listPublishedPosts("experiments")).slice(0,6).map(experimentListItem);
-  const buildLogs = (await listPublishedPosts("build-log")).slice(0,6).map(postListItem);
+  // 两个集合并行查询，减少首页 TTFB
+  const [experimentPosts, buildLogPosts] = await Promise.all([
+    listPublishedPosts("experiments"),
+    listPublishedPosts("build-log"),
+  ]);
+  const experimentEntries = experimentPosts.slice(0,6).map(experimentListItem);
+  const buildLogs = buildLogPosts.slice(0,6).map(postListItem);
 
   return (
     <div className="page-flow pb-20 overflow-x-clip">

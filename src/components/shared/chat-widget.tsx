@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Bot, X } from "lucide-react";
-import { ChatExperience } from "@/components/chat/chat-experience";
 import { useChat } from "@/components/chat/chat-provider";
+
+// 性能优化：ChatExperience 依赖 react-markdown / remark-gfm 及多个选择器组件，体积较大。
+// 浮窗默认关闭，因此改为按需懒加载，不再计入每个页面的首屏 JS；悬停按钮时提前预加载，保证打开无感。
+const loadChatExperience = () => import("@/components/chat/chat-experience");
+const ChatExperience = dynamic(() => loadChatExperience().then((m) => m.ChatExperience), {
+  ssr: false,
+  loading: () => (
+    <div className="flex flex-1 items-center justify-center text-xs text-slate-400">正在连接 JARVIS…</div>
+  ),
+});
 
 export function ChatWidget() {
   const pathname = usePathname();
@@ -72,6 +82,8 @@ export function ChatWidget() {
           type="button"
           aria-label="打开 AI 助手"
           title="向 JARVIS 提问"
+          onPointerEnter={() => void loadChatExperience()}
+          onFocus={() => void loadChatExperience()}
           onClick={() => {
             setHasUnreadReply(false);
             setOpen(true);
