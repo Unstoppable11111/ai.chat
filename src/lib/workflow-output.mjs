@@ -90,7 +90,7 @@ export function resolveWorkflowTextConfig(body = {}, env = process.env) {
   return {
     apiKey,
     baseUrl: parsed.toString().replace(/\/+$/, ""),
-    model: ownKey ? body.model?.trim() || "gpt-4o-mini" : env.UPSTREAM_BALANCED_MODEL || env.UPSTREAM_SPEED_MODEL || "gemini-3.7-flash",
+    model: ownKey ? body.model?.trim() || "gpt-4o-mini" : env.UPSTREAM_BALANCED_MODEL || env.UPSTREAM_SPEED_MODEL || "gemini-3.5-flash-lite",
   };
 }
 
@@ -111,15 +111,19 @@ export function proseStyleInstruction(level = "medium") {
 export async function callLLMStream(messages, options, onChunk = () => {}, maxRetries = 2) {
   const timeoutSignal = AbortSignal.timeout(options.timeoutMs ?? 90000);
   const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
+  const models = [options.model, ...(Array.isArray(options.fallbackModels) ? options.fallbackModels : [])]
+    .filter((m, i, arr) => typeof m === "string" && m.trim().length > 0 && arr.indexOf(m) === i);
+  const totalAttempts = Math.max(maxRetries, models.length);
   let lastError;
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
+  for (let attempt = 0; attempt < totalAttempts; attempt++) {
+    const currentModel = models[Math.min(attempt, models.length - 1)] || options.model;
     signal.throwIfAborted();
     let accumulated = "";
     try {
       const response = await fetch(`${options.baseUrl.replace(/\/+$/, "")}/chat/completions`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${options.apiKey}` },
-        body: JSON.stringify({ model: options.model, messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens ?? 7000, stream: true }),
+        body: JSON.stringify({ model: currentModel, messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens ?? 7000, stream: true }),
         signal,
         redirect: "error",
       });
@@ -182,7 +186,8 @@ export async function callLLMStream(messages, options, onChunk = () => {}, maxRe
       if (isAbortError(error, options.signal)) throw error;
       if (timeoutSignal.aborted) throw new WorkflowOutputError("文本生成超时，已完成内容已保留，请继续生成或重试。");
       lastError = error;
-      if (accumulated || error instanceof WorkflowOutputError || !error.retryable || attempt + 1 >= maxRetries) throw error;
+      const canSwitchModel = !accumulated && attempt + 1 < models.length;
+      if (accumulated || error instanceof WorkflowOutputError || (!error.retryable && !canSwitchModel) || attempt + 1 >= totalAttempts) throw error;
       await new Promise((resolve, reject) => {
         const cancel = () => { clearTimeout(timer); reject(signal.reason); };
         const timer = setTimeout(() => { signal.removeEventListener("abort", cancel); resolve(); }, 600 * (attempt + 1));

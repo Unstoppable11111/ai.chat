@@ -91,7 +91,10 @@ export async function POST(request: NextRequest) {
         if (abort.signal.aborted) return;
         try { controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`)); } catch { abort.abort(); }
       };
-      const options = { ...textConfig, signal: abort.signal };
+      const fallbackModels = !body.apiKey
+        ? ([process.env.UPSTREAM_BALANCED_MODEL, "gemini-3.5-flash-lite", "gemini-3.1-pro"].filter(Boolean) as string[])
+        : [];
+      const options = { ...textConfig, fallbackModels, signal: abort.signal };
       const heartbeat = setInterval(() => {
         try { if (!abort.signal.aborted) controller.enqueue(encoder.encode(": ping\n\n")); } catch { abort.abort(); }
       }, 15000);
