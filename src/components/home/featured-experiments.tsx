@@ -68,7 +68,6 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
     lastTimeRef.current = performance.now();
     velocityRef.current = 0;
     
-    // Disable scroll snap during drag for smoother experience
     scrollContainerRef.current.style.scrollSnapType = 'none';
     scrollContainerRef.current.style.scrollBehavior = 'auto';
   };
@@ -80,12 +79,11 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
     const decay = () => {
       if (!scrollContainerRef.current) return;
       scrollContainerRef.current.scrollLeft -= velocityRef.current;
-      velocityRef.current *= 0.95; // Friction multiplier
+      velocityRef.current *= 0.95;
       
       if (Math.abs(velocityRef.current) > 0.5) {
         momentumIDRef.current = requestAnimationFrame(decay);
       } else {
-        // Snap back into place smoothly
         scrollContainerRef.current.style.scrollBehavior = 'smooth';
         scrollContainerRef.current.style.scrollSnapType = '';
         setTimeout(() => {
@@ -115,7 +113,7 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
     const now = performance.now();
     const dt = now - lastTimeRef.current;
     if (dt > 0) {
-      velocityRef.current = (e.pageX - lastXRef.current) * (16 / dt); // Normalize to 60fps
+      velocityRef.current = (e.pageX - lastXRef.current) * (16 / dt);
     }
     lastXRef.current = e.pageX;
     lastTimeRef.current = now;
@@ -132,12 +130,15 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
   };
 
   return (
-    <section ref={sectionRef} className="relative w-full bg-[#0A0A0A] text-white pt-32 pb-32">
+    <section ref={sectionRef} className="relative w-full bg-[#050813] text-white pt-24 pb-28 border-y border-white/10">
       <div ref={containerRef} className="w-full py-8">
         
-        <div className="container-shell w-full max-w-7xl mx-auto mb-16 shrink-0 z-10 px-6">
-          <h2 className="text-[10px] md:text-xs font-medium tracking-[0.3em] uppercase text-white/50">
-            FEATURED<br />EXPERIMENTS
+        <div className="container-shell w-full max-w-7xl mx-auto mb-12 shrink-0 z-10 px-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-400/40 text-xs font-mono font-bold text-cyan-300 uppercase tracking-widest mb-3 shadow-[0_0_12px_rgba(0,240,255,0.2)]">
+            <span>CURATED GALLERY // 精选实验画廊</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            前沿视觉与互动艺术
           </h2>
         </div>
 
@@ -163,17 +164,17 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
               key={item.slug} 
               href={`/experiments/${item.slug}`}
               onClick={handleClick}
-              className="experiment-slide snap-center shrink-0 w-[85vw] md:w-[600px] lg:w-[800px] group flex flex-col gap-6"
+              className="experiment-slide snap-center shrink-0 w-[85vw] md:w-[600px] lg:w-[800px] group flex flex-col gap-5 p-4 rounded-3xl border border-white/10 bg-[#0b1120]/80 backdrop-blur-xl hover:border-cyan-400/50 hover:shadow-[0_0_35px_rgba(0,240,255,0.2)] transition-all duration-300"
               style={{ userSelect: 'none' }}
               draggable={false}
             >
               {/* Artwork */}
-              <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#111] pointer-events-none">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-black/60 border border-white/10 pointer-events-none">
                 <Image
                   src={item.cover}
                   alt={item.title}
                   fill
-                  className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                  className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                   sizes="(max-width: 768px) 85vw, (max-width: 1024px) 600px, 800px"
                   quality={90}
                   draggable={false}
@@ -181,12 +182,12 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
               </div>
 
               {/* Minimal Text */}
-              <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-4 pointer-events-none">
-                <h3 className="text-2xl md:text-4xl font-light tracking-tight text-white group-hover:text-brand-cyan transition-colors">
+              <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-3 pointer-events-none px-2">
+                <h3 className="text-xl md:text-3xl font-medium tracking-tight text-white group-hover:text-cyan-300 transition-colors">
                   {item.title}
                 </h3>
-                <div className="flex gap-4 text-xs font-mono tracking-widest text-white/40 uppercase">
-                  <span>{item.category}</span>
+                <div className="flex gap-4 text-xs font-mono tracking-widest text-slate-400 uppercase">
+                  <span className="text-cyan-300">{item.category}</span>
                   <time dateTime={item.date}>{getYear(item.date)}</time>
                 </div>
               </div>

@@ -74,15 +74,20 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
   }, [reduceMotion]);
 
   return (
-    <section ref={sectionRef} className="relative w-full bg-background pt-32 pb-32 overflow-hidden">
+    <section ref={sectionRef} className="relative w-full bg-background pt-24 pb-28 overflow-hidden">
       <div className="container-shell max-w-5xl mx-auto">
-        <h2 className="text-[10px] md:text-xs font-medium tracking-[0.3em] uppercase text-muted-foreground mb-24 text-center">
-          BUILD LOGS
-        </h2>
+        <div className="flex flex-col items-center mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-400/40 text-xs font-mono font-bold text-cyan-300 uppercase tracking-widest mb-3 shadow-[0_0_12px_rgba(0,240,255,0.2)]">
+            <span>ENGINEERING LOGS // 构建演进轨迹</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white text-center">
+            深度架构与工程实践日志
+          </h2>
+        </div>
 
-        <div className="relative flex flex-col gap-10 md:gap-20 pl-6 sm:pl-8 md:pl-0">
+        <div className="relative flex flex-col gap-10 md:gap-16 pl-6 sm:pl-8 md:pl-0">
           {/* Progress Line */}
-          <div ref={lineRef} className="absolute left-2 sm:left-2.5 md:left-[39.5px] top-3 bottom-4 w-px bg-gradient-to-b from-brand-violet via-brand-cyan to-transparent will-change-transform" />
+          <div ref={lineRef} className="absolute left-2 sm:left-2.5 md:left-[39.5px] top-3 bottom-4 w-[2px] bg-gradient-to-b from-purple-500 via-cyan-400 to-transparent shadow-[0_0_10px_#00f0ff] will-change-transform" />
 
           {items.map((item) => {
             const formattedDate = new Date(item.date).toLocaleDateString("en-US", {
@@ -94,28 +99,28 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
               <div key={item.slug} className="timeline-row relative flex flex-col md:flex-row gap-2 md:gap-16 group">
                 
                 {/* Pulsing Beacon aligned with line */}
-                <div className="beacon-dot absolute -left-4 sm:-left-[22px] md:left-[39.5px] md:-translate-x-1/2 top-1 z-20 w-4 h-4 rounded-full border border-brand-violet/50 bg-background flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-violet group-hover:scale-150 transition-transform" />
+                <div className="beacon-dot absolute -left-4 sm:-left-[22px] md:left-[39.5px] md:-translate-x-1/2 top-1 z-20 w-4 h-4 rounded-full border border-cyan-400 bg-[#060a16] shadow-[0_0_10px_#00f0ff] flex items-center justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 group-hover:scale-150 transition-transform shadow-[0_0_6px_#22d3ee]" />
                 </div>
 
                 {/* Year/Month */}
                 <div className="relative z-10 md:w-20 shrink-0 md:pt-0.5">
-                  <div className="text-xs md:text-sm font-mono tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">
+                  <div className="text-xs md:text-sm font-mono tracking-widest text-slate-400 group-hover:text-cyan-300 transition-colors">
                     {formattedDate}
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="log-content flex-1 pb-10 border-b border-slate-900/5 group-last:border-0 group-last:pb-0">
+                <div className="log-content flex-1 pb-10 border-b border-white/10 group-last:border-0 group-last:pb-0">
                   <Link href={`/build-log/${item.slug}`} className="block">
-                    <p className="text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase text-brand-violet mb-4 flex items-center gap-2">
-                      <span className="inline-block w-2 h-[1px] bg-brand-violet"></span>
+                    <p className="text-[10px] md:text-xs font-mono font-medium tracking-[0.2em] uppercase text-purple-400 mb-3 flex items-center gap-2">
+                      <span className="inline-block w-2 h-[1px] bg-purple-400"></span>
                       {item.tags[0] || 'UPDATE'}
                     </p>
-                    <h3 className="text-2xl md:text-4xl font-light tracking-tight text-foreground mb-6 group-hover:text-brand-cyan transition-colors">
+                    <h3 className="text-xl md:text-3xl font-light tracking-tight text-white mb-4 group-hover:text-cyan-300 transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-base md:text-lg text-muted-foreground/80 leading-relaxed font-light max-w-2xl line-clamp-2">
+                    <p className="text-sm md:text-base text-slate-300 leading-relaxed font-light max-w-2xl line-clamp-2">
                       {item.excerpt}
                     </p>
                   </Link>

@@ -47,7 +47,7 @@ export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
         );
       }
 
-      // 2. 每行档案放慢 Decrypt Scan 显影效果 (更深初始位移，放慢间隔，清晰可见)
+      // 2. 每行档案放慢 Decrypt Scan 显影效果
       const rows = gsap.utils.toArray<HTMLElement>(".archive-row");
       rows.forEach((row, index) => {
         gsap.fromTo(
@@ -93,16 +93,19 @@ export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
         onMouseMove={handleMouseMove}
       >
         
-        <div className="mb-16 border-b border-slate-900/10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-8 relative">
+        <div className="mb-16 border-b border-white/10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-8 relative">
           {/* 光线 Scanline 扫描线 */}
-          <div ref={scanLineRef} className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-cyan to-transparent origin-left will-change-transform pointer-events-none" />
+          <div ref={scanLineRef} className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent origin-left will-change-transform pointer-events-none shadow-[0_0_12px_#00f0ff]" />
 
           <div>
-            <h2 className="text-3xl md:text-5xl font-light tracking-tight text-foreground">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-400/40 text-xs font-mono font-bold text-cyan-300 uppercase tracking-widest mb-3 shadow-[0_0_12px_rgba(0,240,255,0.2)]">
+              <span>PROMPT ARCHIVE // 提示词档案</span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-light tracking-tight text-white">
               DIGITAL ARCHIVE
             </h2>
           </div>
-          <div className="hidden md:flex text-[10px] font-mono text-muted-foreground gap-12 tracking-widest uppercase">
+          <div className="hidden md:flex text-[10px] font-mono text-slate-400 gap-12 tracking-widest uppercase">
             <span>ID</span>
             <span>TYPE</span>
             <span>MODIFIED</span>
@@ -116,19 +119,19 @@ export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
               key={item.id} 
               onMouseEnter={() => setHoveredImage(item.exampleImage)}
               onMouseLeave={() => setHoveredImage(null)}
-              className="archive-row group relative flex flex-col md:flex-row md:items-center justify-between py-8 border-b border-slate-900/5 hover:border-slate-900/20 transition-all duration-500 z-10 will-change-transform"
+              className="archive-row group relative flex flex-col md:flex-row md:items-center justify-between py-8 border-b border-white/10 hover:border-cyan-400/40 hover:bg-white/[0.02] px-3 rounded-xl transition-all duration-500 z-10 will-change-transform"
             >
               <div className="flex items-center gap-6 md:gap-12 min-w-0">
-                <span className="text-[10px] md:text-xs font-mono text-muted-foreground group-hover:text-brand-violet transition-colors shrink-0">
+                <span className="text-[10px] md:text-xs font-mono text-slate-400 group-hover:text-cyan-400 transition-colors shrink-0">
                   ARCHIVE_{String(index + 1).padStart(3, '0')}
                 </span>
-                <h3 className="text-lg md:text-3xl font-light truncate text-foreground group-hover:translate-x-4 transition-transform duration-500 ease-out">
+                <h3 className="text-lg md:text-3xl font-light truncate text-white group-hover:text-cyan-300 group-hover:translate-x-4 transition-all duration-500 ease-out">
                   {item.title}
                 </h3>
               </div>
               
-              <div className="flex items-center gap-8 md:gap-16 mt-4 md:mt-0 text-[10px] md:text-xs font-mono text-muted-foreground tracking-widest">
-                <span className="uppercase w-24">{item.category}</span>
+              <div className="flex items-center gap-8 md:gap-16 mt-4 md:mt-0 text-[10px] md:text-xs font-mono text-slate-400 tracking-widest">
+                <span className="uppercase w-24 text-cyan-300">{item.category}</span>
                 <span>2026.08</span>
               </div>
             </Link>
@@ -148,7 +151,7 @@ export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
                 }}
                 exit={{ opacity: 0, scale: 0.9, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 150, damping: 20, mass: 0.5 }}
-                className="absolute top-0 left-0 w-64 aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl z-0 pointer-events-none hidden md:block"
+                className="absolute top-0 left-0 w-64 aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,240,255,0.25)] border border-cyan-400/50 z-0 pointer-events-none hidden md:block"
               >
                 <Image 
                   src={hoveredImage} 
@@ -156,7 +159,7 @@ export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
                   fill 
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-black/5" />
+                <div className="absolute inset-0 bg-black/20" />
               </motion.div>
             )}
           </AnimatePresence>

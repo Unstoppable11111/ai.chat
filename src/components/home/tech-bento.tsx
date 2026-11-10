@@ -88,25 +88,25 @@ export function TechBento() {
   };
 
   return (
-    <section className="container-shell py-8">
+    <section className="container-shell py-12">
       {/* 模块标头 */}
-      <Reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-3 border-b border-slate-900/5">
+      <Reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 pb-3 border-b border-white/10">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-600 border border-cyan-500/20 text-xs font-mono font-medium mb-2">
-            <Terminal className="w-3.5 h-3.5 text-cyan-600" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/60 text-cyan-300 border border-cyan-400/40 text-xs font-mono font-medium mb-2 shadow-[0_0_12px_rgba(0,240,255,0.2)]">
+            <Terminal className="w-3.5 h-3.5 text-cyan-400" />
             <span>TECH BENTO // MICRO-SNIPPETS</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
             极客便签 · 核心微代码矩阵
           </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
             不用长篇大论，提炼算子加速、RAG 融合、量化策略与图形学的关键代码片段。
           </p>
         </div>
 
         <Link
           href="/build-log"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-700 hover:text-cyan-800 transition-colors group shrink-0"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors group shrink-0"
         >
           <span>查看全部 65 篇技术白皮书</span>
           <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -126,29 +126,29 @@ export function TechBento() {
             >
               <SpotlightCard
                 enableTilt={false}
-                className="group relative flex h-full flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/75 backdrop-blur-sm p-4 transition-all duration-300 hover:border-cyan-500/35 hover:shadow-lg hover:shadow-cyan-500/5 hover:-translate-y-0.5"
+                className="group relative flex h-full flex-col justify-between rounded-2xl border border-white/10 bg-[#0d162b]/85 backdrop-blur-xl p-4 transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_0_24px_rgba(0,240,255,0.2)] hover:-translate-y-0.5"
               >
                 <div>
                   {/* 顶部标签 */}
                   <div className="flex items-center justify-between gap-2 mb-2.5">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-[11px] font-mono font-medium text-slate-700 border border-slate-200">
-                      <Code2 className="w-3 h-3 text-cyan-600" />
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-cyan-950/60 text-[11px] font-mono font-medium text-cyan-300 border border-cyan-400/30">
+                      <Code2 className="w-3 h-3 text-cyan-400" />
                       {snip.category}
                     </span>
-                    <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                    <span className="text-[10px] font-mono text-slate-400 uppercase">
                       {snip.tag}
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-sm text-slate-900 group-hover:text-cyan-700 transition-colors leading-snug">
+                  <h3 className="font-bold text-sm text-white group-hover:text-cyan-300 transition-colors leading-snug">
                     {snip.title}
                   </h3>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed">
                     {snip.note}
                   </p>
 
                   {/* 代码卡片 */}
-                  <div className="relative mt-3 rounded-xl bg-slate-950 p-3 font-mono text-[11px] text-slate-200 shadow-inner overflow-hidden">
+                  <div className="relative mt-3 rounded-xl bg-[#060a16] border border-white/10 p-3 font-mono text-[11px] text-cyan-100 shadow-inner overflow-hidden">
                     <pre className="whitespace-pre-wrap break-words leading-relaxed overflow-hidden pr-6">
                       <code>{snip.code}</code>
                     </pre>
@@ -164,15 +164,15 @@ export function TechBento() {
                 </div>
 
                 {/* 底部关联文章跳转 */}
-                <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-xs">
                   <Link
                     href={`/build-log/${snip.relatedSlug}`}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-cyan-600 hover:text-cyan-700 transition-colors"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
                   >
                     <span>阅读深度原理解析</span>
                     <ArrowUpRight className="w-3 h-3" />
                   </Link>
-                  <span className="text-[10px] font-mono text-slate-400">RAG READY</span>
+                  <span className="text-[10px] font-mono text-slate-500">RAG READY</span>
                 </div>
               </SpotlightCard>
             </Reveal>

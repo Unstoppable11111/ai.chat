@@ -55,7 +55,7 @@ export function ChatExperience({
       </div>
 
       {chat.storageError && (
-        <p role="status" className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+        <p role="status" className="text-xs text-amber-300 bg-amber-950/60 border border-amber-500/30 px-3 py-1.5 rounded-xl">
           {chat.storageError}
         </p>
       )}
@@ -67,7 +67,7 @@ export function ChatExperience({
           const el = scroller.current;
           if (el) autoScroll.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
         }}
-        className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/70 backdrop-blur-sm p-4 space-y-5"
+        className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-white/10 bg-[#0b1120]/80 backdrop-blur-xl p-4 space-y-5 shadow-2xl"
         role="log"
         aria-label="对话消息"
         aria-live="polite"
@@ -81,11 +81,11 @@ export function ChatExperience({
             className="space-y-4 py-4 sm:py-6"
           >
             <div className="text-center space-y-1.5">
-              <div className="animate-float-slow inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 text-cyan-600 border border-cyan-500/30 mb-1 shadow-2xs">
+              <div className="animate-float-slow inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-400/30 mb-1 shadow-[0_0_15px_rgba(0,240,255,0.25)]">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <h2 className="text-base font-bold text-slate-900">你好，我是 JARVIS</h2>
-              <p className="text-xs text-muted-foreground">今天想研究什么？可以点击下方快捷问题或直接输入：</p>
+              <h2 className="text-base font-bold text-white">你好，我是 JARVIS</h2>
+              <p className="text-xs text-slate-400">今天想研究什么？可以点击下方快捷问题或直接输入：</p>
             </div>
             <div className="grid gap-2 sm:grid-cols-3 pt-2">
               {[
@@ -101,7 +101,7 @@ export function ChatExperience({
                   transition={{ duration: 0.35, delay: 0.08 * idx, ease: [0.22, 1, 0.36, 1] }}
                   whileHover={{ y: -2 }}
                   onClick={() => setInput(text)}
-                  className="shimmer-beam rounded-xl border border-slate-200/90 bg-white/85 hover:bg-white hover:border-cyan-500/40 hover:shadow-sm p-3 text-left text-xs font-medium text-slate-700 hover:text-cyan-700 transition-all cursor-pointer"
+                  className="shimmer-beam rounded-xl border border-white/10 bg-slate-900/80 hover:bg-slate-800 hover:border-cyan-400/50 hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] p-3 text-left text-xs font-medium text-slate-200 hover:text-cyan-300 transition-all cursor-pointer"
                 >
                   {text}
                 </motion.button>
@@ -124,11 +124,11 @@ export function ChatExperience({
             >
               {/* 头像 */}
               {isUser ? (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow-xs mt-0.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 border border-white/10 text-white shadow-xs mt-0.5">
                   <User className="h-4 w-4" />
                 </div>
               ) : (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-600 border border-cyan-500/30 shadow-xs mt-0.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-950/80 text-cyan-400 border border-cyan-400/40 shadow-[0_0_10px_rgba(0,240,255,0.25)] mt-0.5">
                   <Bot className="h-4 w-4" />
                 </div>
               )}
@@ -136,16 +136,16 @@ export function ChatExperience({
               {/* 消息气泡内容 */}
               {isUser ? (
                 <div className="flex flex-col items-end max-w-[85%] sm:max-w-[75%]">
-                  <div className="rounded-2xl rounded-tr-xs bg-gradient-to-br from-cyan-600 via-cyan-500 to-blue-600 px-4 py-2.5 text-sm text-white shadow-sm break-words whitespace-pre-wrap leading-relaxed">
+                  <div className="rounded-2xl rounded-tr-xs bg-gradient-to-br from-cyan-600 via-cyan-500 to-blue-600 px-4 py-2.5 text-sm text-white shadow-[0_0_15px_rgba(0,240,255,0.2)] break-words whitespace-pre-wrap leading-relaxed font-sans">
                     {message.content}
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-start min-w-0 max-w-[92%] sm:max-w-[85%]">
-                  <div className="rounded-2xl rounded-tl-xs bg-white/95 dark:bg-zinc-800/95 border border-slate-200/80 dark:border-zinc-700/80 p-4 text-sm text-slate-800 dark:text-slate-100 shadow-sm leading-relaxed w-full">
-                    <div className="flex items-center gap-2 mb-2 text-[11px] font-mono text-muted-foreground border-b border-slate-100 dark:border-zinc-700/60 pb-1.5">
-                      <span className="font-semibold text-cyan-600 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-cyan-500" />
+                  <div className="rounded-2xl rounded-tl-xs bg-[#0f172a]/95 border border-white/10 p-4 text-sm text-slate-100 shadow-md leading-relaxed w-full">
+                    <div className="flex items-center gap-2 mb-2 text-[11px] font-mono text-slate-400 border-b border-white/10 pb-1.5">
+                      <span className="font-semibold text-cyan-400 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-cyan-400" />
                         JARVIS
                       </span>
                       <span>·</span>
@@ -162,9 +162,9 @@ export function ChatExperience({
                     </div>
 
                     {message.sources && message.sources.length > 0 && (
-                      <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-700/80">
-                        <p className="mb-2 text-[11px] font-mono text-slate-500 flex items-center gap-1">
-                          <Bookmark className="w-3 h-3 text-cyan-600" />
+                      <div className="mt-3.5 pt-2.5 border-t border-white/10">
+                        <p className="mb-2 text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                          <Bookmark className="w-3 h-3 text-cyan-400" />
                           参考引证资料
                         </p>
                         <div className="grid gap-1.5 sm:grid-cols-2">
@@ -175,7 +175,7 @@ export function ChatExperience({
                               target="_blank"
                               rel="noopener noreferrer"
                               title={source.excerpt}
-                              className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-cyan-50/60 border border-slate-200/60 hover:border-cyan-500/30 text-xs text-slate-700 hover:text-cyan-700 transition-all truncate"
+                              className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-cyan-950/40 border border-white/10 hover:border-cyan-400/40 text-xs text-slate-300 hover:text-cyan-300 transition-all truncate"
                             >
                               <span className="truncate">{source.title} · {source.heading}</span>
                               <ExternalLink className="w-3 h-3 shrink-0 text-slate-400" />
@@ -186,8 +186,8 @@ export function ChatExperience({
                     )}
 
                     {!chat.loading && message.content && !message.error && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-zinc-700/60 flex items-center justify-between text-xs">
-                        <span className="text-[10px] font-mono text-slate-400">JARVIS INTELLIGENCE</span>
+                      <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+                        <span className="text-[10px] font-mono text-slate-500">JARVIS INTELLIGENCE</span>
                         <button
                           type="button"
                           onClick={() => {
@@ -197,9 +197,9 @@ export function ChatExperience({
                               content: message.content
                             });
                           }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-700 text-[11px] font-medium border border-cyan-500/20 transition-all cursor-pointer shadow-2xs"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 text-[11px] font-medium border border-cyan-400/30 transition-all cursor-pointer shadow-2xs"
                         >
-                          <BookOpen className="w-3 h-3 text-cyan-600" />
+                          <BookOpen className="w-3 h-3 text-cyan-400" />
                           <span>沉淀为白皮书</span>
                         </button>
                       </div>
@@ -209,7 +209,7 @@ export function ChatExperience({
                       <button
                         type="button"
                         onClick={() => void chat.send("", true)}
-                        className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-medium hover:bg-rose-100 transition-colors cursor-pointer"
+                        className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/60 text-rose-300 border border-rose-500/40 text-xs font-medium hover:bg-rose-900/60 transition-colors cursor-pointer"
                       >
                         <RotateCcw className="h-3.5 w-3.5" />
                         重新尝试生成
@@ -238,31 +238,31 @@ export function ChatExperience({
                 onClick={() => !isAuthenticated && openAuthModal("login")}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer ${
                   isGuestExhausted
-                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-medium"
-                    : "bg-slate-100 hover:bg-slate-200/80 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"
+                    ? "bg-amber-950/60 text-amber-300 border border-amber-500/40 font-medium"
+                    : "bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10"
                 }`}
                 title="默认每日限提问3次，北京时间0点重置。超级管理员 chen 享有无限特权"
               >
                 {isGuestExhausted ? (
                   <>
-                    <LockKeyhole className="w-3.5 h-3.5 text-amber-600" />
+                    <LockKeyhole className="w-3.5 h-3.5 text-amber-400" />
                     <span>今日额度已用尽 (0/{chat.quota.total}) · 登录解锁</span>
                   </>
                 ) : (
                   <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]" />
                     <span>今日免费: {chat.quota.remaining}/{chat.quota.total}</span>
-                    <span className="text-[10px] text-muted-foreground hidden sm:inline">0点重置</span>
+                    <span className="text-[10px] text-slate-500 hidden sm:inline">0点重置</span>
                   </>
                 )}
               </button>
             ) : (
-              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-mono">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 text-xs font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>站长 chen · 无限畅享</span>
               </div>
             )}
-            <a href="/privacy" className="text-xs text-muted-foreground hover:text-slate-700 underline hidden sm:inline">
+            <a href="/privacy" className="text-xs text-slate-400 hover:text-white underline hidden sm:inline">
               隐私
             </a>
           </div>
@@ -274,7 +274,7 @@ export function ChatExperience({
             event.preventDefault();
             submit();
           }}
-          className="relative flex flex-col rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl shadow-md transition-all focus-within:border-cyan-500/70 focus-within:ring-4 focus-within:ring-cyan-500/10 p-2 sm:p-2.5"
+          className="relative flex flex-col rounded-2xl border border-white/10 bg-[#0d162b]/95 backdrop-blur-xl shadow-2xl transition-all focus-within:border-cyan-400/70 focus-within:ring-4 focus-within:ring-cyan-500/20 p-2 sm:p-2.5"
         >
           <textarea
             aria-label="输入问题"
@@ -298,11 +298,11 @@ export function ChatExperience({
                 submit();
               }
             }}
-            className="w-full max-h-36 min-h-[44px] resize-none bg-transparent px-2 py-1 text-sm sm:text-base placeholder:text-slate-400 focus:outline-none leading-relaxed"
+            className="w-full max-h-36 min-h-[44px] resize-none bg-transparent px-2 py-1 text-sm sm:text-base text-white placeholder:text-slate-500 focus:outline-none leading-relaxed"
           />
 
-          <div className="flex items-center justify-between pt-1.5 px-1 border-t border-slate-100/80">
-            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+          <div className="flex items-center justify-between pt-1.5 px-1 border-t border-white/10">
+            <span className="text-[11px] text-slate-400 hidden sm:inline">
               Enter 发送，Shift + Enter 换行
             </span>
 
@@ -313,7 +313,7 @@ export function ChatExperience({
                   aria-label="停止生成"
                   title="停止生成"
                   onClick={chat.stop}
-                  className="flex h-8 items-center gap-1.5 px-3 rounded-xl bg-slate-900 hover:bg-rose-600 text-white text-xs font-medium transition-colors cursor-pointer shadow-xs"
+                  className="flex h-8 items-center gap-1.5 px-3 rounded-xl bg-slate-900 hover:bg-rose-600 text-white text-xs font-medium transition-colors cursor-pointer shadow-xs border border-white/10"
                 >
                   <Square className="h-3.5 w-3.5" />
                   <span>停止</span>
@@ -335,7 +335,7 @@ export function ChatExperience({
                   aria-label="发送消息"
                   title="发送消息"
                   disabled={!chat.ready || !input.trim()}
-                  className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-medium transition-all shadow-xs disabled:opacity-40 disabled:hover:from-cyan-600 disabled:hover:to-blue-600 cursor-pointer"
+                  className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-medium transition-all shadow-[0_0_12px_rgba(0,240,255,0.3)] disabled:opacity-40 disabled:hover:from-cyan-500 disabled:hover:to-blue-600 cursor-pointer"
                 >
                   <span>发送</span>
                   <Send className="h-3 w-3" />

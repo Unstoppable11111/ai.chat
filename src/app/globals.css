@@ -1,30 +1,29 @@
 @import "tailwindcss";
 
-/* The current visual system is light-only. Dark utilities activate only when
-   a future theme switch explicitly adds the .dark class. */
+/* Dark-first Sci-Fi / Spatial Cyber Obsidian visual architecture */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f5f7fb;
-  --background-muted: #eef3f9;
-  --panel: #ffffff;
-  --panel-strong: #ffffff;
-  --panel-soft: rgba(255, 255, 255, 0.74);
-  --foreground: #0f172a;
-  --muted-foreground: #5f6b7c;
-  --line: rgba(15, 23, 42, 0.08);
-  --line-strong: rgba(15, 23, 42, 0.14);
-  --brand-cyan: #0ea5e9;
-  --brand-lime: #65a30d;
-  --brand-violet: #8b5cf6;
+  --background: #040711;
+  --background-muted: #080d1a;
+  --panel: rgba(13, 20, 36, 0.78);
+  --panel-strong: #0c1426;
+  --panel-soft: rgba(15, 23, 42, 0.62);
+  --foreground: #f8fafc;
+  --muted-foreground: #94a3b8;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(56, 189, 248, 0.36);
+  --brand-cyan: #00f0ff;
+  --brand-lime: #10b981;
+  --brand-violet: #a855f7;
   --radius-xs: 10px;
   --radius-sm: 14px;
   --radius-md: 20px;
   --radius-lg: 28px;
   --radius-pill: 999px;
-  --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
-  --shadow-panel: 0 24px 72px rgba(148, 163, 184, 0.16);
-  --shadow-lift: 0 28px 90px rgba(14, 165, 233, 0.16);
+  --shadow-soft: 0 16px 36px rgba(0, 0, 0, 0.45);
+  --shadow-panel: 0 24px 72px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 28px 90px rgba(0, 240, 255, 0.18);
   --container: 1280px;
 }
 
@@ -59,10 +58,12 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
   max-width: 100%;
   overflow-x: clip;
   scroll-behavior: smooth;
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 body {
@@ -75,10 +76,11 @@ body {
   overflow-x: clip;
 }
 
+/* 高级星际深空点阵网格 */
 .bg-grid {
   background-image:
-    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 32px 32px;
   background-position: center center;
   background-repeat: repeat;
@@ -89,18 +91,18 @@ body {
   max-width: 100%;
 }
 
+/* 深空星云光晕弥散底色 */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.06;
+  opacity: 0.16;
   background:
-    radial-gradient(ellipse at 18% 18%, rgba(14, 165, 233, 0.12), transparent 36%),
-    radial-gradient(ellipse at 82% 16%, rgba(139, 92, 246, 0.08), transparent 38%),
-    radial-gradient(ellipse at 34% 82%, rgba(101, 163, 13, 0.06), transparent 40%);
-  /* 性能优化：移除全屏 fixed 层上的 filter: blur(20px)，渐变本身已足够柔和，避免整屏模糊合成开销 */
+    radial-gradient(ellipse at 18% 18%, rgba(0, 240, 255, 0.15), transparent 42%),
+    radial-gradient(ellipse at 82% 16%, rgba(168, 85, 247, 0.14), transparent 44%),
+    radial-gradient(ellipse at 42% 82%, rgba(16, 185, 129, 0.12), transparent 48%);
 }
 
 body::after {
@@ -111,14 +113,15 @@ body::after {
   z-index: 0;
   background: linear-gradient(
     to bottom,
-    rgba(245, 247, 251, 0),
-    rgba(245, 247, 251, 0.08) 48%,
-    rgba(245, 247, 251, 0)
+    rgba(4, 7, 17, 0),
+    rgba(4, 7, 17, 0.6) 50%,
+    rgba(4, 7, 17, 0.95)
   );
 }
 
 ::selection {
-  background: rgba(14, 165, 233, 0.18);
+  background: rgba(0, 240, 255, 0.28);
+  color: #ffffff;
 }
 
 hr,
@@ -127,10 +130,10 @@ hr,
   border: 0;
   margin: 0.75rem 0;
   background:
-    radial-gradient(ellipse at center, rgba(14, 165, 233, 0.04), transparent 58%),
-    linear-gradient(to right, transparent, rgba(15, 23, 42, 0.05), transparent);
+    radial-gradient(ellipse at center, rgba(0, 240, 255, 0.12), transparent 60%),
+    linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08), transparent);
   mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent);
-  opacity: 0.72;
+  opacity: 0.85;
 }
 
 a,
@@ -187,12 +190,11 @@ img {
   height: min(62rem, 70%);
   pointer-events: none;
   z-index: -1;
-  opacity: 0.1;
+  opacity: 0.18;
   background:
-    radial-gradient(ellipse at 24% 22%, rgba(14, 165, 233, 0.07), transparent 42%),
-    radial-gradient(ellipse at 72% 54%, rgba(139, 92, 246, 0.05), transparent 48%),
-    radial-gradient(ellipse at 32% 86%, rgba(101, 163, 13, 0.04), transparent 52%);
-  /* 性能优化：移除超大伪元素上的 filter: blur(24px)，低透明度径向渐变视觉无差异 */
+    radial-gradient(ellipse at 24% 22%, rgba(0, 240, 255, 0.14), transparent 42%),
+    radial-gradient(ellipse at 72% 54%, rgba(168, 85, 247, 0.12), transparent 48%),
+    radial-gradient(ellipse at 32% 86%, rgba(16, 185, 129, 0.08), transparent 52%);
   mask-image: linear-gradient(to bottom, transparent, black 16%, black 84%, transparent);
 }
 
@@ -214,21 +216,22 @@ img {
   height: 9rem;
   pointer-events: none;
   z-index: -1;
-  opacity: 0.06;
+  opacity: 0.12;
   background:
-    radial-gradient(ellipse at center, rgba(14, 165, 233, 0.018), transparent 68%);
+    radial-gradient(ellipse at center, rgba(0, 240, 255, 0.08), transparent 68%);
   mask-image: linear-gradient(to bottom, transparent, black 38%, transparent);
 }
 
+/* 曜石全息晶体毛玻璃面板核心规范 */
 .glass-panel {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.86)),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(10, 16, 30, 0.68)),
     var(--panel-soft);
   border: 1px solid var(--line);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 16px 42px rgba(148, 163, 184, 0.08);
-  backdrop-filter: blur(12px);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 20px 48px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
   transform: translateZ(0);
   transition:
     border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -238,12 +241,13 @@ img {
 }
 
 .glass-panel:hover {
-  border-color: rgba(14, 165, 233, 0.24);
+  border-color: rgba(0, 240, 255, 0.36);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.98),
-    var(--shadow-lift);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 24px 64px rgba(0, 240, 255, 0.15);
 }
 
+/* 高光扫光光束动效 */
 .shimmer-beam {
   position: relative;
   overflow: hidden;
@@ -257,8 +261,8 @@ img {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.55),
-    rgba(14, 165, 233, 0.12),
+    rgba(255, 255, 255, 0.35),
+    rgba(0, 240, 255, 0.25),
     transparent
   );
   transition: transform 750ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -320,18 +324,70 @@ img {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.08;
   background-image:
-    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.35) 1px, transparent 0);
-  background-size: 12px 12px;
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.25) 1px, transparent 0);
+  background-size: 16px 16px;
   mask-image: linear-gradient(to bottom, black, transparent 90%);
 }
 
+/* 钛金极光流光大标题 */
 .text-gradient {
-  background: linear-gradient(120deg, #0f172a 0%, #0ea5e9 48%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #38bdf8 50%, #c084fc 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #ffffff 0%, #00f0ff 60%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #ffffff 0%, #fbbf24 60%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 赛博全息发光边框与发光投影 */
+.glow-cyan {
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.24);
+}
+
+.glow-violet {
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.24);
+}
+
+.glow-lime {
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.24);
+}
+
+/* 晶体全息胶囊标签 */
+.cyber-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.85rem;
+  font-size: 0.75rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.cyber-badge-cyan {
+  border-color: rgba(0, 240, 255, 0.32);
+  color: #67e8f9;
+  background: rgba(0, 240, 255, 0.08);
 }
 
 .prose-studio {
@@ -340,7 +396,7 @@ img {
 
 .prose-studio :where(h2, h3, h4) {
   scroll-margin-top: 110px;
-  color: var(--foreground);
+  color: #f8fafc;
 }
 
 .prose-studio h2 {
@@ -348,19 +404,19 @@ img {
   margin-bottom: 1rem;
   font-size: 1.5rem;
   line-height: 1.2;
-  color: #0284c7;
+  color: #38bdf8;
 }
 
 .prose-studio h3 {
   margin-top: 1.75rem;
   margin-bottom: 0.75rem;
   font-size: 1.1rem;
-  color: #334155;
+  color: #cbd5e1;
 }
 
 .prose-studio p,
 .prose-studio li {
-  color: rgba(15, 23, 42, 0.8);
+  color: #cbd5e1;
   line-height: 1.8;
 }
 
@@ -377,29 +433,28 @@ img {
 .prose-studio :not(pre) > code {
   padding: 0.18rem 0.4rem;
   border-radius: 0.5rem;
-  background: rgba(14, 165, 233, 0.1);
-  color: #075985;
-  border: 1px solid rgba(14, 165, 233, 0.14);
+  background: rgba(0, 240, 255, 0.12);
+  color: #67e8f9;
+  border: 1px solid rgba(0, 240, 255, 0.2);
 }
 
 .prose-studio pre {
   overflow-x: auto;
-  border: 1px solid rgba(14, 165, 233, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(238, 246, 255, 0.9)) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 18px 48px rgba(15, 23, 42, 0.08);
-  padding: 1rem;
-  color: #0f172a;
+  background: rgba(10, 16, 30, 0.85) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 20px 48px rgba(0, 0, 0, 0.6);
+  padding: 1.2rem;
+  color: #f8fafc;
 }
 
 .prose-studio pre code {
-  color: #0f172a !important;
+  color: #f8fafc !important;
   background: transparent;
 }
 
 .prose-studio pre span {
-  color: var(--shiki-light, #0f172a) !important;
+  color: var(--shiki-dark, #f8fafc) !important;
 }
 
 .prose-studio blockquote {
@@ -408,8 +463,9 @@ img {
   border-radius: 20px;
   padding: 1.1rem 1.25rem;
   background:
-    linear-gradient(90deg, rgba(14, 165, 233, 0.1), rgba(139, 92, 246, 0.08));
-  color: rgba(15, 23, 42, 0.72);
+    linear-gradient(90deg, rgba(0, 240, 255, 0.12), rgba(168, 85, 247, 0.1));
+  border: 1px solid rgba(0, 240, 255, 0.18);
+  color: #e2e8f0;
 }
 
 .prose-studio img {
@@ -459,8 +515,8 @@ img {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: #06b6d4;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+  background: #00f0ff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.9);
   transform: translate(-50%, -50%);
   transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms ease;
 }
@@ -473,9 +529,8 @@ img {
   width: 32px;
   height: 32px;
   border-radius: 999px;
-  border: 1.5px solid rgba(15, 23, 42, 0.25);
-  background: rgba(6, 182, 212, 0.04);
-  /* 性能优化：移除 backdrop-filter: blur(1px)，跟随鼠标移动的元素使用背景模糊会导致每次 pointermove 都重新采样合成 */
+  border: 1.5px solid rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.05);
   transform: translate(-50%, -50%);
   transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1), 
               height 300ms cubic-bezier(0.16, 1, 0.3, 1), 
@@ -487,28 +542,28 @@ img {
 /* Hover 悬浮在交互元素上的高级扩散 */
 .cursor-mark.is-hovering .cursor-dot {
   transform: translate(-50%, -50%) scale(1.5);
-  background: #8b5cf6;
-  box-shadow: 0 0 14px rgba(139, 92, 246, 0.9);
+  background: #c084fc;
+  box-shadow: 0 0 16px rgba(192, 132, 252, 0.95);
 }
 
 .cursor-mark.is-hovering .cursor-ring {
   width: 48px;
   height: 48px;
-  border-color: #06b6d4;
-  background: rgba(6, 182, 212, 0.08);
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+  border-color: #00f0ff;
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.35);
 }
 
 .cursor-mark.is-pressing .cursor-dot {
   transform: translate(-50%, -50%) scale(0.8);
-  background: #0ea5e9;
+  background: #38bdf8;
 }
 
 .cursor-mark.is-pressing .cursor-ring {
   width: 24px;
   height: 24px;
-  border-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.16);
+  border-color: #c084fc;
+  background: rgba(192, 132, 252, 0.22);
 }
 
 html.has-custom-cursor,
@@ -531,8 +586,8 @@ html.has-custom-cursor summary {
   height: 2px;
   width: 100%;
   transform-origin: 0 50%;
-  background: linear-gradient(90deg, var(--brand-cyan), var(--brand-violet), var(--brand-lime));
-  box-shadow: 0 0 18px rgba(14, 165, 233, 0.34);
+  background: linear-gradient(90deg, #00f0ff, #a855f7, #10b981);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.6);
 }
 
 .hide-scrollbar {
@@ -572,7 +627,7 @@ html.has-custom-cursor summary {
   }
 
   .noise-overlay::after {
-    opacity: 0.035;
+    opacity: 0.04;
   }
 
   .particle-field,
