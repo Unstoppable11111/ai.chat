@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     "gemini-hydrogen": "4hydrogen",
     "gemini-4-hydrogen": "4hydrogen",
     "gemini-3.8-flash": balancedUpstream,
-    "4argon": "gemini-argon",
+    "4argon": "4argon",
     "gemini-argon": "gemini-argon",
     // 兼容历史老客户端模型键
     "jarvis-speed": "gemini-3.5-flash-lite",
@@ -115,39 +115,148 @@ export async function POST(request: Request) {
   const abort = new AbortController();
   const timeout = setTimeout(() => abort.abort(new Error("Upstream timeout")), 60000);
   const onAbort = () => abort.abort();
-  request.signal.addEventListener("abort",onAbort,{once:true});
-  const cleanup = () => { clearTimeout(timeout); request.signal.removeEventListener("abort",onAbort); };
-  try {
-    const upstream = await fetch(`${process.env.OPENAI_BASE_URL.replace(/\/$/,"")}/chat/completions`, { method: "POST", signal: abort.signal, headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, body: JSON.stringify({ model, stream:true, max_tokens:Math.max(128,Math.min(4096,Number(process.env.CHAT_MAX_OUTPUT_TOKENS) || 2048)), messages:[{role:"system",content:system},...messages] }) });
-    if (!upstream.ok || !upstream.body) { cleanup(); await upstream.body?.cancel(); return fail("AI 服务响应异常，请稍后重试",502); }
-    const reader = upstream.body.getReader();
-    const stream = new ReadableStream<Uint8Array>({
-      start(controller) { controller.enqueue(encoder.encode(`event: sources\ndata: ${JSON.stringify(sources)}\n\n`)); },
-      async pull(controller) {
-        try {
-          const {done,value} = await reader.read();
-          if (done) { cleanup(); reader.releaseLock(); controller.close(); }
-          else controller.enqueue(value);
-        } catch {
-          cleanup(); reader.releaseLock();
-          controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({message:"回答中断，请重试"})}\n\n`));
+  request.signal.addEventListener("abort", onAbort, { once: true });
+
+  const baseUrl = process.env.OPENAI_BASE_URL.replace(/\/$/, "");
+  const apiKey = process.env.OPENAI_API_KEY;
+  const maxTokens = Math.max(128, Math.min(4096, Number(process.env.CHAT_MAX_OUTPUT_TOKENS) || 2048));
+  const startedAt = Date.now();
+
+  let heartbeat: ReturnType<typeof setInterval> | null = null;
+  let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+  let closed = false;
+
+  const cleanup = () => {
+    clearTimeout(timeout);
+    if (heartbeat) {
+      clearInterval(heartbeat);
+      heartbeat = null;
+    }
+    request.signal.removeEventListener("abort", onAbort);
+  };
+
+  const emit = (controller: ReadableStreamDefaultController<Uint8Array>, eventName: string, payload: unknown) => {
+    if (closed) return;
+    controller.enqueue(encoder.encode(`event: ${eventName}\ndata: ${JSON.stringify(payload)}\n\n`));
+  };
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      emit(controller, "sources", sources);
+      emit(controller, "status", { phase: "connecting", elapsedMs: 0, model: modelKey });
+
+      // 每 3 秒推送一次等待心跳；超过 15 秒未收到首包时标记为 stalled，供前端弹窗交互
+      heartbeat = setInterval(() => {
+        if (closed) return;
+        const elapsedMs = Date.now() - startedAt;
+        emit(controller, "status", {
+          phase: elapsedMs >= 15000 ? "stalled" : "waiting",
+          elapsedMs,
+          model: modelKey,
+        });
+      }, 3000);
+
+      try {
+        const upstream = await fetch(`${baseUrl}/chat/completions`, {
+          method: "POST",
+          signal: abort.signal,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            stream: true,
+            max_tokens: maxTokens,
+            messages: [{ role: "system", content: system }, ...messages],
+          }),
+        });
+
+        if (!upstream.ok || !upstream.body) {
+          const errText = await upstream.text().catch(() => "");
+          await upstream.body?.cancel().catch(() => {});
+          cleanup();
+          emit(controller, "error", {
+            code: "UPSTREAM_ERROR",
+            status: upstream.status,
+            model: modelKey,
+            message: `模型 ${modelKey} 上游响应异常（HTTP ${upstream.status}）${errText ? `：${errText.slice(0, 120)}` : ""}`,
+          });
+          closed = true;
+          controller.close();
+          return;
+        }
+
+        reader = upstream.body.getReader();
+        let gotFirstChunk = false;
+
+        while (!closed) {
+          const { done, value } = await reader.read();
+          if (done) {
+            cleanup();
+            reader.releaseLock();
+            reader = null;
+            closed = true;
+            controller.close();
+            break;
+          }
+          if (!gotFirstChunk) {
+            gotFirstChunk = true;
+            if (heartbeat) {
+              clearInterval(heartbeat);
+              heartbeat = null;
+            }
+            emit(controller, "status", {
+              phase: "streaming",
+              elapsedMs: Date.now() - startedAt,
+              model: modelKey,
+            });
+          }
+          controller.enqueue(value);
+        }
+      } catch {
+        cleanup();
+        if (reader) {
+          try {
+            reader.releaseLock();
+          } catch {}
+          reader = null;
+        }
+        if (!closed && !request.signal.aborted) {
+          const isTimeout = abort.signal.aborted;
+          emit(controller, "error", {
+            code: isTimeout ? "UPSTREAM_TIMEOUT" : "UPSTREAM_CONNECT_FAILED",
+            model: modelKey,
+            message: isTimeout
+              ? `模型 ${modelKey} 响应超时（已等待 60 秒未返回完整结果），可能当前通道拥堵或卡住。`
+              : `模型 ${modelKey} 连接上游服务失败，请稍后重试或切换其他模型。`,
+          });
+          closed = true;
           controller.close();
         }
-      },
-      async cancel() { abort.abort(); cleanup(); await reader.cancel().catch(()=>{}); },
-    });
-    const headers = new Headers({
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-store",
-      "X-Accel-Buffering": "no",
-      "X-Chat-Remaining": String(quota.remaining ?? -1),
-    });
-    if (quota.guestTokenToSet) {
-      headers.append(
-        "Set-Cookie",
-        `${GUEST_COOKIE_NAME}=${quota.guestTokenToSet}; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly`
-      );
-    }
-    return new Response(stream, { headers });
-  } catch { cleanup(); return fail(abort.signal.aborted ? "回答超时，请重试" : "AI 服务连接失败",504); }
+      }
+    },
+    async cancel() {
+      closed = true;
+      abort.abort();
+      cleanup();
+      if (reader) {
+        await reader.cancel().catch(() => {});
+      }
+    },
+  });
+
+  const headers = new Headers({
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-store",
+    "X-Accel-Buffering": "no",
+    "X-Chat-Remaining": String(quota.remaining ?? -1),
+  });
+  if (quota.guestTokenToSet) {
+    headers.append(
+      "Set-Cookie",
+      `${GUEST_COOKIE_NAME}=${quota.guestTokenToSet}; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly`
+    );
+  }
+  return new Response(stream, { headers });
 }

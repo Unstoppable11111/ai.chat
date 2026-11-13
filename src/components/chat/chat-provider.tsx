@@ -17,6 +17,19 @@ export type ChatQuota = {
   loading: boolean;
 };
 
+export type StreamStatus = {
+  phase: "idle" | "connecting" | "waiting" | "stalled" | "streaming";
+  elapsedMs: number;
+  model: string;
+};
+
+export type ChatIssue = {
+  code: string;
+  message: string;
+  model: string;
+  elapsedMs?: number;
+};
+
 export type ChatState = {
   history: History;
   messages: Message[];
@@ -26,10 +39,14 @@ export type ChatState = {
   model: string;
   thinkingLevel: ThinkingLevelId;
   quota: ChatQuota;
+  streamStatus: StreamStatus;
+  issue: ChatIssue | null;
+  dismissIssue: () => void;
+  switchModelAndRetry: (nextModel: string) => Promise<void>;
   refreshQuota: () => Promise<void>;
   setModel: (model: string) => void;
   setThinkingLevel: (level: ThinkingLevelId) => void;
-  send: (text: string, retry?: boolean) => Promise<void>;
+  send: (text: string, retry?: boolean, modelOverride?: string) => Promise<void>;
   stop: () => void;
   newThread: () => void;
   selectThread: (id: string) => void;
@@ -48,6 +65,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [model, setModel] = useState("gemini-3.5-flash-lite");
   const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevelId>("off");
   const [storageError, setStorageError] = useState("");
+  const [streamStatus, setStreamStatus] = useState<StreamStatus>({
+    phase: "idle",
+    elapsedMs: 0,
+    model: "gemini-3.5-flash-lite",
+  });
+  const [issue, setIssue] = useState<ChatIssue | null>(null);
+  const stallDismissedRef = useRef(false);
   const isAdmin = Boolean(
     user && (user.username?.toLowerCase() === "chen" || user.username?.toLowerCase().startsWith("chen"))
   );
@@ -231,10 +255,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [history, ready, loading]);
 
   const messages = history.threads.find((t) => t.id === history.current)?.messages || [];
-  const stop = useCallback(() => abort.current?.abort(), []);
+  const stop = useCallback(() => {
+    abort.current?.abort();
+    setIssue(null);
+    setStreamStatus((s) => ({ ...s, phase: "idle" }));
+  }, []);
 
-  const send = async (text: string, retry = false) => {
+  const dismissIssue = useCallback(() => {
+    stallDismissedRef.current = true;
+    setIssue(null);
+  }, []);
+
+  const send = async (text: string, retry = false, modelOverride?: string) => {
     if (abort.current || !ready || (!text.trim() && !retry)) return;
+    const activeModel = modelOverride || model;
+    stallDismissedRef.current = false;
+    setIssue(null);
+    setStreamStatus({ phase: "connecting", elapsedMs: 0, model: activeModel });
 
     // 未登录访客每日限额检查（超额直接唤起登录弹窗）
     if (!user?.id && !quota.unlimited && quota.remaining <= 0) {
@@ -323,7 +360,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
         body: JSON.stringify({
-          model,
+          model: activeModel,
           thinkingLevel,
           messages: requestMessages.map(({ role, content }) => ({ role, content })),
         }),
@@ -335,7 +372,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           openAuthModal("login");
           void refreshQuota();
         }
-        throw new Error(data.text || "请求失败，请重试");
+        const msg = data.text || "请求失败，请重试";
+        setIssue({
+          code: `HTTP_${response.status}`,
+          model: activeModel,
+          message: msg,
+        });
+        throw new Error(msg);
       }
       if (!response.body) throw new Error("回答为空，请重试");
 
@@ -371,11 +414,40 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           sources = Array.isArray(parsed)
             ? parsed.filter((source) => typeof source.url === "string" && /^\/(build-log|news|projects|experiments)\//.test(source.url))
             : [];
+        } else if (event === "status") {
+          const nextPhase = (parsed.phase as StreamStatus["phase"]) || "waiting";
+          const elapsedMs = typeof parsed.elapsedMs === "number" ? parsed.elapsedMs : 0;
+          const statusModel = typeof parsed.model === "string" ? parsed.model : activeModel;
+          setStreamStatus({ phase: nextPhase, elapsedMs, model: statusModel });
+          if (nextPhase === "stalled" && !stallDismissedRef.current) {
+            setIssue({
+              code: "UPSTREAM_STALLED",
+              model: statusModel,
+              elapsedMs,
+              message: `模型 ${statusModel} 已等待 ${Math.max(1, Math.round(elapsedMs / 1000))} 秒仍未返回内容，当前上游通道可能拥堵或卡住。`,
+            });
+          } else if (nextPhase === "streaming") {
+            setIssue((prev) => (prev?.code === "UPSTREAM_STALLED" ? null : prev));
+          }
+          event = "";
+          return;
         } else if (event === "error" || parsed.error) {
-          throw new Error(parsed.message || "回答中断，请重试");
+          const errMsg = parsed.message || "回答中断，请重试";
+          setIssue({
+            code: typeof parsed.code === "string" ? parsed.code : "UPSTREAM_ERROR",
+            model: typeof parsed.model === "string" ? parsed.model : activeModel,
+            message: errMsg,
+          });
+          throw new Error(errMsg);
         } else {
-          answer += parsed.choices?.[0]?.delta?.content || "";
-          reasoning += parsed.choices?.[0]?.delta?.reasoning_content || "";
+          const deltaContent = parsed.choices?.[0]?.delta?.content || "";
+          const deltaReasoning = parsed.choices?.[0]?.delta?.reasoning_content || "";
+          if (deltaContent || deltaReasoning) {
+            setStreamStatus((s) => (s.phase === "streaming" ? s : { ...s, phase: "streaming" }));
+            setIssue((prev) => (prev?.code === "UPSTREAM_STALLED" ? null : prev));
+          }
+          answer += deltaContent;
+          reasoning += deltaReasoning;
         }
         event = "";
         update();
@@ -398,19 +470,40 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         await reader.cancel().catch(() => {});
         reader.releaseLock();
       }
-      if (!sawDone || !answer) throw new Error("回答未完整结束，请重试");
+      if (!sawDone || !answer) {
+        const incompleteMsg = "回答未完整结束，请重试";
+        setIssue((prev) => prev || { code: "INCOMPLETE_RESPONSE", model: activeModel, message: incompleteMsg });
+        throw new Error(incompleteMsg);
+      }
     } catch (error) {
       if (!controller.signal.aborted) {
-        answer += `${answer ? "\n\n" : ""}${error instanceof Error ? error.message : "请求失败，请重试"}`;
+        const msg = error instanceof Error ? error.message : "请求失败，请重试";
+        setIssue((prev) => prev || { code: "REQUEST_FAILED", model: activeModel, message: msg });
+        answer += `${answer ? "\n\n" : ""}${msg}`;
         update(true);
       } else {
         answer ||= "已停止生成";
         update();
       }
     } finally {
-      abort.current = null;
-      setLoading(false);
+      if (abort.current === controller) {
+        abort.current = null;
+        setLoading(false);
+        setStreamStatus((s) => ({ ...s, phase: "idle" }));
+      }
     }
+  };
+
+  const switchModelAndRetry = async (nextModel: string) => {
+    if (abort.current) {
+      abort.current.abort();
+      abort.current = null;
+    }
+    setLoading(false);
+    setIssue(null);
+    setModel(nextModel);
+    await new Promise((r) => setTimeout(r, 30));
+    await send("", true, nextModel);
   };
 
   const newThread = () => {
@@ -463,6 +556,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         model,
         thinkingLevel,
         quota,
+        streamStatus,
+        issue,
+        dismissIssue,
+        switchModelAndRetry,
         refreshQuota,
         setModel,
         setThinkingLevel,

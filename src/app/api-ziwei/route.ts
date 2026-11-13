@@ -213,7 +213,7 @@ export async function POST(request: Request) {
     "gemini-hydrogen": "4hydrogen",
     "gemini-4-hydrogen": "4hydrogen",
     "gemini-3.8-flash": balancedUpstream,
-    "4argon": "gemini-argon",
+    "4argon": "4argon",
     "gemini-argon": "gemini-argon",
     // 兼容历史老客户端模型键
     "jarvis-speed": "gemini-3.5-flash-lite",

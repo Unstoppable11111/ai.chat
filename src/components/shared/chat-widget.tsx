@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { Bot, X } from "lucide-react";
+import { Bot, MessageSquarePlus, Sparkles, X } from "lucide-react";
 import { useChat } from "@/components/chat/chat-provider";
 
 // 性能优化：ChatExperience 依赖 react-markdown / remark-gfm 及多个选择器组件，体积较大。
@@ -16,25 +16,102 @@ const ChatExperience = dynamic(() => loadChatExperience().then((m) => m.ChatExpe
   ),
 });
 
+const PROACTIVE_COOLDOWN_KEY = "jarvis-proactive-cooldown-until";
+const PROACTIVE_COOLDOWN_MS = 3 * 60 * 1000;
+
+function getMessageSignature(messages: { role: string; content: string }[]) {
+  const last = messages[messages.length - 1];
+  if (!last) return "empty";
+  return `${messages.length}:${last.role}:${last.content.slice(0, 48)}:${last.content.length}`;
+}
+
+function buildProactiveGreeting(pathname: string, messages: { role: string; content: string }[]) {
+  const pageHeading =
+    typeof document !== "undefined"
+      ? document.querySelector("main h1")?.textContent?.trim() || document.title.split("|")[0]?.trim() || ""
+      : "";
+  const cleanTitle = pageHeading.slice(0, 26);
+
+  // 若用户有近期有效对话记录，随机有概率结合历史对话主动搭话
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === "user" && m.content.trim().length > 2);
+  if (lastUserMsg && Math.random() < 0.45) {
+    const snippet = lastUserMsg.content.trim().slice(0, 22);
+    return {
+      text: `刚才我们聊到「${snippet}${lastUserMsg.content.trim().length > 22 ? "…" : ""}」，需要我继续帮你深入拆解或整理吗？`,
+      prompt: `继续刚才的话题：${lastUserMsg.content.trim().slice(0, 120)}`,
+    };
+  }
+
+  if (pathname.startsWith("/build-log") || pathname.startsWith("/blog")) {
+    return {
+      text: cleanTitle
+        ? `正在看「${cleanTitle}」？我可以帮你提炼核心架构或解答实现细节。`
+        : "正在看技术文章？有什么架构细节想一起探讨吗？",
+      prompt: cleanTitle ? `请帮我总结并解读《${cleanTitle}》的核心要点` : "帮我总结当前文章的核心技术点",
+    };
+  }
+  if (pathname.startsWith("/news")) {
+    return {
+      text: cleanTitle
+        ? `这篇资讯「${cleanTitle}」很有意思，要聊聊它背后的行业影响吗？`
+        : "正在浏览科技资讯？我可以帮你快速梳理关键趋势。",
+      prompt: cleanTitle ? `结合「${cleanTitle}」分析一下核心技术趋势与影响` : "帮我分析这条科技资讯的延伸影响",
+    };
+  }
+  if (pathname.startsWith("/experiments") || pathname.startsWith("/projects")) {
+    return {
+      text: cleanTitle
+        ? `在体验「${cleanTitle}」吗？随时可以问我它的底层原理或源码设计。`
+        : "对这个项目实验感兴趣吗？我可以为你拆解它的实现思路。",
+      prompt: cleanTitle ? `介绍一下「${cleanTitle}」的技术实现原理` : "介绍一下这个项目的核心技术架构",
+    };
+  }
+  if (pathname.startsWith("/workflow")) {
+    return {
+      text: "正在使用创作工作流？我可以帮你润色大纲、优化提示词或排查生成问题。",
+      prompt: "帮我优化一下当前工作流的创作大纲和提示词思路",
+    };
+  }
+  return {
+    text: cleanTitle
+      ? `正在浏览「${cleanTitle}」？有任何问题都可以随时戳我聊聊。`
+      : "Hi，我是 JARVIS！今天想探索站内的哪部分技术内容？",
+    prompt: cleanTitle ? `关于当前页面「${cleanTitle}」，能为我介绍一下重点吗？` : "介绍一下 Chen Tech Studio 站内最值得体验的内容",
+  };
+}
+
 export function ChatWidget() {
   const pathname = usePathname();
   const chat = useChat();
   const [open, setOpen] = useState(false);
   const [hasUnreadReply, setHasUnreadReply] = useState(false);
+  const [proactiveBubble, setProactiveBubble] = useState<{ text: string; prompt: string } | null>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState("");
   const prevLoadingRef = useRef(false);
+  const lastSeenSignatureRef = useRef("");
+
+  const dismissProactiveBubble = useCallback(() => {
+    setProactiveBubble(null);
+    try {
+      sessionStorage.setItem(PROACTIVE_COOLDOWN_KEY, String(Date.now() + PROACTIVE_COOLDOWN_MS));
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const handler = () => {
+      lastSeenSignatureRef.current = getMessageSignature(chat.messages);
       setHasUnreadReply(false);
+      setProactiveBubble(null);
       setOpen(true);
     };
     const prepare = (event: Event) => {
       const prompt = (event as CustomEvent<{ prompt?: string }>).detail?.prompt;
       setDraft(typeof prompt === "string" ? prompt.slice(0, 4000) : "");
+      lastSeenSignatureRef.current = getMessageSignature(chat.messages);
       setHasUnreadReply(false);
+      setProactiveBubble(null);
       setOpen(true);
     };
 
@@ -45,16 +122,32 @@ export function ChatWidget() {
       window.removeEventListener("open-chat-widget", handler);
       window.removeEventListener("trigger-ai-chat", prepare);
     };
-  }, []);
+  }, [chat.messages]);
 
   useEffect(() => {
-    // 监听 AI 流式结束瞬间：从 loading=true 切换为 false
+    if (open) {
+      lastSeenSignatureRef.current = getMessageSignature(chat.messages);
+      panel.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+      return;
+    }
+
+    // 仅在浮窗关闭期间，AI 流式真正返回了“新的有效内容”时才亮起蓝色未读点
     const wasLoading = prevLoadingRef.current;
     prevLoadingRef.current = chat.loading;
 
-    if (wasLoading && !chat.loading && !open) {
+    if (wasLoading && !chat.loading) {
       const last = chat.messages[chat.messages.length - 1];
-      if (last && last.role === "assistant" && last.content && !last.error) {
+      const nextSig = getMessageSignature(chat.messages);
+      const hasValidNewReply =
+        last &&
+        last.role === "assistant" &&
+        !last.error &&
+        last.content.trim().length > 0 &&
+        last.content.trim() !== "已停止生成" &&
+        nextSig !== lastSeenSignatureRef.current;
+
+      if (hasValidNewReply) {
+        lastSeenSignatureRef.current = nextSig;
         queueMicrotask(() => {
           setHasUnreadReply(true);
         });
@@ -62,11 +155,29 @@ export function ChatWidget() {
     }
   }, [chat.loading, chat.messages, open]);
 
+  // 随机时间主动弹窗搭话（参考当前浏览网页与历史对话），带防打扰冷却
   useEffect(() => {
-    if (open) {
-      panel.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus();
-    }
-  }, [open]);
+    if (open || pathname === "/chat" || pathname.startsWith("/dev/")) return;
+
+    let cooldownLeft = 0;
+    try {
+      const until = Number(sessionStorage.getItem(PROACTIVE_COOLDOWN_KEY) || "0");
+      cooldownLeft = Math.max(0, until - Date.now());
+    } catch {}
+
+    const randomDelay = 18000 + Math.floor(Math.random() * 27000); // 18s ~ 45s 随机
+    const delay = Math.max(randomDelay, cooldownLeft);
+
+    const timer = window.setTimeout(() => {
+      if (chat.loading) return;
+      const greeting = buildProactiveGreeting(pathname, chat.messages);
+      setProactiveBubble(greeting);
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [open, pathname, chat.loading, chat.messages]);
 
   // 如果是在独立的 /chat 页面或 dev 路由，不渲染右下角小浮窗
   if (pathname === "/chat" || pathname.startsWith("/dev/")) {
@@ -75,7 +186,62 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* 右下角浮动呼出按钮 */}
+      {/* 主动搭话精致气泡卡片 */}
+      {!open && proactiveBubble && (
+        <div
+          role="dialog"
+          aria-label="JARVIS 主动对话邀请"
+          className="fixed bottom-20 right-4 sm:bottom-22 sm:right-6 z-40 w-[290px] sm:w-[320px] rounded-2xl border border-sky-200/80 bg-white/95 backdrop-blur-xl p-3.5 shadow-[0_18px_42px_-12px_rgba(14,165,233,0.28)] animate-in fade-in slide-in-from-bottom-3 duration-200"
+        >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-1.5">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-tr from-sky-500 to-indigo-500 text-white shadow-2xs">
+                <Sparkles className="h-3 w-3" />
+              </span>
+              <span className="text-[11px] font-semibold text-slate-800">JARVIS 主动搭话</span>
+            </div>
+            <button
+              type="button"
+              aria-label="关闭主动提示"
+              onClick={dismissProactiveBubble}
+              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <p className="text-xs leading-relaxed text-slate-600">
+            {proactiveBubble.text}
+          </p>
+
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const prompt = proactiveBubble.prompt;
+                dismissProactiveBubble();
+                lastSeenSignatureRef.current = getMessageSignature(chat.messages);
+                setHasUnreadReply(false);
+                setDraft(prompt);
+                setOpen(true);
+              }}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-xs transition-all cursor-pointer"
+            >
+              <MessageSquarePlus className="h-3.5 w-3.5" />
+              <span>聊一聊</span>
+            </button>
+            <button
+              type="button"
+              onClick={dismissProactiveBubble}
+              className="rounded-xl border border-slate-200/90 bg-slate-50/80 hover:bg-slate-100 px-3 py-1.5 text-xs text-slate-600 transition-colors cursor-pointer"
+            >
+              稍后再说
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 右下角浮动呼出按钮：Luminous Pearl 磨砂玻璃方圆徽章，与左侧回到顶部按钮齐平 */}
       {!open && (
         <button
           ref={trigger}
@@ -85,20 +251,20 @@ export function ChatWidget() {
           onPointerEnter={() => void loadChatExperience()}
           onFocus={() => void loadChatExperience()}
           onClick={() => {
+            lastSeenSignatureRef.current = getMessageSignature(chat.messages);
             setHasUnreadReply(false);
+            setProactiveBubble(null);
             setOpen(true);
           }}
-          className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-slate-900 text-white shadow-[0_12px_30px_-6px_rgba(15,23,42,0.3)] hover:shadow-[0_14px_34px_-6px_rgba(14,165,233,0.36)] hover:-translate-y-0.5 hover:bg-sky-600 hover:border-sky-400 active:scale-95 transition-all duration-300 cursor-pointer border border-slate-700/80 group"
+          className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-2xl border border-sky-200/80 bg-white/95 backdrop-blur-xl text-slate-700 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.28)] hover:border-sky-400 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-8px_rgba(14,165,233,0.4)] active:scale-95 transition-all duration-300 cursor-pointer group"
         >
-          <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-sky-400 group-hover:text-white group-hover:rotate-6 transition-all" />
-          <span
-            aria-hidden="true"
-            className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-2xs"
-          />
+          <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 via-cyan-500 to-indigo-500 text-white shadow-sm group-hover:scale-105 transition-transform">
+            <Bot className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-6 transition-transform" />
+          </span>
           {hasUnreadReply && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500 border-2 border-white"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-500 border-2 border-white"></span>
             </span>
           )}
         </button>

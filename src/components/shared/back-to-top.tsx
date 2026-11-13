@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ArrowUp } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
@@ -9,10 +10,12 @@ const radius = 20;
 const circumference = 2 * Math.PI * radius;
 
 export function BackToTop() {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const reduceMotion = useReducedMotion();
   const progressRef = useRef<SVGCircleElement | null>(null);
   const progressValueRef = useRef(0);
+  const hasChatDock = pathname !== "/chat" && !pathname.startsWith("/dev/");
 
   useEffect(() => {
     let frame = 0;
@@ -53,7 +56,9 @@ export function BackToTop() {
           exit={reduceMotion ? undefined : { opacity: 0, scale: 0.7, y: 16 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 sm:bottom-22 sm:right-6 z-[45] flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 backdrop-blur-md text-slate-700 shadow-[0_10px_28px_-6px_rgba(15,23,42,0.14)] transition-transform duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 active:scale-95 group cursor-pointer"
+          className={`fixed bottom-5 z-[45] flex h-12 w-12 sm:bottom-6 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 backdrop-blur-md text-slate-700 shadow-[0_10px_28px_-6px_rgba(15,23,42,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 active:scale-95 group cursor-pointer ${
+            hasChatDock ? "right-[4.75rem] sm:right-[5.5rem]" : "right-4 sm:right-6"
+          }`}
           aria-label="回到顶部"
         >
           {/* 精密自适应 SVG 进度环 */}

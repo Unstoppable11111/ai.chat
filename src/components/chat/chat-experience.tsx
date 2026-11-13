@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { Bot, User, Send, Square, RotateCcw, Sparkles, Bookmark, ExternalLink, BookOpen, LockKeyhole, ShieldCheck } from "lucide-react";
+import { Bot, User, Send, Square, RotateCcw, Sparkles, Bookmark, ExternalLink, BookOpen, LockKeyhole, ShieldCheck, AlertTriangle, ArrowRightLeft, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useChat } from "./chat-provider";
@@ -11,6 +11,7 @@ import { markdownComponents } from "./chat-types";
 import { MemorySelector } from "./memory-selector";
 import { ModelSelector } from "./model-selector";
 import { ThinkingSelector } from "./thinking-selector";
+import { ThinkingBlock } from "./thinking-block";
 import { CuratePostModal } from "./curate-post-modal";
 
 export function ChatExperience({
@@ -152,13 +153,57 @@ export function ChatExperience({
                       <span>智能投研核心</span>
                     </div>
 
+                    <ThinkingBlock
+                      reasoningContent={message.reasoning_content}
+                      isThinking={
+                        chat.loading &&
+                        index === chat.messages.length - 1 &&
+                        !message.content &&
+                        Boolean(message.reasoning_content)
+                      }
+                    />
+
                     <div className="min-w-0 break-words leading-7">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                        {(message.content || "")
+                      {(() => {
+                        const cleanContent = (message.content || "")
                           .replace(/<ElicitationsGroup>[\s\S]*?<\/ElicitationsGroup>/gi, "")
                           .replace(/<\/?(?:ElicitationsGroup|Elicitation)\b[^>]*>/gi, "")
-                          .trim() || (chat.loading ? "正在深度思考生成中…" : "")}
-                      </ReactMarkdown>
+                          .trim();
+
+                        if (cleanContent) {
+                          return (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                              {cleanContent}
+                            </ReactMarkdown>
+                          );
+                        }
+
+                        if (chat.loading && index === chat.messages.length - 1) {
+                          const sec = Math.max(1, Math.round(chat.streamStatus.elapsedMs / 1000));
+                          const phaseText =
+                            chat.streamStatus.phase === "stalled"
+                              ? `模型响应较慢，疑似卡住（已等待 ${sec}s）…`
+                              : chat.streamStatus.phase === "waiting"
+                                ? `正在等待 ${chat.streamStatus.model} 上游响应（已等待 ${sec}s）…`
+                                : message.reasoning_content
+                                  ? "正在组织最终回答…"
+                                  : "正在深度思考生成中…";
+                          return (
+                            <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
+                              <span
+                                className={`h-2 w-2 rounded-full ${
+                                  chat.streamStatus.phase === "stalled"
+                                    ? "bg-amber-500 animate-ping"
+                                    : "bg-cyan-500 animate-pulse"
+                                }`}
+                              />
+                              <span>{phaseText}</span>
+                            </div>
+                          );
+                        }
+
+                        return null;
+                      })()}
                     </div>
 
                     {message.sources && message.sources.length > 0 && (
@@ -352,6 +397,105 @@ export function ChatExperience({
         defaultTitle={curatingMessage?.title || ""}
         assistantContent={curatingMessage?.content || ""}
       />
+
+      {/* 模型卡顿 / 异常交互弹窗 */}
+      {chat.issue && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="模型状态提示"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/45 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200/90 bg-white/98 p-5 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                    chat.issue.code === "UPSTREAM_STALLED"
+                      ? "bg-amber-500/15 text-amber-600"
+                      : "bg-rose-500/15 text-rose-600"
+                  }`}
+                >
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {chat.issue.code === "UPSTREAM_STALLED" ? "模型响应较慢 / 疑似卡住" : "模型调用出现异常"}
+                  </h3>
+                  <p className="text-[11px] font-mono text-slate-400">
+                    MODEL: {chat.issue.model} · {chat.issue.code}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                aria-label="关闭提示"
+                onClick={chat.dismissIssue}
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+              {chat.issue.message}
+            </p>
+
+            <div className="mt-4 flex flex-col gap-2">
+              {chat.issue.model !== "4hydrogen" && (
+                <button
+                  type="button"
+                  onClick={() => void chat.switchModelAndRetry("4hydrogen")}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-cyan-500 hover:to-blue-500 transition-all cursor-pointer"
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  <span>切换至 4 Hydrogen 并立即重试</span>
+                </button>
+              )}
+
+              {chat.issue.code === "UPSTREAM_STALLED" ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={chat.dismissIssue}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
+                  >
+                    继续等待
+                  </button>
+                  <button
+                    type="button"
+                    onClick={chat.stop}
+                    className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 cursor-pointer"
+                  >
+                    停止生成
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      chat.dismissIssue();
+                      void chat.send("", true);
+                    }}
+                    className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>重新尝试</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={chat.dismissIssue}
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  >
+                    暂不处理
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
