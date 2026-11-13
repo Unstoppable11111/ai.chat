@@ -19,24 +19,24 @@ export default function CyberHackPage() {
         {/* 顶部军工科幻标签 */}
         <div className="mb-6">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 text-xs font-mono font-medium">
-              <Terminal className="w-3.5 h-3.5 text-cyan-600 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-medium">
+              <Terminal className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
               <span>TERMINAL OS // DISTRIBUTED EXPLOIT SUITE</span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-muted-foreground border border-slate-900/10 rounded-full px-3.5 py-1 bg-white/60 backdrop-blur-xs">
-              <span className="flex items-center gap-1.5 text-foreground font-semibold">
-                <Cpu className="h-3.5 w-3.5 text-cyan-600" />
+            <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-slate-400 border border-white/10 rounded-full px-3.5 py-1 bg-[#060a14]/80 backdrop-blur-xs">
+              <span className="flex items-center gap-1.5 text-white font-semibold">
+                <Cpu className="h-3.5 w-3.5 text-cyan-400" />
                 <span>Web Audio 蜂鸣声效</span>
               </span>
-              <span className="text-slate-300">|</span>
-              <span className="flex items-center gap-1.5 text-emerald-600 font-semibold">
-                <Shield className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="text-white/15">|</span>
+              <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                <Shield className="h-3.5 w-3.5 text-emerald-400" />
                 <span>反向追踪警报雷达</span>
               </span>
-              <span className="text-slate-300">|</span>
-              <span className="flex items-center gap-1.5 text-amber-600 font-semibold">
-                <Lock className="h-3.5 w-3.5 text-amber-600" />
+              <span className="text-white/15">|</span>
+              <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
+                <Lock className="h-3.5 w-3.5 text-amber-400" />
                 <span>缓冲区溢出攻防</span>
               </span>
             </div>

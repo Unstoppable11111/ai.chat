@@ -226,11 +226,11 @@ export function NovelViewer({
   };
 
   return (
-    <div className="flex flex-col h-full rounded-3xl border border-slate-900/10 bg-white p-5 shadow-xs">
+    <div className="arch-frame flex flex-col h-full bg-[#060a14] p-5 shadow-2xl">
       {/* 顶部工具栏与统计 */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200/80 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700">
+          <div className="flex h-8 w-8 items-center justify-center rounded-sm border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
             <BookOpen className="h-4 w-4" />
           </div>
           <div>
@@ -244,13 +244,13 @@ export function NovelViewer({
                     if (e.key === "Enter") handleSaveTitle();
                     if (e.key === "Escape") setIsEditingTitle(false);
                   }}
-                  className="rounded-lg border border-cyan-500 bg-white px-2 py-0.5 text-xs font-bold text-slate-900 focus:outline-hidden"
+                  className="rounded-sm border border-cyan-500/60 bg-[#04060b] px-2 py-0.5 text-xs font-bold text-white focus:outline-hidden"
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={handleSaveTitle}
-                  className="p-1 rounded-md bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
+                  className="p-1 rounded-sm bg-cyan-600 text-white hover:bg-cyan-500 cursor-pointer"
                   title="保存书名"
                 >
                   <Check className="h-3 w-3" />
@@ -258,7 +258,7 @@ export function NovelViewer({
                 <button
                   type="button"
                   onClick={() => setIsEditingTitle(false)}
-                  className="p-1 rounded-md bg-slate-200 text-slate-600 hover:bg-slate-300 cursor-pointer"
+                  className="p-1 rounded-sm border border-white/10 bg-[#04060b] text-slate-300 hover:bg-white/10 cursor-pointer"
                   title="取消"
                 >
                   <X className="h-3 w-3" />
@@ -274,13 +274,13 @@ export function NovelViewer({
                 }}
                 title="点击修改书名"
               >
-                <h2 className="text-sm font-bold text-slate-900 truncate max-w-[200px] sm:max-w-xs group-hover:text-cyan-700 transition-colors">
+                <h2 className="text-sm font-bold text-white truncate max-w-[200px] sm:max-w-xs group-hover:text-cyan-300 transition-colors">
                   {bible?.title || "小说正文创作视窗"}
                 </h2>
-                <Pencil className="h-3 w-3 text-slate-400 group-hover:text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Pencil className="h-3 w-3 text-slate-500 group-hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             )}
-            <p className="text-[11px] text-muted-foreground flex items-center gap-2">
+            <p className="text-[11px] font-mono text-slate-400 flex items-center gap-2">
               <span>全书累计约 {totalWords} 字</span>
               {currentChapter && <span>· 本章 {currentContent.length} 字</span>}
             </p>
@@ -296,7 +296,7 @@ export function NovelViewer({
                 <button
                   type="button"
                   onClick={handleSaveContent}
-                  className="flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 shadow-2xs transition-all cursor-pointer"
+                  className="flex items-center gap-1 rounded-sm bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition-all cursor-pointer"
                 >
                   <Check className="h-3.5 w-3.5" />
                   <span>保存正文</span>
@@ -304,7 +304,7 @@ export function NovelViewer({
                 <button
                   type="button"
                   onClick={() => setIsEditingContent(false)}
-                  className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+                  className="flex items-center gap-1 rounded-sm border border-white/15 bg-[#04060b] px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/[0.06] transition-all cursor-pointer"
                 >
                   <X className="h-3.5 w-3.5" />
                   <span>取消</span>
@@ -318,10 +318,10 @@ export function NovelViewer({
                   setContentInput(currentContent);
                   setIsEditingContent(true);
                 }}
-                className="flex items-center gap-1 rounded-xl border border-cyan-200 bg-cyan-50/80 px-2.5 py-1.5 text-xs font-semibold text-cyan-700 hover:bg-cyan-100 transition-all cursor-pointer"
+                className="flex items-center gap-1 rounded-sm border border-cyan-500/30 bg-cyan-500/15 px-2.5 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/25 transition-all cursor-pointer"
                 title="手动自由修改本章正文"
               >
-                <Edit3 className="h-3.5 w-3.5 text-cyan-600" />
+                <Edit3 className="h-3.5 w-3.5 text-cyan-400" />
                 <span>编辑正文</span>
               </button>
             )
@@ -332,9 +332,9 @@ export function NovelViewer({
               type="button"
               disabled={isBusy}
               onClick={() => setIsTuneOpen(!isTuneOpen)}
-              className="flex items-center gap-1 rounded-xl border border-violet-200 bg-violet-50/80 px-2.5 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 transition-all cursor-pointer"
+              className="flex items-center gap-1 rounded-sm border border-violet-500/30 bg-violet-500/15 px-2.5 py-1 text-xs font-semibold text-violet-300 hover:bg-violet-500/25 transition-all cursor-pointer"
             >
-              <Wand2 className="h-3 w-3 text-violet-600" />
+              <Wand2 className="h-3 w-3 text-violet-400" />
               <span>本章提示词调优</span>
               <ChevronDown className={`h-3 w-3 transition-transform ${isTuneOpen ? "rotate-180" : ""}`} />
             </button>
@@ -342,26 +342,26 @@ export function NovelViewer({
 
           {/* 原文与精修对比切换 */}
           {currentChapter?.polished_content && (
-            <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-0.5 text-xs">
+            <div className="inline-flex rounded-sm border border-white/10 bg-[#04060b] p-0.5 text-xs">
               <button
                 type="button"
                 onClick={() => setViewMode("polished")}
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 font-semibold transition-all ${
+                className={`flex items-center gap-1 rounded-sm px-2.5 py-1 font-semibold transition-all ${
                   viewMode === "polished"
-                    ? "bg-white text-slate-900 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
-                <Sparkles className="h-3 w-3 text-cyan-600" />
+                <Sparkles className="h-3 w-3 text-cyan-400" />
                 <span>去AI精修版</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("raw")}
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 font-semibold transition-all ${
+                className={`flex items-center gap-1 rounded-sm px-2.5 py-1 font-semibold transition-all ${
                   viewMode === "raw"
-                    ? "bg-white text-slate-900 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
                 <span>原始初稿</span>
@@ -374,13 +374,13 @@ export function NovelViewer({
             type="button"
             onClick={() => handleCopy(currentContent)}
             disabled={!currentContent}
-            className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-cyan-500/40 hover:text-cyan-700 transition-all disabled:opacity-40"
+            className="flex items-center gap-1 rounded-sm border border-white/15 bg-[#04060b] px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-all disabled:opacity-40"
             title="复制本章"
           >
             {copied ? (
               <>
-                <Check className="h-3.5 w-3.5 text-emerald-600" />
-                <span className="text-emerald-700">已复制</span>
+                <Check className="h-3.5 w-3.5 text-emerald-400" />
+                <span className="text-emerald-300">已复制</span>
               </>
             ) : (
               <>
@@ -395,7 +395,7 @@ export function NovelViewer({
             type="button"
             onClick={handleDownloadTxt}
             disabled={!chapters.length && !streamingText}
-            className="flex items-center gap-1 rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 transition-all shadow-2xs disabled:opacity-40"
+            className="flex items-center gap-1 rounded-sm border border-cyan-500/40 bg-cyan-500/15 px-3 py-1.5 font-mono text-xs font-medium text-cyan-200 hover:bg-cyan-500/25 transition-all disabled:opacity-40"
           >
             <Download className="h-3.5 w-3.5" />
             <span>导出 TXT</span>
@@ -405,13 +405,13 @@ export function NovelViewer({
 
       {/* 单章提示词微调抽屉 */}
       {isTuneOpen && currentChapter && (
-        <div className="mt-3 p-3.5 rounded-2xl border border-violet-200 bg-violet-50/50 space-y-2.5 animate-in fade-in duration-150">
+        <div className="mt-3 p-3.5 rounded-sm border border-violet-500/30 bg-violet-500/10 space-y-2.5 animate-in fade-in duration-150">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-violet-900">
-              <Wand2 className="h-3.5 w-3.5 text-violet-600" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-violet-200">
+              <Wand2 className="h-3.5 w-3.5 text-violet-400" />
               <span>根据提示词微调当前章节（绑定《{bible?.title}》专属世界观与人设约束）</span>
             </div>
-            <span className="text-[10px] text-violet-700 font-mono">
+            <span className="text-[10px] text-violet-300 font-mono">
               第 {currentChapter.chapter_number} 章 · {currentChapter.title}
             </span>
           </div>
@@ -423,13 +423,13 @@ export function NovelViewer({
               onChange={(e) => setTuneInstruction(e.target.value)}
               placeholder="输入调优指令（如：强化男主反杀时的压迫感；增加周围暴雨细节；把对白拆得更短更凶狠……）"
               disabled={isTuning}
-              className="flex-1 rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-violet-500 focus:outline-hidden disabled:bg-slate-50"
+              className="flex-1 rounded-sm border border-violet-500/30 bg-[#04060b] px-3 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:border-violet-400 focus:outline-hidden disabled:opacity-60"
             />
             <button
               type="button"
               onClick={handleTuneChapter}
               disabled={isTuning || isBusy || !tuneInstruction.trim()}
-              className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-violet-700 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-sm bg-violet-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-violet-500 transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isTuning ? (
                 <>
@@ -443,7 +443,7 @@ export function NovelViewer({
           </div>
 
           {tuneError && (
-            <div className="flex items-center gap-1 text-[11px] text-rose-600">
+            <div className="flex items-center gap-1 text-[11px] text-rose-300">
               <AlertCircle className="h-3 w-3 shrink-0" />
               <span>{tuneError}</span>
             </div>
@@ -452,7 +452,7 @@ export function NovelViewer({
       )}
 
       {/* 章节导航 Tab 列表 */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 border-b border-slate-100 shrink-0 hide-scrollbar">
+      <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 border-b border-white/10 shrink-0 hide-scrollbar">
         {bible?.outlines && bible.outlines.length > 0 ? (
           bible.outlines.map((outline, idx) => {
             const chNum = outline.chapter_number || idx + 1;
@@ -465,14 +465,14 @@ export function NovelViewer({
                 key={chNum}
                 type="button"
                 onClick={() => setManualChapterIndex(idx)}
-                className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-cyan-500/15 text-cyan-800 font-bold border border-cyan-500/30 shadow-2xs"
+                    ? "bg-cyan-500/20 text-cyan-200 font-bold border border-cyan-500/40"
                     : isThisStreaming
-                    ? "bg-amber-50 text-amber-800 border border-amber-300 animate-pulse"
+                    ? "bg-amber-500/15 text-amber-300 border border-amber-500/40 animate-pulse"
                     : existing
-                    ? "text-slate-700 hover:bg-slate-100 border border-transparent"
-                    : "text-slate-400 hover:bg-slate-50 border border-transparent opacity-60"
+                    ? "text-slate-300 hover:bg-white/[0.04] hover:text-white border border-transparent"
+                    : "text-slate-500 hover:bg-white/[0.03] border border-transparent opacity-60"
                 }`}
               >
                 <span>第 {chNum} 章</span>
@@ -480,7 +480,7 @@ export function NovelViewer({
                   {existing?.title || outline.title}
                 </span>
                 {isThisStreaming && (
-                  <span className="flex h-1.5 w-1.5 rounded-full bg-cyan-600 animate-ping" />
+                  <span className="flex h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
                 )}
               </button>
             );
@@ -493,26 +493,26 @@ export function NovelViewer({
                 key={ch.chapter_number}
                 type="button"
                 onClick={() => setManualChapterIndex(idx)}
-                className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-cyan-500/15 text-cyan-800 font-bold border border-cyan-500/30"
-                    : "text-slate-600 hover:bg-slate-100 border border-transparent"
+                    ? "bg-cyan-500/20 text-cyan-200 font-bold border border-cyan-500/40"
+                    : "text-slate-400 hover:bg-white/[0.04] hover:text-white border border-transparent"
                 }`}
               >
                 <span>第 {ch.chapter_number} 章</span>
-                <span className="text-[10px] text-muted-foreground font-normal truncate max-w-[90px]">
+                <span className="text-[10px] text-slate-400 font-normal truncate max-w-[90px]">
                   {ch.title}
                 </span>
               </button>
             );
           })
         ) : isStreaming ? (
-          <div className="flex items-center gap-2 px-3 py-1 text-xs text-cyan-700 bg-cyan-50 rounded-xl border border-cyan-200">
-            <span className="animate-spin inline-block h-2 w-2 rounded-full border-2 border-cyan-600 border-t-transparent"></span>
+          <div className="flex items-center gap-2 px-3 py-1 text-xs text-cyan-300 bg-cyan-500/15 rounded-sm border border-cyan-500/30">
+            <span className="animate-spin inline-block h-2 w-2 rounded-full border-2 border-cyan-400 border-t-transparent"></span>
             <span>正在流水线撰写第 {streamingChapter} 章...</span>
           </div>
         ) : (
-          <span className="text-xs text-slate-400 py-1">等待启动工作流...</span>
+          <span className="text-xs font-mono text-slate-500 py-1">等待启动工作流...</span>
         )}
       </div>
 
@@ -528,11 +528,11 @@ export function NovelViewer({
         {currentContent ? (
           <div className="space-y-4">
             {/* 本章标题头 */}
-            <div className="space-y-1 pb-3 border-b border-slate-100">
+            <div className="space-y-1 pb-3 border-b border-white/10">
               <div className="flex items-center justify-between">
                 {isEditingChapterTitle ? (
                   <div className="flex items-center gap-2 flex-1 max-w-md">
-                    <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">
+                    <span className="text-base sm:text-lg font-bold text-white shrink-0">
                       第 {selectedChapterIndex + 1} 章：
                     </span>
                     <input
@@ -543,13 +543,13 @@ export function NovelViewer({
                         if (e.key === "Enter") handleSaveChapterTitle();
                         if (e.key === "Escape") setIsEditingChapterTitle(false);
                       }}
-                      className="rounded-lg border border-cyan-500 bg-white px-2.5 py-1 text-sm font-bold text-slate-900 focus:outline-hidden flex-1"
+                      className="rounded-sm border border-cyan-500/60 bg-[#04060b] px-2.5 py-1 text-sm font-bold text-white focus:outline-hidden flex-1"
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={handleSaveChapterTitle}
-                      className="p-1 rounded-md bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
+                      className="p-1 rounded-sm bg-cyan-600 text-white hover:bg-cyan-500 cursor-pointer"
                       title="保存章节名"
                     >
                       <Check className="h-3.5 w-3.5" />
@@ -557,7 +557,7 @@ export function NovelViewer({
                     <button
                       type="button"
                       onClick={() => setIsEditingChapterTitle(false)}
-                      className="p-1 rounded-md bg-slate-200 text-slate-600 hover:bg-slate-300 cursor-pointer"
+                      className="p-1 rounded-sm border border-white/10 bg-[#04060b] text-slate-300 hover:bg-white/10 cursor-pointer"
                       title="取消"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -573,21 +573,21 @@ export function NovelViewer({
                     }}
                     title="点击修改章节标题"
                   >
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-cyan-700 transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
                       第 {selectedChapterIndex + 1} 章：{currentTitle}
                     </h3>
-                    <Pencil className="h-3.5 w-3.5 text-slate-400 group-hover:text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Pencil className="h-3.5 w-3.5 text-slate-500 group-hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 )}
                 {isCurrentStreaming && (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-cyan-700 bg-cyan-50 px-2.5 py-0.5 rounded-full border border-cyan-200 animate-pulse">
-                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-600 animate-ping" />
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-cyan-300 bg-cyan-500/15 px-2.5 py-0.5 rounded-sm border border-cyan-500/30 animate-pulse">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
                     SSE 工业打字机推流中 ({streamingText.length} 字)
                   </span>
                 )}
               </div>
               {viewMode === "polished" && currentChapter?.polished_content && !isCurrentStreaming && (
-                <p className="text-[11px] text-violet-700 bg-violet-50 inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono">
+                <p className="text-[11px] text-violet-300 bg-violet-500/15 border border-violet-500/30 inline-flex items-center gap-1 px-2 py-0.5 rounded-sm font-mono">
                   <Sparkles className="h-3 w-3" />
                   已应用文学精修版
                 </p>
@@ -600,23 +600,23 @@ export function NovelViewer({
                 <textarea
                   value={contentInput}
                   onChange={(e) => setContentInput(e.target.value)}
-                  className="w-full h-[450px] p-4 rounded-2xl border border-cyan-400 bg-white text-sm sm:text-base leading-relaxed text-slate-800 focus:outline-hidden font-sans tracking-wide resize-y shadow-inner"
+                  className="w-full h-[450px] p-4 rounded-sm border border-cyan-500/50 bg-[#04060b] text-sm sm:text-base leading-relaxed text-slate-100 focus:outline-hidden font-sans tracking-wide resize-y"
                   placeholder="在此自由修改、润色或增删章节正文内容..."
                 />
-                <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+                <div className="flex items-center justify-between text-xs text-slate-400 px-1">
                   <span>当前字数：{contentInput.length} 字</span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setIsEditingContent(false)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
+                      className="px-3 py-1.5 rounded-sm border border-white/15 bg-[#04060b] text-slate-300 hover:bg-white/[0.06] cursor-pointer"
                     >
                       放弃修改
                     </button>
                     <button
                       type="button"
                       onClick={handleSaveContent}
-                      className="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 cursor-pointer shadow-xs"
+                      className="px-4 py-1.5 rounded-sm bg-emerald-600 text-white font-semibold hover:bg-emerald-500 cursor-pointer"
                     >
                       保存正文
                     </button>
@@ -624,10 +624,10 @@ export function NovelViewer({
                 </div>
               </div>
             ) : (
-              <div className="text-sm sm:text-base leading-relaxed sm:leading-loose text-slate-800 whitespace-pre-wrap font-sans tracking-wide">
+              <div className="text-sm sm:text-base leading-relaxed sm:leading-loose text-slate-200 whitespace-pre-wrap font-sans tracking-wide">
                 {currentContent}
                 {isCurrentStreaming && (
-                  <span className="inline-block w-2 h-4 ml-1 bg-cyan-600 animate-pulse align-middle rounded-xs" />
+                  <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse align-middle rounded-xs" />
                 )}
               </div>
             )}
@@ -635,12 +635,12 @@ export function NovelViewer({
         ) : (
           /* 空状态引导 */
           <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-sm border border-white/10 bg-[#04060b] text-slate-500">
               <FileText className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700">正文打字机就绪</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+              <p className="font-mono text-sm font-semibold text-white">正文打字机就绪</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm">
                 在左侧输入故事设定并启动工业化工作流，小说正文将以 SSE 流式长连接实时呈现，并支持单章按提示词定向微调。
               </p>
             </div>

@@ -56,48 +56,48 @@ export function CuratePostModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#04060b]/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="arch-frame relative w-full max-w-md rounded-2xl border border-white/15 bg-[#060a14] p-5 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
         <div className="flex items-center gap-2 mb-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
             <BookOpen className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-slate-900">沉淀为技术白皮书</h3>
-            <p className="text-[11px] text-muted-foreground">将此条优质对话转化为站内正式白皮书并接入 RAG 知识库</p>
+            <h3 className="font-bold text-sm text-white">沉淀为技术白皮书</h3>
+            <p className="text-[11px] text-slate-400">将此条优质对话转化为站内正式白皮书并接入 RAG 知识库</p>
           </div>
         </div>
 
         {result ? (
           <div className="space-y-4 py-3">
-            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-emerald-800 text-xs">
-              <p className="font-bold flex items-center gap-1.5 mb-1">
-                <Check className="w-4 h-4 text-emerald-600" />
+            <div className="rounded-xl bg-emerald-500/15 border border-emerald-500/30 p-3 text-emerald-200 text-xs">
+              <p className="font-bold flex items-center gap-1.5 mb-1 text-emerald-300">
+                <Check className="w-4 h-4 text-emerald-400" />
                 成功归档并切块注入 RAG 引擎！
               </p>
-              <p className="text-emerald-700">文章已在站内技术白皮书模块正式发布，随时可供所有人查阅与语义索引。</p>
+              <p className="text-emerald-200/80">文章已在站内技术白皮书模块正式发布，随时可供所有人查阅与语义索引。</p>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 cursor-pointer"
+                className="px-3 py-1.5 text-xs text-slate-400 hover:text-white cursor-pointer"
               >
                 关闭
               </button>
               <Link
                 href={result.url}
                 target="_blank"
-                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-cyan-600 text-white text-xs font-medium hover:bg-cyan-500 transition-colors shadow-xs"
+                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 text-xs font-medium hover:bg-cyan-500/30 transition-colors"
               >
                 <span>前往查看文章</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -107,49 +107,49 @@ export function CuratePostModal({
         ) : (
           <div className="space-y-3 pt-1">
             {error && (
-              <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl">
+              <p className="text-xs text-rose-300 bg-rose-500/15 border border-rose-500/30 px-3 py-1.5 rounded-xl">
                 {error}
               </p>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">文章标题</label>
+              <label className="block text-xs font-medium text-slate-300 mb-1">文章标题</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="例如：KV Cache 动态压缩工程实战"
-                className="w-full text-xs rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:border-cyan-500"
+                className="w-full text-xs rounded-xl border border-white/15 bg-[#04060b] px-3 py-2 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">自定义 URL Slug（可选）</label>
+              <label className="block text-xs font-medium text-slate-300 mb-1">自定义 URL Slug（可选）</label>
               <input
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="例如：kv-cache-compression-guide"
-                className="w-full text-xs font-mono rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:border-cyan-500"
+                className="w-full text-xs font-mono rounded-xl border border-white/15 bg-[#04060b] px-3 py-2 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">文章标签（逗号隔开）</label>
+              <label className="block text-xs font-medium text-slate-300 mb-1">文章标签（逗号隔开）</label>
               <input
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="AI对话, 架构分析, 性能优化"
-                className="w-full text-xs rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:border-cyan-500"
+                className="w-full text-xs rounded-xl border border-white/15 bg-[#04060b] px-3 py-2 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-400"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 cursor-pointer"
+                className="px-3 py-1.5 text-xs text-slate-400 hover:text-white cursor-pointer"
               >
                 取消
               </button>

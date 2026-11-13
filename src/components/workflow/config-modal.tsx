@@ -46,26 +46,26 @@ export function ConfigModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/40  animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#020409]/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="glass-panel w-full max-w-xl rounded-3xl p-6 shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        className="arch-frame w-full max-w-xl border-white/15 bg-[#060a14] p-6 shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 头部 */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/80 shrink-0">
+        <div className="flex items-center justify-between pb-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-700">
+            <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
               <Settings2 className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">工作流参数与引擎配置</h2>
+              <h2 className="font-mono text-sm font-bold uppercase tracking-wider text-white">工作流参数与引擎配置</h2>
               <p className="text-xs text-muted-foreground">调优创作风格、章节规模与后端模型接口</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-sm border border-white/10 bg-[#04060b] hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -78,8 +78,8 @@ export function ConfigModal({
             onClick={() => setActiveTab("creative")}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === "creative"
-                ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
+                ? "bg-cyan-500/15 border border-cyan-500/40 text-cyan-300"
+                : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
             }`}
           >
             <Sliders className="h-3.5 w-3.5" />
@@ -90,8 +90,8 @@ export function ConfigModal({
             onClick={() => setActiveTab("model")}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === "model"
-                ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
+                ? "bg-cyan-500/15 border border-cyan-500/40 text-cyan-300"
+                : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
             }`}
           >
             <Key className="h-3.5 w-3.5" />
@@ -105,7 +105,7 @@ export function ConfigModal({
             <>
               {/* 题材类型 */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">题材赛道</label>
+                <label className="text-xs font-semibold text-slate-300">题材赛道</label>
                 <div className="flex flex-wrap gap-1.5">
                   {GENRE_OPTIONS.map((g) => (
                     <button
@@ -114,8 +114,8 @@ export function ConfigModal({
                       onClick={() => onChange({ genre: g })}
                       className={`px-3 py-1 rounded-xl text-xs font-medium border transition-all ${
                         config.genre === g
-                          ? "border-cyan-500 bg-cyan-50 text-cyan-800 font-semibold"
-                          : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
+                          ? "border-cyan-500/60 bg-cyan-500/15 text-cyan-300 font-semibold"
+                          : "border-white/10 bg-[#04060b] text-slate-400 hover:border-white/25 hover:text-white"
                       }`}
                     >
                       {g}
@@ -126,7 +126,7 @@ export function ConfigModal({
 
               {/* 写作风格 */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">写作语言风格</label>
+                <label className="text-xs font-semibold text-slate-300">写作语言风格</label>
                 <div className="space-y-1.5">
                   {STYLE_OPTIONS.map((s) => (
                     <button
@@ -135,8 +135,8 @@ export function ConfigModal({
                       onClick={() => onChange({ style: s })}
                       className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium border transition-all flex items-center justify-between ${
                         config.style === s
-                          ? "border-cyan-500 bg-cyan-50 text-cyan-800 font-semibold"
-                          : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
+                          ? "border-cyan-500/60 bg-cyan-500/15 text-cyan-300 font-semibold"
+                          : "border-white/10 bg-[#04060b] text-slate-400 hover:border-white/25 hover:text-white"
                       }`}
                     >
                       <span>{s}</span>
@@ -149,7 +149,7 @@ export function ConfigModal({
               {/* 章节生成数量 */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-slate-700">单次生成章节数</label>
+                  <label className="text-xs font-semibold text-slate-300">单次生成章节数</label>
                   <span className="text-xs font-mono font-bold text-cyan-700">
                     {config.chapterCount || 3} 章
                   </span>
@@ -162,8 +162,8 @@ export function ConfigModal({
                       onClick={() => onChange({ chapterCount: count })}
                       className={`py-1.5 rounded-xl text-xs font-mono font-semibold border transition-all ${
                         (config.chapterCount || 3) === count
-                          ? "border-cyan-500 bg-cyan-500 text-white shadow-xs"
-                          : "border-slate-200 bg-white/80 text-slate-700 hover:border-slate-300"
+                          ? "border-cyan-400 bg-cyan-500/20 text-cyan-200 font-bold"
+                          : "border-white/10 bg-[#04060b] text-slate-300 hover:border-white/25"
                       }`}
                     >
                       {count} 章
@@ -174,7 +174,7 @@ export function ConfigModal({
 
               {/* 去 AI 味强度 */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">去 AI 味短句化强度</label>
+                <label className="text-xs font-semibold text-slate-300">去 AI 味短句化强度</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { key: "light", label: "轻度 (推荐)", desc: "保留修辞，微调长句" },
@@ -192,7 +192,7 @@ export function ConfigModal({
                       className={`p-2.5 rounded-xl text-left border transition-all ${
                         (config.deAiLevel || "light") === level.key
                           ? "border-violet-500 bg-violet-50/70 text-violet-900"
-                          : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
+                          : "border-white/10 bg-[#04060b] text-slate-400 hover:border-white/25 hover:text-white"
                       }`}
                     >
                       <p className="text-xs font-bold">{level.label}</p>
@@ -204,7 +204,7 @@ export function ConfigModal({
 
               {/* 自定义 System Prompt */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">
+                <label className="text-xs font-semibold text-slate-300">
                   附加自定义 Prompt 指令 (可选)
                 </label>
                 <textarea
@@ -212,7 +212,7 @@ export function ConfigModal({
                   value={config.customSystemPrompt || ""}
                   onChange={(e) => onChange({ customSystemPrompt: e.target.value })}
                   placeholder="例如：男主切勿圣母；反派智商在线；加入更多赛博义体或机械构造术语……"
-                  className="w-full rounded-xl border border-slate-200 bg-white/90 p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden"
+                  className="w-full rounded-xl border border-white/10 bg-[#04060b] p-2.5 text-xs text-slate-200 placeholder:text-slate-600 focus:border-cyan-500 focus:outline-hidden"
                 />
               </div>
             </>
@@ -220,7 +220,7 @@ export function ConfigModal({
             <>
               {/* 模型选择 */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">目标大模型 (Model)</label>
+                <label className="text-xs font-semibold text-slate-300">目标大模型 (Model)</label>
                 <div className="space-y-1.5">
                   {MODEL_OPTIONS.map((m) => {
                     const isSelected = (config.model || "") === m.value;
@@ -231,8 +231,8 @@ export function ConfigModal({
                         onClick={() => onChange({ model: m.value })}
                         className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium border transition-all flex items-center justify-between ${
                           isSelected
-                            ? "border-cyan-500 bg-cyan-50 text-cyan-800 font-semibold"
-                            : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
+                            ? "border-cyan-500/60 bg-cyan-500/15 text-cyan-300 font-semibold"
+                            : "border-white/10 bg-[#04060b] text-slate-400 hover:border-white/25 hover:text-white"
                         }`}
                       >
                         <span>{m.label}</span>
@@ -248,13 +248,13 @@ export function ConfigModal({
                   value={config.model || ""}
                   onChange={(e) => onChange({ model: e.target.value })}
                   placeholder="或自定义输入模型标识 (如 qwen-max, deepseek-reasoner)"
-                  className="w-full mt-1 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden"
+                  className="w-full mt-1 rounded-xl border border-white/10 bg-[#04060b] px-3 py-2 text-xs font-mono text-slate-200 placeholder:text-slate-600 focus:border-cyan-500 focus:outline-hidden"
                 />
               </div>
 
               {/* API 接入点 Base URL */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">
+                <label className="text-xs font-semibold text-slate-300">
                   OpenAI 兼容 Base URL (留空默认使用站长云端通道)
                 </label>
                 <input
@@ -262,7 +262,7 @@ export function ConfigModal({
                   value={config.baseUrl || ""}
                   onChange={(e) => onChange({ baseUrl: e.target.value.trim() })}
                   placeholder="留空默认使用服务器端高速接口 (无需填写)"
-                  className="w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden"
+                  className="w-full rounded-xl border border-white/10 bg-[#04060b] px-3 py-2 text-xs font-mono text-slate-200 placeholder:text-slate-600 focus:border-cyan-500 focus:outline-hidden"
                 />
                 <p className="text-[11px] text-muted-foreground">
                   若填入自定义中转端点，必须是以 http:// 或 https:// 开头的完整 URL。
@@ -272,16 +272,16 @@ export function ConfigModal({
               {/* 自定义 API Key */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-slate-700">
+                  <label className="text-xs font-semibold text-slate-300">
                     自定义第三方 API Key (可选)
                   </label>
                   {config.apiKey ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-medium text-cyan-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 text-[10px] font-medium text-cyan-300">
                       <Check className="h-3 w-3" />
                       已启用自定义第三方 Key
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
                       <Check className="h-3 w-3" />
                       默认使用站长 AI 对话服务
                     </span>
@@ -292,7 +292,7 @@ export function ConfigModal({
                   value={config.apiKey || ""}
                   onChange={(e) => onChange({ apiKey: e.target.value.trim() })}
                   placeholder="留空即默认使用站长内置 AI 对话服务生成"
-                  className="w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden"
+                  className="w-full rounded-xl border border-white/10 bg-[#04060b] px-3 py-2 text-xs font-mono text-slate-200 placeholder:text-slate-600 focus:border-cyan-500 focus:outline-hidden"
                 />
                 <p className="text-[11px] text-slate-500 leading-relaxed">
                   {config.apiKey
@@ -305,7 +305,7 @@ export function ConfigModal({
         </div>
 
         {/* 底部确认按钮 */}
-        <div className="pt-3 border-t border-slate-200/80 flex items-center justify-end shrink-0">
+        <div className="pt-3 border-t border-white/10 flex items-center justify-end shrink-0">
           <button
             type="button"
             onClick={onClose}

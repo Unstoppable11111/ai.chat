@@ -19,26 +19,29 @@ export function SectionHeading({
   const Heading = level === 1 ? "h1" : "h2";
 
   return (
-    <Reveal className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between" distance={16}>
-      <div className="max-w-2xl">
+    <Reveal
+      className="mb-10 border-t border-white/12 pt-5 flex flex-col gap-5 md:flex-row md:items-end md:justify-between"
+      distance={16}
+    >
+      <div className="max-w-3xl">
         {eyebrow ? (
-          <div className="mb-3 inline-flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-brand-cyan">
-              {eyebrow}
+          <div className="mb-3 inline-flex items-center gap-2 rounded border border-cyan-500/30 bg-cyan-950/35 px-2.5 py-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+              [ {eyebrow} ]
             </p>
           </div>
         ) : null}
-        <Heading className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+        <Heading className="text-3xl font-bold tracking-tight text-white md:text-5xl leading-[1.08]">
           {title}
         </Heading>
         {description ? (
-          <p className="mt-3 text-sm leading-7 text-muted-foreground md:text-base">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400 md:text-base">
             {description}
           </p>
         ) : null}
       </div>
-      {action}
+      {action ? <div className="shrink-0">{action}</div> : null}
     </Reveal>
   );
 }

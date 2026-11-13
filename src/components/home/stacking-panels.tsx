@@ -1,145 +1,144 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useReducedMotion } from "motion/react";
+import { ArrowUpRight, Layers } from "lucide-react";
+import { Reveal } from "@/components/shared/reveal";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
-const panels = [
+const DOMAIN_DOSSIERS = [
   {
-    id: "01",
-    title: "PROJECTS",
-    description: "Production-ready products, systems, and platforms.",
+    id: "SECTOR_01",
+    title: "PROJECTS // 生产级系统工程",
+    subtitle: "全栈平台、量化引擎与自动化工程归档",
+    description: "涵盖 Next.js 全栈架构、AI 工作流调度后台、量化交易引擎及生产环境高可用工程案例。",
     href: "/projects",
     image: "/images/placeholders/panel-1.svg",
-    colorClass: "bg-gradient-to-br from-[#0d162b] via-[#091020] to-[#050813] text-white border-cyan-500/35 shadow-[0_0_40px_rgba(0,240,255,0.12)]",
-    buttonHover: "hover:bg-cyan-400 hover:text-slate-950 hover:border-cyan-300",
+    metrics: [
+      { k: "STACK", v: "Next.js 16 / MySQL / TS" },
+      { k: "FOCUS", v: "Production Architecture" },
+    ],
+    accent: "text-cyan-300 border-cyan-500/35 bg-cyan-950/40",
   },
   {
-    id: "02",
-    title: "EXPERIMENTS",
-    description: "Visual labs, interactions, and conceptual designs.",
+    id: "SECTOR_02",
+    title: "EXPERIMENTS // 交互与图形学沙盒",
+    subtitle: "WebGL、3D 空间计算与多模态交互玩具",
+    description: "结合 Three.js、Cesium、Canvas 流体力学与计算机视觉手势追踪，持续探索下一代界面交互。",
     href: "/experiments",
     image: "/images/placeholders/panel-2.svg",
-    colorClass: "bg-gradient-to-br from-[#140e2b] via-[#0e0a1f] to-[#070512] text-white border-purple-500/35 shadow-[0_0_40px_rgba(168,85,247,0.12)]",
-    buttonHover: "hover:bg-purple-400 hover:text-slate-950 hover:border-purple-300",
+    metrics: [
+      { k: "ENGINE", v: "WebGL / Three.js / CV" },
+      { k: "MODULES", v: "09 Playable Labs" },
+    ],
+    accent: "text-purple-300 border-purple-500/35 bg-purple-950/40",
   },
   {
-    id: "03",
-    title: "BUILD LOGS",
-    description: "Documenting the process, failures, and technical decisions.",
+    id: "SECTOR_03",
+    title: "BUILD LOGS // 深度白皮书与 RAG",
+    subtitle: "结构化工程实践、架构复盘与向量知识库",
+    description: "系统沉淀 RAG 混合检索、CUDA/Attention 加速、前端性能优化与系统故障复盘的硬核长文。",
     href: "/build-log",
     image: "/images/placeholders/panel-3.svg",
-    colorClass: "bg-gradient-to-br from-[#06181f] via-[#041016] to-[#03090e] text-white border-emerald-500/35 shadow-[0_0_40px_rgba(16,185,129,0.12)]",
-    buttonHover: "hover:bg-emerald-400 hover:text-slate-950 hover:border-emerald-300",
+    metrics: [
+      { k: "CORPUS", v: "65+ Structured Docs" },
+      { k: "INDEX", v: "Chunking-Ready MDX" },
+    ],
+    accent: "text-emerald-300 border-emerald-500/35 bg-emerald-950/40",
   },
   {
-    id: "04",
-    title: "LEARNING",
-    description: "Prompts, tools, and technical archives.",
+    id: "SECTOR_04",
+    title: "PROMPTS // 结构化提示词档案",
+    subtitle: "工程级 System Prompts 与多角色模板",
+    description: "经真实业务验证的代码审查、架构设计、影视分镜及定量分析可复用 Prompt 指令资产库。",
     href: "/prompts",
     image: "/images/placeholders/panel-4.svg",
-    colorClass: "bg-gradient-to-br from-[#1a1309] via-[#120d06] to-[#090602] text-white border-amber-500/35 shadow-[0_0_40px_rgba(245,158,11,0.12)]",
-    buttonHover: "hover:bg-amber-400 hover:text-slate-950 hover:border-amber-300",
-  }
+    metrics: [
+      { k: "FORMAT", v: "Deterministic Templates" },
+      { k: "ACCESS", v: "Instant Copy & Run" },
+    ],
+    accent: "text-amber-300 border-amber-500/35 bg-amber-950/40",
+  },
 ];
 
 export function StackingPanels() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (reduceMotion || !containerRef.current) return;
-
-    const cards = gsap.utils.toArray<HTMLElement>(".stack-panel");
-    const ctx = gsap.context(() => {
-      const isMobile = window.matchMedia("(max-width: 768px)").matches;
-
-      cards.forEach((card, index) => {
-        if (index === cards.length - 1) return;
-
-        const nextCard = cards[index + 1];
-
-        gsap.to(card, {
-          scale: isMobile ? 0.96 : 0.94,
-          opacity: isMobile ? 0.8 : 0.6,
-          ease: "power1.inOut",
-          scrollTrigger: {
-            trigger: nextCard,
-            start: "top 80%",
-            end: "top 20%",
-            scrub: true,
-          },
-        });
-      });
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, [reduceMotion]);
-
   return (
-    <section className="relative w-full bg-background pb-32">
-      <div className="container-shell max-w-7xl mx-auto mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-400/40 text-xs font-mono font-bold text-cyan-300 uppercase tracking-widest mb-3 shadow-[0_0_12px_rgba(0,240,255,0.2)]">
-          <span>DIGITAL WORKSPACE // 空间矩阵</span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-          四大核心沉淀工坊
-        </h2>
-      </div>
-
-      <div ref={containerRef} className="relative w-full flex flex-col items-center">
-        {panels.map((panel, i) => (
-          <div 
-            key={panel.id}
-            className={`stack-panel sticky w-[92vw] sm:w-[88vw] md:w-[75vw] max-w-5xl h-[56vh] sm:h-[62vh] md:h-[70vh] rounded-[28px] sm:rounded-[36px] md:rounded-[40px] border flex flex-col justify-between p-5 sm:p-8 md:p-12 lg:p-16 shadow-[0_-12px_48px_-15px_rgba(0,0,0,0.7)] origin-top overflow-hidden isolate group will-change-transform backdrop-blur-2xl ${panel.colorClass}`}
-            style={{ 
-              top: `calc(72px + ${i * 20}px)`, 
-              marginBottom: i === panels.length - 1 ? '0' : '30vh'
-            }}
-          >
-            <div className="flex justify-between items-start relative z-20">
-              <span className="text-lg sm:text-xl md:text-3xl font-light opacity-60 tracking-tighter font-mono text-cyan-300">
-                {panel.id}
-              </span>
-              <Link 
-                href={panel.href} 
-                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 flex items-center justify-center transition-all duration-300 ${panel.buttonHover} pointer-events-auto backdrop-blur-md shadow-sm`}
-              >
-                <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              </Link>
+    <section className="studio-section bg-[#04060b]">
+      <div className="container-shell">
+        <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 border-b border-white/10 pb-5">
+          <div>
+            <div className="tech-tag mb-2.5">
+              <Layers className="h-3 w-3 text-cyan-400" />
+              <span>SEC_05 // ARCHITECTURAL DOMAIN DOSSIERS</span>
             </div>
-
-            {/* Central Visual Area */}
-            <div className="flex-1 w-full relative min-h-0 my-3 sm:my-6 flex items-center justify-center z-10 pointer-events-none">
-              <div className="relative w-full h-full max-w-3xl rounded-xl sm:rounded-2xl overflow-hidden opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-700 ease-out border border-white/10 shadow-2xl">
-                <Image 
-                  src={panel.image} 
-                  alt={panel.title} 
-                  fill 
-                  className="object-cover"
-                  priority={i === 0}
-                />
-              </div>
-            </div>
-
-            <div className="max-w-3xl relative z-20 pointer-events-none">
-              <h3 className="text-2xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tighter mb-2 sm:mb-4 md:mb-6 uppercase text-white drop-shadow-[0_0_24px_rgba(255,255,255,0.15)]">
-                {panel.title}
-              </h3>
-              <p className="text-xs sm:text-base md:text-xl font-light text-slate-300 leading-relaxed max-w-xl line-clamp-2">
-                {panel.description}
-              </p>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              四大核心沉淀工坊
+            </h2>
           </div>
-        ))}
+          <p className="text-xs sm:text-sm text-slate-400 max-w-md">
+            每个核心模块均作为独立系统运行，共同服务于可追溯的 RAG 知识引擎与全栈作品矩阵。
+          </p>
+        </Reveal>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {DOMAIN_DOSSIERS.map((dossier, idx) => (
+            <Reveal key={dossier.id} delay={idx * 0.06}>
+              <Link
+                href={dossier.href}
+                className="arch-frame group flex h-full flex-col overflow-hidden rounded-xl"
+              >
+                <div className="hud-header">
+                  <span className="text-cyan-300">{dossier.id}</span>
+                  <span>DOSSIER MODULE</span>
+                </div>
+
+                {/* Split Visual + Manifest */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 flex-1">
+                  <div className="sm:col-span-5 relative min-h-[180px] border-b sm:border-b-0 sm:border-r border-white/[0.08] bg-[#04060b] overflow-hidden">
+                    <Image
+                      src={dossier.image}
+                      alt={dossier.title}
+                      fill
+                      className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                      sizes="(max-width: 768px) 100vw, 40vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#04060b]/80 via-transparent to-transparent" />
+                  </div>
+
+                  <div className="sm:col-span-7 p-5 sm:p-6 flex flex-col justify-between gap-4">
+                    <div>
+                      <span
+                        className={`inline-block rounded border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider mb-3 ${dossier.accent}`}
+                      >
+                        {dossier.subtitle}
+                      </span>
+                      <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">
+                        {dossier.title}
+                      </h3>
+                      <p className="mt-2 text-xs sm:text-sm text-slate-400 leading-relaxed">
+                        {dossier.description}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 pt-3 border-t border-white/[0.08]">
+                      <div className="grid grid-cols-2 gap-2">
+                        {dossier.metrics.map((m) => (
+                          <div key={m.k} className="rounded bg-[#04060b]/80 border border-white/[0.06] px-2.5 py-1.5">
+                            <p className="font-mono text-[9px] text-slate-500">{m.k}</p>
+                            <p className="text-[11px] font-mono text-slate-200 truncate">{m.v}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between font-mono text-[11px] text-cyan-300">
+                        <span>OPEN SECTOR</span>
+                        <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -61,18 +61,18 @@ export function BentoGrid() {
           >
             <Link
               href={featured.href}
-              className="flex min-h-[240px] flex-col justify-between overflow-hidden rounded-[28px] border border-slate-900/8 bg-slate-950 p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] transition-shadow duration-300 md:min-h-[280px] md:p-7"
+              className="arch-frame flex min-h-[240px] flex-col justify-between overflow-hidden rounded-[28px] border border-cyan-500/25 bg-[#060a14] p-6 text-white transition-all duration-300 hover:border-cyan-400/50 md:min-h-[280px] md:p-7"
             >
               <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-white/54 sm:tracking-[0.24em]">主入口</p>
+                <p className="text-xs font-mono uppercase tracking-[0.16em] text-cyan-400/80 sm:tracking-[0.24em]">PRIMARY_GATE // 主入口</p>
                 <h3 className="mt-7 max-w-[12ch] text-4xl font-semibold tracking-tight md:mt-8 md:text-5xl">
                   {featured.title}
                 </h3>
-                <p className="mt-5 max-w-md text-sm leading-7 text-white/68">
+                <p className="mt-5 max-w-md text-sm leading-7 text-slate-300">
                   {featured.description}
                 </p>
               </div>
-              <span className="mt-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/14 bg-white/10 text-white/80 transition duration-300 group-hover:bg-white group-hover:text-slate-950">
+              <span className="mt-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#04060b] text-slate-300 transition duration-300 group-hover:border-cyan-400 group-hover:text-cyan-400">
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Link>
@@ -93,16 +93,16 @@ export function BentoGrid() {
               >
                 <Link
                   href={item.href}
-                  className="grid h-full gap-4 rounded-[22px] border border-slate-900/8 bg-white/52 p-5 transition-colors duration-300 group-hover:bg-white/78"
+                  className="arch-frame grid h-full gap-4 rounded-[22px] border border-white/10 bg-[#060a14] p-5 transition-colors duration-300 group-hover:border-cyan-500/40"
                 >
-                  <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground sm:tracking-[0.24em]">入口</p>
+                  <p className="text-xs font-mono uppercase tracking-[0.16em] text-slate-500 sm:tracking-[0.24em]">MODULE_NODE // 入口</p>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
-                    <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
+                    <h3 className="text-xl font-semibold text-white group-hover:text-cyan-300 transition-colors">{item.title}</h3>
+                    <p className="mt-2 max-w-xl text-sm leading-7 text-slate-400">
                       {item.description}
                     </p>
                   </div>
-                  <span className="mt-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/8 bg-white/70 text-muted-foreground transition duration-300 group-hover:border-brand-cyan/24 group-hover:text-foreground">
+                  <span className="mt-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#04060b] text-slate-400 transition duration-300 group-hover:border-cyan-400/50 group-hover:text-cyan-400">
                     <ArrowRight className="h-4 w-4" />
                   </span>
                 </Link>

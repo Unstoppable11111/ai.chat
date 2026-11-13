@@ -13,18 +13,19 @@ export function TableOfContents({ items }: TableOfContentsProps) {
   }
 
   return (
-    <aside className="glass-panel sticky top-28 rounded-[24px] p-5">
-      <p className="mb-4 text-xs uppercase tracking-[0.22em] text-muted-foreground">
-        目录
-      </p>
-      <nav className="space-y-2">
+    <aside className="arch-frame sticky top-28 rounded-xl overflow-hidden">
+      <div className="hud-header">
+        <span className="text-cyan-300">INDEX // OUTLINE</span>
+        <span>{items.length} SECTIONS</span>
+      </div>
+      <nav className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
         {items.map((item) => (
           <a
             key={item.id}
             href={`#${item.id}`}
             className={cn(
-              "block text-sm text-muted-foreground hover:text-foreground",
-              item.level === 3 && "pl-4",
+              "block text-xs leading-relaxed text-slate-400 hover:text-cyan-300 transition-colors border-l border-white/10 pl-3 hover:border-cyan-400",
+              item.level === 3 && "ml-3 text-[11px]"
             )}
           >
             {item.text}

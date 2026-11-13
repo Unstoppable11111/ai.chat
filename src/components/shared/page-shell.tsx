@@ -7,6 +7,8 @@ type PageShellProps = {
 
 export function PageShell({ children, className }: PageShellProps) {
   return (
-    <div className={cn("container-shell page-flow pb-20", className)}>{children}</div>
+    <div className={cn("container-shell page-flow pb-24 pt-4 sm:pt-6", className)}>
+      {children}
+    </div>
   );
 }

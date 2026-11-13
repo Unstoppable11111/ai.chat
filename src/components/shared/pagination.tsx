@@ -52,25 +52,24 @@ export function Pagination({
   };
 
   return (
-    <div className="mt-12 flex items-center justify-center gap-2">
-      {/* 上一页 */}
+    <div className="mt-12 flex items-center justify-center gap-2 font-mono">
       <button
+        type="button"
         onClick={() => handlePageClick(currentPage - 1)}
         disabled={currentPage === 1}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-900/10 bg-white/80 text-foreground transition shadow-sm hover:bg-white hover:border-slate-900/20 disabled:pointer-events-none disabled:opacity-30"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/12 bg-[#070b16] text-slate-300 transition hover:border-cyan-400/50 hover:text-cyan-300 disabled:pointer-events-none disabled:opacity-30 cursor-pointer"
         title="上一页"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
 
-      {/* 页码 */}
       <div className="flex items-center gap-1.5">
         {renderPageNumbers().map((p, idx) => {
           if (p === "...") {
             return (
               <span
                 key={`ellipsis-${idx}`}
-                className="inline-flex h-10 w-8 items-center justify-center text-sm text-muted-foreground"
+                className="inline-flex h-10 w-8 items-center justify-center text-sm text-slate-500"
               >
                 ...
               </span>
@@ -82,12 +81,13 @@ export function Pagination({
 
           return (
             <button
+              type="button"
               key={pageNum}
               onClick={() => handlePageClick(pageNum)}
-              className={`inline-flex h-10 min-w-[40px] px-3 items-center justify-center rounded-xl text-sm font-medium transition shadow-sm ${
+              className={`inline-flex h-10 min-w-[40px] px-3 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer ${
                 isActive
-                  ? "bg-slate-900 text-white shadow-slate-900/20 shadow-md font-semibold"
-                  : "border border-slate-900/8 bg-white/80 text-foreground hover:bg-white hover:border-slate-900/20"
+                  ? "bg-cyan-400 text-slate-950 shadow-[0_0_16px_rgba(0,240,255,0.28)]"
+                  : "border border-white/10 bg-[#070b16] text-slate-300 hover:border-cyan-400/40 hover:text-white"
               }`}
             >
               {pageNum}
@@ -96,11 +96,11 @@ export function Pagination({
         })}
       </div>
 
-      {/* 下一页 */}
       <button
+        type="button"
         onClick={() => handlePageClick(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-900/10 bg-white/80 text-foreground transition shadow-sm hover:bg-white hover:border-slate-900/20 disabled:pointer-events-none disabled:opacity-30"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/12 bg-[#070b16] text-slate-300 transition hover:border-cyan-400/50 hover:text-cyan-300 disabled:pointer-events-none disabled:opacity-30 cursor-pointer"
         title="下一页"
       >
         <ChevronRight className="h-5 w-5" />

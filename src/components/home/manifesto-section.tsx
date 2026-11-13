@@ -1,96 +1,60 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useReducedMotion } from "motion/react";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { ArrowUpRight, Terminal } from "lucide-react";
+import { Reveal } from "@/components/shared/reveal";
 
 export function ManifestoSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const textRef = useRef<HTMLHeadingElement>(null);
-  const descRef = useRef<HTMLParagraphElement>(null);
-  const reduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (reduceMotion || !sectionRef.current || !textRef.current || !descRef.current) return;
-
-    const ctx = gsap.context(() => {
-      // 标题逐词高亮
-      const titleWords = textRef.current?.querySelectorAll(".word");
-      if (titleWords) {
-        gsap.fromTo(
-          titleWords,
-          { opacity: 0.15, y: 10 },
-          {
-            opacity: 1,
-            y: 0,
-            stagger: 0.1,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 75%",
-              end: "top 25%",
-              scrub: 1,
-            },
-          }
-        );
-      }
-
-      // 描述文案高亮
-      gsap.fromTo(
-        descRef.current,
-        { opacity: 0.3, filter: "blur(4px)" },
-        {
-          opacity: 1,
-          filter: "blur(0px)",
-          ease: "power1.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 60%",
-            end: "top 20%",
-            scrub: 1,
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, [reduceMotion]);
-
-  const titleText = "THE STUDIO IS ALWAYS BUILDING.";
-  const titleWords = titleText.split(" ");
-
   return (
-    <section ref={sectionRef} className="relative min-h-[50vh] flex flex-col justify-center items-center bg-background border-t border-white/10 py-24 md:py-32 overflow-hidden">
-      <div className="container-shell max-w-4xl mx-auto text-center z-10 relative">
-        <h2 ref={textRef} className="text-3xl md:text-5xl lg:text-6xl font-light tracking-tight text-white mb-6 flex flex-wrap justify-center gap-x-3 gap-y-1 drop-shadow-[0_0_24px_rgba(255,255,255,0.2)]">
-          {titleWords.map((word, i) => (
-            <span key={i} className="word inline-block will-change-transform opacity-20 transition-colors">
-              {word}
-            </span>
-          ))}
-        </h2>
-        <p ref={descRef} className="text-sm md:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto mb-16 will-change-transform">
-          An ongoing experiment in digital craft, creative coding, and technical documentation. 
-          Building tools, exploring interfaces, and recording the process.
-        </p>
-        
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 text-xs font-mono tracking-widest uppercase text-slate-400">
-          <Link href="/about" className="hover:text-cyan-400 transition-colors border-b border-transparent hover:border-cyan-400 pb-1">
-            ABOUT STUDIO
-          </Link>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-            GITHUB
-          </a>
-          <a href="mailto:chenyc0507@gmail.com" className="hover:text-white transition-colors">
-            EMAIL
-          </a>
-        </div>
+    <section className="studio-section bg-[#04060b] py-20 sm:py-28">
+      <div className="container-shell">
+        <Reveal className="arch-frame rounded-xl overflow-hidden">
+          <div className="hud-header">
+            <span className="text-cyan-400">SEC_10 // STUDIO MANIFESTO</span>
+            <span>CONTINUOUS DELIVERY</span>
+          </div>
+
+          <div className="p-8 sm:p-12 md:p-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-8">
+              <div className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400 mb-4">
+                <Terminal className="h-3.5 w-3.5 text-cyan-400" />
+                <span>ENGINEERING ETHOS</span>
+              </div>
+              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-[1.08]">
+                THE STUDIO IS ALWAYS
+                <span className="block text-gradient-cyan mt-1">BUILDING & INDEXING.</span>
+              </h2>
+              <p className="mt-5 max-w-2xl text-sm sm:text-base text-slate-300 leading-relaxed">
+                将每一个想法落地为可运行的工程原型、可回溯的技术白皮书与可检索的 RAG 向量知识资产。
+                代码、数据与审美秩序在此持续演进。
+              </p>
+            </div>
+
+            <div className="lg:col-span-4 flex flex-col gap-3">
+              <Link
+                href="/about"
+                className="flex items-center justify-between rounded-lg border border-white/15 bg-white/[0.04] px-4 py-3.5 text-xs font-mono uppercase tracking-wider text-white hover:border-cyan-400/50 hover:text-cyan-300 transition-all"
+              >
+                <span>ABOUT CHEN STUDIO</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/stack"
+                className="flex items-center justify-between rounded-lg border border-white/15 bg-white/[0.04] px-4 py-3.5 text-xs font-mono uppercase tracking-wider text-slate-200 hover:border-cyan-400/50 hover:text-cyan-300 transition-all"
+              >
+                <span>INFRASTRUCTURE STACK</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              <a
+                href="mailto:chenyc0507@gmail.com"
+                className="flex items-center justify-between rounded-lg border border-cyan-500/35 bg-cyan-950/35 px-4 py-3.5 text-xs font-mono uppercase tracking-wider text-cyan-300 hover:bg-cyan-400 hover:text-slate-950 transition-all"
+              >
+                <span>DIRECT CONTACT // EMAIL</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -34,13 +34,13 @@ export default async function NewsPage() {
               <span>LIVE INTEL STREAM // TECH RADAR FEED</span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-muted-foreground border border-slate-900/10 rounded-full px-3.5 py-1 bg-white/60 backdrop-blur-xs">
-              <span className="flex items-center gap-1.5 text-foreground font-semibold">
+            <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-slate-400 border border-white/10 rounded-full px-3.5 py-1 bg-[#060a14]/80 backdrop-blur-xs">
+              <span className="flex items-center gap-1.5 text-white font-semibold">
                 <Radio className="h-3.5 w-3.5 text-brand-cyan animate-pulse" />
                 <span>INTEL DISPATCHES: {items.length} 篇速递</span>
               </span>
-              <span className="text-slate-300">|</span>
-              <span className="text-emerald-600 font-semibold">SYNC: REALTIME DAILY</span>
+              <span className="text-white/15">|</span>
+              <span className="text-emerald-400 font-semibold">SYNC: REALTIME DAILY</span>
             </div>
           </div>
 

@@ -22,7 +22,7 @@ export function ButtonLink({
         variant === "primary" &&
           "bg-foreground text-background hover:-translate-y-0.5",
         variant === "secondary" &&
-          "border border-slate-900/8 bg-white/72 text-foreground shadow-sm hover:-translate-y-0.5 hover:border-brand-cyan/22 hover:bg-white",
+          "border border-white/15 bg-[#060a14] text-slate-200 hover:-translate-y-0.5 hover:border-cyan-500/40 hover:text-white transition-all",
         variant === "ghost" && "text-muted-foreground hover:text-foreground",
         className,
       )}

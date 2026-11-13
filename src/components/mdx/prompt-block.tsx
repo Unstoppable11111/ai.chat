@@ -32,14 +32,14 @@ export function PromptBlock({
   const content = (typeof prompt === "string" ? prompt : extractText(children)).trim();
 
   return (
-    <div className="my-6 rounded-[24px] border border-brand-cyan/22 bg-brand-cyan/10 p-5 shadow-[0_18px_56px_rgba(14,165,233,0.10)]">
-      <div className="mb-3 flex items-center justify-between gap-4">
-        <p className="text-xs uppercase tracking-[0.24em] text-brand-cyan">
+    <div className="my-6 rounded-xl border border-cyan-500/30 bg-[#080d1a] p-5 shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
+      <div className="mb-3 flex items-center justify-between gap-4 border-b border-white/10 pb-2.5">
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-cyan-300 font-semibold">
           {title}
         </p>
         <CopyButton value={content} />
       </div>
-      <pre className="overflow-x-auto whitespace-pre-wrap rounded-[18px] border border-slate-900/8 bg-white/78 p-4 text-sm leading-7 text-foreground/84">
+      <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-[#04060b] p-4 font-mono text-xs sm:text-sm leading-7 text-slate-200">
         {content}
       </pre>
     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowUpRight, Eye } from "lucide-react";
 import type { ExperimentEntry } from "@/lib/types";
 
 type FeaturedExperimentsProps = {
@@ -10,12 +11,8 @@ type FeaturedExperimentsProps = {
 };
 
 export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isPausedRef = useRef(false);
-  
-  // Drag to scroll refs
   const isDraggingRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
@@ -67,9 +64,8 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
     lastXRef.current = e.pageX;
     lastTimeRef.current = performance.now();
     velocityRef.current = 0;
-    
-    scrollContainerRef.current.style.scrollSnapType = 'none';
-    scrollContainerRef.current.style.scrollBehavior = 'auto';
+    scrollContainerRef.current.style.scrollSnapType = "none";
+    scrollContainerRef.current.style.scrollBehavior = "auto";
   };
 
   const endDrag = () => {
@@ -80,15 +76,15 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
       if (!scrollContainerRef.current) return;
       scrollContainerRef.current.scrollLeft -= velocityRef.current;
       velocityRef.current *= 0.95;
-      
+
       if (Math.abs(velocityRef.current) > 0.5) {
         momentumIDRef.current = requestAnimationFrame(decay);
       } else {
-        scrollContainerRef.current.style.scrollBehavior = 'smooth';
-        scrollContainerRef.current.style.scrollSnapType = '';
+        scrollContainerRef.current.style.scrollBehavior = "smooth";
+        scrollContainerRef.current.style.scrollSnapType = "";
         setTimeout(() => {
           if (scrollContainerRef.current && !isDraggingRef.current) {
-            scrollContainerRef.current.style.scrollBehavior = '';
+            scrollContainerRef.current.style.scrollBehavior = "";
           }
         }, 500);
       }
@@ -101,15 +97,10 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
     endDrag();
   };
 
-  const handleMouseUp = () => {
-    endDrag();
-  };
-
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDraggingRef.current || !scrollContainerRef.current) return;
     e.preventDefault();
     const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    
     const now = performance.now();
     const dt = now - lastTimeRef.current;
     if (dt > 0) {
@@ -130,70 +121,85 @@ export function FeaturedExperiments({ items }: FeaturedExperimentsProps) {
   };
 
   return (
-    <section ref={sectionRef} className="relative w-full bg-[#050813] text-white pt-24 pb-28 border-y border-white/10">
-      <div ref={containerRef} className="w-full py-8">
-        
-        <div className="container-shell w-full max-w-7xl mx-auto mb-12 shrink-0 z-10 px-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-400/40 text-xs font-mono font-bold text-cyan-300 uppercase tracking-widest mb-3 shadow-[0_0_12px_rgba(0,240,255,0.2)]">
-            <span>CURATED GALLERY // 精选实验画廊</span>
+    <section className="studio-section bg-[#04060b]">
+      <div className="container-shell mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-5">
+        <div>
+          <div className="tech-tag mb-2.5">
+            <Eye className="h-3 w-3 text-cyan-400" />
+            <span>SEC_07 // CURATED VISUAL VIEWPORTS</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            前沿视觉与互动艺术
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            前沿视觉与交互艺术画廊
           </h2>
         </div>
-
-        {/* Gallery Container */}
-        <div 
-          ref={scrollContainerRef}
-          onMouseEnter={() => { isPausedRef.current = true; }}
-          onMouseLeave={handleMouseLeave}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          onFocus={() => { isPausedRef.current = true; }}
-          onBlur={() => { isPausedRef.current = false; }}
-          className="flex gap-8 overflow-x-auto snap-x snap-mandatory px-6 pb-6 md:gap-12 lg:gap-16 lg:px-[max(1rem,calc((100vw-80rem)/2))] hide-scrollbar cursor-grab active:cursor-grabbing"
-          style={{ 
-            scrollbarWidth: 'none', 
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-          }}
+        <Link
+          href="/experiments"
+          className="inline-flex items-center gap-1.5 font-mono text-xs text-cyan-300 hover:text-white transition-colors"
         >
-          {items.map((item) => (
-            <Link 
-              key={item.slug} 
-              href={`/experiments/${item.slug}`}
-              onClick={handleClick}
-              className="experiment-slide snap-center shrink-0 w-[85vw] md:w-[600px] lg:w-[800px] group flex flex-col gap-5 p-4 rounded-3xl border border-white/10 bg-[#0b1120]/80 backdrop-blur-xl hover:border-cyan-400/50 hover:shadow-[0_0_35px_rgba(0,240,255,0.2)] transition-all duration-300"
-              style={{ userSelect: 'none' }}
-              draggable={false}
-            >
-              {/* Artwork */}
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-black/60 border border-white/10 pointer-events-none">
-                <Image
-                  src={item.cover}
-                  alt={item.title}
-                  fill
-                  className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-                  sizes="(max-width: 768px) 85vw, (max-width: 1024px) 600px, 800px"
-                  quality={90}
-                  draggable={false}
-                />
-              </div>
+          <span>ALL EXPERIMENTS</span>
+          <ArrowUpRight className="h-4 w-4" />
+        </Link>
+      </div>
 
-              {/* Minimal Text */}
-              <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-3 pointer-events-none px-2">
-                <h3 className="text-xl md:text-3xl font-medium tracking-tight text-white group-hover:text-cyan-300 transition-colors">
+      <div
+        ref={scrollContainerRef}
+        onMouseEnter={() => {
+          isPausedRef.current = true;
+        }}
+        onMouseLeave={handleMouseLeave}
+        onMouseDown={handleMouseDown}
+        onMouseUp={endDrag}
+        onMouseMove={handleMouseMove}
+        onFocus={() => {
+          isPausedRef.current = true;
+        }}
+        onBlur={() => {
+          isPausedRef.current = false;
+        }}
+        className="flex gap-6 overflow-x-auto snap-x snap-mandatory px-6 pb-4 md:gap-8 lg:px-[max(1rem,calc((100vw-82.5rem)/2))] hide-scrollbar cursor-grab active:cursor-grabbing"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+      >
+        {items.map((item, idx) => (
+          <Link
+            key={item.slug}
+            href={`/experiments/${item.slug}`}
+            onClick={handleClick}
+            className="experiment-slide arch-frame snap-center shrink-0 w-[85vw] md:w-[540px] lg:w-[680px] group flex flex-col rounded-xl overflow-hidden"
+            style={{ userSelect: "none" }}
+            draggable={false}
+          >
+            <div className="hud-header pointer-events-none">
+              <span className="text-cyan-300">
+                {`VIEWPORT_${String(idx + 1).padStart(2, "0")} // ${item.category}`}
+              </span>
+              <time dateTime={item.date}>{getYear(item.date)}</time>
+            </div>
+
+            <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#04060b] border-b border-white/[0.08] pointer-events-none">
+              <Image
+                src={item.cover}
+                alt={item.title}
+                fill
+                className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                sizes="(max-width: 768px) 85vw, (max-width: 1024px) 540px, 680px"
+                quality={90}
+                draggable={false}
+              />
+            </div>
+
+            <div className="p-5 flex items-center justify-between gap-4 pointer-events-none">
+              <div className="min-w-0">
+                <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
                   {item.title}
                 </h3>
-                <div className="flex gap-4 text-xs font-mono tracking-widest text-slate-400 uppercase">
-                  <span className="text-cyan-300">{item.category}</span>
-                  <time dateTime={item.date}>{getYear(item.date)}</time>
-                </div>
+                <p className="text-xs text-slate-400 mt-1 line-clamp-1">{item.excerpt}</p>
               </div>
-            </Link>
-          ))}
-        </div>
+              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/12 bg-white/[0.04] text-cyan-300 group-hover:bg-cyan-400 group-hover:text-slate-950 transition-all">
+                <ArrowUpRight className="h-4 w-4" />
+              </span>
+            </div>
+          </Link>
+        ))}
       </div>
     </section>
   );

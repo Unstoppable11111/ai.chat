@@ -1,133 +1,88 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import type { BuildLogEntry } from "@/lib/types";
 import Link from "next/link";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useReducedMotion } from "motion/react";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { ArrowUpRight, FileText } from "lucide-react";
+import type { BuildLogEntry } from "@/lib/types";
+import { Reveal } from "@/components/shared/reveal";
 
 type LatestBuildLogsProps = {
   items: BuildLogEntry[];
 };
 
 export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const lineRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (reduceMotion || !sectionRef.current) return;
-
-    const ctx = gsap.context(() => {
-      // 1. 时间轴指示线随滚动延伸
-      if (lineRef.current) {
-        gsap.fromTo(
-          lineRef.current,
-          { scaleY: 0, transformOrigin: "top center" },
-          {
-            scaleY: 1,
-            ease: "none",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 70%",
-              end: "bottom 80%",
-              scrub: true,
-            },
-          }
-        );
-      }
-
-      // 2. Timeline 每一行日志随滚动做阶梯光束划入
-      const rows = gsap.utils.toArray<HTMLElement>(".timeline-row");
-      rows.forEach((row) => {
-        const beacon = row.querySelector(".beacon-dot");
-        const content = row.querySelector(".log-content");
-
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: row,
-            start: "top 85%",
-            end: "top 60%",
-            toggleActions: "play none none reverse",
-          },
-        });
-
-        tl.fromTo(
-          beacon,
-          { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2)" }
-        ).fromTo(
-          content,
-          { opacity: 0, x: -30, filter: "blur(6px)" },
-          { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.6, ease: "power2.out" },
-          "-=0.2"
-        );
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, [reduceMotion]);
-
   return (
-    <section ref={sectionRef} className="relative w-full bg-background pt-24 pb-28 overflow-hidden">
-      <div className="container-shell max-w-5xl mx-auto">
-        <div className="flex flex-col items-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-400/40 text-xs font-mono font-bold text-cyan-300 uppercase tracking-widest mb-3 shadow-[0_0_12px_rgba(0,240,255,0.2)]">
-            <span>ENGINEERING LOGS // 构建演进轨迹</span>
+    <section className="studio-section bg-[#04060b]">
+      <div className="container-shell">
+        <Reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 border-b border-white/10 pb-5">
+          <div>
+            <div className="tech-tag mb-2.5">
+              <FileText className="h-3 w-3 text-cyan-400" />
+              <span>SEC_08 // ENGINEERING LOG INDEX</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              深度架构与工程实践日志
+            </h2>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white text-center">
-            深度架构与工程实践日志
-          </h2>
-        </div>
 
-        <div className="relative flex flex-col gap-10 md:gap-16 pl-6 sm:pl-8 md:pl-0">
-          {/* Progress Line */}
-          <div ref={lineRef} className="absolute left-2 sm:left-2.5 md:left-[39.5px] top-3 bottom-4 w-[2px] bg-gradient-to-b from-purple-500 via-cyan-400 to-transparent shadow-[0_0_10px_#00f0ff] will-change-transform" />
+          <Link
+            href="/build-log"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/12 bg-white/[0.03] px-3.5 py-2 font-mono text-xs text-cyan-300 hover:border-cyan-400/50 transition-colors"
+          >
+            <span>VIEW FULL ARCHIVE</span>
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+        </Reveal>
 
-          {items.map((item) => {
-            const formattedDate = new Date(item.date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "2-digit"
-            }).replace('/', '.');
+        {/* Swiss Architectural Index Ledger */}
+        <div className="arch-frame rounded-xl overflow-hidden">
+          <div className="hidden md:grid grid-cols-12 border-b border-white/10 bg-[#04060b]/80 px-5 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+            <span className="col-span-2">INDEX // DATE</span>
+            <span className="col-span-2">DOMAIN TAG</span>
+            <span className="col-span-7">TITLE & ARCHITECTURAL ABSTRACT</span>
+            <span className="col-span-1 text-right">LINK</span>
+          </div>
 
-            return (
-              <div key={item.slug} className="timeline-row relative flex flex-col md:flex-row gap-2 md:gap-16 group">
-                
-                {/* Pulsing Beacon aligned with line */}
-                <div className="beacon-dot absolute -left-4 sm:-left-[22px] md:left-[39.5px] md:-translate-x-1/2 top-1 z-20 w-4 h-4 rounded-full border border-cyan-400 bg-[#060a16] shadow-[0_0_10px_#00f0ff] flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 group-hover:scale-150 transition-transform shadow-[0_0_6px_#22d3ee]" />
-                </div>
-
-                {/* Year/Month */}
-                <div className="relative z-10 md:w-20 shrink-0 md:pt-0.5">
-                  <div className="text-xs md:text-sm font-mono tracking-widest text-slate-400 group-hover:text-cyan-300 transition-colors">
-                    {formattedDate}
+          <div className="divide-y divide-white/[0.08]">
+            {items.map((item, idx) => {
+              const formattedDate = new Date(item.date)
+                .toLocaleDateString("en-CA");
+              return (
+                <Link
+                  key={item.slug}
+                  href={`/build-log/${item.slug}`}
+                  className="group grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-center px-5 py-5 hover:bg-cyan-500/[0.05] transition-colors"
+                >
+                  <div className="md:col-span-2 flex items-center gap-3 font-mono text-xs">
+                    <span className="text-cyan-400 font-bold">
+                      LOG_{String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-slate-500">{formattedDate}</span>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div className="log-content flex-1 pb-10 border-b border-white/10 group-last:border-0 group-last:pb-0">
-                  <Link href={`/build-log/${item.slug}`} className="block">
-                    <p className="text-[10px] md:text-xs font-mono font-medium tracking-[0.2em] uppercase text-purple-400 mb-3 flex items-center gap-2">
-                      <span className="inline-block w-2 h-[1px] bg-purple-400"></span>
-                      {item.tags[0] || 'UPDATE'}
-                    </p>
-                    <h3 className="text-xl md:text-3xl font-light tracking-tight text-white mb-4 group-hover:text-cyan-300 transition-colors">
+                  <div className="md:col-span-2">
+                    <span className="inline-block rounded border border-purple-500/35 bg-purple-950/35 px-2 py-0.5 font-mono text-[10px] uppercase text-purple-300">
+                      {item.tags[0] || "SYSTEM"}
+                    </span>
+                  </div>
+
+                  <div className="md:col-span-7 min-w-0">
+                    <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
                       {item.title}
                     </h3>
-                    <p className="text-sm md:text-base text-slate-300 leading-relaxed font-light max-w-2xl line-clamp-2">
+                    <p className="text-xs sm:text-sm text-slate-400 line-clamp-1 mt-1">
                       {item.excerpt}
                     </p>
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+                  </div>
+
+                  <div className="md:col-span-1 flex justify-end">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-400 group-hover:border-cyan-400/50 group-hover:bg-cyan-400 group-hover:text-slate-950 transition-all">
+                      <ArrowUpRight className="h-4 w-4" />
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
