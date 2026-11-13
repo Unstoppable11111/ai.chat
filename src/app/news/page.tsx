@@ -4,7 +4,7 @@ import { Reveal } from "@/components/shared/reveal";
 import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { listPublishedPosts, postListItem } from "@/lib/posts-repository";
+import { listPublishedPostSummaries, postListItem } from "@/lib/posts-repository";
 import { Radio } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewsPage() {
-  const items = (await listPublishedPosts("news")).map(postListItem);
+  const items = (await listPublishedPostSummaries("news")).map(postListItem);
   const featuredItem = items[0];
   const remainingItems = items.slice(1);
 

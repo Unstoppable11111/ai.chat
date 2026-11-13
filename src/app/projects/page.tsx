@@ -3,7 +3,7 @@ import { ProjectsExplorer } from "@/components/pages/projects-explorer";
 import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { listPublishedPosts, projectListItem } from "@/lib/posts-repository";
+import { listPublishedPostSummaries, projectListItem } from "@/lib/posts-repository";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectsPage() {
-  const items = (await listPublishedPosts("projects")).map(projectListItem);
+  const items = (await listPublishedPostSummaries("projects")).map(projectListItem);
 
   return (
     <PageShell>

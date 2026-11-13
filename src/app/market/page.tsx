@@ -25,14 +25,31 @@ import {
   Beaker,
   Target,
 } from "lucide-react";
-import { QuantumRadar3D } from "@/components/market/quantum-radar-3d";
+import dynamic from "next/dynamic";
 import { SparklineChart } from "@/components/market/sparkline-chart";
-import { DailyReportsView } from "@/components/market/daily-reports-view";
 import { PnlKlineChart } from "@/components/market/pnl-kline-chart";
 import { StrategyArenaCards } from "@/components/market/strategy-arena-cards";
-import { SignalCenterView } from "@/components/market/signal-center-view";
-import { RiskCenterView } from "@/components/market/risk-center-view";
-import { StrategyExperimentsView } from "@/components/market/strategy-experiments-view";
+
+const QuantumRadar3D = dynamic(
+  () => import("@/components/market/quantum-radar-3d").then((m) => m.QuantumRadar3D),
+  { ssr: false, loading: () => <div className="h-[340px] w-full animate-pulse rounded-2xl bg-slate-100" /> }
+);
+const DailyReportsView = dynamic(
+  () => import("@/components/market/daily-reports-view").then((m) => m.DailyReportsView),
+  { ssr: false }
+);
+const SignalCenterView = dynamic(
+  () => import("@/components/market/signal-center-view").then((m) => m.SignalCenterView),
+  { ssr: false }
+);
+const RiskCenterView = dynamic(
+  () => import("@/components/market/risk-center-view").then((m) => m.RiskCenterView),
+  { ssr: false }
+);
+const StrategyExperimentsView = dynamic(
+  () => import("@/components/market/strategy-experiments-view").then((m) => m.StrategyExperimentsView),
+  { ssr: false }
+);
 import { MorningBriefingHero } from "@/components/market/morning-briefing-hero";
 import { MarketSentimentMetricsBar } from "@/components/market/market-sentiment-metrics-bar";
 import { checkAShareTradingTime, AShareTradingStatus } from "@/lib/trading-hours";

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PaginatedBlogList } from "@/components/pages/paginated-blog-list";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { listPublishedPosts, postListItem } from "@/lib/posts-repository";
+import { listPublishedPostSummaries, postListItem } from "@/lib/posts-repository";
 import { Database, ShieldCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const items = (await listPublishedPosts("build-log")).map(postListItem);
+  const items = (await listPublishedPostSummaries("build-log")).map(postListItem);
 
   return (
     <PageShell>

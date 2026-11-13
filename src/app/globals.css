@@ -62,7 +62,16 @@ html {
   color-scheme: light;
   max-width: 100%;
   overflow-x: clip;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
+}
+
+@keyframes nav-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
 }
 
 body {

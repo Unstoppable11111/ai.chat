@@ -4,7 +4,7 @@ import { InteractivePlaygroundsHub } from "@/components/experiments/interactive-
 import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { listPublishedPosts, experimentListItem } from "@/lib/posts-repository";
+import { listPublishedPostSummaries, experimentListItem } from "@/lib/posts-repository";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ExperimentsPage() {
-  const items = (await listPublishedPosts("experiments")).map(experimentListItem);
+  const items = (await listPublishedPostSummaries("experiments")).map(experimentListItem);
 
   return (
     <PageShell>

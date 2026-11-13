@@ -11,12 +11,16 @@ type PageIntroProps = {
 export function PageIntro({ children, className }: PageIntroProps) {
   const reduceMotion = useReducedMotion();
 
+  if (reduceMotion) {
+    return <div className={cn(className)}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={cn(className)}
-      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-      animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-      transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0.85, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>

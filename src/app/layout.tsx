@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { AnimatedBackground } from "@/components/shared/animated-background";
 import { InteractiveEffects } from "@/components/shared/interactive-effects";
+import { NavigationProgress } from "@/components/shared/navigation-progress";
 import { CommandMenu } from "@/components/ui/command-menu";
 import { ChatWidget } from "@/components/shared/chat-widget";
 import { BackToTop } from "@/components/shared/back-to-top";
@@ -59,13 +60,13 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full bg-background text-foreground">
         <AuthProvider>
           <ChatProvider>
+            <NavigationProgress />
             <AnimatedBackground />
             <InteractiveEffects />
             <div className="relative z-10 flex min-h-screen flex-col">
