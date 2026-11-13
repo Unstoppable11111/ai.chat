@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { BuildLogEntry } from "@/lib/types";
 import Link from "next/link";
+import { ArrowRight, BookOpenCheck } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "motion/react";
@@ -74,13 +75,28 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
   }, [reduceMotion]);
 
   return (
-    <section ref={sectionRef} className="relative w-full bg-background pt-32 pb-32 overflow-hidden">
+    <section ref={sectionRef} className="relative w-full py-14 md:py-20 overflow-hidden">
       <div className="container-shell max-w-5xl mx-auto">
-        <h2 className="text-[10px] md:text-xs font-medium tracking-[0.3em] uppercase text-muted-foreground mb-24 text-center">
-          BUILD LOGS
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/8 px-3 py-1 text-xs font-mono font-semibold text-violet-600 mb-3">
+              <BookOpenCheck className="h-3.5 w-3.5" />
+              <span>RAG KNOWLEDGE BASE // BUILD LOGS</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+              最新技术白皮书与构建日志
+            </h2>
+          </div>
+          <Link
+            href="/build-log"
+            className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl border border-slate-200/90 bg-white/95 px-4 py-2 text-xs md:text-sm font-medium text-slate-700 shadow-2xs hover:border-sky-300 hover:text-sky-600 hover:-translate-y-0.5 transition-all group"
+          >
+            <span>查看全部白皮书</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
 
-        <div className="relative flex flex-col gap-10 md:gap-20 pl-6 sm:pl-8 md:pl-0">
+        <div className="relative flex flex-col gap-8 md:gap-10 pl-6 sm:pl-8 md:pl-0">
           {/* Progress Line */}
           <div ref={lineRef} className="absolute left-2 sm:left-2.5 md:left-[39.5px] top-3 bottom-4 w-px bg-gradient-to-b from-brand-violet via-brand-cyan to-transparent will-change-transform" />
 

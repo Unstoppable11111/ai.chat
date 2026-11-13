@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
-import { CurrentlyBuilding } from "@/components/home/currently-building";
 import { QuantArenaPreview } from "@/components/home/quant-arena-preview";
 import { WorkflowPreview } from "@/components/home/workflow-preview";
 import { InteractiveLabShowcase } from "@/components/home/interactive-lab-showcase";
-import { FeaturedExperiments } from "@/components/home/featured-experiments";
 import { HeroSection } from "@/components/home/hero-section";
 import { LatestBuildLogs } from "@/components/home/latest-build-logs";
-import { ManifestoSection } from "@/components/home/manifesto-section";
-import { PromptLibraryPreview } from "@/components/home/prompt-library-preview";
-import { StackingPanels } from "@/components/home/stacking-panels";
-import { TechBento } from "@/components/home/tech-bento";
 import { PageIntro } from "@/components/shared/page-intro";
-import { promptLibrary } from "@/data/site";
-import { listPublishedPosts, postListItem, experimentListItem } from "@/lib/posts-repository";
+import { listPublishedPosts, postListItem } from "@/lib/posts-repository";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -20,28 +13,17 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
-  // 两个集合并行查询，减少首页 TTFB
-  const [experimentPosts, buildLogPosts] = await Promise.all([
-    listPublishedPosts("experiments"),
-    listPublishedPosts("build-log"),
-  ]);
-  const experimentEntries = experimentPosts.slice(0,6).map(experimentListItem);
-  const buildLogs = buildLogPosts.slice(0,6).map(postListItem);
+  const buildLogPosts = await listPublishedPosts("build-log");
+  const buildLogs = buildLogPosts.slice(0, 4).map(postListItem);
 
   return (
-    <div className="page-flow pb-20 overflow-x-clip">
+    <div className="page-flow pb-14 overflow-x-clip">
       <PageIntro>
         <HeroSection />
-        <CurrentlyBuilding />
         <QuantArenaPreview />
         <WorkflowPreview />
         <InteractiveLabShowcase />
-        <StackingPanels />
-        <TechBento />
-        <FeaturedExperiments items={experimentEntries} />
         <LatestBuildLogs items={buildLogs} />
-        <PromptLibraryPreview items={promptLibrary.slice(0, 3)} />
-        <ManifestoSection />
       </PageIntro>
     </div>
   );
