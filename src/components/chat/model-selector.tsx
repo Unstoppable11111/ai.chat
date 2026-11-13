@@ -15,6 +15,7 @@ interface ModelSelectorProps {
 
 const MODEL_ICONS: Record<string, typeof Sparkles> = {
   "gemini-3.5-flash-lite": Zap,
+  "4hydrogen": Sparkles,
   "gemini-3.8-flash": Sparkles,
   "4argon": BrainCircuit,
   "jarvis-speed": Zap,
@@ -24,6 +25,7 @@ const MODEL_ICONS: Record<string, typeof Sparkles> = {
 
 const MODEL_TAGS: Record<string, string> = {
   "gemini-3.5-flash-lite": "默认极速",
+  "4hydrogen": "日常推荐",
   "gemini-3.8-flash": "日常推荐",
   "4argon": "站长专享",
 };

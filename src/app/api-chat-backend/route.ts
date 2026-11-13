@@ -60,6 +60,9 @@ export async function POST(request: Request) {
   const balancedUpstream = process.env.CHAT_BALANCED_UPSTREAM || "gemini-3.5-flash-lite";
   const models: Record<string, string> = {
     "gemini-3.5-flash-lite": "gemini-3.5-flash-lite",
+    "4hydrogen": "4hydrogen",
+    "gemini-hydrogen": "4hydrogen",
+    "gemini-4-hydrogen": "4hydrogen",
     "gemini-3.8-flash": balancedUpstream,
     "4argon": "gemini-argon",
     "gemini-argon": "gemini-argon",
