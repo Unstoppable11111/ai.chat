@@ -62,13 +62,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   // 普通与未登录用户默认使用最低档的 3.5 Flash-Lite
-  const [model, setModel] = useState("gemini-3.5-flash-lite");
+  const [model, setModel] = useState("spark");
   const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevelId>("off");
   const [storageError, setStorageError] = useState("");
   const [streamStatus, setStreamStatus] = useState<StreamStatus>({
     phase: "idle",
     elapsedMs: 0,
-    model: "gemini-3.5-flash-lite",
+    model: "spark",
   });
   const [issue, setIssue] = useState<ChatIssue | null>(null);
   const stallDismissedRef = useRef(false);

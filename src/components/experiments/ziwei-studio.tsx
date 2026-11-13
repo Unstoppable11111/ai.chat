@@ -206,7 +206,7 @@ export function ZiweiStudio() {
   const [aiInput, setAiInput] = useState<string>("");
   const [aiStreaming, setAiStreaming] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [aiModel, setAiModel] = useState<string>("gemini-3.5-flash-lite");
+  const [aiModel, setAiModel] = useState<string>("spark");
   const [aiThinkingLevel, setAiThinkingLevel] = useState<ThinkingLevelId>("off");
   const abortRef = useRef<AbortController | null>(null);
 

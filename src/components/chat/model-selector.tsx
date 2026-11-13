@@ -14,20 +14,15 @@ interface ModelSelectorProps {
 }
 
 const MODEL_ICONS: Record<string, typeof Sparkles> = {
-  "gemini-3.5-flash-lite": Zap,
-  "4hydrogen": Sparkles,
-  "gemini-3.8-flash": Sparkles,
-  "4argon": BrainCircuit,
-  "jarvis-speed": Zap,
-  "jarvis-balanced": Sparkles,
-  "jarvis-ultra": BrainCircuit,
+  spark: Zap,
+  lumen: Sparkles,
+  nova: BrainCircuit,
 };
 
 const MODEL_TAGS: Record<string, string> = {
-  "gemini-3.5-flash-lite": "默认极速",
-  "4hydrogen": "日常推荐",
-  "gemini-3.8-flash": "日常推荐",
-  "4argon": "站长专享",
+  spark: "默认极速",
+  lumen: "日常推荐",
+  nova: "站长专享",
 };
 
 export function ModelSelector({
@@ -65,7 +60,7 @@ export function ModelSelector({
 
   const handleModelClick = (modelId: string, adminOnly?: boolean) => {
     if (adminOnly && !isAdmin) {
-      setAlertMsg("4 Argon 为超级管理员 chen 专享推理核心，当前账户仅支持预览，无法体验。");
+      setAlertMsg("Nova 新星为超级管理员 chen 专享推理核心，当前账户仅支持预览，无法体验。");
       setTimeout(() => setAlertMsg(""), 3500);
       return;
     }

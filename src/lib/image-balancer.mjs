@@ -156,7 +156,7 @@ export function saveCloudflareCredentials({ accountId, token }) {
 }
 
 /**
- * 检查 Gemini 生图服务（本地或网关）是否就绪
+ * 检查 星绘生图服务（本地或网关）是否就绪
  */
 export function isGeminiConfigured() {
   const baseUrl = (process.env.IMAGE_API_BASE_URL || "").trim();
@@ -192,7 +192,7 @@ export function getBalancerStatus(options = {}) {
 }
 
 /**
- * 通道 0: Google Gemini Imagen 3 图像生成实现 (本站 AI 专线)
+ * 通道 0: 星绘引擎 图像生成实现 (本站 AI 专线)
  */
 export async function callGeminiImagen(options = {}) {
   const prompt = sanitizePrompt(options.prompt);
@@ -209,7 +209,7 @@ export async function callGeminiImagen(options = {}) {
 
   const timeoutMs = Number(options.timeoutMs || 50000);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(new Error("Gemini Imagen 3 生图请求超时")), timeoutMs);
+  const timer = setTimeout(() => controller.abort(new Error("星绘引擎 生图请求超时")), timeoutMs);
 
   const signal = options.signal
     ? AbortSignal.any([options.signal, controller.signal])
@@ -234,7 +234,7 @@ export async function callGeminiImagen(options = {}) {
 
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
-      const err = new Error(`Gemini Imagen 3 生图调用失败 (HTTP ${response.status}): ${errText.slice(0, 200)}`);
+      const err = new Error(`星绘引擎 生图调用失败 (HTTP ${response.status}): ${errText.slice(0, 200)}`);
       err.code = `GEMINI_HTTP_${response.status}`;
       err.status = response.status;
       throw err;
@@ -243,7 +243,7 @@ export async function callGeminiImagen(options = {}) {
     const data = await response.json();
     const base64 = data?.data?.[0]?.b64_json;
     if (!base64) {
-      throw new Error("Gemini 生图未返回有效图像数据");
+      throw new Error("星绘生图未返回有效图像数据");
     }
 
     return {

@@ -330,7 +330,7 @@ export function VisualAssetsBoard({
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-            <span>Gemini Imagen 3 (本站AI专线·电影级质感)</span>
+            <span>星绘引擎 (本站AI专线·电影级质感)</span>
           </button>
           <button
             type="button"
@@ -502,7 +502,7 @@ export function VisualAssetsBoard({
                       ) : existingAsset.metadata?.provider === "gemini" ? (
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-blue-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
                           <Sparkles className="w-2.5 h-2.5 text-cyan-200" />
-                          <span>本站 Gemini</span>
+                          <span>本站 星绘</span>
                         </div>
                       ) : existingAsset.metadata?.provider === "cloudflare" ? (
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
@@ -624,7 +624,7 @@ export function VisualAssetsBoard({
                       ) : existingAsset.metadata?.provider === "gemini" ? (
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-blue-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
                           <Sparkles className="w-2.5 h-2.5 text-cyan-200" />
-                          <span>本站 Gemini</span>
+                          <span>本站 星绘</span>
                         </div>
                       ) : existingAsset.metadata?.provider === "cloudflare" ? (
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Command,
@@ -29,8 +29,26 @@ import { navigation, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
 
+// 极客工坊下拉菜单中的全部路由：这些页面包含较重的客户端包（three / 画布 / 编辑器），
+// 菜单项原本只在展开后才渲染 <Link>，导致点击时才开始加载资源，表现为“点了没反应/很慢”。
+// 因此在空闲时与菜单展开时主动 prefetch，使点击时目标页面的资源已就绪。
+const WORKSHOP_ROUTES = [
+  "/experiments",
+  "/experiments/ziwei",
+  "/experiments/image-studio",
+  "/experiments/gods-eye",
+  "/experiments/fluid",
+  "/experiments/cyber-hack",
+  "/experiments/ai-town",
+  "/experiments/geo-detective",
+  "/experiments/pelican",
+  "/gesture",
+  "/workflow",
+];
+
 export function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isLoading, openAuthModal, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -88,6 +106,22 @@ export function SiteHeader() {
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
+
+  // 空闲时预取工坊路由 + 菜单展开时立刻预取（router.prefetch 仅在生产环境生效，开发环境为空操作）
+  useEffect(() => {
+    const prefetchAll = () => WORKSHOP_ROUTES.forEach((href) => router.prefetch(href));
+    if (experimentsOpen || mobileMenuOpen) {
+      prefetchAll();
+      return;
+    }
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+    if (idle) {
+      const id = idle(prefetchAll, { timeout: 3000 });
+      return () => (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(id);
+    }
+    const timer = window.setTimeout(prefetchAll, 1500);
+    return () => window.clearTimeout(timer);
+  }, [experimentsOpen, mobileMenuOpen, router]);
 
   // 路由跳转时自动收起所有浮层
   useEffect(() => {

@@ -442,14 +442,14 @@ export function ChatExperience({
             </p>
 
             <div className="mt-4 flex flex-col gap-2">
-              {chat.issue.model !== "4hydrogen" && (
+              {chat.issue.model !== "lumen" && (
                 <button
                   type="button"
-                  onClick={() => void chat.switchModelAndRetry("4hydrogen")}
+                  onClick={() => void chat.switchModelAndRetry("lumen")}
                   className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-cyan-500 hover:to-blue-500 transition-all cursor-pointer"
                 >
                   <ArrowRightLeft className="h-3.5 w-3.5" />
-                  <span>切换至 4 Hydrogen 并立即重试</span>
+                  <span>切换至 Lumen 流光并立即重试</span>
                 </button>
               )}
 

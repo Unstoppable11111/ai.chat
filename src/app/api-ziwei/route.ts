@@ -208,6 +208,10 @@ export async function POST(request: Request) {
   // 默认熔断到实测稳定的 gemini-3.5-flash-lite；通道恢复后可通过 CHAT_BALANCED_UPSTREAM 环境变量切回，无需改代码。
   const balancedUpstream = process.env.CHAT_BALANCED_UPSTREAM || "gemini-3.5-flash-lite";
   const models: Record<string, string> = {
+    // 前端对外代号（Spark 星火 / Lumen 流光 / Nova 新星）→ 上游真实模型 ID。上游 ID 仅存在于服务端，前端不暴露。
+    spark: "gemini-3.5-flash-lite",
+    lumen: "4hydrogen",
+    nova: "4argon",
     "gemini-3.5-flash-lite": "gemini-3.5-flash-lite",
     "4hydrogen": "4hydrogen",
     "gemini-hydrogen": "4hydrogen",
@@ -222,17 +226,17 @@ export async function POST(request: Request) {
   };
 
   // 默认使用最快的轻量模型 CTS-3.5
-  const modelKey = typeof body.model === "string" ? body.model : "gemini-3.5-flash-lite";
+  const modelKey = typeof body.model === "string" ? body.model : "spark";
   if (!(modelKey in models)) {
     return fail("模型选项无效", 400);
   }
 
   // 4 Argon 权限防护：超级管理员账户 chen 独享
-  if (modelKey === "4argon" || modelKey === "gemini-argon") {
+  if (modelKey === "nova" || modelKey === "4argon" || modelKey === "gemini-argon") {
     const owner = await requestOwner(request);
     const isAdmin = await isSuperAdmin(owner);
     if (!isAdmin) {
-      return fail("4 Argon 旗舰超算为超级管理员 chen 专享模型，当前账户仅支持预览，无体验权限。", 403);
+      return fail("Nova 新星旗舰核心为超级管理员 chen 专享模型，当前账户仅支持预览，无体验权限。", 403);
     }
   }
 

@@ -424,7 +424,7 @@ export function ImageStudio() {
                         ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-600 font-bold shadow-xs text-xs"
                         : "bg-purple-50/60 dark:bg-purple-950/30 border-purple-200/80 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:border-purple-300 text-xs"
                     }`}
-                    title="本站 AI 专线 (Gemini Imagen 3)"
+                    title="本站 AI 专线 (星绘引擎)"
                   >
                     本站专线 ✨
                   </button>
@@ -559,7 +559,7 @@ export function ImageStudio() {
                   <h3 className="text-base font-bold text-white">正在调度 AI 渲染引擎</h3>
                   <p className="text-xs text-slate-400 mt-1 max-w-xs">
                     {selectedProvider === "gemini"
-                      ? "本站专线 Gemini Imagen 3 引擎高精渲染中..."
+                      ? "本站专线 星绘引擎 引擎高精渲染中..."
                       : selectedProvider === "cloudflare"
                       ? "Cloudflare Workers AI 专属节点极速生成..."
                       : selectedProvider === "pollinations"
@@ -601,7 +601,7 @@ export function ImageStudio() {
                     <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-medium flex items-center gap-1">
                       <Zap className="w-3 h-3 text-purple-400" />
                       {currentResult.provider === "gemini"
-                        ? "本站 Gemini (Imagen 3)"
+                        ? "本站 星绘 "
                         : currentResult.provider === "cloudflare"
                         ? "Cloudflare AI"
                         : "Pollinations"}

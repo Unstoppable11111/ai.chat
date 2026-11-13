@@ -17,9 +17,9 @@ export interface ChatModelConfig {
 }
 
 export const CHAT_MODELS: ChatModelConfig[] = [
-  { id: 'gemini-3.5-flash-lite', name: 'CTS-3.5 疾速引擎', desc: '轻量极速响应 · 全员默认' },
-  { id: '4hydrogen', name: '4 Hydrogen', desc: '日常帮助平衡核心 · 全员可用' },
-  { id: '4argon', name: '4 Argon 旗舰超算', desc: '自研终极核心 · 深度长思维链', adminOnly: true },
+  { id: 'spark', name: 'Spark 星火', desc: '轻量极速响应 · 全员默认' },
+  { id: 'lumen', name: 'Lumen 流光', desc: '日常帮助平衡核心 · 全员可用' },
+  { id: 'nova', name: 'Nova 新星', desc: '旗舰推理核心 · 深度长思维链', adminOnly: true },
 ];
 
 export type ChatModelId = string;

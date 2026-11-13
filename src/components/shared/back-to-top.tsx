@@ -57,7 +57,7 @@ export function BackToTop() {
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           onClick={scrollToTop}
           className={`fixed bottom-5 z-[45] flex h-12 w-12 sm:bottom-6 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 backdrop-blur-md text-slate-700 shadow-[0_10px_28px_-6px_rgba(15,23,42,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 active:scale-95 group cursor-pointer ${
-            hasChatDock ? "right-[4.75rem] sm:right-[5.5rem]" : "right-4 sm:right-6"
+            hasChatDock ? "right-[5.5rem] sm:right-[6.5rem]" : "right-4 sm:right-6"
           }`}
           aria-label="回到顶部"
         >

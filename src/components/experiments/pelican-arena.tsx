@@ -92,8 +92,8 @@ export const MODELS: ModelEntry[] = [
   },
   {
     id: "gemini",
-    name: "Gemini",
-    provider: "Google",
+    name: "星河",
+    provider: "匿名参赛模型",
     country: "US",
     flag: "🇺🇸",
     countryName: "国外模型",

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { Bot, MessageSquarePlus, Sparkles, X } from "lucide-react";
+import { MessageSquarePlus, Sparkles, X } from "lucide-react";
+import { RobotPet } from "@/components/shared/robot-pet";
 import { useChat } from "@/components/chat/chat-provider";
 
 // 性能优化：ChatExperience 依赖 react-markdown / remark-gfm 及多个选择器组件，体积较大。
@@ -191,7 +192,7 @@ export function ChatWidget() {
         <div
           role="dialog"
           aria-label="JARVIS 主动对话邀请"
-          className="fixed bottom-20 right-4 sm:bottom-22 sm:right-6 z-40 w-[290px] sm:w-[320px] rounded-2xl border border-sky-200/80 bg-white/95 backdrop-blur-xl p-3.5 shadow-[0_18px_42px_-12px_rgba(14,165,233,0.28)] animate-in fade-in slide-in-from-bottom-3 duration-200"
+          className="fixed bottom-[5.75rem] right-4 sm:bottom-[6.5rem] sm:right-6 z-40 w-[290px] sm:w-[320px] rounded-2xl border border-sky-200/80 bg-white/95 backdrop-blur-xl p-3.5 shadow-[0_18px_42px_-12px_rgba(14,165,233,0.28)] animate-in fade-in slide-in-from-bottom-3 duration-200"
         >
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-1.5">
@@ -241,13 +242,13 @@ export function ChatWidget() {
         </div>
       )}
 
-      {/* 右下角浮动呼出按钮：Luminous Pearl 磨砂玻璃方圆徽章，与左侧回到顶部按钮齐平 */}
+      {/* 右下角桌宠：小机器人悬浮在地面阴影上，有新回复/主动搭话时挥手；与左侧回到顶部按钮底部齐平 */}
       {!open && (
         <button
           ref={trigger}
           type="button"
           aria-label="打开 AI 助手"
-          title="向 JARVIS 提问"
+          title="戳一戳，和 JARVIS 聊聊"
           onPointerEnter={() => void loadChatExperience()}
           onFocus={() => void loadChatExperience()}
           onClick={() => {
@@ -256,20 +257,22 @@ export function ChatWidget() {
             setProactiveBubble(null);
             setOpen(true);
           }}
-          className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-2xl border border-sky-200/80 bg-white/95 backdrop-blur-xl text-slate-700 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.28)] hover:border-sky-400 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-8px_rgba(14,165,233,0.4)] active:scale-95 transition-all duration-300 cursor-pointer group"
+          className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 flex h-14 w-14 sm:h-16 sm:w-16 items-end justify-center cursor-pointer group select-none outline-none transition-transform duration-300 hover:-translate-y-1 hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-sky-400 rounded-3xl"
         >
-          <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 via-cyan-500 to-indigo-500 text-white shadow-sm group-hover:scale-105 transition-transform">
-            <Bot className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-6 transition-transform" />
-          </span>
+          {/* 地面柔影：随悬停收缩，增强悬浮感 */}
+          <span
+            aria-hidden="true"
+            className="absolute bottom-0 left-1/2 h-2 w-9 -translate-x-1/2 rounded-full bg-slate-900/15 blur-[3px] transition-all duration-300 group-hover:w-6 group-hover:opacity-60"
+          />
+          <RobotPet waving={hasUnreadReply || Boolean(proactiveBubble)} size={64} className="relative h-full w-full drop-shadow-[0_8px_14px_rgba(56,130,246,0.35)]" />
           {hasUnreadReply && (
-            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+            <span className="absolute top-0 right-0 flex h-3.5 w-3.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-500 border-2 border-white"></span>
             </span>
           )}
         </button>
       )}
-
       {/* 弹窗打开时的全屏背景遮罩（点击即可顺滑关闭，彻底防止移动端无法退出） */}
       {open && (
         <div
@@ -296,23 +299,25 @@ export function ChatWidget() {
               setTimeout(() => trigger.current?.focus(), 0);
             }
           }}
-          className="fixed inset-x-0 bottom-0 z-[60] flex h-[86dvh] max-h-[86dvh] w-full flex-col rounded-t-[26px] border-t border-slate-200/90 bg-white/98 shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom duration-200 sm:fixed sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[620px] sm:w-[420px] sm:max-h-[calc(100dvh-5rem)] sm:rounded-2xl sm:border sm:border-slate-200/90"
+          className="fixed inset-x-0 bottom-0 z-[60] flex h-[86dvh] max-h-[86dvh] w-full flex-col overflow-hidden rounded-t-[28px] border-t border-sky-100 bg-gradient-to-b from-sky-50/95 via-white to-white shadow-[0_-20px_60px_-20px_rgba(56,130,246,0.35)] backdrop-blur-xl animate-in slide-in-from-bottom duration-200 sm:fixed sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[640px] sm:w-[420px] sm:max-h-[calc(100dvh-5rem)] sm:rounded-[28px] sm:border sm:border-sky-100 sm:shadow-[0_30px_80px_-24px_rgba(56,130,246,0.45)]"
         >
           {/* 移动端顶部的拖拽/滑动手柄（直观呈现可滑动/可收起意图） */}
           <div className="w-10 h-1 rounded-full bg-slate-300 mx-auto mt-2 shrink-0 sm:hidden" />
 
-          {/* 顶部标头栏：包含清晰标题、状态与右上角显眼的关闭按钮（×） */}
-          <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 border-b border-slate-100 shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-2xs">
-                <Bot className="h-4 w-4" />
+          {/* 顶部标头：渐变光晕背景 + 桌宠头像 + 在线状态 + 关闭按钮 */}
+          <div className="relative flex items-center justify-between px-4 py-3 shrink-0 overflow-hidden">
+            <div aria-hidden="true" className="pointer-events-none absolute -top-10 -left-8 h-28 w-40 rounded-full bg-sky-300/30 blur-2xl" />
+            <div aria-hidden="true" className="pointer-events-none absolute -top-12 right-0 h-28 w-36 rounded-full bg-indigo-300/25 blur-2xl" />
+            <div className="relative flex items-center gap-2.5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 shadow-[0_6px_16px_-6px_rgba(56,130,246,0.5)] ring-1 ring-sky-100">
+                <RobotPet size={38} />
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs sm:text-sm font-bold text-slate-900">JARVIS 贾维斯</span>
-                <span className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  ONLINE
-                </span>
+              <div className="leading-tight">
+                <div className="text-sm font-bold text-slate-900">JARVIS 贾维斯</div>
+                <div className="mt-0.5 flex items-center gap-1 text-[11px] text-emerald-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  在线 · 随时为你解答
+                </div>
               </div>
             </div>
 
@@ -325,12 +330,11 @@ export function ChatWidget() {
                 setOpen(false);
                 setTimeout(() => trigger.current?.focus(), 0);
               }}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer shadow-2xs"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white/80 hover:bg-white active:scale-95 text-slate-600 hover:text-slate-900 transition-all cursor-pointer shadow-sm ring-1 ring-slate-200/70"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
-
           {/* 对话内容区域 */}
           <div className="min-h-0 flex-1 p-2 sm:p-3 overflow-hidden flex flex-col">
             <ChatExperience compact initialDraft={draft} />
