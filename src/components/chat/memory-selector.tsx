@@ -37,28 +37,28 @@ export function MemorySelector() {
           disabled={loading}
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "flex-1 min-w-0 flex items-center justify-between gap-2.5 px-3.5 py-2 rounded-xl border text-sm font-medium transition-all cursor-pointer text-left",
+            "flex-1 min-w-0 flex items-center justify-between gap-2.5 px-3.5 py-2 rounded-xl border text-sm font-medium transition-all cursor-pointer shadow-2xs text-left",
             isOpen
-              ? "bg-[#060a14] border-cyan-500/60 ring-2 ring-cyan-500/20 text-white"
-              : "bg-[#060a14]/90 border-white/10 hover:border-cyan-500/40 hover:bg-[#060a14] text-slate-200"
+              ? "bg-white border-cyan-500/60 ring-2 ring-cyan-500/20 shadow-xs"
+              : "bg-white/90 border-slate-200/90 hover:border-slate-300 hover:bg-white text-slate-800"
           )}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-600 border border-cyan-500/20">
               <Brain className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="truncate text-xs sm:text-sm font-medium text-white max-w-[220px] sm:max-w-[340px]">
+                <span className="truncate text-xs sm:text-sm font-medium text-slate-900 max-w-[220px] sm:max-w-[340px]">
                   {currentThread ? currentThread.title : "开启新对话"}
                 </span>
                 {user ? (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                    <Cloud className="w-2.5 h-2.5 text-emerald-400" />
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    <Cloud className="w-2.5 h-2.5 text-emerald-500" />
                     云端记忆
                   </span>
                 ) : (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-white/[0.06] text-slate-300 border border-white/10">
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
                     <CloudOff className="w-2.5 h-2.5 text-slate-400" />
                     本地访客
                   </span>
@@ -68,13 +68,13 @@ export function MemorySelector() {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[11px] font-mono text-slate-400 hidden md:inline">
+            <span className="text-[11px] font-mono text-muted-foreground hidden md:inline">
               {history.threads.length} 个记忆片段
             </span>
             <ChevronDown
               className={cn(
                 "h-4 w-4 text-slate-400 transition-transform duration-200",
-                isOpen && "rotate-180 text-cyan-400"
+                isOpen && "rotate-180 text-slate-700"
               )}
             />
           </div>
@@ -90,7 +90,7 @@ export function MemorySelector() {
             newThread();
             setIsOpen(false);
           }}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#060a14] text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 hover:bg-cyan-500/10 transition-all cursor-pointer disabled:opacity-40"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 text-slate-600 hover:text-cyan-600 hover:border-cyan-500/40 hover:bg-cyan-50/50 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           <Plus className="h-4 w-4" />
         </button>
@@ -98,16 +98,16 @@ export function MemorySelector() {
 
       {/* 下拉记忆抽屉面板 */}
       {isOpen && (
-        <div className="arch-frame absolute left-0 top-full mt-2 z-50 w-full sm:max-w-md rounded-2xl border border-white/15 bg-[#060a14]/95 backdrop-blur-2xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute left-0 top-full mt-2 z-50 w-full sm:max-w-md rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-2xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
           {/* 记忆库状态头部 */}
-          <div className="px-3 py-2.5 border-b border-white/10 flex items-center justify-between">
+          <div className="px-3 py-2.5 border-b border-slate-100/90 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-xs font-bold text-white">贾维斯 AI 记忆中枢</span>
+              <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
+              <span className="text-xs font-bold text-slate-800">贾维斯 AI 记忆中枢</span>
             </div>
             {user ? (
-              <div className="flex items-center gap-1 text-[11px] text-emerald-300 font-mono bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                <Shield className="w-3 h-3 text-emerald-400" />
+              <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-mono bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                <Shield className="w-3 h-3 text-emerald-600" />
                 <span>已绑定账户: {user.username}</span>
               </div>
             ) : (
@@ -117,7 +117,7 @@ export function MemorySelector() {
                   setIsOpen(false);
                   openAuthModal("login");
                 }}
-                className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                className="text-[11px] text-cyan-600 hover:underline flex items-center gap-1 font-medium cursor-pointer"
               >
                 <span>未登录(点击登录同步记忆)</span>
               </button>
@@ -136,8 +136,8 @@ export function MemorySelector() {
                   className={cn(
                     "group relative flex items-center justify-between gap-2 p-2.5 rounded-xl text-xs transition-all cursor-pointer",
                     isSelected
-                      ? "bg-cyan-500/15 text-white font-medium border border-cyan-500/35"
-                      : "hover:bg-white/[0.06] text-slate-300 border border-transparent"
+                      ? "bg-cyan-500/10 text-cyan-950 font-medium border border-cyan-500/20"
+                      : "hover:bg-slate-100/80 text-slate-700 border border-transparent"
                   )}
                   onClick={() => {
                     selectThread(thread.id);
@@ -149,15 +149,15 @@ export function MemorySelector() {
                       className={cn(
                         "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition-colors",
                         isSelected
-                          ? "bg-cyan-500/25 text-cyan-300 border border-cyan-500/40"
-                          : "bg-white/[0.06] text-slate-400 group-hover:bg-cyan-500/15 group-hover:text-cyan-300"
+                          ? "bg-cyan-500 text-white shadow-2xs"
+                          : "bg-slate-100 text-slate-500 group-hover:bg-cyan-100 group-hover:text-cyan-700"
                       )}
                     >
                       <MessageSquare className="h-3 w-3" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-semibold text-white">{thread.title}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="truncate text-xs font-semibold">{thread.title}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         {msgCount > 0 ? `${msgCount} 条对话记忆` : "空白对话"}
                         {isSelected && " · 正在对话"}
                       </p>
@@ -165,7 +165,7 @@ export function MemorySelector() {
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
-                    {isSelected && <Check className="w-4 h-4 text-cyan-400 mr-1" />}
+                    {isSelected && <Check className="w-4 h-4 text-cyan-600 mr-1" />}
                     {/* 单条记忆删除按钮 */}
                     {history.threads.length > 1 && (
                       <button
@@ -176,7 +176,7 @@ export function MemorySelector() {
                           e.stopPropagation();
                           deleteThread(thread.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 transition-all cursor-pointer"
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -188,14 +188,14 @@ export function MemorySelector() {
           </div>
 
           {/* 底部功能栏 */}
-          <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between gap-2 px-1">
+          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between gap-2 px-1">
             <button
               type="button"
               onClick={() => {
                 newThread();
                 setIsOpen(false);
               }}
-              className="flex items-center gap-1 text-xs font-medium text-cyan-400 hover:text-cyan-300 px-2 py-1 rounded-lg hover:bg-cyan-500/10 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-xs font-medium text-cyan-600 hover:text-cyan-700 px-2 py-1 rounded-lg hover:bg-cyan-50 transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>开启新记忆对话</span>
@@ -209,7 +209,7 @@ export function MemorySelector() {
                   setIsOpen(false);
                 }
               }}
-              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-rose-400 px-2 py-1 rounded-lg hover:bg-rose-500/15 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-rose-600 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
             >
               <Trash2 className="w-3 h-3" />
               <span>清空所有记忆</span>

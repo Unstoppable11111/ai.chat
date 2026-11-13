@@ -153,10 +153,10 @@ export function VisualAssetsBoard({
 
   if (!bible) {
     return (
-      <div className="arch-frame flex flex-col items-center justify-center p-12 text-center text-slate-400 border border-dashed border-white/15 bg-[#060a14]">
-        <ImageIcon className="w-10 h-10 text-slate-500 mb-3" />
-        <h3 className="font-mono text-sm font-bold text-white">暂无小说资产</h3>
-        <p className="text-xs text-slate-400 mt-1 max-w-sm">
+      <div className="flex flex-col items-center justify-center p-12 text-center text-slate-500 rounded-3xl border border-dashed border-slate-300/80 bg-white/40">
+        <ImageIcon className="w-10 h-10 text-slate-400 mb-3" />
+        <h3 className="text-sm font-bold text-slate-800">暂无小说资产</h3>
+        <p className="text-xs text-slate-500 mt-1 max-w-sm">
           在左侧启动工业化工作流生成小说大纲后，此处将解锁主人公立绘画像与核心场景概念图生成功能。
         </p>
       </div>
@@ -250,9 +250,9 @@ export function VisualAssetsBoard({
     const state = generationStates[assetId];
     return (
       <>
-        {state?.status === "loading" && <button type="button" onClick={() => controllersRef.current.get(assetId)?.abort()} className="inline-flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300"><X className="h-3.5 w-3.5" />取消生成</button>}
-        {state?.message && <p role="status" className={state.status === "error" ? "text-xs text-rose-400" : "text-xs text-amber-300"}>{state.message}</p>}
-        {!!asset?.previous_versions?.length && <div className="flex flex-wrap gap-2 pt-1">{asset.previous_versions.map((version, index) => <button key={version.created_at + index} type="button" title={`查看候选图 ${index + 1}`} onClick={() => setPreviewImage(version.image_url)} className="relative h-12 w-12 shrink-0 overflow-hidden rounded-sm border border-white/15"><Image src={version.image_url} alt={`候选图 ${index + 1}`} fill unoptimized sizes="48px" className="object-cover" /></button>)}</div>}
+        {state?.status === "loading" && <button type="button" onClick={() => controllersRef.current.get(assetId)?.abort()} className="inline-flex items-center gap-1 text-xs text-rose-700"><X className="h-3.5 w-3.5" />取消生成</button>}
+        {state?.message && <p role="status" className={state.status === "error" ? "text-xs text-rose-700" : "text-xs text-amber-700"}>{state.message}</p>}
+        {!!asset?.previous_versions?.length && <div className="flex flex-wrap gap-2 pt-1">{asset.previous_versions.map((version, index) => <button key={version.created_at + index} type="button" title={`查看候选图 ${index + 1}`} onClick={() => setPreviewImage(version.image_url)} className="relative h-12 w-12 shrink-0 overflow-hidden rounded border border-slate-200"><Image src={version.image_url} alt={`候选图 ${index + 1}`} fill unoptimized sizes="48px" className="object-cover" /></button>)}</div>}
       </>
     );
   };
@@ -264,41 +264,41 @@ export function VisualAssetsBoard({
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* 冷却警告通知条 */}
       {cooldownRemaining > 0 && (
-        <div className="p-4 rounded-sm bg-amber-500/10 border border-amber-500/35 flex items-center justify-between gap-3 text-amber-200 animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-amber-900 animate-in fade-in">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-sm bg-amber-500/20 text-amber-300 shrink-0">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-700 shrink-0">
               <Clock className="w-4 h-4 animate-spin" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-white">生图并发/超时冷却保护生效中</h4>
-              <p className="text-[11px] text-amber-200/80">
+              <h4 className="text-xs font-bold">生图并发/超时冷却保护生效中</h4>
+              <p className="text-[11px] text-amber-700/80">
                 由于检测到上游并发上限或超时，系统已启用指数退避保护，期间暂停提交视觉资产生成。
               </p>
             </div>
           </div>
-          <div className="px-3 py-1.5 rounded-sm border border-amber-500/30 bg-amber-500/20 text-amber-200 font-mono text-xs font-bold shrink-0">
+          <div className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-800 font-mono text-xs font-bold shrink-0">
             剩余 {formatSeconds(cooldownRemaining)}
           </div>
         </div>
       )}
 
       {/* 顶部通告与引擎配置条 */}
-      <div className="arch-frame p-4 bg-[#060a14] border-purple-500/30 flex flex-col gap-3.5 shadow-2xl">
+      <div className="p-4 rounded-3xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/20 flex flex-col gap-3.5 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-sm border border-purple-500/30 bg-purple-500/15 text-purple-300 shrink-0">
+            <div className="p-2 rounded-xl bg-purple-500/20 text-purple-700 shrink-0">
               <Sparkles className="w-4 h-4 animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="text-xs font-bold text-white">
+                <h4 className="text-xs font-bold text-slate-900">
                   小说视觉资产库 & 生图引擎中枢
                 </h4>
-                <span className="text-[10px] font-mono text-purple-300 bg-purple-500/15 border border-purple-500/30 px-1.5 py-0.5 rounded-sm font-semibold">
+                <span className="text-[10px] font-mono text-purple-700 bg-purple-100/60 border border-purple-300/60 px-1.5 py-0.2 rounded-full font-semibold">
                   FLUX.1 级联优化
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-500 mt-0.5">
                 人物立绘与场景概念图生成服务。支持自由切换底层出图引擎，优先推荐使用 Cloudflare 极速通道。
               </p>
             </div>
@@ -306,7 +306,7 @@ export function VisualAssetsBoard({
 
           <Link
             href="/experiments/image-studio"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all shrink-0 self-start sm:self-auto cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs hover:shadow transition-all shrink-0 self-start sm:self-auto cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-200" />
             <span>独立 AI 生图工坊</span>
@@ -315,18 +315,18 @@ export function VisualAssetsBoard({
         </div>
 
         {/* 模型/引擎选择器 */}
-        <div className="pt-2 border-t border-white/10 flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
-            <Zap className="w-3.5 h-3.5 text-purple-400" />
+        <div className="pt-2 border-t border-purple-500/10 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
+            <Zap className="w-3.5 h-3.5 text-purple-600" />
             <span>出图通道：</span>
           </span>
           <button
             type="button"
             onClick={() => setSelectedProvider("gemini")}
-            className={`px-2.5 py-1 rounded-sm text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedProvider === "gemini"
-                ? "bg-purple-500/25 text-purple-200 border border-purple-400/50"
-                : "bg-[#04060b] hover:bg-white/[0.04] text-slate-300 border border-white/10"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80"
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
@@ -335,10 +335,10 @@ export function VisualAssetsBoard({
           <button
             type="button"
             onClick={() => setSelectedProvider("cloudflare")}
-            className={`px-2.5 py-1 rounded-sm text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedProvider === "cloudflare"
-                ? "bg-purple-500/25 text-purple-200 border border-purple-400/50"
-                : "bg-[#04060b] hover:bg-white/[0.04] text-slate-300 border border-white/10"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80"
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -347,10 +347,10 @@ export function VisualAssetsBoard({
           <button
             type="button"
             onClick={() => setSelectedProvider("pollinations")}
-            className={`px-2.5 py-1 rounded-sm text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedProvider === "pollinations"
-                ? "bg-purple-500/25 text-purple-200 border border-purple-400/50"
-                : "bg-[#04060b] hover:bg-white/[0.04] text-slate-300 border border-white/10"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80"
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
@@ -359,10 +359,10 @@ export function VisualAssetsBoard({
           <button
             type="button"
             onClick={() => setSelectedProvider("auto")}
-            className={`px-2.5 py-1 rounded-sm text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedProvider === "auto"
-                ? "bg-purple-500/25 text-purple-200 border border-purple-400/50"
-                : "bg-[#04060b] hover:bg-white/[0.04] text-slate-300 border border-white/10"
+                ? "bg-purple-600 text-white shadow-xs"
+                : "bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80"
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
@@ -375,14 +375,14 @@ export function VisualAssetsBoard({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-purple-400" />
-            <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">出版级电影封面海报</h3>
+            <span className="w-2 h-2 rounded-full bg-purple-600" />
+            <h3 className="text-sm font-bold text-slate-900">出版级电影封面海报</h3>
             <span className="text-[10px] text-slate-400 font-mono">已融合主角剪影与主场景 · 支持无损放大与本地保存</span>
           </div>
         </div>
 
-        <div className="arch-frame p-4 sm:p-6 bg-[#060a14] flex flex-col sm:flex-row items-center gap-6 shadow-2xl">
-          <div className="relative w-40 h-60 sm:w-48 sm:h-72 rounded-sm overflow-hidden shadow-xl border border-white/15 shrink-0 bg-[#04060b] group">
+        <div className="p-4 sm:p-6 rounded-3xl bg-white/70 border border-slate-200/80 flex flex-col sm:flex-row items-center gap-6 shadow-xs">
+          <div className="relative w-40 h-60 sm:w-48 sm:h-72 rounded-2xl overflow-hidden shadow-xl border border-slate-300/60 shrink-0 bg-slate-900 group">
             {coverUrl ? (
               <>
                 <Image
@@ -396,14 +396,14 @@ export function VisualAssetsBoard({
                 <button
                   type="button"
                   onClick={() => setPreviewImage(coverUrl)}
-                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1.5 cursor-pointer"
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1.5 cursor-pointer"
                 >
                   <Maximize2 className="w-4 h-4" />
                   <span>放大封面</span>
                 </button>
               </>
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-xs p-4 text-center">
+              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center">
                 <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
                 <span>全书生成完毕后自动精美出炉</span>
               </div>
@@ -411,11 +411,11 @@ export function VisualAssetsBoard({
           </div>
 
           <div className="space-y-2.5 text-center sm:text-left flex-1">
-            <div className="inline-block px-2.5 py-0.5 rounded-sm bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[10px] font-mono font-semibold">
+            <div className="inline-block px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-semibold">
               {config.genre || "都市异能"} · 出版级精装海报
             </div>
-            <h4 className="text-lg font-black text-white">{bible.title}</h4>
-            <p className="text-xs text-slate-300 max-w-md leading-relaxed">
+            <h4 className="text-lg font-black text-slate-900">{bible.title}</h4>
+            <p className="text-xs text-slate-600 max-w-md leading-relaxed">
               {bible.logline || "暂无一句话故事钩子"}
             </p>
             <div className="text-[11px] text-slate-400 space-y-1 pt-1 font-mono">
@@ -428,7 +428,7 @@ export function VisualAssetsBoard({
               <button
                 type="button"
                 onClick={() => setIsReplaceModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-sm bg-cyan-600 text-white hover:bg-cyan-500 text-xs font-semibold transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-600 text-white hover:bg-cyan-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>替换封面 (与书架同步)</span>
@@ -439,7 +439,7 @@ export function VisualAssetsBoard({
                   <button
                     type="button"
                     onClick={() => setPreviewImage(coverUrl)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-sm bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 border border-purple-500/30 text-xs font-semibold transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                   >
                     <Maximize2 className="w-3.5 h-3.5" />
                     <span>放大查看封面</span>
@@ -449,7 +449,7 @@ export function VisualAssetsBoard({
                     onClick={() =>
                       handleDownloadImage(coverUrl, `《${bible.title}》_出版级电影封面.png`)
                     }
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-sm border border-white/15 bg-[#04060b] text-white hover:border-cyan-500/50 text-xs font-semibold transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>保存封面到本地</span>
@@ -465,8 +465,8 @@ export function VisualAssetsBoard({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-purple-400" />
-            <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">主要人物专属立绘画像</h3>
+            <User className="w-4 h-4 text-purple-600" />
+            <h3 className="text-sm font-bold text-slate-900">主要人物专属立绘画像</h3>
             <span className="text-[10px] text-slate-400">点击卡片下方按钮手动确认生成</span>
           </div>
         </div>
@@ -480,10 +480,10 @@ export function VisualAssetsBoard({
             return (
               <div
                 key={char.name}
-                className="arch-frame p-4 bg-[#060a14] hover:border-purple-500/40 transition-all flex flex-col justify-between space-y-4"
+                className="p-4 rounded-3xl bg-white/80 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
               >
                 {/* 立绘图像区域 */}
-                <div className="relative w-full h-56 rounded-sm overflow-hidden bg-gradient-to-br from-[#04060b] to-indigo-950/60 border border-white/10 flex items-center justify-center">
+                <div className="relative w-full h-56 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 to-indigo-950 border border-slate-200/80 flex items-center justify-center">
                   {existingAsset?.image_url ? (
                     <>
                       <Image
@@ -496,28 +496,28 @@ export function VisualAssetsBoard({
                       />
                       {/* 出图通道标识徽章 */}
                       {existingAsset.status === "fallback" ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-sm bg-amber-500/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-amber-500/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
                           矢量预览保底
                         </div>
                       ) : existingAsset.metadata?.provider === "gemini" ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-sm bg-blue-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-blue-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
                           <Sparkles className="w-2.5 h-2.5 text-cyan-200" />
                           <span>本站 Gemini</span>
                         </div>
                       ) : existingAsset.metadata?.provider === "cloudflare" ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-sm bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
                           <Zap className="w-2.5 h-2.5 text-yellow-300 fill-yellow-300" />
                           <span>CF FLUX.1</span>
                         </div>
                       ) : existingAsset.metadata?.provider === "pollinations" ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-sm bg-cyan-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-cyan-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
                           Pollinations FLUX
                         </div>
                       ) : null}
                       <button
                         type="button"
                         onClick={() => setPreviewImage(getRenderUrl(existingAsset.image_url, existingAsset.created_at))}
-                        className="absolute bottom-2 right-2 p-1.5 rounded-sm bg-black/70 text-white hover:bg-black/90 transition-colors cursor-pointer"
+                        className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
                         title="查看大图"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -526,13 +526,13 @@ export function VisualAssetsBoard({
                   ) : (
                     <div className="text-center p-4 space-y-2 text-slate-400">
                       <User className="w-8 h-8 mx-auto opacity-40" />
-                      <p className="text-xs font-medium text-slate-300">尚未生成视觉立绘</p>
+                      <p className="text-xs font-medium">尚未生成视觉立绘</p>
                       <p className="text-[10px] text-slate-500">点击下方按钮手动确认渲染</p>
                     </div>
                   )}
 
                   {isGenerating && (
-                    <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center text-white text-xs gap-2 z-10">
+                    <div className="absolute inset-0 bg-black/70  flex flex-col items-center justify-center text-white text-xs gap-2 z-10">
                       <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
                       <span>正在渲染角色立绘...</span>
                       <button type="button" onClick={() => controllersRef.current.get(assetId)?.abort()} title="取消生成" className="rounded p-2 hover:bg-white/20"><X className="h-4 w-4" /></button>
@@ -543,13 +543,13 @@ export function VisualAssetsBoard({
                 {/* 角色信息与手动生成按钮 */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">{char.name}</span>
-                    <span className="px-2 py-0.5 rounded-sm bg-purple-500/15 text-purple-300 text-[10px] font-semibold border border-purple-500/30">
+                    <span className="text-sm font-bold text-slate-900">{char.name}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-semibold border border-purple-200">
                       {char.role}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-400 line-clamp-2">
+                  <p className="text-xs text-slate-600 line-clamp-2">
                     {char.personality} · {char.appearance || char.visual_traits || char.motivation}
                   </p>
 
@@ -557,12 +557,12 @@ export function VisualAssetsBoard({
                     type="button"
                     disabled={isGenerating || cooldownRemaining > 0}
                     onClick={() => handleGenerateCharacterPortrait(char, idx)}
-                    className="w-full mt-2 py-2 rounded-sm text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border disabled:opacity-50 border-purple-500/35 bg-purple-500/15 hover:bg-purple-500/25 text-purple-200 disabled:cursor-not-allowed"
+                    className="w-full mt-2 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border shadow-2xs disabled:opacity-50 border-purple-500/30 bg-purple-50 hover:bg-purple-100 text-purple-700 disabled:cursor-not-allowed"
                   >
                     {cooldownRemaining > 0 ? (
                       <>
-                        <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-                        <span className="text-amber-300">冷却保护中 ({formatSeconds(cooldownRemaining)})</span>
+                        <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                        <span className="text-amber-700">冷却保护中 ({formatSeconds(cooldownRemaining)})</span>
                       </>
                     ) : existingAsset ? (
                       <>
@@ -571,7 +571,7 @@ export function VisualAssetsBoard({
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+                        <Sparkles className="w-3.5 h-3.5 text-purple-600" />
                         <span>手动确认生成人物立绘</span>
                       </>
                     )}
@@ -588,8 +588,8 @@ export function VisualAssetsBoard({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-cyan-400" />
-            <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">核心剧情场景概念透视</h3>
+            <MapPin className="w-4 h-4 text-cyan-600" />
+            <h3 className="text-sm font-bold text-slate-900">核心剧情场景概念透视</h3>
             <span className="text-[10px] text-slate-400">点击卡片手动确认生成</span>
           </div>
         </div>
@@ -603,9 +603,9 @@ export function VisualAssetsBoard({
             return (
               <div
                 key={sceneTitle}
-                className="arch-frame p-4 bg-[#060a14] hover:border-cyan-500/40 transition-all space-y-3"
+                className="p-4 rounded-3xl bg-white/80 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all space-y-3"
               >
-                <div className="relative w-full h-44 rounded-sm overflow-hidden bg-gradient-to-br from-[#04060b] to-cyan-950/60 border border-white/10 flex items-center justify-center">
+                <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 to-cyan-950 border border-slate-200/80 flex items-center justify-center">
                   {existingAsset?.image_url ? (
                     <>
                       <Image
@@ -618,28 +618,28 @@ export function VisualAssetsBoard({
                       />
                       {/* 出图通道标识徽章 */}
                       {existingAsset.status === "fallback" ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-sm bg-amber-500/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-amber-500/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
                           矢量预览保底
                         </div>
                       ) : existingAsset.metadata?.provider === "gemini" ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-sm bg-blue-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-blue-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
                           <Sparkles className="w-2.5 h-2.5 text-cyan-200" />
                           <span>本站 Gemini</span>
                         </div>
                       ) : existingAsset.metadata?.provider === "cloudflare" ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-sm bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-purple-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
                           <Zap className="w-2.5 h-2.5 text-yellow-300 fill-yellow-300" />
                           <span>CF FLUX.1</span>
                         </div>
                       ) : existingAsset.metadata?.provider === "pollinations" ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-sm bg-cyan-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-cyan-600/85 backdrop-blur-xs text-[10px] font-bold text-white shadow-xs">
                           Pollinations FLUX
                         </div>
                       ) : null}
                       <button
                         type="button"
                         onClick={() => setPreviewImage(getRenderUrl(existingAsset.image_url, existingAsset.created_at))}
-                        className="absolute bottom-2 right-2 p-1.5 rounded-sm bg-black/70 text-white hover:bg-black/90 transition-colors cursor-pointer"
+                        className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
                         title="查看大图"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -648,13 +648,13 @@ export function VisualAssetsBoard({
                   ) : (
                     <div className="text-center p-4 space-y-1.5 text-slate-400">
                       <MapPin className="w-7 h-7 mx-auto opacity-40" />
-                      <p className="text-xs font-medium text-slate-300">尚未渲染场景概念图</p>
+                      <p className="text-xs font-medium">尚未渲染场景概念图</p>
                       <p className="text-[10px] text-slate-500">点击下方按钮手动确认生成</p>
                     </div>
                   )}
 
                   {isGenerating && (
-                    <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center text-white text-xs gap-2 z-10">
+                    <div className="absolute inset-0 bg-black/70  flex flex-col items-center justify-center text-white text-xs gap-2 z-10">
                       <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
                       <span>正在绘制场景概念图...</span>
                       <button type="button" onClick={() => controllersRef.current.get(assetId)?.abort()} title="取消生成" className="rounded p-2 hover:bg-white/20"><X className="h-4 w-4" /></button>
@@ -664,7 +664,7 @@ export function VisualAssetsBoard({
 
                 <div className="flex items-center justify-between gap-3">
                   <div className="truncate">
-                    <h5 className="text-xs font-bold text-white truncate">{sceneTitle}</h5>
+                    <h5 className="text-xs font-bold text-slate-900 truncate">{sceneTitle}</h5>
                     <p className="text-[10px] text-slate-400">高能剧情场景 · 宽幅概念透视</p>
                   </div>
 
@@ -672,7 +672,7 @@ export function VisualAssetsBoard({
                     type="button"
                     disabled={isGenerating || cooldownRemaining > 0}
                     onClick={() => handleGenerateSceneConcept(sceneTitle, idx)}
-                    className="shrink-0 px-3 py-1.5 rounded-sm text-xs font-bold transition-all border disabled:opacity-50 border-cyan-500/35 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-200 cursor-pointer disabled:cursor-not-allowed"
+                    className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-2xs disabled:opacity-50 border-cyan-500/30 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 cursor-pointer disabled:cursor-not-allowed"
                   >
                     {cooldownRemaining > 0
                       ? `冷却中 (${formatSeconds(cooldownRemaining)})`
@@ -691,14 +691,14 @@ export function VisualAssetsBoard({
       {/* 原图弹窗查看 (支持无损放大与一键本地保存) */}
       {previewImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020409]/85 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80  animate-in fade-in duration-200"
           onClick={() => setPreviewImage(null)}
         >
           <div
-            className="arch-frame relative max-w-2xl max-h-[85vh] w-full p-2 bg-[#060a14] border-white/15 shadow-2xl flex flex-col items-center"
+            className="relative max-w-2xl max-h-[85vh] w-full p-2 bg-slate-900 rounded-3xl border border-white/20 shadow-2xl flex flex-col items-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full h-[70vh] rounded-sm overflow-hidden">
+            <div className="relative w-full h-[70vh] rounded-2xl overflow-hidden">
               <Image
                 src={previewImage}
                 alt="预览资产"
@@ -720,7 +720,7 @@ export function VisualAssetsBoard({
                       `《${bible.title}》_视觉资产_${Date.now()}.png`
                     )
                   }
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-colors cursor-pointer shadow-sm"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>保存到本地</span>
@@ -728,7 +728,7 @@ export function VisualAssetsBoard({
                 <button
                   type="button"
                   onClick={() => setPreviewImage(null)}
-                  className="px-3 py-1.5 rounded-sm border border-white/15 bg-white/10 hover:bg-white/20 transition-colors cursor-pointer font-medium"
+                  className="px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-colors cursor-pointer font-medium"
                 >
                   关闭
                 </button>
@@ -740,16 +740,16 @@ export function VisualAssetsBoard({
 
       {/* 替换封面交互模态框 */}
       {isReplaceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020409]/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="arch-frame w-full max-w-lg bg-[#060a14] p-6 shadow-2xl border-white/15 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4  animate-in fade-in">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-sm border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
+                <div className="p-2 rounded-xl bg-cyan-50 text-cyan-700">
                   <RefreshCw className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">替换小说封面</h3>
-                  <p className="text-[11px] text-slate-400">
+                  <h3 className="text-sm font-bold text-slate-900">替换小说封面</h3>
+                  <p className="text-[11px] text-muted-foreground">
                     替换后与顶部书架封面实时联动双向同步入库
                   </p>
                 </div>
@@ -757,17 +757,17 @@ export function VisualAssetsBoard({
               <button
                 type="button"
                 onClick={() => setIsReplaceModalOpen(false)}
-                className="p-1.5 rounded-sm border border-white/10 bg-[#04060b] text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* 途径 1: 本地图片文件上传 */}
-            <div className="p-4 rounded-sm border border-white/10 bg-[#04060b]/80 space-y-2">
+            <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Upload className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5 text-cyan-600" />
                   从本地电脑上传新封面
                 </span>
               </div>
@@ -794,7 +794,7 @@ export function VisualAssetsBoard({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full py-2.5 px-4 rounded-sm border border-dashed border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 text-xs font-semibold text-cyan-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl border border-dashed border-cyan-400 bg-cyan-50/50 hover:bg-cyan-100/60 text-xs font-semibold text-cyan-800 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Upload className="w-4 h-4" />
                 <span>选择本地图片 (PNG / JPG / WEBP)</span>
@@ -802,9 +802,9 @@ export function VisualAssetsBoard({
             </div>
 
             {/* 途径 2: 输入网络图片链接 */}
-            <div className="p-4 rounded-sm border border-white/10 bg-[#04060b]/80 space-y-2">
-              <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <LinkIcon className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <LinkIcon className="w-3.5 h-3.5 text-indigo-600" />
                 输入网络图片 URL
               </span>
               <div className="flex gap-2">
@@ -813,7 +813,7 @@ export function VisualAssetsBoard({
                   value={replaceUrlInput}
                   onChange={(e) => setReplaceUrlInput(e.target.value)}
                   placeholder="https://example.com/cover.png"
-                  className="flex-1 rounded-sm border border-white/10 bg-[#060a14] px-3 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:border-cyan-500/60 focus:outline-hidden"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-cyan-500 focus:outline-hidden"
                 />
                 <button
                   type="button"
@@ -825,7 +825,7 @@ export function VisualAssetsBoard({
                     }
                   }}
                   disabled={!replaceUrlInput.trim()}
-                  className="px-4 py-2 rounded-sm bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   应用
                 </button>
@@ -834,9 +834,9 @@ export function VisualAssetsBoard({
 
             {/* 途径 3: 从已生成的视觉资产中选择 */}
             {visualAssets && visualAssets.length > 0 && (
-              <div className="p-4 rounded-sm border border-white/10 bg-[#04060b]/80 space-y-2.5">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-2.5">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
                   从已生成的人物画像或场景图中一键设为封面
                 </span>
                 <div className="grid grid-cols-3 gap-2.5 max-h-44 overflow-y-auto pr-1">
@@ -847,7 +847,7 @@ export function VisualAssetsBoard({
                         onUpdateCover?.(asset.image_url, projectId);
                         setIsReplaceModalOpen(false);
                       }}
-                      className="group relative aspect-[3/4] rounded-sm overflow-hidden border border-white/15 hover:border-cyan-400 transition-all cursor-pointer"
+                      className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-slate-300/80 hover:border-cyan-500 transition-all cursor-pointer shadow-2xs"
                       title={`设为封面: ${asset.title}`}
                     >
                       <Image
@@ -857,7 +857,7 @@ export function VisualAssetsBoard({
                         unoptimized
                         className="object-cover group-hover:scale-105 transition-transform"
                       />
-                      <div className="absolute inset-x-0 bottom-0 bg-black/70 p-1 text-[10px] text-white text-center truncate">
+                      <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1 text-[10px] text-white text-center truncate">
                         {asset.title}
                       </div>
                     </div>

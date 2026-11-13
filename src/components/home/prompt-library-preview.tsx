@@ -1,21 +1,77 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PromptEntry } from "@/lib/types";
 import { useReducedMotion, motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, Archive } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 type PromptLibraryPreviewProps = {
   items: PromptEntry[];
 };
 
 export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
+  const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scanLineRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (reduceMotion || !sectionRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. Header 标题与扫描光束放慢滑过
+      if (scanLineRef.current) {
+        gsap.fromTo(
+          scanLineRef.current,
+          { scaleX: 0, opacity: 0 },
+          {
+            scaleX: 1,
+            opacity: 1,
+            duration: 1.2,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: scanLineRef.current,
+              start: "top 85%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+
+      // 2. 每行档案放慢 Decrypt Scan 显影效果 (更深初始位移，放慢间隔，清晰可见)
+      const rows = gsap.utils.toArray<HTMLElement>(".archive-row");
+      rows.forEach((row, index) => {
+        gsap.fromTo(
+          row,
+          { opacity: 0, y: 32, scale: 0.98 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 1.0,
+            delay: index * 0.18,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: row,
+              start: "top 88%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [reduceMotion]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (reduceMotion) return;
@@ -29,78 +85,81 @@ export function PromptLibraryPreview({ items }: PromptLibraryPreviewProps) {
   };
 
   return (
-    <section className="studio-section bg-[#04060b]">
-      <div className="container-shell relative" ref={containerRef} onMouseMove={handleMouseMove}>
-        <div className="mb-8 border-b border-white/10 pb-5 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <section ref={sectionRef} className="relative w-full bg-background pt-24 pb-48 overflow-hidden">
+      <div 
+        className="container-shell max-w-5xl mx-auto relative" 
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+      >
+        
+        <div className="mb-16 border-b border-slate-900/10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-8 relative">
+          {/* 光线 Scanline 扫描线 */}
+          <div ref={scanLineRef} className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-cyan to-transparent origin-left will-change-transform pointer-events-none" />
+
           <div>
-            <div className="tech-tag mb-2.5">
-              <Archive className="h-3 w-3 text-cyan-400" />
-              <span>SEC_09 // PROMPT ARCHIVE LEDGER</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              提示词工程档案库
+            <h2 className="text-3xl md:text-5xl font-light tracking-tight text-foreground">
+              DIGITAL ARCHIVE
             </h2>
           </div>
-
-          <Link
-            href="/prompts"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/12 bg-white/[0.03] px-3.5 py-2 font-mono text-xs text-cyan-300 hover:border-cyan-400/50 transition-colors"
-          >
-            <span>EXPLORE PROMPTS</span>
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="hidden md:flex text-[10px] font-mono text-muted-foreground gap-12 tracking-widest uppercase">
+            <span>ID</span>
+            <span>TYPE</span>
+            <span>MODIFIED</span>
+          </div>
         </div>
 
-        <div className="arch-frame rounded-xl overflow-hidden divide-y divide-white/[0.08]">
+        <div className="flex flex-col relative">
           {items.map((item, index) => (
-            <Link
+            <Link 
               href={`/prompts#${item.id}`}
-              key={item.id}
+              key={item.id} 
               onMouseEnter={() => setHoveredImage(item.exampleImage)}
               onMouseLeave={() => setHoveredImage(null)}
-              className="group flex flex-col md:flex-row md:items-center justify-between px-5 py-6 hover:bg-cyan-500/[0.05] transition-colors gap-4"
+              className="archive-row group relative flex flex-col md:flex-row md:items-center justify-between py-8 border-b border-slate-900/5 hover:border-slate-900/20 transition-all duration-500 z-10 will-change-transform"
             >
-              <div className="flex items-center gap-5 min-w-0">
-                <span className="font-mono text-xs text-cyan-400 shrink-0">
-                  ARC_{String(index + 1).padStart(3, "0")}
+              <div className="flex items-center gap-6 md:gap-12 min-w-0">
+                <span className="text-[10px] md:text-xs font-mono text-muted-foreground group-hover:text-brand-violet transition-colors shrink-0">
+                  ARCHIVE_{String(index + 1).padStart(3, '0')}
                 </span>
-                <div className="min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-1">{item.summary}</p>
-                </div>
+                <h3 className="text-lg md:text-3xl font-light truncate text-foreground group-hover:translate-x-4 transition-transform duration-500 ease-out">
+                  {item.title}
+                </h3>
               </div>
-
-              <div className="flex items-center gap-4 shrink-0 font-mono text-[11px]">
-                <span className="rounded border border-cyan-500/30 bg-cyan-950/40 px-2.5 py-0.5 text-cyan-300 uppercase">
-                  {item.category}
-                </span>
-                <span className="text-slate-500">{item.model}</span>
-                <ArrowUpRight className="h-4 w-4 text-slate-500 group-hover:text-cyan-300 transition-colors" />
+              
+              <div className="flex items-center gap-8 md:gap-16 mt-4 md:mt-0 text-[10px] md:text-xs font-mono text-muted-foreground tracking-widest">
+                <span className="uppercase w-24">{item.category}</span>
+                <span>2026.08</span>
               </div>
             </Link>
           ))}
-        </div>
 
-        <AnimatePresence>
-          {hoveredImage && !reduceMotion && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                x: mousePos.x + 24,
-                y: mousePos.y - 80,
-              }}
-              exit={{ opacity: 0, scale: 0.92 }}
-              transition={{ type: "spring", stiffness: 220, damping: 24 }}
-              className="absolute top-0 left-0 w-60 aspect-[4/3] rounded-xl overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.9)] border border-cyan-400/50 z-30 pointer-events-none hidden md:block"
-            >
-              <Image src={hoveredImage} alt="Preview" fill className="object-cover" />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* Floating Image Reveal */}
+          <AnimatePresence>
+            {hoveredImage && !reduceMotion && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: 1, 
+                  rotate: 0,
+                  x: mousePos.x + 40,
+                  y: mousePos.y - 100
+                }}
+                exit={{ opacity: 0, scale: 0.9, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 150, damping: 20, mass: 0.5 }}
+                className="absolute top-0 left-0 w-64 aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl z-0 pointer-events-none hidden md:block"
+              >
+                <Image 
+                  src={hoveredImage} 
+                  alt="Preview" 
+                  fill 
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-black/5" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </section>
   );

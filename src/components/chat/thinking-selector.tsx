@@ -42,32 +42,32 @@ export function ThinkingSelector({
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center gap-1.5 text-xs font-mono font-medium px-3 py-1.5 rounded-full border transition-all cursor-pointer select-none outline-none",
+          "flex items-center gap-1.5 text-xs font-mono font-medium px-3 py-1.5 rounded-full border transition-all cursor-pointer select-none shadow-2xs outline-none",
           isOpen
-            ? "bg-purple-500/20 text-white border-purple-500/50"
+            ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs"
             : current.id === "off"
-            ? "bg-[#04060b] text-slate-300 border-white/15 hover:bg-white/[0.06]"
-            : "bg-purple-500/15 text-purple-300 border-purple-500/35 hover:bg-purple-500/25 font-semibold"
+            ? "bg-white/90 dark:bg-zinc-800/90 text-slate-600 dark:text-slate-300 border-slate-900/10 dark:border-white/10 hover:bg-slate-100"
+            : "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20 hover:bg-purple-500/20 font-semibold"
         )}
         title="设置模型的思考推导深度 (Thinking Level)"
       >
-        <Cpu className={cn("h-3.5 w-3.5 shrink-0", current.id !== "off" ? "text-purple-400" : "text-slate-400")} />
+        <Cpu className={cn("h-3.5 w-3.5 shrink-0", current.id !== "off" ? "text-purple-600 dark:text-purple-400" : "text-muted-foreground")} />
         <span className="tracking-tight">{current.name}</span>
         <ChevronDown
           className={cn(
-            "h-3 w-3 text-slate-400 transition-transform duration-200 shrink-0",
-            isOpen && "rotate-180 text-purple-300"
+            "h-3 w-3 text-muted-foreground transition-transform duration-200 shrink-0",
+            isOpen && "rotate-180 text-foreground"
           )}
         />
       </button>
 
       {isOpen && (
-        <div className="arch-frame absolute bottom-full mb-2 left-0 z-50 w-64 rounded-2xl border border-white/15 bg-[#060a14]/95 backdrop-blur-xl p-1.5 shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-150">
-          <div className="px-2.5 py-1.5 border-b border-white/10 flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+        <div className="absolute bottom-full mb-2 left-0 z-50 w-64 rounded-2xl border border-slate-200/90 dark:border-zinc-700/90 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-1.5 shadow-xl transition-all animate-in fade-in zoom-in-95 duration-150">
+          <div className="px-2.5 py-1.5 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
               THINKING LEVEL // 思考档位
             </span>
-            <span className="text-[10px] font-mono text-purple-400">原生支持</span>
+            <span className="text-[10px] font-mono text-purple-600 dark:text-purple-400">原生支持</span>
           </div>
 
           <div className="mt-1 space-y-1">
@@ -85,15 +85,15 @@ export function ThinkingSelector({
                   className={cn(
                     "w-full text-left p-2 rounded-xl transition-all flex items-center justify-between cursor-pointer",
                     isSelected
-                      ? "bg-purple-500/20 text-purple-200 border border-purple-500/35 font-medium"
-                      : "hover:bg-white/[0.06] text-slate-300"
+                      ? "bg-purple-500/15 text-purple-900 dark:text-purple-200 font-medium"
+                      : "hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 text-slate-600 dark:text-slate-300"
                   )}
                 >
                   <div>
                     <div className="text-xs font-semibold">{level.name}</div>
-                    <div className="text-[10px] text-slate-400">{level.desc}</div>
+                    <div className="text-[10px] text-muted-foreground">{level.desc}</div>
                   </div>
-                  {isSelected && <Check className="h-3.5 w-3.5 text-purple-400 shrink-0" />}
+                  {isSelected && <Check className="h-3.5 w-3.5 text-purple-600 shrink-0" />}
                 </button>
               );
             })}

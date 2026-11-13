@@ -20,7 +20,7 @@ export function CopyButton({ value }: CopyButtonProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#060a14] px-4 py-2 text-sm text-slate-200 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors cursor-pointer"
+      className="inline-flex items-center gap-2 rounded-full border border-slate-900/8 bg-white/78 px-4 py-2 text-sm text-foreground shadow-sm hover:border-brand-cyan/22 hover:bg-white"
     >
       {copied ? <Check className="h-4 w-4 text-brand-lime" /> : <Copy className="h-4 w-4" />}
       {copied ? "已复制" : "复制提示词"}

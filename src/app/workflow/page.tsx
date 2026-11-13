@@ -816,24 +816,24 @@ export default function WorkflowPage() {
       />
 
       {saveError && (
-        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-amber-500/35 bg-amber-500/10 p-4 text-sm text-amber-200">
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           <span>{saveError}</span>
-          <button type="button" onClick={() => void retrySaves()} className="inline-flex items-center gap-1 font-semibold text-amber-300 hover:text-white"><RefreshCw className="h-4 w-4" />重试保存</button>
+          <button type="button" onClick={() => void retrySaves()} className="inline-flex items-center gap-1 font-semibold"><RefreshCw className="h-4 w-4" />重试保存</button>
         </div>
       )}
-      {projectLoading && <p role="status" className="font-mono text-xs text-cyan-300">正在加载小说正文...</p>}
+      {projectLoading && <p role="status" className="text-sm text-slate-600">正在加载小说正文...</p>}
 
       {/* 错误提示横幅 */}
       {errorMessage && (
-        <div className="flex items-center justify-between gap-2 rounded-sm border border-rose-500/35 bg-rose-500/10 p-4 text-xs sm:text-sm text-rose-200 animate-in fade-in">
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-rose-200 bg-rose-50/90 p-4 text-xs sm:text-sm text-rose-800 shadow-2xs animate-in fade-in">
           <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
             <span>{errorMessage}</span>
           </div>
           <button
             type="button"
             onClick={() => setErrorMessage(null)}
-            className="rounded-sm border border-rose-500/30 px-2.5 py-1 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 cursor-pointer"
+            className="rounded-lg px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100 cursor-pointer"
           >
             关闭
           </button>
@@ -845,17 +845,17 @@ export default function WorkflowPage() {
         {/* 左栏：小说专属创作参数面板 (占 4 列) */}
         <div className="lg:col-span-4 space-y-5">
           {/* 输入控制台卡片 */}
-          <div className="arch-frame bg-[#060a14] p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-5 shadow-xs  space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-sm border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700">
                   <Compass className="h-4 w-4" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-white">
+                  <h2 className="text-sm font-bold text-slate-900">
                     {bible?.title ? `《${bible.title}》参数绑定` : "小说专属创作参数"}
                   </h2>
-                  <p className="text-[11px] font-mono text-slate-400">
+                  <p className="text-[11px] text-muted-foreground">
                     {config.genre} · {config.chapterCount}章 · {config.style?.slice(0, 8)}...
                   </p>
                 </div>
@@ -872,7 +872,7 @@ export default function WorkflowPage() {
                   setIsConfigOpen(true);
                 }}
                 disabled={isRunning}
-                className="flex items-center gap-1 rounded-sm border border-white/15 bg-[#04060b] px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:border-cyan-500/50 hover:text-cyan-300 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-cyan-500/40 hover:text-cyan-700 transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Sliders className="h-3.5 w-3.5" />
                 <span>配置参数</span>
@@ -882,24 +882,24 @@ export default function WorkflowPage() {
             {/* 灵感输入框 */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="font-mono text-xs font-semibold text-slate-300">核心灵感与设定</label>
+                <label className="text-xs font-semibold text-slate-700">核心灵感与设定</label>
                 {currentProjectId ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-1.5 py-0.5 rounded-sm font-mono">
+                    <span className="text-[10px] text-cyan-700 bg-cyan-50 px-1.5 py-0.2 rounded font-mono">
                       已绑定当前书目
                     </span>
                     <button
                       type="button"
                       onClick={handleCreateNew}
                       disabled={isRunning}
-                      className="text-[10px] text-cyan-400 hover:text-cyan-200 underline cursor-pointer disabled:opacity-50"
+                      className="text-[10px] text-blue-600 hover:text-blue-800 underline cursor-pointer disabled:opacity-50"
                       title="清空当前书籍，创作一本全新的独立小说"
                     >
                       [新建新书]
                     </button>
                   </div>
                 ) : (
-                  <span className="text-[10px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-sm font-medium">
+                  <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded font-medium">
                     全新小说草稿
                   </span>
                 )}
@@ -913,7 +913,7 @@ export default function WorkflowPage() {
                 onBlur={handlePromptBlur}
                 disabled={isRunning}
                 placeholder="在此输入故事初始构思、核心悬念或反转设定...（例如：外科医生获得三秒时空回溯能力，在救女过程中卷入跨国活体长生阴谋）"
-                className="w-full rounded-sm border border-white/10 bg-[#04060b] p-3.5 text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 focus:border-cyan-500/60 focus:outline-hidden disabled:opacity-60 transition-all resize-none leading-relaxed"
+                className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-hidden disabled:bg-slate-50 transition-all resize-none shadow-2xs leading-relaxed"
               />
             </div>
 
@@ -923,7 +923,7 @@ export default function WorkflowPage() {
                 <button
                   type="button"
                   onClick={handleStop}
-                  className="w-full flex items-center justify-center gap-2 rounded-sm bg-rose-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-rose-500 transition-all shadow-sm cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-sm cursor-pointer"
                 >
                   <Square className="h-4 w-4 fill-current" />
                   <span>中止流水线</span>
@@ -936,7 +936,7 @@ export default function WorkflowPage() {
                       <button
                         type="button"
                         onClick={() => handleStartPipeline({ isResume: true })}
-                        className="w-full flex items-center justify-center gap-2 rounded-sm bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
                       >
                         <Play className="h-4 w-4 fill-current" />
                         <span>继续完成工作流</span>
@@ -945,7 +945,7 @@ export default function WorkflowPage() {
                         <button
                           type="button"
                           onClick={() => handleStartPipeline({ isNew: true })}
-                          className="flex-1 flex items-center justify-center gap-1.5 rounded-sm border border-white/15 bg-[#04060b] px-3 py-2 text-xs font-semibold text-slate-300 hover:border-cyan-500/50 hover:text-cyan-300 transition-all cursor-pointer"
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-cyan-500 hover:text-cyan-700 shadow-2xs transition-all cursor-pointer"
                         >
                           <Plus className="h-3.5 w-3.5" />
                           <span>创作全新小说</span>
@@ -953,7 +953,7 @@ export default function WorkflowPage() {
                         <button
                           type="button"
                           onClick={() => handleStartPipeline({ isNew: true })}
-                          className="flex-1 flex items-center justify-center gap-1.5 rounded-sm border border-white/15 bg-[#04060b] px-3 py-2 text-xs font-semibold text-slate-300 hover:border-amber-500/50 hover:text-amber-300 transition-all cursor-pointer"
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-amber-500 hover:text-amber-700 shadow-2xs transition-all cursor-pointer"
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
                           <span>重写新版本</span>
@@ -962,7 +962,7 @@ export default function WorkflowPage() {
                           <button
                             type="button"
                             onClick={handleExportJson}
-                            className="flex h-9 w-9 items-center justify-center rounded-sm border border-white/15 bg-[#04060b] text-slate-300 hover:border-cyan-500/50 hover:text-white cursor-pointer shrink-0"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 shadow-2xs cursor-pointer shrink-0"
                             title="导出全套工程 JSON"
                           >
                             <Download className="h-4 w-4" />
@@ -978,7 +978,7 @@ export default function WorkflowPage() {
                           <button
                             type="button"
                             onClick={() => handleStartPipeline({ isNew: true })}
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-sm bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-cyan-500/15 cursor-pointer"
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-cyan-500/15 cursor-pointer"
                           >
                             <Plus className="h-4 w-4" />
                             <span>创作全新小说</span>
@@ -986,7 +986,7 @@ export default function WorkflowPage() {
                           <button
                             type="button"
                             onClick={() => handleStartPipeline({ isNew: true })}
-                            className="flex items-center justify-center gap-1.5 rounded-sm border border-white/15 bg-[#04060b] px-3.5 py-3 text-xs font-semibold text-slate-300 hover:border-amber-500/50 hover:text-amber-300 transition-all cursor-pointer"
+                            className="flex items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-semibold text-slate-700 hover:border-amber-500 hover:text-amber-700 shadow-2xs transition-all cursor-pointer"
                             title="创建独立的新版本并重新生成，保留原小说"
                           >
                             <RefreshCw className="h-3.5 w-3.5" />
@@ -997,7 +997,7 @@ export default function WorkflowPage() {
                         <button
                           type="button"
                           onClick={() => handleStartPipeline({ isNew: true })}
-                          className="flex-1 flex items-center justify-center gap-2 rounded-sm bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-cyan-500/15 cursor-pointer"
+                          className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 px-4 py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 transition-all shadow-md shadow-cyan-500/15 cursor-pointer"
                         >
                           <Play className="h-4 w-4 fill-current" />
                           <span>启动工业化流水线</span>
@@ -1009,7 +1009,7 @@ export default function WorkflowPage() {
                         <button
                           type="button"
                           onClick={handleExportJson}
-                          className="flex h-11 w-11 items-center justify-center rounded-sm border border-white/15 bg-[#04060b] text-slate-300 hover:text-white hover:border-cyan-500/50 transition-all cursor-pointer shrink-0"
+                          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all shadow-2xs cursor-pointer shrink-0"
                           title="导出全套工程 JSON"
                         >
                           <Download className="h-4 w-4" />
@@ -1034,28 +1034,28 @@ export default function WorkflowPage() {
         {/* 右栏：章节信息与多维视窗看板 (占 8 列) */}
         <div className="lg:col-span-8 min-w-0 flex flex-col space-y-4">
           {/* 右栏顶部 Tab 切换胶囊 */}
-          <div className="max-w-full min-w-0 border-b border-white/10 pb-2.5 overflow-x-auto hide-scrollbar">
+          <div className="max-w-full min-w-0 border-b border-slate-200/80 pb-2.5 overflow-x-auto hide-scrollbar">
             <div className="flex w-max min-w-max items-center gap-2">
               <button
                 type="button"
                 onClick={() => setActiveTab("novel")}
-                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-sm text-xs font-semibold transition-colors cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "novel"
-                    ? "text-cyan-200"
-                    : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                    ? "text-white"
+                    : "text-slate-600 hover:bg-white"
                 }`}
               >
                 {activeTab === "novel" && (
                   <motion.span
                     layoutId="workflow-output-tab-pill"
-                    className="absolute inset-0 rounded-sm border border-cyan-500/40 bg-cyan-500/15"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
                     transition={{ type: "spring", stiffness: 360, damping: 28 }}
                   />
                 )}
                 <FileText className="relative z-10 h-3.5 w-3.5" />
                 <span className="relative z-10">章节正文打字机</span>
                 {chapters.length > 0 && (
-                  <span className="relative z-10 rounded-sm bg-white/10 px-1.5 py-0.5 text-[10px] font-mono text-cyan-300">
+                  <span className="relative z-10 rounded-full bg-slate-700 px-1.5 py-0.2 text-[10px] font-mono text-white">
                     {chapters.length}章
                   </span>
                 )}
@@ -1064,23 +1064,23 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("video")}
-                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-sm text-xs font-semibold transition-colors cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "video"
-                    ? "text-cyan-200"
-                    : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                    ? "text-white"
+                    : "text-slate-600 hover:bg-white"
                 }`}
               >
                 {activeTab === "video" && (
                   <motion.span
                     layoutId="workflow-output-tab-pill"
-                    className="absolute inset-0 rounded-sm border border-cyan-500/40 bg-cyan-500/15"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
                     transition={{ type: "spring", stiffness: 360, damping: 28 }}
                   />
                 )}
                 <Clapperboard className="relative z-10 h-3.5 w-3.5" />
                 <span className="relative z-10">电影级分镜提示词</span>
                 {chapters.some((c) => c.video_prompts?.length) && (
-                  <span className="relative z-10 rounded-sm bg-blue-500/20 border border-blue-500/30 px-1.5 py-0.5 text-[10px] font-mono text-blue-300">
+                  <span className="relative z-10 rounded-full bg-blue-500 px-1.5 py-0.2 text-[10px] font-mono text-white">
                     {chapters.reduce((a, c) => a + (c.video_prompts?.length || 0), 0)}
                   </span>
                 )}
@@ -1089,23 +1089,23 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("assets")}
-                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-sm text-xs font-semibold transition-colors cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "assets"
-                    ? "text-cyan-200"
-                    : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                    ? "text-white"
+                    : "text-slate-600 hover:bg-white"
                 }`}
               >
                 {activeTab === "assets" && (
                   <motion.span
                     layoutId="workflow-output-tab-pill"
-                    className="absolute inset-0 rounded-sm border border-cyan-500/40 bg-cyan-500/15"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
                     transition={{ type: "spring", stiffness: 360, damping: 28 }}
                   />
                 )}
                 <ImageIcon className="relative z-10 h-3.5 w-3.5" />
                 <span className="relative z-10">视觉资产</span>
                 {visualAssets.length > 0 && (
-                  <span className="relative z-10 rounded-sm bg-purple-500/20 border border-purple-500/30 px-1.5 py-0.5 text-[10px] font-mono text-purple-300">
+                  <span className="relative z-10 rounded-full bg-purple-500 px-1.5 py-0.2 text-[10px] font-mono text-white">
                     {visualAssets.length}
                   </span>
                 )}
@@ -1114,39 +1114,39 @@ export default function WorkflowPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("pitch")}
-                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-sm text-xs font-semibold transition-colors cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "pitch"
-                    ? "text-cyan-200"
-                    : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                    ? "text-white"
+                    : "text-slate-600 hover:bg-white"
                 }`}
               >
                 {activeTab === "pitch" && (
                   <motion.span
                     layoutId="workflow-output-tab-pill"
-                    className="absolute inset-0 rounded-sm border border-cyan-500/40 bg-cyan-500/15"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
                     transition={{ type: "spring", stiffness: 360, damping: 28 }}
                   />
                 )}
                 <FileSpreadsheet className="relative z-10 h-3.5 w-3.5" />
                 <span className="relative z-10">商业投稿包装</span>
                 {pitch && (
-                  <span className="relative z-10 h-2 w-2 rounded-full bg-emerald-400"></span>
+                  <span className="relative z-10 h-2 w-2 rounded-full bg-emerald-500"></span>
                 )}
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab("bible")}
-                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-sm text-xs font-semibold transition-colors cursor-pointer ${
+                className={`relative flex shrink-0 whitespace-nowrap items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeTab === "bible"
-                    ? "text-cyan-200"
-                    : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                    ? "text-white"
+                    : "text-slate-600 hover:bg-white"
                 }`}
               >
                 {activeTab === "bible" && (
                   <motion.span
                     layoutId="workflow-output-tab-pill"
-                    className="absolute inset-0 rounded-sm border border-cyan-500/40 bg-cyan-500/15"
+                    className="absolute inset-0 rounded-xl bg-slate-900 shadow-xs"
                     transition={{ type: "spring", stiffness: 360, damping: 28 }}
                   />
                 )}
@@ -1212,18 +1212,18 @@ export default function WorkflowPage() {
             {activeTab === "pitch" && <PitchCard pitch={pitch} />}
 
             {activeTab === "bible" && (
-              <div className="arch-frame bg-[#060a14] p-5 shadow-2xl space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="rounded-3xl border border-slate-900/10 bg-white/90 p-5 shadow-xs  space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
                   <div>
-                    <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-white">
+                    <h2 className="text-sm font-bold text-slate-900">
                       作品设定集与人物卡 (Bible)
                     </h2>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-muted-foreground">
                       世界观、角色卡、伏笔清单与分章细纲
                     </p>
                   </div>
                   {bible && (
-                    <span className="text-xs font-bold text-cyan-300 bg-cyan-500/15 px-2.5 py-1 rounded-sm border border-cyan-500/30">
+                    <span className="text-xs font-bold text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded-xl border border-cyan-200">
                       《{bible.title}》
                     </span>
                   )}
@@ -1232,41 +1232,41 @@ export default function WorkflowPage() {
                 {bible ? (
                   <div className="space-y-4 text-xs">
                     {/* 一句话核心梗概 */}
-                    <div className="rounded-sm border border-white/10 bg-[#04060b]/80 p-3.5 space-y-1">
-                      <p className="font-bold text-white">一句话核心钩子</p>
-                      <p className="text-slate-300">{bible.logline}</p>
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 space-y-1">
+                      <p className="font-bold text-slate-800">一句话核心钩子</p>
+                      <p className="text-slate-600">{bible.logline}</p>
                     </div>
 
                     {/* 世界观 */}
-                    <div className="rounded-sm border border-white/10 bg-[#04060b]/80 p-3.5 space-y-1">
-                      <p className="font-bold text-white">底层世界观与规则体系</p>
-                      <p className="text-slate-300 leading-relaxed">{bible.worldview}</p>
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 space-y-1">
+                      <p className="font-bold text-slate-800">底层世界观与规则体系</p>
+                      <p className="text-slate-600 leading-relaxed">{bible.worldview}</p>
                     </div>
 
                     {/* 人物卡 */}
                     <div className="space-y-2">
-                      <p className="font-bold text-white">主要人物卡 ({bible.characters.length})</p>
+                      <p className="font-bold text-slate-800">主要人物卡 ({bible.characters.length})</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {bible.characters.map((char, idx) => (
                           <div
                             key={idx}
-                            className="rounded-sm border border-white/10 bg-[#04060b]/80 p-3 space-y-1"
+                            className="rounded-xl border border-slate-100 bg-white p-3 space-y-1"
                           >
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-white">{char.name}</span>
-                              <span className="text-[10px] border border-white/10 bg-white/[0.04] px-1.5 py-0.5 rounded-sm text-cyan-300">
+                              <span className="font-bold text-slate-900">{char.name}</span>
+                              <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
                                 {char.role}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-300">
-                              <strong className="text-slate-200">性格：</strong>{char.personality}
+                            <p className="text-[11px] text-slate-600">
+                              <strong>性格：</strong>{char.personality}
                             </p>
-                            <p className="text-[11px] text-slate-300">
-                              <strong className="text-slate-200">动机：</strong>{char.motivation}
+                            <p className="text-[11px] text-slate-600">
+                              <strong>动机：</strong>{char.motivation}
                             </p>
                             {char.visual_traits && (
-                              <p className="text-[11px] text-slate-400">
-                                <strong className="text-slate-300">视觉：</strong>{char.visual_traits}
+                              <p className="text-[11px] text-slate-500">
+                                <strong>视觉：</strong>{char.visual_traits}
                               </p>
                             )}
                           </div>
@@ -1276,25 +1276,25 @@ export default function WorkflowPage() {
 
                     {/* 章节细纲 */}
                     <div className="space-y-2">
-                      <p className="font-bold text-white">分章细纲 ({bible.outlines.length})</p>
+                      <p className="font-bold text-slate-800">分章细纲 ({bible.outlines.length})</p>
                       <div className="space-y-2">
                         {bible.outlines.map((ot) => (
                           <div
                             key={ot.chapter_number}
-                            className="rounded-sm border border-white/10 bg-[#04060b]/80 p-3 space-y-1"
+                            className="rounded-xl border border-slate-100 bg-white p-3 space-y-1"
                           >
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-white">
+                              <span className="font-bold text-slate-900">
                                 第 {ot.chapter_number} 章：{ot.title}
                               </span>
                             </div>
-                            <p className="text-slate-300">
-                              <strong className="text-slate-200">目标：</strong>{ot.goal}
+                            <p className="text-slate-600">
+                              <strong>目标：</strong>{ot.goal}
                             </p>
-                            <p className="text-slate-300">
-                              <strong className="text-slate-200">冲突：</strong>{ot.conflict}
+                            <p className="text-slate-600">
+                              <strong>冲突：</strong>{ot.conflict}
                             </p>
-                            <p className="text-cyan-300">
+                            <p className="text-cyan-700">
                               <strong>章末悬念：</strong>{ot.hook}
                             </p>
                           </div>
@@ -1303,7 +1303,7 @@ export default function WorkflowPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-500">
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400">
                     <BookOpen className="h-8 w-8 mb-2 opacity-50" />
                     <p className="text-xs">等待流水线 Step 1 生成作品设定集...</p>
                   </div>

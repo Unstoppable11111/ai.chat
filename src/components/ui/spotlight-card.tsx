@@ -1,80 +1,101 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
+import React, { useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
-interface SpotlightCardProps extends HTMLMotionProps<"div"> {
+interface SpotlightCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  className?: string;
   spotlightColor?: string;
   enableTilt?: boolean;
+  tiltEnabled?: boolean;
 }
 
+/**
+ * Zero-re-render spotlight & subtle 3D tilt card.
+ * Updates DOM CSS variables & transform via requestAnimationFrame without triggering React state updates.
+ */
 export function SpotlightCard({
   children,
-  className = "",
-  spotlightColor = "rgba(0, 240, 255, 0.18)",
-  enableTilt = true,
+  className,
+  spotlightColor = "rgba(14, 165, 233, 0.14)",
+  enableTilt,
+  tiltEnabled,
   ...props
 }: SpotlightCardProps) {
+  const shouldTilt = enableTilt ?? tiltEnabled ?? false;
   const cardRef = useRef<HTMLDivElement>(null);
-  const [cursorPos, setCursorPos] = useState({ x: -200, y: -200, opacity: 0 });
-  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
-  const reduceMotion = useReducedMotion();
+  const spotRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    setCursorPos({ x, y, opacity: 1 });
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
 
-    if (enableTilt && !reduceMotion) {
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const rotateX = ((y - centerY) / centerY) * -4.5;
-      const rotateY = ((x - centerX) / centerX) * 4.5;
-      setTilt({ rotateX, rotateY });
+    rafRef.current = requestAnimationFrame(() => {
+      if (spotRef.current) {
+        spotRef.current.style.opacity = "1";
+        spotRef.current.style.background = `radial-gradient(560px circle at ${x}px ${y}px, ${spotlightColor}, transparent 42%)`;
+      }
+      if (shouldTilt && cardRef.current) {
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -3.5;
+        const rotateY = ((x - centerX) / centerX) * 3.5;
+        cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translate3d(0, -2px, 0)`;
+      }
+    });
+  };
+
+  const handleMouseEnter = () => {
+    if (spotRef.current) {
+      spotRef.current.style.opacity = "1";
     }
   };
 
   const handleMouseLeave = () => {
-    setCursorPos((prev) => ({ ...prev, opacity: 0 }));
-    setTilt({ rotateX: 0, rotateY: 0 });
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    if (spotRef.current) {
+      spotRef.current.style.opacity = "0";
+    }
+    if (shouldTilt && cardRef.current) {
+      cardRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0)";
+    }
   };
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      animate={{
-        rotateX: tilt.rotateX,
-        rotateY: tilt.rotateY,
-      }}
-      transition={{ type: "spring", stiffness: 280, damping: 22 }}
-      style={{ transformStyle: "preserve-3d" }}
-      className={`relative overflow-hidden ${className}`}
+      className={cn(
+        "relative overflow-hidden transition-transform duration-300 ease-out will-change-transform",
+        className
+      )}
       {...props}
     >
-      {/* 极光双色 Spotlight 跟随光晕层 */}
       <div
-        className="pointer-events-none absolute -inset-px transition-opacity duration-500 rounded-[inherit] z-10"
-        style={{
-          opacity: cursorPos.opacity,
-          background: `radial-gradient(520px circle at ${cursorPos.x}px ${cursorPos.y}px, ${spotlightColor}, rgba(168, 85, 247, 0.08) 35%, transparent 65%)`,
-        }}
+        ref={spotRef}
+        className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 z-0"
       />
-      {/* 边缘高光折射层 */}
-      <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-500 rounded-[inherit] z-10"
-        style={{
-          opacity: cursorPos.opacity,
-          boxShadow: "inset 0 0 0 1px rgba(0, 240, 255, 0.35)",
-        }}
-      />
-      {children}
-    </motion.div>
+      <div className="relative z-10 h-full">{children}</div>
+    </div>
   );
 }

@@ -153,28 +153,28 @@ export function InteractivePlaygroundsHub() {
   return (
     <section className="mb-14 space-y-6">
       {/* 头部导航与分类筛选 */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-white/10">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-900/10">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider mb-1">
-            <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
+          <div className="flex items-center gap-2 text-xs font-mono font-bold text-sky-600 uppercase tracking-wider mb-1">
+            <Sparkles className="w-4 h-4 text-sky-500 animate-pulse" />
             <span>PLAYABLE LABS // 9 款高互动极客实验矩阵</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             高可玩性互动工坊
           </h2>
         </div>
 
         {/* 分类切换药丸 */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-sm bg-[#060a14] border border-white/10">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-slate-100/80 border border-slate-200/80">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-1.5 rounded-sm font-mono text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                 activeCategory === cat
-                  ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 font-bold"
-                  : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
+                  ? "bg-white text-slate-900 font-bold shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               {cat}
@@ -191,7 +191,7 @@ export function InteractivePlaygroundsHub() {
             <Link
               key={item.id}
               href={item.href}
-              className="arch-frame group relative flex flex-col justify-between bg-[#060a14] p-5 hover:border-cyan-500/45 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+              className="group relative flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-xs hover:shadow-xl hover:border-sky-500/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
             >
               {/* 背景渐变光晕 */}
               <div
@@ -200,40 +200,40 @@ export function InteractivePlaygroundsHub() {
 
               <div className="relative z-10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-sm border border-white/15 bg-[#04060b] text-white group-hover:border-cyan-500/40 group-hover:scale-105 transition-all">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-md group-hover:scale-110 transition-transform">
                     <Icon className="h-5 w-5 text-cyan-400" />
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-mono text-slate-300 bg-white/[0.05] border border-white/10 px-2 py-0.5 rounded-sm font-semibold">
+                    <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full font-semibold">
                       {item.tag}
                     </span>
-                    <span className="text-[10px] font-mono text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-sm font-semibold">
+                    <span className="text-[10px] font-mono text-sky-700 bg-sky-50 border border-sky-200/60 px-2 py-0.5 rounded-full font-semibold">
                       {item.badge}
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  <h3 className="text-base font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-[11px] font-mono text-slate-400 mt-0.5">
+                  <p className="text-[11px] font-mono text-slate-500 mt-0.5">
                     {item.subtitle}
                   </p>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
                   {item.description}
                 </p>
               </div>
 
               {/* 卡片底部操作指引 */}
-              <div className="relative z-10 pt-4 mt-3 border-t border-white/10 flex items-center justify-between font-mono text-xs font-semibold text-slate-300 group-hover:text-cyan-300 transition-colors">
+              <div className="relative z-10 pt-4 mt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-700 group-hover:text-sky-600 transition-colors">
                 <span className="flex items-center gap-1.5">
-                  <Play className="w-3.5 h-3.5 text-cyan-400 fill-cyan-400" />
+                  <Play className="w-3.5 h-3.5 text-cyan-500 fill-cyan-500" />
                   <span>立即启动体验</span>
                 </span>
-                <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform text-slate-500 group-hover:text-cyan-400" />
+                <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform text-slate-400 group-hover:text-sky-600" />
               </div>
             </Link>
           );

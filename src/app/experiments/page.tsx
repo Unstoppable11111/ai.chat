@@ -30,10 +30,10 @@ export default async function ExperimentsPage() {
         <InteractivePlaygroundsHub />
 
         {/* 历史视觉与着色器实验文献 */}
-        <div className="pt-8 border-t border-white/10">
-          <div className="mb-5">
-            <h3 className="font-mono text-sm font-bold uppercase tracking-wider text-white">视觉构建与提示词实验归档</h3>
-            <p className="text-xs text-slate-400 mt-1">网站视觉风格探索、着色器切片与提示词工程档案</p>
+        <div className="pt-6 border-t border-slate-900/10">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-slate-900">视觉构建与提示词实验归档</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">网站视觉风格探索、着色器切片与提示词工程档案</p>
           </div>
           <ExperimentGrid items={items} />
         </div>

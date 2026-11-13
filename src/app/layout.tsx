@@ -70,7 +70,7 @@ export default function RootLayout({
             <InteractiveEffects />
             <div className="relative z-10 flex min-h-screen flex-col">
               <SiteHeader />
-              <main className="flex-1 pt-24 sm:pt-28">{children}</main>
+              <main className="flex-1 pt-24">{children}</main>
               <SiteFooter />
             </div>
             <ChatWidget />

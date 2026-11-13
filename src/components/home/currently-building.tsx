@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Activity, ArrowRight, Pause, Play } from "lucide-react";
+import { Activity, ArrowRight } from "lucide-react";
 import { currentlyBuilding } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -20,204 +20,276 @@ interface BuildingTask {
 const buildingTasks: BuildingTask[] = [
   {
     id: "01",
-    title: currentlyBuilding[0] || "一套适用于个人项目展示页的星际深空曜石科技体系",
-    date: "2026.11",
-    category: "DESIGN & ARCHITECTURE",
+    title: currentlyBuilding[0] || "一套适用于个人项目展示页的轻亮视觉语言系统",
+    date: "2026.08",
+    category: "DESIGN & FRONTEND",
     status: "IN PROGRESS",
-    progress: 92,
-    phase: "PHASE 03 // ARCHITECTURAL OS",
-    notes: "采用 Swiss Modernism 2.0 精密网格、Bento Telemetry 视窗与深空黑曜石高对比材质，重构全站视觉秩序。",
+    progress: 82,
+    phase: "PHASE 03 / SYSTEM POLISH",
+    notes: "基于浅色珍珠底色、克制发光与极简网格排版，建立一套统一自洽的个人技术视觉语言体系。",
   },
   {
     id: "02",
     title: currentlyBuilding[1] || "从设计草图到页面镜头的视觉与代码实验流程",
-    date: "2026.10",
+    date: "2026.08",
     category: "CREATIVE CODING",
     status: "ITERATING",
-    progress: 74,
-    phase: "PHASE 02 // SHADER LAB",
-    notes: "打通概念构思、WebGL / Three.js 着色器试验到 Next.js 生产级渲染的端到端图形学创作流程。",
+    progress: 65,
+    phase: "PHASE 02 / SHADER LAB",
+    notes: "打通 Figma 构思、WebGL / Three.js 着色器试验到 Next.js 生产级渲染的端到端创作流程。",
   },
   {
     id: "03",
     title: currentlyBuilding[2] || "用于追踪内容、产品和实验进展的个人工作台",
-    date: "2026.09",
-    category: "SYSTEM WORKBENCH",
+    date: "2026.07",
+    category: "SYSTEM ARCHITECTURE",
     status: "BUILDING",
-    progress: 68,
-    phase: "PHASE 02 // HUD CONSOLE",
-    notes: "集成实时量化推演、AI 助手调用、动态命令面板与云端多小说创作书架的高效工作台。",
+    progress: 48,
+    phase: "PHASE 02 / HUD CONSOLE",
+    notes: "集成实时系统状态、AI 助手调用、动态命令面板与个人进度追踪的微工作台控制台。",
   },
   {
     id: "04",
     title: currentlyBuilding[3] || "面向日志、项目和学习资料的可复用 MDX 内容系统",
-    date: "2026.08",
-    category: "RAG CONTENT ENGINE",
-    status: "OPERATIONAL",
-    progress: 96,
-    phase: "PHASE 04 // VECTOR SYNC",
-    notes: "支持代码块高亮、Parent-Child 语义分块、双栏目录与精确到章节级溯源的知识沉淀底座。",
+    date: "2026.06",
+    category: "CONTENT ENGINE",
+    status: "SYSTEMIZING",
+    progress: 92,
+    phase: "PHASE 04 / COMPONENT SYNC",
+    notes: "支持代码块高亮、提示词复制、双栏排版与动态目录的模块化知识沉淀与文档引擎。",
   },
 ];
 
 export function CurrentlyBuilding() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
 
   const activeTask = buildingTasks[activeIndex];
-  const filledSegments = Math.round((activeTask.progress / 100) * 20);
 
+  // 自动巡航轮播（用户鼠标移入时暂停）
   useEffect(() => {
     if (reduceMotion || isPaused) return;
+
     const timer = window.setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % buildingTasks.length);
     }, 6000);
+
     return () => window.clearInterval(timer);
   }, [isPaused, reduceMotion]);
 
   return (
-    <section
-      className="studio-section bg-[#04060b]"
+    <section 
+      className="studio-section relative w-full bg-background overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="container-shell">
-        {/* Exposed Architectural Section Header */}
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-5">
+      {/* 背景微发光装饰与网格底纹 */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-[radial-gradient(closest-side,rgba(14,165,233,0.025),transparent)]" />
+        <div className="absolute bottom-1/4 right-1/10 w-96 h-96 bg-[radial-gradient(closest-side,rgba(139,92,246,0.025),transparent)]" />
+      </div>
+
+      <div className="container-shell max-w-7xl mx-auto relative z-10">
+        
+        {/* 顶部标头与实时状态雷达 */}
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-10 sm:mb-14 md:mb-20">
           <div>
-            <div className="tech-tag mb-2.5">
-              <Activity className="h-3 w-3 text-cyan-400" />
-              <span>SEC_01 // SPRINT BLUEPRINT MATRIX</span>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="flex h-2 w-2 rounded-full bg-brand-cyan animate-ping" />
+              <p className="text-[10px] md:text-xs font-mono uppercase tracking-[0.25em] text-brand-cyan">
+                LIVE STATUS // DEV WORKBENCH
+              </p>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              当前演进蓝图 · Engineering Roadmap
+            <h2 className="text-[11px] md:text-xs font-medium tracking-[0.3em] uppercase text-muted-foreground">
+              CURRENTLY BUILDING
             </h2>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsPaused((p) => !p)}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-3 py-1.5 font-mono text-[11px] text-slate-300 hover:border-cyan-400/40 hover:text-cyan-300 transition-colors cursor-pointer"
-          >
-            {isPaused ? <Play className="h-3 w-3 text-cyan-400" /> : <Pause className="h-3 w-3 text-emerald-400" />}
-            <span>{isPaused ? "CYCLE: PAUSED" : "CYCLE: AUTO"}</span>
-          </button>
+          <div className="hidden sm:flex items-center gap-4 text-[11px] font-mono text-muted-foreground border border-slate-900/10 rounded-full px-3.5 py-1.5 bg-white/60 backdrop-blur-xs">
+            <span className="flex items-center gap-1.5 text-foreground font-medium">
+              <Activity className="h-3.5 w-3.5 text-brand-cyan animate-pulse" />
+              <span>ACTIVE TASK: {activeTask.id} / 04</span>
+            </span>
+            <span className="text-slate-300">|</span>
+            <span>AUTO-CYCLE: {isPaused ? "PAUSED" : "ACTIVE"}</span>
+          </div>
         </div>
 
-        {/* Exposed Hairline Split Blueprint */}
-        <div className="arch-frame rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-          {/* Left 5 Columns: Vertical Blueprint Selector Rail */}
-          <div className="lg:col-span-5 border-b lg:border-b-0 lg:border-r border-white/[0.08] divide-y divide-white/[0.07] bg-[#060913]/80">
-            {buildingTasks.map((task, idx) => {
-              const isActive = idx === activeIndex;
-              return (
-                <button
-                  key={task.id}
-                  type="button"
-                  onClick={() => setActiveIndex(idx)}
-                  className={cn(
-                    "group w-full text-left p-5 transition-all cursor-pointer flex items-start gap-4 relative",
-                    isActive ? "bg-cyan-500/[0.09]" : "hover:bg-white/[0.03]"
-                  )}
+        {/* 主视窗：超大编号 + 当前激活任务详情 */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 md:gap-16 items-start" ref={containerRef}>
+          
+          {/* 左侧超大编号（带数字切牌动画） */}
+          <div className="md:col-span-5 lg:col-span-4 flex items-start select-none">
+            <div className="relative">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTask.id}
+                  initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+                  animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -20 }}
+                  transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-[20vw] sm:text-[18vw] md:text-[15vw] font-light tracking-tighter text-foreground will-change-transform leading-[0.85] bg-gradient-to-b from-foreground via-foreground to-foreground/35 bg-clip-text text-transparent"
                 >
-                  {isActive && (
-                    <span className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-400 shadow-[0_0_12px_#00f0ff]" />
-                  )}
-                  <span
-                    className={cn(
-                      "font-mono text-2xl font-bold leading-none tabular-nums",
-                      isActive ? "text-cyan-400" : "text-slate-600 group-hover:text-slate-400"
-                    )}
-                  >
-                    {task.id}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2 mb-1.5 font-mono text-[10px]">
-                      <span className="text-slate-400 uppercase tracking-wider">{task.category}</span>
-                      <span className={isActive ? "text-cyan-300 font-bold" : "text-slate-500"}>
-                        {task.progress}%
-                      </span>
-                    </div>
-                    <p
-                      className={cn(
-                        "text-sm font-semibold leading-snug line-clamp-2",
-                        isActive ? "text-white" : "text-slate-300 group-hover:text-white"
-                      )}
-                    >
-                      {task.title}
-                    </p>
-                  </div>
-                  <ArrowRight
-                    className={cn(
-                      "h-4 w-4 shrink-0 mt-1 transition-transform",
-                      isActive
-                        ? "text-cyan-400 translate-x-0.5"
-                        : "text-slate-600 opacity-0 group-hover:opacity-100"
-                    )}
-                  />
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Right 7 Columns: Active Technical Spec Sheet */}
-          <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 lg:p-10 bg-[#080d1a]/60">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTask.id}
-                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="space-y-6"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4 font-mono text-[11px]">
-                  <span className="text-cyan-300 font-semibold">{activeTask.phase}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-slate-400">{activeTask.date}</span>
-                    <span className="rounded border border-cyan-500/40 bg-cyan-950/50 px-2 py-0.5 text-[10px] text-cyan-300">
-                      {activeTask.status}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">
-                    SPECIFICATION // TASK_{activeTask.id}
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-snug">
-                    {activeTask.title}
-                  </h3>
-                  <p className="mt-4 text-sm sm:text-base leading-relaxed text-slate-300">
-                    {activeTask.notes}
-                  </p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Segmented LED Telemetry Bar */}
-            <div className="mt-8 pt-6 border-t border-white/10">
-              <div className="flex items-center justify-between font-mono text-xs mb-3">
-                <span className="text-slate-400 uppercase tracking-wider">COMPLETION TELEMETRY</span>
-                <span className="text-cyan-400 font-bold tabular-nums">{activeTask.progress}.0%</span>
-              </div>
-              <div className="grid grid-cols-20 gap-1">
-                {Array.from({ length: 20 }).map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={cn(
-                      "h-2.5 rounded-[2px] transition-all duration-300",
-                      idx < filledSegments
-                        ? "bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.45)]"
-                        : "bg-white/[0.07]"
-                    )}
-                  />
-                ))}
+                  {activeTask.id}
+                </motion.div>
+              </AnimatePresence>
+              
+              {/* 编号下标微标签 */}
+              <div className="mt-2 flex items-center gap-2 font-mono text-[10px] sm:text-[11px] text-muted-foreground">
+                <span className="inline-block w-2 h-2 rounded-full border border-brand-cyan/60" />
+                <span>{activeTask.phase}</span>
               </div>
             </div>
           </div>
+
+          {/* 右侧核心任务看板 */}
+          <div className="md:col-span-7 lg:col-span-8 pt-0 md:pt-4">
+            <div className="max-w-2xl">
+              
+              {/* 任务状态元信息徽章 */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`meta-${activeTask.id}`}
+                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                  animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                  transition={{ duration: 0.28 }}
+                  className="flex flex-wrap items-center gap-2.5 sm:gap-5 text-[10px] sm:text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4 sm:mb-6"
+                >
+                  <span className="font-mono">{activeTask.date}</span>
+                  <span className="text-slate-300">/</span>
+                  <span className="font-medium text-foreground/80">{activeTask.category}</span>
+                  <span className="text-slate-300">/</span>
+                  
+                  {/* 实时雷达呼吸徽章 */}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-cyan/10 border border-brand-cyan/20 text-brand-cyan text-[10px] font-mono tracking-wider font-semibold">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-cyan opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-cyan" />
+                    </span>
+                    {activeTask.status}
+                  </span>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* 动态主标题 */}
+              <div className="min-h-[100px] sm:min-h-[120px] md:min-h-[140px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`content-${activeTask.id}`}
+                    initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                    animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -14 }}
+                    transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <h3 className="text-xl sm:text-3xl md:text-5xl font-medium tracking-tight text-foreground leading-[1.2] mb-3 sm:mb-5">
+                      {activeTask.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed mb-6 sm:mb-8">
+                      {activeTask.notes}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* 科技感精度进度仪 */}
+              <div className="border-t border-slate-900/10 pt-4 sm:pt-6">
+                <div className="flex items-center justify-between text-xs font-mono mb-2">
+                  <span className="text-muted-foreground uppercase tracking-widest text-[10px]">EXECUTION PROGRESS</span>
+                  <span className="text-brand-cyan font-bold tracking-wider">{activeTask.progress}%</span>
+                </div>
+
+                {/* 进度条轨道 + 流光扫掠效果 */}
+                <div className="relative w-full h-1.5 bg-slate-900/8 rounded-full overflow-hidden mb-2">
+                  <motion.div 
+                    className="relative h-full bg-gradient-to-r from-brand-cyan via-brand-cyan to-brand-violet rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${activeTask.progress}%` }}
+                    transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    {/* 流光扫掠光束 */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-pulse" />
+                  </motion.div>
+                </div>
+
+                {/* 刻度线标定点 */}
+                <div className="flex justify-between text-[9px] font-mono text-slate-400 select-none">
+                  <span>00%</span>
+                  <span>25%</span>
+                  <span>50%</span>
+                  <span>75%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
+
+        {/* 底部 01-04 互动控制台卡片列表 */}
+        <div className="mt-12 sm:mt-16 grid gap-2.5 sm:gap-4 grid-cols-2 lg:grid-cols-4 border-t border-slate-900/10 pt-6 sm:pt-8">
+          {buildingTasks.map((task, index) => {
+            const isActive = index === activeIndex;
+
+            return (
+              <button
+                key={task.id}
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                onMouseEnter={() => setActiveIndex(index)}
+                className={cn(
+                  "group relative flex flex-col justify-between text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden",
+                  isActive
+                    ? "bg-white border-brand-cyan/40 shadow-sm shadow-brand-cyan/5 ring-1 ring-brand-cyan/20"
+                    : "bg-white/40 border-slate-900/8 hover:bg-white hover:border-slate-900/15 hover:shadow-xs"
+                )}
+                aria-selected={isActive}
+                role="tab"
+              >
+                {/* 激活状态指示顶条 */}
+                {isActive && (
+                  <motion.div 
+                    layoutId="activeTaskIndicator"
+                    className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-cyan to-brand-violet"
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                  />
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
+                    <span className={cn(
+                      "font-mono text-xs font-bold transition-colors",
+                      isActive ? "text-brand-cyan" : "text-muted-foreground group-hover:text-foreground"
+                    )}>
+                      {task.id}
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                      {task.progress}%
+                    </span>
+                  </div>
+
+                  <p className={cn(
+                    "text-[11px] sm:text-xs md:text-sm leading-snug sm:leading-relaxed line-clamp-2 transition-colors",
+                    isActive ? "font-semibold text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                  )}>
+                    {task.title}
+                  </p>
+                </div>
+
+                <div className="mt-3 sm:mt-4 flex items-center justify-between text-[9px] sm:text-[10px] font-mono text-muted-foreground pt-1.5 sm:pt-2 border-t border-slate-900/5">
+                  <span className="truncate max-w-[80px] sm:max-w-[120px]">{task.category}</span>
+                  <ArrowRight className={cn(
+                    "h-3 w-3 transition-transform duration-300",
+                    isActive ? "translate-x-1 text-brand-cyan" : "opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5"
+                  )} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
       </div>
     </section>
   );

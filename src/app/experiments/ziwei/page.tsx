@@ -18,24 +18,24 @@ export default function ZiweiPage() {
       <PageIntro>
         <div className="mb-6">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-mono font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-600/25 text-amber-800 dark:text-amber-300 text-xs font-mono font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
               <span>TIANJI ASTROLABE // 倪海厦《天纪》体系 + 《斗数全书》金标准盘引擎</span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-slate-400 border border-white/10 rounded-full px-3.5 py-1 bg-[#060a14]/80 backdrop-blur-xs">
-              <span className="flex items-center gap-1.5 text-amber-300 font-semibold">
-                <Compass className="h-3.5 w-3.5 text-amber-400" />
+            <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-muted-foreground border border-slate-900/10 dark:border-slate-800 rounded-full px-3.5 py-1 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xs">
+              <span className="flex items-center gap-1.5 text-amber-900 font-semibold">
+                <Compass className="h-3.5 w-3.5 text-amber-700" />
                 <span>真太阳时 & 十二宫三方四正</span>
               </span>
-              <span className="text-white/15">|</span>
-              <span className="flex items-center gap-1.5 text-rose-300 font-semibold">
-                <HeartHandshake className="h-3.5 w-3.5 text-rose-400" />
+              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <span className="flex items-center gap-1.5 text-rose-700 font-semibold">
+                <HeartHandshake className="h-3.5 w-3.5 text-rose-600" />
                 <span>双宫联参合盘五步法</span>
               </span>
-              <span className="text-white/15">|</span>
-              <span className="flex items-center gap-1.5 text-emerald-300 font-semibold">
-                <ScrollText className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <span className="flex items-center gap-1.5 text-emerald-700 font-semibold">
+                <ScrollText className="h-3.5 w-3.5 text-emerald-600" />
                 <span>游客免费 3 次 AI · 登录无限畅享</span>
               </span>
             </div>

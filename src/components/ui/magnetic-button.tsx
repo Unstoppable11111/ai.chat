@@ -1,49 +1,71 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import React, { useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
-interface MagneticButtonProps {
+interface MagneticButtonProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  className?: string;
-  strength?: number; // 吸附强度
+  strength?: number;
 }
 
+/**
+ * Zero-re-render magnetic hover wrapper using requestAnimationFrame + translate3d.
+ */
 export function MagneticButton({
   children,
-  className = "",
-  strength = 0.35,
+  className,
+  strength = 0.28,
+  ...props
 }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const reduceMotion = useReducedMotion();
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (reduceMotion || !ref.current) return;
+    const el = ref.current;
+    if (!el) return;
+    const { left, top, width, height } = el.getBoundingClientRect();
+    const x = (e.clientX - (left + width / 2)) * strength;
+    const y = (e.clientY - (top + height / 2)) * strength;
 
-    const { clientX, clientY } = e;
-    const { left, top, width, height } = ref.current.getBoundingClientRect();
-
-    const middleX = clientX - (left + width / 2);
-    const middleY = clientY - (top + height / 2);
-
-    setPosition({ x: middleX * strength, y: middleY * strength });
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      if (ref.current) {
+        ref.current.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+      }
+    });
   };
 
   const handleMouseLeave = () => {
-    setPosition({ x: 0, y: 0 });
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    if (ref.current) {
+      ref.current.style.transform = "translate3d(0px, 0px, 0)";
+    }
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      animate={{ x: position.x, y: position.y }}
-      transition={{ type: "spring", stiffness: 250, damping: 18, mass: 0.5 }}
-      className={`inline-block ${className}`}
+      className={cn(
+        "inline-block transition-transform duration-300 ease-out will-change-transform",
+        className
+      )}
+      {...props}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

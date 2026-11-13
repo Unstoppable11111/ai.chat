@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation";
 import { Bot, X } from "lucide-react";
 import { useChat } from "@/components/chat/chat-provider";
 
+// 性能优化：ChatExperience 依赖 react-markdown / remark-gfm 及多个选择器组件，体积较大。
+// 浮窗默认关闭，因此改为按需懒加载，不再计入每个页面的首屏 JS；悬停按钮时提前预加载，保证打开无感。
 const loadChatExperience = () => import("@/components/chat/chat-experience");
-const ChatExperience = dynamic(() => loadChatExperience().then((mod) => mod.ChatExperience), {
+const ChatExperience = dynamic(() => loadChatExperience().then((m) => m.ChatExperience), {
   ssr: false,
   loading: () => (
-    <div className="flex flex-1 items-center justify-center text-xs font-mono text-cyan-400">
-      INITIALIZING JARVIS STREAM…
-    </div>
+    <div className="flex flex-1 items-center justify-center text-xs text-slate-400">正在连接 JARVIS…</div>
   ),
 });
 
@@ -48,6 +48,7 @@ export function ChatWidget() {
   }, []);
 
   useEffect(() => {
+    // 监听 AI 流式结束瞬间：从 loading=true 切换为 false
     const wasLoading = prevLoadingRef.current;
     prevLoadingRef.current = chat.loading;
 
@@ -67,12 +68,14 @@ export function ChatWidget() {
     }
   }, [open]);
 
+  // 如果是在独立的 /chat 页面或 dev 路由，不渲染右下角小浮窗
   if (pathname === "/chat" || pathname.startsWith("/dev/")) {
     return null;
   }
 
   return (
     <>
+      {/* 右下角浮动呼出按钮 */}
       {!open && (
         <button
           ref={trigger}
@@ -85,21 +88,26 @@ export function ChatWidget() {
             setHasUnreadReply(false);
             setOpen(true);
           }}
-          className="fixed bottom-5 right-4 z-40 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-xl bg-[#070c18] text-white shadow-[0_12px_36px_rgba(0,240,255,0.22)] hover:border-cyan-400 hover:scale-105 active:scale-95 transition-all cursor-pointer border border-cyan-500/40 sm:right-6 sm:bottom-6 group"
+          className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-slate-900 text-white shadow-[0_12px_30px_-6px_rgba(15,23,42,0.3)] hover:shadow-[0_14px_34px_-6px_rgba(14,165,233,0.36)] hover:-translate-y-0.5 hover:bg-sky-600 hover:border-sky-400 active:scale-95 transition-all duration-300 cursor-pointer border border-slate-700/80 group"
         >
-          <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-cyan-400 group-hover:rotate-6 transition-transform" />
+          <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-sky-400 group-hover:text-white group-hover:rotate-6 transition-all" />
+          <span
+            aria-hidden="true"
+            className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-2xs"
+          />
           {hasUnreadReply && (
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-400" />
+            <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500 border-2 border-white"></span>
             </span>
           )}
         </button>
       )}
 
+      {/* 弹窗打开时的全屏背景遮罩（点击即可顺滑关闭，彻底防止移动端无法退出） */}
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200"
           onClick={() => {
             setOpen(false);
             setTimeout(() => trigger.current?.focus(), 0);
@@ -110,6 +118,7 @@ export function ChatWidget() {
         />
       )}
 
+      {/* AI 对话浮窗主体：移动端自适应为沉浸式 Bottom Sheet，桌面端为精致右下角悬浮窗 */}
       {open && (
         <div
           ref={panel}
@@ -121,26 +130,27 @@ export function ChatWidget() {
               setTimeout(() => trigger.current?.focus(), 0);
             }
           }}
-          className="fixed inset-x-0 bottom-0 z-[60] flex h-[86dvh] max-h-[86dvh] w-full flex-col rounded-t-2xl border-t border-cyan-500/35 bg-[#060913]/98 shadow-[0_28px_80px_rgba(0,0,0,0.9)] backdrop-blur-xl animate-in slide-in-from-bottom duration-200 sm:fixed sm:inset-auto sm:bottom-4 sm:right-4 sm:h-[640px] sm:w-[430px] sm:max-h-[calc(100dvh-5rem)] sm:rounded-xl sm:border sm:border-cyan-500/35"
+          className="fixed inset-x-0 bottom-0 z-[60] flex h-[86dvh] max-h-[86dvh] w-full flex-col rounded-t-[26px] border-t border-slate-200/90 bg-white/98 shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom duration-200 sm:fixed sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[620px] sm:w-[420px] sm:max-h-[calc(100dvh-5rem)] sm:rounded-2xl sm:border sm:border-slate-200/90"
         >
-          <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mt-2 shrink-0 sm:hidden" />
+          {/* 移动端顶部的拖拽/滑动手柄（直观呈现可滑动/可收起意图） */}
+          <div className="w-10 h-1 rounded-full bg-slate-300 mx-auto mt-2 shrink-0 sm:hidden" />
 
-          <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-white/10 bg-[#080d1a] shrink-0 sm:rounded-t-xl">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-950/50 text-cyan-300">
+          {/* 顶部标头栏：包含清晰标题、状态与右上角显眼的关闭按钮（×） */}
+          <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 border-b border-slate-100 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-2xs">
                 <Bot className="h-4 w-4" />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm font-bold text-white font-mono tracking-wider">
-                  JARVIS // OS
-                </span>
-                <span className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-500/35">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs sm:text-sm font-bold text-slate-900">JARVIS 贾维斯</span>
+                <span className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   ONLINE
                 </span>
               </div>
             </div>
 
+            {/* 右上角高对比度、大触控热区关闭按钮 */}
             <button
               type="button"
               aria-label="关闭 AI 助手"
@@ -149,12 +159,13 @@ export function ChatWidget() {
                 setOpen(false);
                 setTimeout(() => trigger.current?.focus(), 0);
               }}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer shadow-2xs"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
+          {/* 对话内容区域 */}
           <div className="min-h-0 flex-1 p-2 sm:p-3 overflow-hidden flex flex-col">
             <ChatExperience compact initialDraft={draft} />
           </div>

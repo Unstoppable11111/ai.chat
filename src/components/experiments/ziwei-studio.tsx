@@ -629,14 +629,14 @@ export function ZiweiStudio() {
       {mainTab === "chart" && (
         <div className="space-y-6">
           {/* 生辰录入与真太阳时/夏令时/流派/名人控制面板 */}
-          <div className="arch-frame rounded-3xl border border-white/10 bg-[#060a14] p-5 sm:p-6 space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3.5">
+          <div className="rounded-3xl border border-stone-200/90 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3.5">
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                  <Compass className="h-5 w-5 text-amber-400" />
+                <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2">
+                  <Compass className="h-5 w-5 text-amber-700" />
                   <span>生辰八字与真太阳时排盘参数</span>
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-stone-500 mt-0.5">
                   支持全国省市经度真太阳时校正（NOAA 均时差）、1986–1991 夏令时提醒与《斗数全书》金标准盘口径
                 </p>
               </div>
@@ -648,25 +648,25 @@ export function ZiweiStudio() {
                     saveHistory(formA);
                     setShowHistoryDrawer((v) => !v);
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-[#04060b] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-amber-500/40 hover:text-amber-300 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 cursor-pointer"
                 >
-                  <History className="h-3.5 w-3.5 text-amber-400" />
+                  <History className="h-3.5 w-3.5 text-amber-700" />
                   <span>保存/历史命盘 ({history.length})</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setShowSchoolDrawer((v) => !v)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-[#04060b] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-amber-500/40 hover:text-amber-300 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 cursor-pointer"
                 >
-                  <Settings2 className="h-3.5 w-3.5 text-amber-400" />
+                  <Settings2 className="h-3.5 w-3.5 text-amber-700" />
                   <span>流派与闰月口径</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCopyShareUrl}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-amber-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-800 cursor-pointer"
                 >
                   <Share2 className="h-3.5 w-3.5" />
                   <span>{shareCopied ? "已复制排盘链接！" : "分享此命盘"}</span>
@@ -676,29 +676,29 @@ export function ZiweiStudio() {
 
             {/* 历史记录折叠抽屉 */}
             {showHistoryDrawer && (
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2.5">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-amber-300">
+                  <span className="font-bold text-amber-950">
                     最近保存的排盘记录（最多保存 12 条，存于本地浏览器）
                   </span>
                   {history.length > 0 && (
                     <button
                       type="button"
                       onClick={clearHistory}
-                      className="text-rose-400 hover:underline font-semibold cursor-pointer"
+                      className="text-rose-700 hover:underline font-semibold cursor-pointer"
                     >
                       清空全部
                     </button>
                   )}
                 </div>
                 {history.length === 0 ? (
-                  <p className="text-xs text-slate-400">暂无历史排盘记录</p>
+                  <p className="text-xs text-stone-500">暂无历史排盘记录</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {history.map((item) => (
                       <div
                         key={item.id}
-                        className="inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-[#04060b] px-3 py-1.5 text-xs"
+                        className="inline-flex items-center gap-2 rounded-xl border border-amber-300/80 bg-white px-3 py-1.5 text-xs shadow-2xs"
                       >
                         <button
                           type="button"
@@ -706,14 +706,14 @@ export function ZiweiStudio() {
                             setFormA(item.form);
                             setAiMessages([]);
                           }}
-                          className="font-semibold text-slate-200 hover:text-amber-300 cursor-pointer"
+                          className="font-semibold text-stone-800 hover:text-amber-900 cursor-pointer"
                         >
                           {item.label}
                         </button>
                         <button
                           type="button"
                           onClick={() => removeHistory(item.id)}
-                          className="text-slate-500 hover:text-rose-400 cursor-pointer"
+                          className="text-stone-400 hover:text-rose-600 cursor-pointer"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -726,9 +726,9 @@ export function ZiweiStudio() {
 
             {/* 流派设置折叠抽屉 */}
             {showSchoolDrawer && (
-              <div className="rounded-2xl border border-white/10 bg-[#04060b] p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300 block">
+                  <label className="font-bold text-stone-800 block">
                     星曜庙旺利陷亮度口径：
                   </label>
                   <select
@@ -736,7 +736,7 @@ export function ZiweiStudio() {
                     onChange={(e) =>
                       setBrightnessSchoolState(e.target.value as SchoolBrightnessKind)
                     }
-                    className="w-full rounded-xl border border-white/15 bg-[#060a14] px-3 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-900"
                   >
                     <option value="default">《紫微斗数全书》定本（金标准默认口径）</option>
                     <option value="XD1">现代修订亮度表（第一版 XD1）</option>
@@ -746,13 +746,13 @@ export function ZiweiStudio() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300 block">
+                  <label className="font-bold text-stone-800 block">
                     农历闰月排盘分界规则：
                   </label>
                   <select
                     value={leapPolicy}
                     onChange={(e) => setLeapPolicy(e.target.value as LeapMonth)}
-                    className="w-full rounded-xl border border-white/15 bg-[#060a14] px-3 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-900"
                   >
                     <option value="split">月中分界（前15天归本月，后15天归下月 · 默认）</option>
                     <option value="next-month">倪海厦《天纪》口径（闰月整月随下月论）</option>
@@ -767,23 +767,23 @@ export function ZiweiStudio() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5">
               {/* 姓名与性别 */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-400">姓名/称呼</label>
+                <label className="text-xs font-semibold text-stone-600">姓名/称呼</label>
                 <div className="flex gap-1.5">
                   <input
                     type="text"
                     value={formA.name}
                     onChange={(e) => setFormA({ ...formA, name: e.target.value })}
                     placeholder="命主姓名"
-                    className="w-full rounded-xl border border-white/15 bg-[#04060b] px-3 py-2 text-xs font-semibold text-white placeholder:text-slate-600 focus:border-amber-400 focus:outline-none"
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-900"
                   />
-                  <div className="flex rounded-xl border border-white/15 bg-[#04060b] p-0.5 shrink-0">
+                  <div className="flex rounded-xl border border-stone-300 bg-stone-100 p-0.5 shrink-0">
                     <button
                       type="button"
                       onClick={() => setFormA({ ...formA, gender: "male" })}
                       className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition cursor-pointer ${
                         formA.gender === "male"
-                          ? "bg-amber-500/25 text-amber-200 border border-amber-500/40"
-                          : "text-slate-400 hover:text-white"
+                          ? "bg-amber-900 text-white"
+                          : "text-stone-600"
                       }`}
                     >
                       男
@@ -793,8 +793,8 @@ export function ZiweiStudio() {
                       onClick={() => setFormA({ ...formA, gender: "female" })}
                       className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition cursor-pointer ${
                         formA.gender === "female"
-                          ? "bg-rose-500/25 text-rose-200 border border-rose-500/40"
-                          : "text-slate-400 hover:text-white"
+                          ? "bg-rose-700 text-white"
+                          : "text-stone-600"
                       }`}
                     >
                       女
@@ -805,7 +805,7 @@ export function ZiweiStudio() {
 
               {/* 公历年/月/日 */}
               <div className="space-y-1 lg:col-span-2">
-                <label className="text-xs font-semibold text-slate-400">
+                <label className="text-xs font-semibold text-stone-600">
                   出生公历日期（阳历 1900–2040）
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -815,7 +815,7 @@ export function ZiweiStudio() {
                       setFormA({ ...formA, year: e.target.value });
                       setDstAdjustedA(false);
                     }}
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2.5 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2.5 py-2 text-xs font-semibold text-stone-900"
                   >
                     {Array.from({ length: 125 }, (_, i) => 1915 + i).map((y) => (
                       <option key={y} value={String(y)}>
@@ -829,7 +829,7 @@ export function ZiweiStudio() {
                       setFormA({ ...formA, month: e.target.value });
                       setDstAdjustedA(false);
                     }}
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2.5 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2.5 py-2 text-xs font-semibold text-stone-900"
                   >
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                       <option key={m} value={String(m)}>
@@ -843,7 +843,7 @@ export function ZiweiStudio() {
                       setFormA({ ...formA, day: e.target.value });
                       setDstAdjustedA(false);
                     }}
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2.5 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2.5 py-2 text-xs font-semibold text-stone-900"
                   >
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                       <option key={d} value={String(d)}>
@@ -857,7 +857,7 @@ export function ZiweiStudio() {
               {/* 出生时刻 / 时辰 */}
               <div className="space-y-1 lg:col-span-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-slate-400">
+                  <label className="text-xs font-semibold text-stone-600">
                     {formA.unknownTime ? "直接选择出生时辰" : "钟表时间（自动算真太阳时）"}
                   </label>
                   <button
@@ -865,7 +865,7 @@ export function ZiweiStudio() {
                     onClick={() =>
                       setFormA((prev) => ({ ...prev, unknownTime: !prev.unknownTime }))
                     }
-                    className="text-[11px] font-semibold text-amber-400 hover:underline cursor-pointer"
+                    className="text-[11px] font-semibold text-amber-800 hover:underline cursor-pointer"
                   >
                     {formA.unknownTime ? "切换为精确钟表时分" : "只知时辰？点此切换"}
                   </button>
@@ -875,7 +875,7 @@ export function ZiweiStudio() {
                   <select
                     value={shichenBranchA}
                     onChange={(e) => setShichenBranchA(Number(e.target.value))}
-                    className="w-full rounded-xl border border-white/15 bg-[#04060b] px-3 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-900"
                   >
                     {SHICHEN.map((sc) => (
                       <option key={sc.branch} value={sc.branch}>
@@ -888,7 +888,7 @@ export function ZiweiStudio() {
                     <select
                       value={formA.clockHour}
                       onChange={(e) => setFormA({ ...formA, clockHour: e.target.value })}
-                      className="rounded-xl border border-white/15 bg-[#04060b] px-2.5 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                      className="rounded-xl border border-stone-300 bg-white px-2.5 py-2 text-xs font-semibold text-stone-900"
                     >
                       {Array.from({ length: 24 }, (_, i) => i).map((h) => (
                         <option key={h} value={String(h)}>
@@ -899,7 +899,7 @@ export function ZiweiStudio() {
                     <select
                       value={formA.clockMinute}
                       onChange={(e) => setFormA({ ...formA, clockMinute: e.target.value })}
-                      className="rounded-xl border border-white/15 bg-[#04060b] px-2.5 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                      className="rounded-xl border border-stone-300 bg-white px-2.5 py-2 text-xs font-semibold text-stone-900"
                     >
                       {Array.from({ length: 60 }, (_, i) => i).map((m) => (
                         <option key={m} value={String(m)}>
@@ -913,8 +913,8 @@ export function ZiweiStudio() {
 
               {/* 出生地经度（真太阳时） */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-amber-400" />
+                <label className="text-xs font-semibold text-stone-600 flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-amber-700" />
                   <span>出生地（真太阳时）</span>
                 </label>
                 <div className="grid grid-cols-2 gap-1">
@@ -931,7 +931,7 @@ export function ZiweiStudio() {
                         longitude: firstCity?.longitude || 120,
                       });
                     }}
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2 py-2 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2 py-2 text-xs font-semibold text-stone-900"
                   >
                     <option value="">标准120°E</option>
                     {PROVINCES.map((p) => (
@@ -954,7 +954,7 @@ export function ZiweiStudio() {
                         });
                       }
                     }}
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2 py-2 text-xs font-semibold text-white disabled:opacity-50 focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2 py-2 text-xs font-semibold text-stone-900 disabled:opacity-50"
                   >
                     {!formA.province ? (
                       <option value="">不校正</option>
@@ -971,15 +971,15 @@ export function ZiweiStudio() {
             </div>
 
             {/* 真太阳时换算结果与夏令时智能提醒条 */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#04060b] border border-white/10 px-4 py-2.5 text-xs">
-              <div className="flex flex-wrap items-center gap-3 text-slate-400">
-                <span className="inline-flex items-center gap-1 font-semibold text-slate-200">
-                  <Clock className="h-3.5 w-3.5 text-amber-400" />
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-stone-50 border border-stone-200/80 px-4 py-2.5 text-xs">
+              <div className="flex flex-wrap items-center gap-3 text-stone-600">
+                <span className="inline-flex items-center gap-1 font-semibold text-stone-800">
+                  <Clock className="h-3.5 w-3.5 text-amber-700" />
                   <span>排盘时辰核定：</span>
                 </span>
                 {formA.unknownTime ? (
                   <span>
-                    按指定时辰【<strong className="text-amber-300">{BRANCHES[shichenBranchA]}时</strong>】直接排盘
+                    按指定时辰【<strong>{BRANCHES[shichenBranchA]}时</strong>】直接排盘
                   </span>
                 ) : (
                   <span>
@@ -994,7 +994,7 @@ export function ZiweiStudio() {
                         ).padStart(2, "0")}:${String(solarTimeDetailA.minute).padStart(2, "0")}`
                       : "（未选省市，按东八区 120°E 标准时）"}{" "}
                     → 核定【
-                    <strong className="text-amber-300">
+                    <strong className="text-amber-900">
                       {BRANCHES[solarTimeDetailA.branch]}时
                     </strong>
                     】
@@ -1004,8 +1004,8 @@ export function ZiweiStudio() {
 
               {/* 夏令时提醒与一键减1小时 */}
               {dstInfoA.active && !formA.unknownTime && (
-                <div className="flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-amber-200">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <div className="flex items-center gap-2 rounded-xl bg-amber-100/90 border border-amber-300 px-3 py-1 text-amber-950">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-700 shrink-0" />
                   <span>
                     {dstInfoA.year}年{dstInfoA.range?.start}–{dstInfoA.range?.end}实行过
                     <strong>中国夏令时</strong>（钟表拨快1小时）
@@ -1027,7 +1027,7 @@ export function ZiweiStudio() {
                         setDstAdjustedA(!dstAdjustedA);
                       }
                     }}
-                    className="inline-flex items-center gap-1 rounded-lg bg-amber-500/30 border border-amber-400/50 px-2.5 py-0.5 text-[11px] font-bold text-white hover:bg-amber-500/40 cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded-lg bg-amber-900 px-2.5 py-0.5 text-[11px] font-bold text-white hover:bg-amber-800 cursor-pointer"
                   >
                     <RotateCcw className="h-3 w-3" />
                     <span>{dstAdjustedA ? "撤销减1小时" : "一键减1小时还原标准时"}</span>
@@ -1038,7 +1038,7 @@ export function ZiweiStudio() {
 
             {/* 名人命盘一键研究案例栏 */}
             <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-1">
-              <span className="text-xs font-bold text-slate-400 shrink-0">
+              <span className="text-xs font-bold text-stone-500 shrink-0">
                 🌟 名人命盘案例：
               </span>
               {FAMOUS_PERSONS.map((fp) => (
@@ -1049,8 +1049,8 @@ export function ZiweiStudio() {
                   title={`${fp.description}：${fp.notable}`}
                   className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition cursor-pointer ${
                     formA.name === fp.name
-                      ? "border-amber-500/50 bg-amber-500/20 text-amber-200"
-                      : "border-white/10 bg-[#04060b] text-slate-300 hover:border-amber-500/40 hover:bg-amber-500/10"
+                      ? "border-amber-800 bg-amber-900 text-white"
+                      : "border-stone-200 bg-stone-50 text-stone-700 hover:border-amber-400 hover:bg-amber-50"
                   }`}
                 >
                   {fp.name}
@@ -1062,7 +1062,7 @@ export function ZiweiStudio() {
 
           {/* 排盘错误提示或完整十二宫命盘 + 分析工作台 */}
           {chartAResult.error || !chart ? (
-            <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-6 text-center text-sm font-semibold text-rose-300">
+            <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-center text-sm font-semibold text-rose-800">
               ⚠️ {chartAResult.error || "排盘计算失败，请检查输入的生辰参数"}
             </div>
           ) : (
@@ -1083,8 +1083,8 @@ export function ZiweiStudio() {
               />
 
               {/* ─── 下方三大深度分析中心（AI 命理师精批 / 13 维确定性断语 / 古籍格局识别） ─── */}
-              <div className="arch-frame rounded-3xl border border-white/10 bg-[#060a14] p-5 sm:p-6 space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div className="rounded-3xl border border-stone-200 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-4">
                   <div className="flex flex-wrap items-center gap-2">
                     {(
                       [
@@ -1108,8 +1108,8 @@ export function ZiweiStudio() {
                         onClick={() => setAnalysisTab(t.id)}
                         className={`rounded-2xl px-4 py-2 text-xs sm:text-sm font-bold transition cursor-pointer ${
                           analysisTab === t.id
-                            ? "bg-amber-500/20 text-amber-200 border border-amber-500/40"
-                            : "border border-white/10 bg-[#04060b] text-slate-300 hover:border-white/25 hover:text-white"
+                            ? "bg-amber-900 text-white shadow-xs"
+                            : "bg-stone-100 text-stone-700 hover:bg-stone-200/80"
                         }`}
                       >
                         {t.label}
@@ -1118,16 +1118,16 @@ export function ZiweiStudio() {
                   </div>
 
                   {!isAuthenticated && !quota.unlimited && (
-                    <div className="text-xs text-slate-400 flex items-center gap-2">
+                    <div className="text-xs text-stone-500 flex items-center gap-2">
                       <span>
                         AI 批断剩余免费体验：
-                        <strong className="text-amber-300">{quota.remaining}</strong> /{" "}
+                        <strong className="text-amber-800">{quota.remaining}</strong> /{" "}
                         {quota.total} 次
                       </span>
                       <button
                         type="button"
                         onClick={() => openAuthModal("login")}
-                        className="text-amber-400 font-bold hover:underline cursor-pointer"
+                        className="text-amber-800 font-bold hover:underline cursor-pointer"
                       >
                         登录解锁无限次 →
                       </button>
@@ -1140,7 +1140,7 @@ export function ZiweiStudio() {
                   <div className="space-y-4">
                     {/* 六大专题一键批断按钮 */}
                     <div className="space-y-2">
-                      <div className="text-xs font-bold text-slate-300">
+                      <div className="text-xs font-bold text-stone-600">
                         👇 点击下方专题一键生成《天纪》深度命书，或在盘面点击任意宫位/星曜直接发问：
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
@@ -1150,10 +1150,10 @@ export function ZiweiStudio() {
                             type="button"
                             disabled={aiStreaming}
                             onClick={() => void sendInterpretQuestion(topic.prompt)}
-                            className="flex items-center justify-between rounded-2xl border border-amber-500/25 bg-[#04060b] hover:border-amber-400/50 hover:bg-amber-500/10 p-3 text-left text-xs font-bold text-amber-200 transition cursor-pointer disabled:opacity-50"
+                            className="flex items-center justify-between rounded-2xl border border-amber-900/15 bg-amber-50/50 hover:bg-amber-100/70 p-3 text-left text-xs font-bold text-amber-950 transition cursor-pointer disabled:opacity-50"
                           >
                             <span>{topic.label}</span>
-                            <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                            <Sparkles className="h-3.5 w-3.5 text-amber-700 shrink-0" />
                           </button>
                         ))}
                       </div>
@@ -1161,16 +1161,16 @@ export function ZiweiStudio() {
 
                     {/* 错误或登录拦截提示 */}
                     {aiError && (
-                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200">
+                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950">
                         <div className="flex items-center gap-2 font-semibold">
-                          <Lock className="h-4 w-4 text-amber-400 shrink-0" />
+                          <Lock className="h-4 w-4 text-amber-800 shrink-0" />
                           <span>{aiError}</span>
                         </div>
                         {!isAuthenticated && (
                           <button
                             type="button"
                             onClick={() => openAuthModal("login")}
-                            className="rounded-xl bg-amber-500/25 border border-amber-500/40 px-3.5 py-1.5 text-xs font-bold text-amber-100 hover:bg-amber-500/35 cursor-pointer"
+                            className="rounded-xl bg-amber-900 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-amber-800 cursor-pointer"
                           >
                             立即登录 / 注册账号
                           </button>
@@ -1180,23 +1180,23 @@ export function ZiweiStudio() {
 
                     {/* 对话消息流展示区 */}
                     {aiMessages.length > 0 && (
-                      <div className="space-y-3 rounded-2xl border border-white/10 bg-[#04060b] p-4 max-h-[540px] overflow-y-auto">
+                      <div className="space-y-3 rounded-2xl border border-stone-200 bg-[#fdfbf7] p-4 max-h-[540px] overflow-y-auto">
                         {aiMessages.map((msg, i) => (
                           <div
                             key={i}
                             className={`rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
                               msg.role === "user"
-                                ? "bg-amber-500/20 border border-amber-500/35 text-amber-100 ml-auto max-w-2xl font-medium whitespace-pre-wrap"
-                                : "bg-[#060a14] border border-white/10 text-slate-200"
+                                ? "bg-amber-900 text-amber-50 ml-auto max-w-2xl font-medium whitespace-pre-wrap"
+                                : "bg-white border border-stone-200/90 text-stone-800 shadow-2xs"
                             }`}
                           >
-                            <div className="text-[10px] font-mono uppercase opacity-70 mb-1 text-slate-400">
+                            <div className="text-[10px] font-mono uppercase opacity-70 mb-1">
                               {msg.role === "user" ? "命主提问" : "天纪 AI 命理宗师"}
                             </div>
                             {msg.role === "user" ? (
                               <div>{msg.content}</div>
                             ) : (
-                              <div className="prose prose-invert prose-sm max-w-none leading-relaxed break-words">
+                              <div className="prose prose-stone prose-sm max-w-none dark:prose-invert leading-relaxed break-words">
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                   {msg.content ||
                                     (aiStreaming && i === aiMessages.length - 1
@@ -1218,18 +1218,18 @@ export function ZiweiStudio() {
                       </div>
                       <div className="flex items-center gap-2">
                         {quota.unlimited ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono">
-                            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 text-xs font-mono">
+                            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                             <span>站长特权 · 无限批断</span>
                           </span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => !isAuthenticated && openAuthModal("login")}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 hover:bg-amber-500/25 text-amber-300 text-xs font-medium transition cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 text-xs font-medium transition cursor-pointer"
                             title="默认免费3次，登录账号后解锁无限畅享"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                             <span>免费批断: {quota.remaining}/{quota.total}</span>
                           </button>
                         )}
@@ -1249,12 +1249,12 @@ export function ZiweiStudio() {
                         value={aiInput}
                         onChange={(e) => setAiInput(e.target.value)}
                         placeholder="结合当前命盘自由追问（例如：我适合去南方发展吗？哪一年最适合买房或结婚？）..."
-                        className="flex-1 rounded-2xl border border-white/15 bg-[#04060b] px-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-600 focus:border-amber-400 focus:outline-none"
+                        className="flex-1 rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-xs sm:text-sm text-stone-900 focus:border-amber-700 focus:bg-white focus:outline-none"
                       />
                       <button
                         type="submit"
                         disabled={aiStreaming || !aiInput.trim()}
-                        className="inline-flex items-center gap-1.5 rounded-2xl bg-amber-500/25 border border-amber-500/40 px-5 py-3 text-xs sm:text-sm font-bold text-amber-200 hover:bg-amber-500/35 disabled:opacity-50 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-2xl bg-amber-900 px-5 py-3 text-xs sm:text-sm font-bold text-white hover:bg-amber-800 disabled:opacity-50 cursor-pointer"
                       >
                         <Send className="h-4 w-4" />
                         <span>{aiStreaming ? "推演中..." : "发送批断"}</span>
@@ -1274,8 +1274,8 @@ export function ZiweiStudio() {
                           onClick={() => setActiveDimTopic(tk)}
                           className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
                             activeDimTopic === tk
-                              ? "bg-amber-500/20 text-amber-200 border border-amber-500/40"
-                              : "border border-white/10 bg-[#04060b] text-slate-300 hover:border-amber-500/30"
+                              ? "bg-amber-900 text-white"
+                              : "bg-stone-100 text-stone-700 hover:bg-amber-100/60"
                           }`}
                         >
                           {TOPIC_LABEL[tk]}
@@ -1287,13 +1287,13 @@ export function ZiweiStudio() {
                       const d = dimensions13[activeDimTopic];
                       if (!d) return null;
                       return (
-                        <div className="rounded-2xl border border-amber-500/25 bg-[#04060b] p-5 space-y-4">
-                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+                        <div className="rounded-2xl border border-amber-900/15 bg-gradient-to-br from-amber-50/40 via-white to-stone-50 p-5 space-y-4">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/70 pb-3">
                             <div>
-                              <span className="text-xs font-mono text-amber-400 font-bold">
+                              <span className="text-xs font-mono text-amber-800 font-bold">
                                 对应宫垣：{d.palaceName}
                               </span>
-                              <h4 className="text-base sm:text-lg font-bold text-white mt-0.5">
+                              <h4 className="text-base sm:text-lg font-bold text-stone-900 mt-0.5">
                                 【{d.label}】{d.dingdiao}
                               </h4>
                             </div>
@@ -1304,38 +1304,38 @@ export function ZiweiStudio() {
                                   `请针对我的【${d.label}】（${d.palaceName}），在本地断语基础上做更深入的流年与大限运势展开解读。`
                                 )
                               }
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-800 cursor-pointer"
                             >
                               <Sparkles className="h-3.5 w-3.5" />
                               <span>让 AI 深度展开此维度</span>
                             </button>
                           </div>
 
-                          <div className="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                            <div className="rounded-xl bg-[#060a14] border border-white/10 p-3.5">
-                              <strong className="text-amber-300 block mb-1">
+                          <div className="space-y-3 text-xs sm:text-sm text-stone-700 leading-relaxed">
+                            <div className="rounded-xl bg-white border border-stone-200/80 p-3.5">
+                              <strong className="text-amber-950 block mb-1">
                                 🔮 命理详论（三方四正合参）：
                               </strong>
                               {d.lundian}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <div className="rounded-xl bg-[#060a14] border border-white/10 p-3.5">
-                                <strong className="text-white block mb-1">
+                              <div className="rounded-xl bg-stone-50 border border-stone-200/70 p-3.5">
+                                <strong className="text-stone-900 block mb-1">
                                   📐 星盘数理依据：
                                 </strong>
                                 {d.yiju}
                               </div>
-                              <div className="rounded-xl bg-amber-500/10 border border-amber-500/25 p-3.5">
-                                <strong className="text-amber-300 block mb-1">
+                              <div className="rounded-xl bg-amber-50/60 border border-amber-200/70 p-3.5">
+                                <strong className="text-amber-950 block mb-1">
                                   📖 典籍与《天纪》出处：
                                 </strong>
                                 {d.chuchu}
                               </div>
                             </div>
 
-                            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/25 p-3.5 text-emerald-200">
-                              <strong className="block mb-0.5 text-emerald-300">💡 倪师趋吉避凶建议：</strong>
+                            <div className="rounded-xl bg-emerald-50/70 border border-emerald-200 p-3.5 text-emerald-950">
+                              <strong className="block mb-0.5">💡 倪师趋吉避凶建议：</strong>
                               {d.advice}
                             </div>
                           </div>
@@ -1349,7 +1349,7 @@ export function ZiweiStudio() {
                 {analysisTab === "patterns" && (
                   <div className="space-y-4">
                     {patternsList.length === 0 ? (
-                      <div className="rounded-2xl border border-white/10 bg-[#04060b] p-6 text-center text-xs text-slate-400">
+                      <div className="rounded-2xl border border-stone-200 bg-stone-50 p-6 text-center text-xs text-stone-600">
                         本盘暂无典型特殊命格，以命宫及三方四正主星庙旺与四化组合论断。
                       </div>
                     ) : (
@@ -1357,22 +1357,22 @@ export function ZiweiStudio() {
                         {patternsList.map((pt) => (
                           <div
                             key={pt.name}
-                            className="rounded-2xl border border-white/10 bg-[#04060b] p-4 space-y-2"
+                            className="rounded-2xl border border-stone-200 bg-stone-50/50 p-4 space-y-2"
                           >
                             <div className="flex items-center justify-between">
-                              <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                                <Award className="h-4 w-4 text-amber-400" />
+                              <span className="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+                                <Award className="h-4 w-4 text-amber-700" />
                                 <span>【{pt.name}】</span>
                               </span>
                               <span
-                                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+                                className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                                   pt.level === "excellent"
-                                    ? "bg-amber-500/15 border-amber-500/30 text-amber-300"
+                                    ? "bg-amber-100 text-amber-900"
                                     : pt.level === "good"
-                                    ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+                                    ? "bg-emerald-100 text-emerald-800"
                                     : pt.level === "caution"
-                                    ? "bg-rose-500/15 border-rose-500/30 text-rose-300"
-                                    : "bg-white/[0.06] border-white/15 text-slate-300"
+                                    ? "bg-rose-100 text-rose-800"
+                                    : "bg-stone-200 text-stone-700"
                                 }`}
                               >
                                 {pt.level === "excellent"
@@ -1385,27 +1385,27 @@ export function ZiweiStudio() {
                               </span>
                             </div>
 
-                            <p className="text-xs text-slate-300 leading-relaxed">
+                            <p className="text-xs text-stone-700 leading-relaxed">
                               {pt.description}
                             </p>
 
                             {pt.conditions && (
-                              <div className="space-y-1 pt-1 text-[11px] text-slate-400">
+                              <div className="space-y-1 pt-1 text-[11px] text-stone-600">
                                 {pt.conditions.required.length > 0 && (
                                   <div>
-                                    <strong className="text-emerald-400">✓ 成格条件：</strong>
+                                    <strong className="text-emerald-800">✓ 成格条件：</strong>
                                     {pt.conditions.required.join("；")}
                                   </div>
                                 )}
                                 {pt.conditions.bonus && pt.conditions.bonus.length > 0 && (
                                   <div>
-                                    <strong className="text-amber-400">★ 格局加分：</strong>
+                                    <strong className="text-amber-800">★ 格局加分：</strong>
                                     {pt.conditions.bonus.join("；")}
                                   </div>
                                 )}
                                 {pt.conditions.breaking && pt.conditions.breaking.length > 0 && (
                                   <div>
-                                    <strong className="text-rose-400">⚠ 破格留意：</strong>
+                                    <strong className="text-rose-700">⚠ 破格留意：</strong>
                                     {pt.conditions.breaking.join("；")}
                                   </div>
                                 )}
@@ -1413,7 +1413,7 @@ export function ZiweiStudio() {
                             )}
 
                             {pt.source && (
-                              <div className="text-[11px] text-slate-500 italic pt-1">
+                              <div className="text-[11px] text-stone-400 italic pt-1">
                                 出处：{pt.source}
                               </div>
                             )}
@@ -1443,23 +1443,23 @@ export function ZiweiStudio() {
                   badge: "甲方",
                   form: formA,
                   setForm: setFormA,
-                  accent: "border-amber-500/25 bg-[#060a14]",
+                  accent: "border-amber-900/20 bg-amber-50/20",
                 },
                 {
                   title: "乙方（伴侣 / 合伙人 B）生辰信息",
                   badge: "乙方",
                   form: formB,
                   setForm: setFormB,
-                  accent: "border-rose-500/25 bg-[#060a14]",
+                  accent: "border-rose-900/20 bg-rose-50/20",
                 },
               ] as const
             ).map((side) => (
               <div
                 key={side.badge}
-                className={`arch-frame rounded-3xl border p-5 space-y-4 ${side.accent}`}
+                className={`rounded-3xl border p-5 shadow-xs space-y-4 ${side.accent}`}
               >
-                <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                  <h3 className="text-sm sm:text-base font-bold text-white">
+                <div className="flex items-center justify-between border-b border-stone-200/70 pb-2.5">
+                  <h3 className="text-sm sm:text-base font-bold text-stone-900">
                     {side.title}
                   </h3>
                   <div className="flex gap-1">
@@ -1468,8 +1468,8 @@ export function ZiweiStudio() {
                       onClick={() => side.setForm({ ...side.form, gender: "male" })}
                       className={`rounded-lg px-2.5 py-1 text-xs font-bold cursor-pointer ${
                         side.form.gender === "male"
-                          ? "bg-amber-500/25 border border-amber-500/40 text-amber-200"
-                          : "bg-[#04060b] border border-white/10 text-slate-400 hover:text-white"
+                          ? "bg-amber-900 text-white"
+                          : "bg-white text-stone-600"
                       }`}
                     >
                       男命
@@ -1479,8 +1479,8 @@ export function ZiweiStudio() {
                       onClick={() => side.setForm({ ...side.form, gender: "female" })}
                       className={`rounded-lg px-2.5 py-1 text-xs font-bold cursor-pointer ${
                         side.form.gender === "female"
-                          ? "bg-rose-500/25 border border-rose-500/40 text-rose-200"
-                          : "bg-[#04060b] border border-white/10 text-slate-400 hover:text-white"
+                          ? "bg-rose-700 text-white"
+                          : "bg-white text-stone-600"
                       }`}
                     >
                       女命
@@ -1494,12 +1494,12 @@ export function ZiweiStudio() {
                     value={side.form.name}
                     onChange={(e) => side.setForm({ ...side.form, name: e.target.value })}
                     placeholder="姓名"
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2.5 py-2 font-semibold text-white placeholder:text-slate-600 focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2.5 py-2 font-semibold"
                   />
                   <select
                     value={side.form.year}
                     onChange={(e) => side.setForm({ ...side.form, year: e.target.value })}
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2 py-2 font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2 py-2 font-semibold"
                   >
                     {Array.from({ length: 100 }, (_, i) => 1940 + i).map((y) => (
                       <option key={y} value={String(y)}>
@@ -1510,7 +1510,7 @@ export function ZiweiStudio() {
                   <select
                     value={side.form.month}
                     onChange={(e) => side.setForm({ ...side.form, month: e.target.value })}
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2 py-2 font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2 py-2 font-semibold"
                   >
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                       <option key={m} value={String(m)}>
@@ -1521,7 +1521,7 @@ export function ZiweiStudio() {
                   <select
                     value={side.form.day}
                     onChange={(e) => side.setForm({ ...side.form, day: e.target.value })}
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2 py-2 font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2 py-2 font-semibold"
                   >
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                       <option key={d} value={String(d)}>
@@ -1538,7 +1538,7 @@ export function ZiweiStudio() {
                         unknownTime: false,
                       })
                     }
-                    className="rounded-xl border border-white/15 bg-[#04060b] px-2 py-2 font-semibold text-white focus:border-amber-400 focus:outline-none"
+                    className="rounded-xl border border-stone-300 bg-white px-2 py-2 font-semibold"
                   >
                     {Array.from({ length: 24 }, (_, i) => i).map((h) => (
                       <option key={h} value={String(h)}>
@@ -1553,19 +1553,19 @@ export function ZiweiStudio() {
 
           {/* 本地五步合参即时报告 */}
           {localHeming && chart && chartB && (
-            <div className="arch-frame rounded-3xl border border-amber-500/25 bg-[#060a14] p-6 space-y-5">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div className="rounded-3xl border border-amber-900/20 bg-white p-6 shadow-xs space-y-5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-100 pb-4">
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <span className="rounded-2xl bg-amber-500/20 border border-amber-500/40 px-3.5 py-1.5 text-lg font-bold text-amber-300">
+                    <span className="rounded-2xl bg-amber-900 px-3.5 py-1.5 text-lg font-bold text-amber-50">
                       {localHeming.score} 分
                     </span>
                     <div>
-                      <h3 className="text-base sm:text-lg font-bold text-white">
+                      <h3 className="text-base sm:text-lg font-bold text-stone-900">
                         {localHeming.ratingTitle}（{"★".repeat(localHeming.stars)}
                         {"☆".repeat(5 - localHeming.stars)}）
                       </h3>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-stone-500">
                         基于倪海厦《天纪》「夫妻宫+福德宫双宫联参」与「生年四化飞星互参」五步法
                       </p>
                     </div>
@@ -1580,7 +1580,7 @@ export function ZiweiStudio() {
                       "请根据我们两人的完整命盘，按倪海厦《天纪》合盘五步法（夫妻宫与命宫互映、夫妻宫与福德宫双宫联参、生年四化飞化互参、大限同步），为我们撰写一份详尽的双人姻缘与事业合盘报告，并给出具体的相处之道与化解建议。"
                     )
                   }
-                  className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-600/80 to-rose-600/80 border border-amber-400/30 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:opacity-95 cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-800 to-rose-800 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:opacity-95 cursor-pointer disabled:opacity-50"
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>
@@ -1593,34 +1593,34 @@ export function ZiweiStudio() {
                 {localHeming.steps.map((st) => (
                   <div
                     key={st.title}
-                    className="rounded-2xl border border-white/10 bg-[#04060b] p-4 space-y-1.5"
+                    className="rounded-2xl border border-stone-200 bg-stone-50/70 p-4 space-y-1.5"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm font-bold text-white">
+                      <span className="text-xs sm:text-sm font-bold text-stone-900">
                         {st.title}
                       </span>
                       <span
-                        className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                           st.tag === "大吉"
-                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+                            ? "bg-emerald-100 text-emerald-800"
                             : st.tag === "吉"
-                            ? "bg-amber-500/15 border-amber-500/30 text-amber-300"
-                            : "bg-white/[0.06] border-white/15 text-slate-300"
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-stone-200 text-stone-700"
                         }`}
                       >
                         {st.tag}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">{st.detail}</p>
+                    <p className="text-xs text-stone-600 leading-relaxed">{st.detail}</p>
                   </div>
                 ))}
               </div>
 
               {/* 生年四化双向飞星落宫表 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 space-y-2">
-                  <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                    <Flame className="h-4 w-4 text-amber-400" />
+                <div className="rounded-2xl border border-amber-200/80 bg-amber-50/30 p-4 space-y-2">
+                  <div className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                    <Flame className="h-4 w-4 text-amber-700" />
                     <span>
                       {chart.birthInfo.name || "甲方"}（{STEMS[chart.lunarInfo.yearStem]}年）四化飞入{" "}
                       {chartB.birthInfo.name || "乙方"}命盘：
@@ -1629,21 +1629,21 @@ export function ZiweiStudio() {
                   <div className="space-y-1.5 text-xs">
                     {localHeming.flyAtoB.map((item) => (
                       <div key={item.siHua} className="flex items-start gap-2">
-                        <span className="rounded bg-amber-500/25 border border-amber-500/40 px-1.5 py-0.5 text-[10px] font-bold text-amber-200 shrink-0">
+                        <span className="rounded bg-amber-900 px-1.5 py-0.5 text-[10px] font-bold text-white shrink-0">
                           化{item.siHua}
                         </span>
-                        <span className="text-slate-300">
-                          <strong className="text-white">{item.star}</strong> → 落入乙方【
-                          <strong className="text-amber-300">{item.targetPalace}</strong>】：{item.meaning}
+                        <span className="text-stone-700">
+                          <strong>{item.star}</strong> → 落入乙方【
+                          <strong>{item.targetPalace}</strong>】：{item.meaning}
                         </span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-rose-500/25 bg-rose-500/10 p-4 space-y-2">
-                  <div className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
-                    <Flame className="h-4 w-4 text-rose-400" />
+                <div className="rounded-2xl border border-rose-200/80 bg-rose-50/30 p-4 space-y-2">
+                  <div className="text-xs font-bold text-rose-950 flex items-center gap-1.5">
+                    <Flame className="h-4 w-4 text-rose-700" />
                     <span>
                       {chartB.birthInfo.name || "乙方"}（{STEMS[chartB.lunarInfo.yearStem]}年）四化飞入{" "}
                       {chart.birthInfo.name || "甲方"}命盘：
@@ -1652,12 +1652,12 @@ export function ZiweiStudio() {
                   <div className="space-y-1.5 text-xs">
                     {localHeming.flyBtoA.map((item) => (
                       <div key={item.siHua} className="flex items-start gap-2">
-                        <span className="rounded bg-rose-500/25 border border-rose-500/40 px-1.5 py-0.5 text-[10px] font-bold text-rose-200 shrink-0">
+                        <span className="rounded bg-rose-800 px-1.5 py-0.5 text-[10px] font-bold text-white shrink-0">
                           化{item.siHua}
                         </span>
-                        <span className="text-slate-300">
-                          <strong className="text-white">{item.star}</strong> → 落入甲方【
-                          <strong className="text-rose-300">{item.targetPalace}</strong>】：{item.meaning}
+                        <span className="text-stone-700">
+                          <strong>{item.star}</strong> → 落入甲方【
+                          <strong>{item.targetPalace}</strong>】：{item.meaning}
                         </span>
                       </div>
                     ))}
@@ -1667,13 +1667,13 @@ export function ZiweiStudio() {
 
               {/* AI 合盘流式对话区 */}
               {hemingError && (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950">
                   <span className="font-semibold">🔒 {hemingError}</span>
                   {!isAuthenticated && (
                     <button
                       type="button"
                       onClick={() => openAuthModal("login")}
-                      className="rounded-xl bg-amber-500/25 border border-amber-500/40 px-3.5 py-1.5 text-xs font-bold text-amber-100 cursor-pointer"
+                      className="rounded-xl bg-amber-900 px-3.5 py-1.5 text-xs font-bold text-white cursor-pointer"
                     >
                       立即登录解锁无限次
                     </button>
@@ -1682,14 +1682,14 @@ export function ZiweiStudio() {
               )}
 
               {hemingMessages.length > 0 && (
-                <div className="space-y-3 rounded-2xl border border-white/10 bg-[#04060b] p-4 max-h-[520px] overflow-y-auto">
+                <div className="space-y-3 rounded-2xl border border-stone-200 bg-[#fdfbf7] p-4 max-h-[520px] overflow-y-auto">
                   {hemingMessages.map((m, idx) => (
                     <div
                       key={idx}
                       className={`rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
                         m.role === "user"
-                          ? "bg-amber-500/20 border border-amber-500/35 text-amber-100 ml-auto max-w-2xl"
-                          : "bg-[#060a14] border border-white/10 text-slate-200 whitespace-pre-wrap"
+                          ? "bg-amber-900 text-white ml-auto max-w-2xl"
+                          : "bg-white border border-stone-200 text-stone-800 whitespace-pre-wrap"
                       }`}
                     >
                       {m.content || (hemingStreaming ? "正在合参双方夫妻宫、福德宫与四化飞星..." : "")}
@@ -1706,18 +1706,18 @@ export function ZiweiStudio() {
                 </div>
                 <div className="flex items-center gap-2">
                   {quota.unlimited ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 text-xs font-mono">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                       <span>站长特权 · 无限合盘</span>
                     </span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => !isAuthenticated && openAuthModal("login")}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 hover:bg-amber-500/25 text-amber-300 text-xs font-medium transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 text-xs font-medium transition cursor-pointer"
                       title="默认免费3次，登录账号后解锁无限畅享"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                       <span>免费合盘: {quota.remaining}/{quota.total}</span>
                     </button>
                   )}
@@ -1736,12 +1736,12 @@ export function ZiweiStudio() {
                   value={hemingInput}
                   onChange={(e) => setHemingInput(e.target.value)}
                   placeholder="针对双人合盘继续追问（如：我们俩谁管钱更聚财？2026–2027年适合结婚或共同投资吗？）..."
-                  className="flex-1 rounded-2xl border border-white/15 bg-[#04060b] px-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-600 focus:border-amber-400 focus:outline-none"
+                  className="flex-1 rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-xs sm:text-sm"
                 />
                 <button
                   type="submit"
                   disabled={hemingStreaming || !hemingInput.trim()}
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-amber-500/25 border border-amber-500/40 px-5 py-3 text-xs sm:text-sm font-bold text-amber-200 hover:bg-amber-500/35 disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-amber-900 px-5 py-3 text-xs sm:text-sm font-bold text-white hover:bg-amber-800 disabled:opacity-50 cursor-pointer"
                 >
                   <Send className="h-4 w-4" />
                   <span>发送追问</span>

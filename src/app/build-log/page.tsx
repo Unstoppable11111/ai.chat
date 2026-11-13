@@ -29,13 +29,13 @@ export default async function Page() {
             <span>RAG KNOWLEDGE BASE // VECTOR READY</span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-slate-400 border border-white/10 rounded-full px-3.5 py-1 bg-[#060a14]/80 backdrop-blur-xs">
-            <span className="flex items-center gap-1.5 text-white font-medium">
+          <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-muted-foreground border border-slate-900/10 rounded-full px-3.5 py-1 bg-white/60 backdrop-blur-xs">
+            <span className="flex items-center gap-1.5 text-foreground font-medium">
               <Database className="h-3.5 w-3.5 text-brand-cyan" />
               <span>WHITEPAPERS: {items.length} 篇</span>
             </span>
-            <span className="text-white/15">|</span>
-            <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+            <span className="text-slate-300">|</span>
+            <span className="flex items-center gap-1 text-emerald-600 font-semibold">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>CHUNKING READY: 100%</span>
             </span>

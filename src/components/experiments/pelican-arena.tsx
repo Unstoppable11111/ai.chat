@@ -129,10 +129,10 @@ export const MODELS: ModelEntry[] = [
 const UNIFIED_PROMPT = "创建一个HTML，内容是SVG绘制一个鹈鹕骑自行车的2D动画";
 
 const FUN_TAGS = [
-  { id: "art", label: "最佳画工", icon: Palette, color: "text-purple-300 bg-purple-500/15" },
-  { id: "motion", label: "最丝滑动态", icon: Zap, color: "text-amber-300 bg-amber-500/15" },
-  { id: "humor", label: "抽象/幽默", icon: Laugh, color: "text-rose-300 bg-rose-500/15" },
-  { id: "code", label: "极简工程", icon: Code, color: "text-emerald-300 bg-emerald-500/15" },
+  { id: "art", label: "最佳画工", icon: Palette, color: "text-purple-600 bg-purple-50" },
+  { id: "motion", label: "最丝滑动态", icon: Zap, color: "text-amber-600 bg-amber-50" },
+  { id: "humor", label: "抽象/幽默", icon: Laugh, color: "text-rose-600 bg-rose-50" },
+  { id: "code", label: "极简工程", icon: Code, color: "text-emerald-600 bg-emerald-50" },
 ];
 
 export function PelicanArena() {
@@ -215,28 +215,28 @@ export function PelicanArena() {
   return (
     <div className="w-full space-y-10">
       {/* 顶部统一 Prompt 卡片 */}
-      <div className="arch-frame relative overflow-hidden bg-[#060a14] p-6 md:p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/50 to-cyan-50/30 p-6 md:p-8 shadow-sm backdrop-blur-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-sm border border-cyan-500/30 bg-cyan-500/15 px-3 py-1 font-mono text-xs font-semibold text-cyan-300">
-                <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-800">
+                <Sparkles className="h-3.5 w-3.5 text-cyan-600" />
                 统一测试提示词 (Prompt Benchmark)
               </span>
-              <span className="inline-flex items-center rounded-sm border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-300">
+              <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-mono font-medium text-slate-600">
                 5 大模型同场竞技
               </span>
-              <span className="inline-flex items-center rounded-sm border border-amber-500/30 bg-amber-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-amber-300">
+              <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
                 3 国外 + 2 国内
               </span>
             </div>
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-mono">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 font-mono">
               &ldquo;{UNIFIED_PROMPT}&rdquo;
             </h2>
-            <p className="text-xs md:text-sm text-slate-300 leading-relaxed max-w-3xl">
+            <p className="text-xs md:text-sm text-slate-500 leading-relaxed max-w-3xl">
               「鹈鹕骑自行车」被称为大语言模型生成矢量动画的试金石（The Pelican Benchmark）。它极为考验大模型对
-              <strong className="text-white">生物解剖特征</strong>（大嘴囊袋）、<strong className="text-white">复杂机械连杆</strong>（脚踏板圆周踩踏、曲柄联动）以及
-              <strong className="text-white">空间运动拓扑</strong>的协同渲染能力。
+              <strong>生物解剖特征</strong>（大嘴囊袋）、<strong>复杂机械连杆</strong>（脚踏板圆周踩踏、曲柄联动）以及
+              <strong>空间运动拓扑</strong>的协同渲染能力。
             </p>
           </div>
 
@@ -244,9 +244,9 @@ export function PelicanArena() {
             <button
               type="button"
               onClick={copyPrompt}
-              className="inline-flex items-center gap-2 rounded-sm border border-white/15 bg-[#04060b] px-4 py-2.5 text-xs font-medium text-slate-200 hover:border-cyan-500/50 hover:text-cyan-300 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-medium text-slate-700 shadow-xs hover:border-cyan-500/40 hover:text-cyan-700 hover:shadow-sm transition-all cursor-pointer"
             >
-              {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4 text-slate-400" />}
+              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-slate-400" />}
               <span>{copied ? "已复制提示词" : "复制该 Prompt"}</span>
             </button>
           </div>
@@ -254,52 +254,52 @@ export function PelicanArena() {
       </div>
 
       {/* 选项卡导航 */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-        <div className="inline-flex rounded-sm border border-white/10 bg-[#060a14] p-1">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+        <div className="inline-flex rounded-2xl bg-slate-100 p-1.5 shadow-inner">
           <button
             type="button"
             onClick={() => setActiveTab("gallery")}
             className={cn(
-              "flex items-center gap-2 rounded-sm px-4 py-2 text-xs md:text-sm font-medium transition-all cursor-pointer",
+              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-medium transition-all cursor-pointer",
               activeTab === "gallery"
-                ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-200"
-                : "text-slate-400 hover:text-white"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
             )}
           >
-            <Layers className="h-4 w-4 text-cyan-400" />
+            <Layers className="h-4 w-4 text-cyan-600" />
             <span>五模全景画廊</span>
-            <span className="rounded-sm bg-cyan-500/20 px-2 py-0.5 text-[10px] font-mono text-cyan-300">5</span>
+            <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-mono text-cyan-800">5</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("battle")}
             className={cn(
-              "flex items-center gap-2 rounded-sm px-4 py-2 text-xs md:text-sm font-medium transition-all cursor-pointer",
+              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-medium transition-all cursor-pointer",
               activeTab === "battle"
-                ? "bg-amber-500/20 border border-amber-500/40 text-amber-200"
-                : "text-slate-400 hover:text-white"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
             )}
           >
-            <Shuffle className="h-4 w-4 text-amber-400" />
+            <Shuffle className="h-4 w-4 text-amber-600" />
             <span>双模盲测对决</span>
-            <span className="rounded-sm bg-amber-500/20 px-2 py-0.5 text-[10px] font-mono text-amber-300">PK</span>
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-mono text-amber-800">PK</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("specs")}
             className={cn(
-              "flex items-center gap-2 rounded-sm px-4 py-2 text-xs md:text-sm font-medium transition-all cursor-pointer",
+              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-medium transition-all cursor-pointer",
               activeTab === "specs"
-                ? "bg-purple-500/20 border border-purple-500/40 text-purple-200"
-                : "text-slate-400 hover:text-white"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
             )}
           >
-            <Award className="h-4 w-4 text-purple-400" />
+            <Award className="h-4 w-4 text-purple-600" />
             <span>技术指标横评</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
           <span>打分数据实时保存在本地浏览器</span>
         </div>
       </div>
@@ -314,18 +314,18 @@ export function PelicanArena() {
             return (
               <div
                 key={model.id}
-                className="arch-frame group flex flex-col bg-[#060a14] hover:border-cyan-500/40 transition-all duration-300 overflow-hidden"
+                className="group flex flex-col rounded-[26px] border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 overflow-hidden"
               >
                 {/* 顶部标题栏 */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#04060b]/80">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl" title={model.countryName}>{model.flag}</span>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-bold text-white text-sm">{model.name}</h3>
-                        <span className="text-[10px] font-mono text-slate-400">({model.country})</span>
+                        <h3 className="font-bold text-slate-800 text-sm">{model.name}</h3>
+                        <span className="text-[10px] font-mono text-slate-500">({model.country})</span>
                       </div>
-                      <p className="text-[11px] text-slate-400 truncate max-w-[170px]">{model.provider}</p>
+                      <p className="text-[11px] text-slate-500 truncate max-w-[170px]">{model.provider}</p>
                     </div>
                   </div>
 
@@ -333,7 +333,7 @@ export function PelicanArena() {
                     <button
                       type="button"
                       onClick={() => setFullscreenModel(model)}
-                      className="p-1.5 rounded-sm text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
                       title="放大预览"
                     >
                       <Maximize2 className="h-4 w-4" />
@@ -342,7 +342,7 @@ export function PelicanArena() {
                       href={model.src}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 rounded-sm text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/15 transition-colors"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-700 hover:bg-cyan-50 transition-colors"
                       title="在新窗口打开独立 HTML"
                     >
                       <ExternalLink className="h-4 w-4" />
@@ -351,7 +351,7 @@ export function PelicanArena() {
                 </div>
 
                 {/* 实时动画沙箱容器 */}
-                <div className="relative aspect-[4/3] w-full bg-[#04060b] overflow-hidden border-b border-white/10">
+                <div className="relative aspect-[4/3] w-full bg-slate-900/5 overflow-hidden border-b border-slate-100">
                   <iframe
                     src={model.src}
                     title={`${model.name} - 鹈鹕骑车`}
@@ -362,10 +362,10 @@ export function PelicanArena() {
                   {/* 点击覆盖层：点击直接打开大图 */}
                   <div
                     onClick={() => setFullscreenModel(model)}
-                    className="absolute inset-0 bg-transparent hover:bg-black/25 transition-colors cursor-pointer flex items-center justify-center group/btn"
+                    className="absolute inset-0 bg-transparent hover:bg-black/10 transition-colors cursor-pointer flex items-center justify-center group/btn"
                   >
-                    <span className="opacity-0 group-hover/btn:opacity-100 px-3 py-1.5 rounded-sm border border-cyan-500/40 bg-[#060a14]/90 text-cyan-200 text-xs font-medium backdrop-blur-sm transition-opacity flex items-center gap-1.5">
-                      <Maximize2 className="h-3.5 w-3.5 text-cyan-400" />
+                    <span className="opacity-0 group-hover/btn:opacity-100 px-3 py-1.5 rounded-full bg-white/90 text-slate-800 text-xs font-medium shadow-md backdrop-blur-sm transition-opacity flex items-center gap-1.5">
+                      <Maximize2 className="h-3.5 w-3.5 text-cyan-600" />
                       全屏大赏
                     </span>
                   </div>
@@ -378,22 +378,22 @@ export function PelicanArena() {
                       {model.features.map((f, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 rounded-sm border border-white/10 bg-white/[0.04] text-[10px] font-medium text-slate-300"
+                          className="px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-medium text-slate-600"
                         >
                           {f}
                         </span>
                       ))}
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed">
+                    <p className="text-xs text-slate-600 leading-relaxed">
                       {model.critique}
                     </p>
                   </div>
 
                   {/* 趣味勋章互动 */}
-                  <div className="pt-3 border-t border-white/10 space-y-2">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                  <div className="pt-3 border-t border-slate-100 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
                       <span>趣味打分</span>
-                      <span className="font-mono text-[10px] text-slate-500">已获得 {totalVotes} 票</span>
+                      <span className="font-mono text-[10px] text-slate-400">已获得 {totalVotes} 票</span>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
                       {FUN_TAGS.map((tag) => {
@@ -405,15 +405,15 @@ export function PelicanArena() {
                             type="button"
                             onClick={() => handleVoteTag(model.id, tag.id)}
                             className={cn(
-                              "flex items-center justify-between px-2.5 py-1.5 rounded-sm border border-white/10 text-[11px] font-medium transition-all hover:border-cyan-500/40 active:scale-[0.98] cursor-pointer",
-                              count > 0 ? "bg-white/[0.06] text-white font-semibold" : "bg-[#04060b] text-slate-400 hover:text-white"
+                              "flex items-center justify-between px-2.5 py-1.5 rounded-xl border border-slate-200/70 text-[11px] font-medium transition-all hover:border-slate-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer",
+                              count > 0 ? "bg-slate-50 text-slate-800 font-semibold" : "text-slate-600"
                             )}
                           >
                             <span className="flex items-center gap-1.5">
-                              <Icon className="h-3.5 w-3.5 text-slate-400" />
+                              <Icon className="h-3.5 w-3.5 text-slate-500" />
                               <span>{tag.label}</span>
                             </span>
-                            <span className="font-mono text-[10px] text-cyan-400">{count}</span>
+                            <span className="font-mono text-[10px] text-slate-400">{count}</span>
                           </button>
                         );
                       })}
@@ -429,14 +429,14 @@ export function PelicanArena() {
       {/* 视图二：双模盲测对决 */}
       {activeTab === "battle" && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-sm bg-amber-500/10 border border-amber-500/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-amber-500 text-slate-950 font-bold">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-white font-bold shadow-sm">
                 <Shuffle className="h-5 w-5" />
               </span>
               <div>
-                <h3 className="font-bold text-amber-200 text-sm">盲测规则 (Blind Test)</h3>
-                <p className="text-xs text-amber-300/80">
+                <h3 className="font-bold text-amber-900 text-sm">盲测规则 (Blind Test)</h3>
+                <p className="text-xs text-amber-700">
                   双模名称已隐去。请只看动效与画风，选出你心中最优秀的鹈鹕，投票后立即翻牌揭晓！
                 </p>
               </div>
@@ -445,7 +445,7 @@ export function PelicanArena() {
             <button
               type="button"
               onClick={pickNewBattle}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-sm bg-[#04060b] border border-amber-500/40 text-xs font-semibold text-amber-200 hover:bg-amber-500/15 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white border border-amber-300 text-xs font-semibold text-amber-900 shadow-xs hover:bg-amber-50 cursor-pointer"
             >
               <RotateCw className="h-3.5 w-3.5" />
               <span>换一组对决</span>
@@ -461,27 +461,27 @@ export function PelicanArena() {
                 <div
                   key={model.id + idx}
                   className={cn(
-                    "arch-frame flex flex-col bg-[#060a14] overflow-hidden transition-all duration-500",
-                    isSelected ? "ring-1 ring-cyan-500 border-cyan-500/70" : "border-white/10"
+                    "flex flex-col rounded-[28px] border bg-white shadow-sm overflow-hidden transition-all duration-500",
+                    isSelected ? "ring-2 ring-cyan-500 border-cyan-500 shadow-lg" : "border-slate-200"
                   )}
                 >
                   {/* 对决顶部 */}
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#04060b]">
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-sm border border-cyan-500/40 bg-cyan-500/15 text-cyan-200 font-mono text-xs font-bold">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white font-mono text-xs font-bold">
                         {idx === 0 ? "A" : "B"}
                       </span>
                       <div>
                         {revealed ? (
                           <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
                             <span className="text-lg">{model.flag}</span>
-                            <span className="font-bold text-white text-sm">{model.name}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-sm border border-cyan-500/30 bg-cyan-500/15 text-cyan-300 font-medium">
+                            <span className="font-bold text-slate-800 text-sm">{model.name}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-100 text-cyan-800 font-medium">
                               {model.countryName}
                             </span>
                           </div>
                         ) : (
-                          <span className="font-bold text-slate-200 text-sm">神秘模型 {label}</span>
+                          <span className="font-bold text-slate-700 text-sm">神秘模型 {label}</span>
                         )}
                       </div>
                     </div>
@@ -492,7 +492,7 @@ export function PelicanArena() {
                           href={model.src}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-cyan-400 hover:underline flex items-center gap-1"
+                          className="text-xs text-cyan-600 hover:underline flex items-center gap-1"
                         >
                           <span>查看源码</span>
                           <ExternalLink className="h-3 w-3" />
@@ -502,7 +502,7 @@ export function PelicanArena() {
                   </div>
 
                   {/* 动画舞台 */}
-                  <div className="relative aspect-[4/3] w-full bg-[#04060b]">
+                  <div className="relative aspect-[4/3] w-full bg-slate-900/5">
                     <iframe
                       src={model.src}
                       title={`盲测 ${label}`}
@@ -515,16 +515,16 @@ export function PelicanArena() {
                   <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                     {revealed ? (
                       <div className="space-y-3 animate-in fade-in zoom-in-95">
-                        <div className="p-3.5 rounded-sm bg-[#04060b] border border-white/10 space-y-1.5">
+                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-semibold text-white">{model.provider}</span>
-                            <span className="font-mono text-slate-400">{model.lines} 行代码 · {model.sizeKB} KB</span>
+                            <span className="font-semibold text-slate-700">{model.provider}</span>
+                            <span className="font-mono text-slate-500">{model.lines} 行代码 · {model.sizeKB} KB</span>
                           </div>
-                          <p className="text-xs text-slate-300">{model.critique}</p>
+                          <p className="text-xs text-slate-600">{model.critique}</p>
                         </div>
-                        <div className="flex items-center justify-between text-xs text-slate-400 px-1">
+                        <div className="flex items-center justify-between text-xs text-slate-500 px-1">
                           <span>累计盲测得票</span>
-                          <span className="font-mono font-bold text-cyan-300">{battleStats[model.id] || 0} 票</span>
+                          <span className="font-mono font-bold text-slate-800">{battleStats[model.id] || 0} 票</span>
                         </div>
                       </div>
                     ) : (
@@ -538,12 +538,12 @@ export function PelicanArena() {
                       disabled={revealed}
                       onClick={() => handleVoteBattle(model.id)}
                       className={cn(
-                        "w-full py-3 px-4 rounded-sm font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer",
+                        "w-full py-3 px-4 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer",
                         revealed
                           ? isSelected
-                            ? "bg-cyan-600 text-white font-semibold"
-                            : "bg-white/[0.04] border border-white/10 text-slate-500 cursor-not-allowed"
-                          : "border border-cyan-500/40 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-200"
+                            ? "bg-cyan-600 text-white font-semibold shadow-md"
+                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                          : "bg-slate-900 hover:bg-cyan-600 text-white shadow-sm hover:shadow"
                       )}
                     >
                       <Trophy className="h-4 w-4" />
@@ -559,17 +559,17 @@ export function PelicanArena() {
 
       {/* 视图三：技术参数横评 */}
       {activeTab === "specs" && (
-        <div className="arch-frame overflow-hidden bg-[#060a14] shadow-2xl">
-          <div className="p-6 border-b border-white/10 bg-[#04060b]/80">
-            <h3 className="font-mono text-sm font-bold uppercase tracking-wider text-white">5 大模型 SVG 动画实现机制横向对比</h3>
-            <p className="text-xs text-slate-400 mt-1">
+        <div className="overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-sm">
+          <div className="p-6 border-b border-slate-100 bg-slate-50">
+            <h3 className="text-base font-bold text-slate-800">5 大模型 SVG 动画实现机制横向对比</h3>
+            <p className="text-xs text-slate-500 mt-1">
               通过统一提示词提取的代码指标、动效方案与风格流派对比
             </p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-[#04060b] text-slate-400 font-mono text-[11px] uppercase border-b border-white/10">
+              <thead className="bg-slate-100/75 text-slate-600 font-mono text-[11px] uppercase border-b border-slate-200">
                 <tr>
                   <th className="px-5 py-3.5">模型名称</th>
                   <th className="px-5 py-3.5">阵营</th>
@@ -580,31 +580,31 @@ export function PelicanArena() {
                   <th className="px-5 py-3.5 text-right">独立作品</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10 text-slate-300">
+              <tbody className="divide-y divide-slate-100 text-slate-700">
                 {MODELS.map((m) => (
-                  <tr key={m.id} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="px-5 py-4 font-semibold text-white flex items-center gap-2">
+                  <tr key={m.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="px-5 py-4 font-semibold text-slate-900 flex items-center gap-2">
                       <span>{m.flag}</span>
                       <span>{m.name}</span>
                     </td>
                     <td className="px-5 py-4">
                       <span className={cn(
-                        "px-2 py-0.5 rounded-sm text-[10px] font-semibold",
-                        m.country === "CN" ? "bg-rose-500/15 text-rose-300 border border-rose-500/30" : "bg-blue-500/15 text-blue-300 border border-blue-500/30"
+                        "px-2 py-0.5 rounded-full text-[10px] font-semibold",
+                        m.country === "CN" ? "bg-red-50 text-red-700 border border-red-200/60" : "bg-blue-50 text-blue-700 border border-blue-200/60"
                       )}>
                         {m.countryName}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-mono font-medium text-cyan-300">{m.lines} 行</td>
-                    <td className="px-5 py-4 font-mono text-slate-400">{m.sizeKB} KB</td>
-                    <td className="px-5 py-4 text-xs text-slate-200">{m.defaultBadge}</td>
-                    <td className="px-5 py-4 text-xs text-slate-400 max-w-xs">{m.critique}</td>
+                    <td className="px-5 py-4 font-mono font-medium">{m.lines} 行</td>
+                    <td className="px-5 py-4 font-mono text-slate-500">{m.sizeKB} KB</td>
+                    <td className="px-5 py-4 text-xs">{m.defaultBadge}</td>
+                    <td className="px-5 py-4 text-xs text-slate-500 max-w-xs">{m.critique}</td>
                     <td className="px-5 py-4 text-right">
                       <a
                         href={m.src}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 font-medium hover:underline"
+                        className="inline-flex items-center gap-1 text-xs text-cyan-600 hover:text-cyan-800 font-medium hover:underline"
                       >
                         <span>预览</span>
                         <ExternalLink className="h-3 w-3" />
@@ -620,18 +620,18 @@ export function PelicanArena() {
 
       {/* 全屏放大 Modal 弹层 */}
       {fullscreenModel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020409]/85 backdrop-blur-md p-4 sm:p-6 animate-in fade-in duration-200">
-          <div className="arch-frame relative flex flex-col w-full max-w-5xl h-[88vh] border-white/15 bg-[#060a14] shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="relative flex flex-col w-full max-w-5xl h-[88vh] rounded-3xl bg-white shadow-2xl overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#04060b]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{fullscreenModel.flag}</span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-white text-base">{fullscreenModel.name}</h3>
-                    <span className="text-xs text-slate-400">· {fullscreenModel.title}</span>
+                    <h3 className="font-bold text-slate-900 text-base">{fullscreenModel.name}</h3>
+                    <span className="text-xs text-slate-500">· {fullscreenModel.title}</span>
                   </div>
-                  <p className="text-xs text-slate-400">{fullscreenModel.provider}</p>
+                  <p className="text-xs text-slate-500">{fullscreenModel.provider}</p>
                 </div>
               </div>
 
@@ -640,7 +640,7 @@ export function PelicanArena() {
                   href={fullscreenModel.src}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-sm text-slate-400 hover:text-white hover:bg-white/10 transition-colors text-xs flex items-center gap-1.5"
+                  className="p-2 rounded-xl text-slate-500 hover:bg-slate-200/70 transition-colors text-xs flex items-center gap-1.5"
                 >
                   <ExternalLink className="h-4 w-4" />
                   <span className="hidden sm:inline">新窗口打开</span>
@@ -648,7 +648,7 @@ export function PelicanArena() {
                 <button
                   type="button"
                   onClick={() => setFullscreenModel(null)}
-                  className="p-2 rounded-sm text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-2 rounded-xl text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -656,7 +656,7 @@ export function PelicanArena() {
             </div>
 
             {/* Modal Content - Iframe */}
-            <div className="flex-1 w-full bg-[#04060b] relative">
+            <div className="flex-1 w-full bg-slate-950/5 relative">
               <iframe
                 src={fullscreenModel.src}
                 title={`${fullscreenModel.name} 全屏演示`}
@@ -666,8 +666,8 @@ export function PelicanArena() {
             </div>
 
             {/* Modal Footer - 切换按钮 */}
-            <div className="flex items-center justify-between px-6 py-3 border-t border-white/10 bg-[#04060b] text-xs">
-              <span className="text-slate-400 hidden sm:inline">
+            <div className="flex items-center justify-between px-6 py-3 border-t border-slate-200 bg-white text-xs">
+              <span className="text-slate-500 hidden sm:inline">
                 支持在弹窗内直接切换其他模型效果：
               </span>
               <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
@@ -677,10 +677,10 @@ export function PelicanArena() {
                     type="button"
                     onClick={() => setFullscreenModel(m)}
                     className={cn(
-                      "px-3 py-1.5 rounded-sm font-medium transition-all text-xs shrink-0 cursor-pointer",
+                      "px-3 py-1.5 rounded-lg font-medium transition-all text-xs shrink-0 cursor-pointer",
                       m.id === fullscreenModel.id
-                        ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 font-semibold"
-                        : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10"
+                        ? "bg-slate-900 text-white font-semibold"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     )}
                   >
                     {m.flag} {m.name}

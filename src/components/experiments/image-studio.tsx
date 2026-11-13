@@ -291,20 +291,20 @@ export function ImageStudio() {
     <div className="w-full">
       {/* 左右对齐双栏工作台：采用同一高度弹性栅格，彻底避免左长右短 */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* 左侧：控制面板 */}
-        <div className="arch-frame lg:col-span-5 flex flex-col justify-between bg-[#060a14] p-5 sm:p-6 shadow-2xl space-y-4">
+        {/* 左侧：控制面板（统一在同一个现代玻璃态卡片中） */}
+        <div className="lg:col-span-5 flex flex-col justify-between rounded-3xl border border-slate-900/10 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow backdrop-blur-xl space-y-4">
           <div className="space-y-4">
             {/* 提示词输入区 */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="font-mono text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                  <Wand2 className="w-3.5 h-3.5 text-purple-400" />
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Wand2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   <span>画面描述 (Prompt)</span>
                 </label>
                 <button
                   type="button"
                   onClick={pickRandomInspiration}
-                  className="text-xs text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
+                  className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
                 >
                   <Sparkles className="w-3 h-3" />
                   <span>随机灵感</span>
@@ -318,22 +318,22 @@ export function ImageStudio() {
                   placeholder="输入你想生成的画面场景，例如：赛博雨夜街头、白衣仙侠长老、深空星环巡洋舰..."
                   rows={3}
                   maxLength={1000}
-                  className="w-full px-3.5 py-2.5 text-sm rounded-sm bg-[#04060b] border border-white/10 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/40 transition-all resize-none leading-relaxed"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-2xl bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all resize-none shadow-2xs leading-relaxed"
                 />
-                <div className="absolute right-3 bottom-2.5 text-[10px] text-slate-500 font-mono">
+                <div className="absolute right-3 bottom-2.5 text-[10px] text-slate-400 dark:text-slate-600 font-mono">
                   {prompt.length}/1000
                 </div>
               </div>
 
               {/* 紧凑快捷灵感药丸 */}
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <span className="text-[10px] text-slate-500 font-medium">推荐:</span>
+                <span className="text-[10px] text-slate-400 font-medium">推荐:</span>
                 {["赛博雨夜", "戴森环", "白衣仙侠", "微距露珠", "水墨机甲"].map((kw, idx) => (
                   <button
                     key={kw}
                     type="button"
                     onClick={() => setPrompt(INSPIRATION_PROMPTS[idx])}
-                    className="text-[11px] px-2 py-0.5 rounded-sm bg-white/[0.04] hover:bg-purple-500/20 text-slate-300 hover:text-purple-200 border border-white/10 transition-colors cursor-pointer"
+                    className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/70 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-300 border border-slate-200/70 dark:border-slate-700/60 transition-colors cursor-pointer"
                   >
                     {kw}
                   </button>
@@ -343,8 +343,8 @@ export function ImageStudio() {
 
             {/* 艺术质感风格选择（紧凑 Pill 矩阵） */}
             <div className="space-y-1.5 pt-1">
-              <label className="font-mono text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-purple-400" />
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                 <span>艺术风格</span>
               </label>
               <div className="grid grid-cols-4 sm:grid-cols-4 gap-1.5">
@@ -353,10 +353,10 @@ export function ImageStudio() {
                     key={style.id}
                     type="button"
                     onClick={() => setSelectedStyle(style.id)}
-                    className={`px-2 py-1.5 rounded-sm border text-center transition-all cursor-pointer ${
+                    className={`px-2 py-1.5 rounded-xl border text-center transition-all cursor-pointer ${
                       selectedStyle === style.id
-                        ? "bg-purple-600 text-white border-purple-500 font-semibold"
-                        : "bg-[#04060b] border-white/10 text-slate-400 hover:text-white hover:border-white/25"
+                        ? "bg-purple-600 text-white border-purple-600 font-semibold shadow-xs"
+                        : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300"
                     }`}
                   >
                     <div className="text-xs leading-none">{style.name}</div>
@@ -369,8 +369,8 @@ export function ImageStudio() {
             <div className="grid grid-cols-2 gap-3 pt-1">
               {/* 画幅比例 */}
               <div className="space-y-1.5">
-                <label className="font-mono text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-purple-400" />
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   <span>画幅尺寸</span>
                 </label>
                 <div className="grid grid-cols-5 gap-1">
@@ -379,10 +379,10 @@ export function ImageStudio() {
                       key={ratio.id}
                       type="button"
                       onClick={() => setSelectedRatio(ratio.id)}
-                      className={`py-1.5 text-center rounded-sm border transition-all cursor-pointer ${
+                      className={`py-1.5 text-center rounded-lg border transition-all cursor-pointer ${
                         selectedRatio === ratio.id
-                          ? "bg-purple-600 text-white border-purple-500 font-bold text-xs"
-                          : "bg-[#04060b] border-white/10 text-slate-400 hover:border-white/25 hover:text-white text-xs"
+                          ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
+                          : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
                       }`}
                     >
                       {ratio.label}
@@ -393,18 +393,18 @@ export function ImageStudio() {
 
               {/* 调度通道策略 */}
               <div className="space-y-1.5">
-                <label className="font-mono text-xs font-bold text-slate-200 flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <Cpu className="w-3.5 h-3.5 text-purple-400" />
+                    <Cpu className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                     <span>调度引擎</span>
                   </span>
                   <button
                     type="button"
                     onClick={() => setShowConfigModal(true)}
-                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded-sm flex items-center gap-1 transition-all cursor-pointer ${
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1 transition-all cursor-pointer ${
                       balancerStatus.cloudflareConfigured
-                        ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
-                        : "bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 font-bold animate-pulse"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-bold animate-pulse"
                     }`}
                     title="点击配置 / 激活 Cloudflare 凭据"
                   >
@@ -419,10 +419,10 @@ export function ImageStudio() {
                       setSelectedProvider("gemini");
                       setErrorMsg("");
                     }}
-                    className={`py-1 text-center rounded-sm border transition-all cursor-pointer ${
+                    className={`py-1 text-center rounded-lg border transition-all cursor-pointer ${
                       selectedProvider === "gemini"
-                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-500 font-bold text-xs"
-                        : "bg-purple-500/10 border-purple-500/30 text-purple-300 hover:border-purple-400 text-xs"
+                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-600 font-bold shadow-xs text-xs"
+                        : "bg-purple-50/60 dark:bg-purple-950/30 border-purple-200/80 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:border-purple-300 text-xs"
                     }`}
                     title="本站 AI 专线 (Gemini Imagen 3)"
                   >
@@ -435,10 +435,10 @@ export function ImageStudio() {
                       setSelectedProvider("auto");
                       setErrorMsg("");
                     }}
-                    className={`py-1 text-center rounded-sm border transition-all cursor-pointer ${
+                    className={`py-1 text-center rounded-lg border transition-all cursor-pointer ${
                       selectedProvider === "auto"
-                        ? "bg-purple-600 text-white border-purple-500 font-bold text-xs"
-                        : "bg-[#04060b] border-white/10 text-slate-400 hover:border-white/25 hover:text-white text-xs"
+                        ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
+                        : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
                     }`}
                   >
                     智能均衡
@@ -452,12 +452,12 @@ export function ImageStudio() {
                       }
                       setSelectedProvider("cloudflare");
                     }}
-                    className={`py-1 text-center rounded-sm border transition-all cursor-pointer ${
+                    className={`py-1 text-center rounded-lg border transition-all cursor-pointer ${
                       selectedProvider === "cloudflare"
-                        ? "bg-purple-600 text-white border-purple-500 font-bold text-xs"
+                        ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
                         : !balancerStatus.cloudflareConfigured
-                        ? "bg-amber-500/10 border-amber-500/40 text-amber-300 text-xs"
-                        : "bg-[#04060b] border-white/10 text-slate-400 hover:border-white/25 hover:text-white text-xs"
+                        ? "bg-amber-500/5 border-amber-300 dark:border-amber-800/60 text-amber-600 dark:text-amber-400 text-xs"
+                        : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
                     }`}
                     title={balancerStatus.cloudflareConfigured ? "使用 Cloudflare 极速生成" : "点击一键激活 CF 专属凭据"}
                   >
@@ -470,10 +470,10 @@ export function ImageStudio() {
                       setSelectedProvider("pollinations");
                       setErrorMsg("");
                     }}
-                    className={`py-1 text-center rounded-sm border transition-all cursor-pointer ${
+                    className={`py-1 text-center rounded-lg border transition-all cursor-pointer ${
                       selectedProvider === "pollinations"
-                        ? "bg-purple-600 text-white border-purple-500 font-bold text-xs"
-                        : "bg-[#04060b] border-white/10 text-slate-400 hover:border-white/25 hover:text-white text-xs"
+                        ? "bg-purple-600 text-white border-purple-600 font-bold shadow-xs text-xs"
+                        : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 text-xs"
                     }`}
                   >
                     仅 FLUX
@@ -483,25 +483,25 @@ export function ImageStudio() {
             </div>
 
             {/* 每日配额与权限规则 */}
-            <div className="p-2.5 rounded-sm bg-purple-500/10 border border-purple-500/25 flex items-center justify-between gap-2 text-xs">
-              <span className="flex items-center gap-1.5 text-purple-200 text-[11px]">
-                <ShieldCheck className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+            <div className="p-2.5 rounded-2xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-800/40 flex items-center justify-between gap-2 text-xs">
+              <span className="flex items-center gap-1.5 text-purple-800 dark:text-purple-300 text-[11px]">
+                <ShieldCheck className="w-3.5 h-3.5 text-purple-500 shrink-0" />
                 <span>每日生成配额：每人每日 3 张（超管 chen 享有不限量特权）</span>
               </span>
-              <span className="text-[10px] text-purple-300 font-mono font-medium shrink-0">0点重置</span>
+              <span className="text-[10px] text-purple-600 dark:text-purple-400 font-mono font-medium shrink-0">0点重置</span>
             </div>
 
             {/* 当服务端尚未就绪时显示轻量激活浮条 */}
             {!balancerStatus.cloudflareConfigured && (
-              <div className="p-2.5 rounded-sm bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2 text-xs">
-                <span className="flex items-center gap-1.5 text-amber-200 text-[11px]">
-                  <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2 text-xs">
+                <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 text-[11px]">
+                  <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <span>已预填您的 Cloudflare 凭证，点击一键激活</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowConfigModal(true)}
-                  className="px-2.5 py-1 rounded-sm bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] shrink-0 cursor-pointer transition-colors"
+                  className="px-2.5 py-1 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] shrink-0 cursor-pointer shadow-xs transition-colors"
                 >
                   一键激活
                 </button>
@@ -512,8 +512,8 @@ export function ImageStudio() {
           {/* 底部：错误提示与提交生成按钮 */}
           <div className="space-y-3 pt-2">
             {errorMsg && (
-              <div className="p-3 rounded-sm bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                 <span className="leading-snug">{errorMsg}</span>
               </div>
             )}
@@ -522,10 +522,10 @@ export function ImageStudio() {
               type="button"
               disabled={isGenerating || !prompt.trim()}
               onClick={() => void handleGenerate()}
-              className={`w-full py-3.5 px-6 rounded-sm font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+              className={`w-full py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all ${
                 isGenerating || !prompt.trim()
-                  ? "bg-white/[0.04] border border-white/10 text-slate-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:via-indigo-500 hover:to-pink-500 text-white shadow-lg shadow-purple-500/20 cursor-pointer active:scale-[0.99]"
+                  ? "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                  : "bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:via-indigo-500 hover:to-pink-500 text-white shadow-purple-500/20 hover:shadow-purple-500/30 cursor-pointer active:scale-[0.99]"
               }`}
             >
               {isGenerating ? (
@@ -544,7 +544,7 @@ export function ImageStudio() {
         </div>
 
         {/* 右侧：画布监视与画廊输出区（高度与左侧完全对齐） */}
-        <div className="arch-frame lg:col-span-7 flex flex-col justify-between bg-[#060a14] p-5 sm:p-6 shadow-2xl">
+        <div className="lg:col-span-7 flex flex-col justify-between rounded-3xl border border-slate-900/10 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow backdrop-blur-xl">
           {/* 核心画布展示区 */}
           <div className="relative flex-1 min-h-[360px] sm:min-h-[420px] rounded-2xl bg-slate-950/90 border border-slate-900/20 flex flex-col justify-center items-center overflow-hidden p-3">
             {isGenerating ? (
@@ -649,12 +649,12 @@ export function ImageStudio() {
             )}
           </div>
 
-          {/* 会话历史缩略条 */}
+          {/* 会话历史缩略条（位于卡片最底部，紧凑优雅） */}
           {history.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-white/10">
-              <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2 font-medium">
+            <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 mb-2 font-medium">
                 <span className="flex items-center gap-1">
-                  <History className="w-3.5 h-3.5 text-purple-400" />
+                  <History className="w-3.5 h-3.5 text-purple-500" />
                   <span>最近生成 ({history.length})</span>
                 </span>
                 <span className="text-[10px]">点击切换比对</span>
@@ -665,10 +665,10 @@ export function ImageStudio() {
                     key={item.id}
                     type="button"
                     onClick={() => setCurrentResult(item)}
-                    className={`relative shrink-0 w-12 h-12 rounded-sm overflow-hidden border transition-all cursor-pointer ${
+                    className={`relative shrink-0 w-12 h-12 rounded-xl overflow-hidden border transition-all cursor-pointer ${
                       currentResult?.id === item.id
-                        ? "border-purple-500 ring-1 ring-purple-500/50 scale-105"
-                        : "border-white/10 hover:border-purple-400 opacity-80 hover:opacity-100"
+                        ? "border-purple-600 ring-2 ring-purple-500/40 scale-105"
+                        : "border-slate-200 dark:border-slate-800 hover:border-purple-400 opacity-80 hover:opacity-100"
                     }`}
                   >
                     <Image
@@ -708,7 +708,7 @@ export function ImageStudio() {
                 alt="AI Art Preview"
                 fill
                 unoptimized
-                className="object-contain rounded-sm shadow-2xl"
+                className="object-contain rounded-2xl shadow-2xl"
               />
             </div>
           </div>
@@ -720,27 +720,27 @@ export function ImageStudio() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-[#020409]/85 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => setShowConfigModal(false)}
         >
           <div
-            className="arch-frame relative max-w-md w-full bg-[#060a14] border-white/15 p-6 shadow-2xl space-y-4 text-slate-100"
+            className="relative max-w-md w-full rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4 text-slate-900 dark:text-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-sm border border-purple-500/30 bg-purple-500/15 text-purple-300">
+                <div className="p-2.5 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
                   <Key className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Cloudflare Workers AI 凭证</h3>
+                  <h3 className="text-sm font-bold">Cloudflare Workers AI 凭证</h3>
                   <p className="text-[11px] text-slate-400">接入 FLUX.1 Schnell 极速出图引擎</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowConfigModal(false)}
-                className="p-1.5 rounded-sm border border-white/10 bg-[#04060b] text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -748,7 +748,7 @@ export function ImageStudio() {
 
             <div className="space-y-3.5">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                   Account ID
                 </label>
                 <input
@@ -756,12 +756,12 @@ export function ImageStudio() {
                   value={cfAccountId}
                   onChange={(e) => setCfAccountId(e.target.value)}
                   placeholder="例如: 812d4f91a75d..."
-                  className="w-full px-3.5 py-2 text-xs rounded-sm bg-[#04060b] border border-white/10 font-mono text-slate-200 focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                   API Token
                 </label>
                 <div className="relative">
@@ -770,20 +770,20 @@ export function ImageStudio() {
                     value={cfApiToken}
                     onChange={(e) => setCfApiToken(e.target.value)}
                     placeholder="输入 Cloudflare Workers AI Token (例如: cfut_...)"
-                    className="w-full px-3.5 py-2 pr-9 text-xs rounded-sm bg-[#04060b] border border-white/10 font-mono text-slate-200 focus:outline-none focus:border-purple-500"
+                    className="w-full px-3.5 py-2 pr-9 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowToken(!showToken)}
-                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-200 cursor-pointer"
+                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                   >
                     {showToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-sm bg-purple-500/10 border border-purple-500/25 text-[11px] text-slate-300 space-y-1 leading-relaxed">
-                <div className="flex items-center gap-1.5 font-medium text-purple-300">
+              <div className="p-3.5 rounded-2xl bg-purple-500/5 border border-purple-500/10 text-[11px] text-slate-500 dark:text-slate-400 space-y-1 leading-relaxed">
+                <div className="flex items-center gap-1.5 font-medium text-purple-600 dark:text-purple-400">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>零终端交互 · 安全写入服务器运行时</span>
                 </div>
@@ -793,18 +793,18 @@ export function ImageStudio() {
               </div>
 
               {saveSuccessMsg && (
-                <div className="p-2.5 rounded-sm bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" />
                   <span>{saveSuccessMsg}</span>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setShowConfigModal(false)}
-                className="px-3.5 py-2 rounded-sm border border-white/10 bg-[#04060b] text-xs text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 取消
               </button>
@@ -812,7 +812,7 @@ export function ImageStudio() {
                 type="button"
                 disabled={isSavingCreds}
                 onClick={() => void handleSaveCredentials()}
-                className="px-4 py-2 rounded-sm text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
               >
                 {isSavingCreds ? (
                   <>

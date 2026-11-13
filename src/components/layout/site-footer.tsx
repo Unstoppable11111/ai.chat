@@ -1,158 +1,68 @@
 import Link from "next/link";
-import { ArrowUpRight, Mail, Terminal, Cpu, Globe2 } from "lucide-react";
+import { Sparkles, ArrowUpRight, Mail } from "lucide-react";
 import { navigation } from "@/data/site";
-
-const CORE_SYSTEMS = [
-  { label: "JARVIS 智能助手", href: "/chat", code: "SYS_01" },
-  { label: "小说 & 分镜工作流", href: "/workflow", code: "SYS_02" },
-  { label: "A股量化投研竞技场", href: "/market", code: "SYS_03" },
-  { label: "RAG 深度技术白皮书", href: "/build-log", code: "SYS_04" },
-];
-
-const LAB_DIRECTORY = [
-  { label: "天纪 · 紫微斗数", href: "/experiments/ziwei" },
-  { label: "AI 创意生图工坊", href: "/experiments/image-studio" },
-  { label: "上帝之眼 3D 遥感", href: "/experiments/gods-eye" },
-  { label: "霓虹流体物理画布", href: "/experiments/fluid" },
-  { label: "赛博黑客终端 OS", href: "/experiments/cyber-hack" },
-  { label: "手势多模态空间", href: "/gesture" },
-];
 
 export function SiteFooter() {
   return (
-    <footer className="relative border-t border-white/10 bg-[#04060b] text-slate-300 overflow-hidden">
-      {/* Top Blueprint Grid Line Overlay */}
-      <div className="container-shell py-14 md:py-18 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-white/[0.08]">
-          {/* Col 1: Studio Identity (5 cols) */}
-          <div className="md:col-span-5 space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-md border border-cyan-500/35 bg-cyan-950/35 px-3 py-1 text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
-              <span>ALL SYSTEMS OPERATIONAL // NODE SHENZHEN</span>
+    <footer className="relative border-t border-slate-900/8 bg-white/75 backdrop-blur-sm">
+      <div className="container-shell py-12 md:py-16">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-brand-cyan/25 bg-brand-cyan/8 px-3 py-1 text-[11px] font-mono font-semibold text-brand-cyan mb-4">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+              </span>
+              <Sparkles className="h-3 w-3" />
+              <span>STUDIO v3.0 · ALL SYSTEMS OPERATIONAL // 2026</span>
             </div>
-
-            <div>
-              <p className="text-xl font-bold tracking-[0.14em] text-white font-mono">
-                CHEN TECH STUDIO
-              </p>
-              <p className="mt-2.5 max-w-md text-xs sm:text-sm leading-relaxed text-slate-400">
-                全栈 AI 工程、高精度 RAG 知识库引擎、A 股量化策略实验室与前沿 WebGL 交互作品归档基地。
-              </p>
+            <p className="text-base font-bold uppercase tracking-[0.22em] text-foreground/95">
+              CHEN TECH STUDIO
+            </p>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
+              一个个人技术展示与项目记录网站，用来整理网站开发、代码构建、视觉实验、工具资料和学习过程。
+            </p>
+            <a
+              href="mailto:chenyc0507@gmail.com"
+              className="group mt-4 inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white/80 px-4 py-1.5 text-xs font-mono font-medium text-brand-cyan shadow-2xs hover:border-brand-cyan/40 hover:bg-white hover:text-foreground"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              <span>chenyc0507@gmail.com</span>
+              <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          </div>
+          <div className="flex flex-col items-start gap-4 md:items-end">
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+              {navigation.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="relative py-0.5 hover:text-foreground after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-0 after:bg-brand-cyan after:transition-all after:duration-300 hover:after:w-full"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
-
-            <div className="flex flex-wrap items-center gap-3 pt-1">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2 md:justify-end">
               <a
-                href="mailto:chenyc0507@gmail.com"
-                className="group inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-3.5 py-2 text-xs font-mono text-cyan-300 hover:border-cyan-400/50 hover:bg-cyan-950/30 transition-all"
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors"
               >
-                <Mail className="h-3.5 w-3.5 text-cyan-400" />
-                <span>chenyc0507@gmail.com</span>
-                <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                粤ICP备2026053642号
+              </a>
+              <span className="opacity-40 hidden md:inline">|</span>
+              <a
+                href="https://beian.mps.gov.cn/#/query/webSearch?code=44030002012696"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-foreground transition-colors"
+              >
+                粤公网安备 44030002012696号
               </a>
             </div>
           </div>
-
-          {/* Col 2: Core Modules (3 cols) */}
-          <div className="md:col-span-3 space-y-4">
-            <p className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
-              <Cpu className="h-3.5 w-3.5 text-cyan-400" />
-              <span>CORE ENGINES</span>
-            </p>
-            <ul className="space-y-2.5 text-xs">
-              {CORE_SYSTEMS.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="group flex items-center justify-between border-b border-white/[0.05] pb-2 text-slate-300 hover:text-cyan-300 transition-colors"
-                  >
-                    <span>{item.label}</span>
-                    <span className="font-mono text-[10px] text-slate-500 group-hover:text-cyan-400">
-                      {item.code}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Col 3: Interactive Labs (2 cols) */}
-          <div className="md:col-span-2 space-y-4">
-            <p className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
-              <Terminal className="h-3.5 w-3.5 text-purple-400" />
-              <span>LAB MATRIX</span>
-            </p>
-            <ul className="space-y-2 text-xs">
-              {LAB_DIRECTORY.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="text-slate-400 hover:text-white transition-colors block py-0.5"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Col 4: Full Index (2 cols) */}
-          <div className="md:col-span-2 space-y-4">
-            <p className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
-              <Globe2 className="h-3.5 w-3.5 text-emerald-400" />
-              <span>DIRECTORY</span>
-            </p>
-            <ul className="grid grid-cols-2 md:grid-cols-1 gap-2 text-xs">
-              {navigation.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="text-slate-400 hover:text-cyan-300 transition-colors"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
-
-        {/* Bottom Architectural Colophon */}
-        <div className="pt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[11px] font-mono text-slate-500">
-          <div className="flex flex-wrap items-center gap-4">
-            <span>© {new Date().getFullYear()} CHEN TECH STUDIO</span>
-            <span className="text-white/15">|</span>
-            <Link href="/privacy" className="hover:text-slate-300 transition-colors">
-              PRIVACY POLICY
-            </Link>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <a
-              href="https://beian.miit.gov.cn/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-slate-300 transition-colors"
-            >
-              粤ICP备2026053642号
-            </a>
-            <span className="opacity-30">|</span>
-            <a
-              href="https://beian.mps.gov.cn/#/query/webSearch?code=44030002012696"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-slate-300 transition-colors"
-            >
-              粤公网安备 44030002012696号
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Architectural Watermark */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none select-none text-center font-mono text-[10vw] font-black tracking-tighter text-white/[0.02] leading-none pb-2"
-      >
-        CHEN.STUDIO.OS
       </div>
     </footer>
   );

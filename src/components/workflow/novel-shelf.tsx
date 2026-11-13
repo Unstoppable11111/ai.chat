@@ -82,14 +82,14 @@ export const NovelShelf = React.memo(function NovelShelf({
   };
 
   return (
-    <div className="arch-frame bg-[#060a14] p-5 shadow-2xl space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
+    <div className="rounded-3xl border border-slate-900/10 bg-white p-5 shadow-xs space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-sm border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700">
             <BookOpen className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-white">我的小说书架库</h2>
+            <h2 className="text-sm font-bold text-slate-900">我的小说书架库</h2>
             <p className="text-[11px] text-muted-foreground">
               已加载 {projects.length} 部小说
             </p>
@@ -122,8 +122,8 @@ export const NovelShelf = React.memo(function NovelShelf({
                 onClick={() => handleSelect(proj.id)}
                 className={`group relative flex flex-col justify-between rounded-2xl border p-2.5 transition-all cursor-pointer overflow-hidden ${
                   isSelected
-                    ? "border-cyan-500/70 bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.12)] ring-1 ring-cyan-500/30"
-                    : "border-white/10 bg-[#04060b]/80 hover:border-cyan-500/40 hover:bg-[#080d1a]"
+                    ? "border-cyan-500 bg-cyan-50/50 shadow-md ring-2 ring-cyan-500/20"
+                    : "border-slate-200/90 bg-white hover:border-cyan-400 hover:shadow-xs"
                 } ${isRunning ? "hover:border-amber-400" : ""}`}
               >
                 {/* 封面图区域 (添加异步解码、原生懒加载与网络异常平滑降级，彻底杜绝慢速外链与大图卡顿) */}
@@ -157,12 +157,12 @@ export const NovelShelf = React.memo(function NovelShelf({
                 {/* 底部信息 */}
                 <div className="pt-2 px-1 space-y-1">
                   <div className="flex items-center justify-between">
-                    <h3 className="truncate text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    <h3 className="truncate text-xs font-bold text-slate-900 group-hover:text-cyan-700 transition-colors">
                       {proj.title}
                     </h3>
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-slate-500">
-                    <span className="rounded-sm border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-slate-300">
+                    <span className="rounded bg-slate-100 px-1 py-0.2">
                       {proj.config.genre?.slice(0, 4) || "通用"}
                     </span>
                     <span className="flex items-center gap-0.5 text-muted-foreground">
@@ -176,12 +176,12 @@ export const NovelShelf = React.memo(function NovelShelf({
           })}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-10 text-center space-y-3 border border-dashed border-white/15 rounded-sm bg-[#04060b]/70">
-          <div className="flex h-10 w-10 items-center justify-center rounded-sm border border-cyan-500/30 bg-cyan-500/15 text-cyan-400">
+        <div className="flex flex-col items-center justify-center py-10 text-center space-y-3 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600">
             <Layers className="h-5 w-5" />
           </div>
           <div className="space-y-1 max-w-md">
-            <p className="text-xs font-bold text-white">暂无已归档小说</p>
+            <p className="text-xs font-bold text-slate-800">暂无已归档小说</p>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               在下方输入您的初始灵感并点击「启动工业化流水线」，流水线将全自动推演世界观细纲、逐章撰写正文与视频分镜，全部完成后将自动生成电影海报并入库书架。
             </p>

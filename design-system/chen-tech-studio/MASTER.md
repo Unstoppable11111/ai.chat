@@ -1,81 +1,40 @@
 # Design System Master File — Chen Tech Studio (v3.0)
 
-> **ARCHITECTURAL PARADIGM:** **Architectural Cyber-Editorial & Precision Telemetry OS**
-> Hybrid synthesis via `ui-ux-pro-max` combining:
-> - **#42 Swiss Modernism 2.0** (Exposed hairline grid `1px solid rgba(255,255,255,0.08)`, asymmetric split columns, structured indices)
-> - **#15 Bento Box Grid** (Asymmetric multi-span interactive telemetry & lab matrix)
-> - **#46 Sci-Fi HUD / FUI** (Monospace coordinate rails, corner crosshair markers `+`, status LEDs, signal dividers)
-> - **#28 Kinetic Typography** (High-contrast Pure White `#F8FAFC` / Obsidian Void `#04060B` architectural display hierarchy)
+> **ARCHITECTURAL PARADIGM:** **Luminous Editorial & Frosted Pearl Studio (v3.0)**
+> Refined Apple / Linear-inspired light-first studio architecture featuring:
+> - **Pearl-Alabaster Canvas (`#F4F7FB`)**: Airy light ground with zero-repaint static GPU radial light pools and architectural dot-matrix texture.
+> - **Specular Frosted Cards (`#FFFFFF`)**: High-opacity pearl surfaces with `inset 0 1px 0 rgba(255,255,255,0.98)` top specular highlights and layered slate shadows — preserving 120fps scroll performance without expensive per-card `backdrop-filter`.
+> - **Precision Selective Contrast**: Intentional deep-slate spotlight cards (e.g., `FeaturedExperiments`, flagship Bento tiles) and warm Oriental parchment (`#FDFBF7`) for `Ziwei Doushu`.
+> - **120fps GPU Motion Architecture**: Pure `opacity` + `translate3d` animations (`filter: blur(...)` forbidden on scroll), `requestAnimationFrame` DOM-ref mouse spotlights (zero React re-renders), and native OS hardware pointer latency.
 
 ---
 
 **Project:** Chen Tech Studio
-**Generated:** 2026-11-13
+**Version:** v3.0 (Luminous Pearl Edition)
 **Domain:** Full-Stack AI Engineering · RAG Knowledge Engine · A-Share Quant Research Arena · WebGL Labs · Industrial Storyboard Workflow
-**Design Dials:** Variance 9/10 (Bold / Asymmetric) | Motion 8/10 (Complex) | Density 6/10 (Precision Standard)
 
 ---
 
-## 1. Color & Surface Architecture
+## 1. Color & Surface Tokens
 
 | Role | Hex / Value | CSS Token | Usage |
 |------|-------------|-----------|-------|
-| Primary Void Canvas | `#04060B` | `--background` | Main Obsidian page ground |
-| Blueprint Slate | `#080C16` | `--background-muted` | Recessed sections & terminal wells |
-| Command Deck Surface | `#0C1222` | `--panel-strong` | Elevated Bento frames & modals |
-| Interactive Cell | `#111A2E` | `--panel-soft` | Active states & nested cards |
-| Primary Foreground | `#F8FAFC` | `--foreground` | Display headlines & high-contrast copy |
-| Technical Silver | `#94A3B8` | `--muted-foreground` | Secondary copy & descriptions |
-| Telemetry Slate | `#64748B` | `--telemetry` | Coordinates, timestamps, index rails |
-| Structural Hairline | `rgba(255,255,255,0.08)` | `--line` | Exposed architectural 1px grid rules |
-| Signal Border | `rgba(0,240,255,0.36)` | `--line-strong` | Active / focused frame borders |
-| Primary Signal (Cyan) | `#00F0FF` | `--brand-cyan` | System active indicators, primary telemetry |
-| Quant Alpha (Emerald) | `#10B981` | `--brand-lime` | Market positive signals, live uptime |
-| Creative Pulse (Violet)| `#A855F7` | `--brand-violet` | AI Workflow, neural/creative engines |
-| Heritage Gold (Amber) | `#F59E0B` | `--brand-amber` | Ziwei Astro, featured flagship callouts |
-| Risk / Bull Alert | `#F43F5E` | `--brand-rose` | Destructive actions, A-share gains |
+| Primary Pearl Canvas | `#f4f7fb` | `--background` | Main luminous light ground |
+| Subtle Surface | `#edf2f9` | `--background-muted` | Recessed wells & code strips |
+| Elevated Card Surface | `rgba(255, 255, 255, 0.94)` | `--panel` | Frosted pearl cards (GPU-friendly) |
+| Floating Chrome | `rgba(255, 255, 255, 0.88)` | `.glass-chrome` | Sticky header, dialogs, BackToTop (`backdrop-blur-md`) |
+| Primary Ink | `#0f172a` | `--foreground` | Headlines & high-contrast body text |
+| Secondary Ink | `#475569` | `--muted-foreground` | Descriptions & metadata |
+| Crisp Border | `rgba(15, 23, 42, 0.08)` | `--line` | Card outlines & structural hairlines |
+| Sky-Cyan Accent | `#0ea5e9` | `--brand-cyan` | Primary links, RAG & telemetry highlights |
+| Royal-Violet Accent | `#8b5cf6` | `--brand-violet` | AI Workflow, gesture & creative engines |
+| Emerald Accent | `#10b981` | `--brand-lime` | Live online status & quant alpha signals |
 
 ---
 
-## 2. Typography & Hierarchy
+## 2. Performance & Layout Invariants
 
-- **Display / Headings:** Geometric & Architectural Sans (`var(--font-geist-sans)` + system tracking `-0.03em` to `-0.05em`)
-- **Telemetry / Coordinates / Code:** Monospace (`var(--font-geist-mono)`, tabular numerals `tabular-nums`, uppercase `tracking-[0.18em]`–`tracking-[0.24em]`)
-- **Scale & Rhythm:**
-  - Hero Display: `clamp(2.5rem, 5.5vw, 5rem)` tight-leading (`0.95`)
-  - Section Index Eyebrow: `10px`–`11px` mono `[ SEC_01 // TELEMETRY ]`
-  - Card Technical Tag: `10px` mono uppercase crisp border badge
-
----
-
-## 3. Structural Geometry & Grid Rules
-
-1. **Crisp Architectural Frames (`.arch-frame`)**:
-   - Prefer crisp architectural radii (`rounded-xl` / `rounded-lg` / `rounded-md`) with exposed `1px` structural borders over generic oversized bubbly pills.
-   - Include a top **HUD Telemetry Rail** (`SYS // ID` + status indicator + right metadata) on major Bento cards and panels.
-   - Include subtle corner crosshair markers (`+` or bracket corners) on blueprint containers.
-2. **Exposed Hairline Grids**:
-   - Use multi-column `border-white/[0.08]` grid dividers where sibling Bento cells share structural borders cleanly.
-3. **Zero Legacy Light-Mode Bleed**:
-   - All views, modals, drawers, workbenches (`/workflow`, `/chat`, `/experiments/ziwei`, `/experiments/image-studio`, `/experiments/pelican`), and article reading layouts (`/build-log/*`, `/news/*`, `/about`, `/stack`, `/privacy`) MUST use obsidian dark surfaces (`#04060B`, `#080C16`, `#0C1222`) with `>= 4.5:1` contrast text.
-
----
-
-## 4. Anti-Patterns (Strictly Forbidden)
-
-- ❌ **Legacy Light Bleed**: Never use `bg-white` (opaque), `bg-slate-50`, `text-slate-900`, or `border-slate-200` on cards/surfaces.
-- ❌ **Same-Layout Color Swaps**: Never merely recolor a generic vertical box list; use asymmetric Bento spans, split technical index headers, and dual-pane IDE/terminal compositions.
-- ❌ **Emojis as UI Chrome**: Use Lucide SVG icons and monospace coordinate tags (`[01]`, `SYS //`) instead of decorative emojis.
-- ❌ **React 19 / ESLint Violations**: Never call `setState` synchronously in `useEffect`; never name a variable `module`.
-
----
-
-## 5. Pre-Delivery Verification Checklist
-
-- [ ] All subpages & workbenches follow obsidian dark tokens (zero accidental light surfaces)
-- [ ] All interactive elements have `cursor-pointer` and visible focus/hover states
-- [ ] `prefers-reduced-motion` respected across GSAP and Motion animations
-- [ ] `npm run build` passes cleanly
-- [ ] `npm run typecheck` passes with 0 errors
-- [ ] `npm test` passes 100%
-- [ ] `npm run lint` passes with 0 errors
+1. **Zero Scroll Blur**: Never animate `filter: blur(...)` inside Framer Motion `Reveal` or GSAP `ScrollTrigger` blocks. Use `opacity` + `translate3d` only.
+2. **Zero Mousemove React Re-renders**: Interactive spotlight and magnetic hover wrappers (`SpotlightCard`, `MagneticButton`) must update DOM styles directly via `useRef` + `requestAnimationFrame`, never `useState`.
+3. **Aligned Bottom-Right Action Dock**: `BackToTop` and `ChatWidget` share identical dimensions (`h-12 w-12 sm:h-13 sm:w-13`), identical `rounded-full` geometry, and identical right anchor (`right-4 sm:right-6`), stacked at `bottom-5 sm:bottom-6` (`ChatWidget`) and `bottom-20 sm:bottom-22` (`BackToTop`).
+4. **Repository CI Gate**: Every change must pass `npm run build`, `npm run typecheck`, `npm test`, and `npm run lint` with zero errors.
