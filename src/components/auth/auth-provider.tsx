@@ -8,6 +8,20 @@ export interface AuthUser {
 }
 
 const USER_CACHE_KEY = "studio_user_cache";
+const SESSION_TIMEOUT_MS = 4000;
+
+async function fetchSessionWithTimeout(timeoutMs = SESSION_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch("/api-workspace-session", {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -43,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async (): Promise<AuthUser | null> => {
     try {
-      const res = await fetch("/api-workspace-session", { cache: "no-store" });
+      const res = await fetchSessionWithTimeout();
       if (!res.ok) {
         try { localStorage.removeItem(USER_CACHE_KEY); } catch {}
         setUser(null);
@@ -75,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const syncSession = async () => {
       lastSyncAt = Date.now();
       try {
-        const res = await fetch("/api-workspace-session", { cache: "no-store" });
+        const res = await fetchSessionWithTimeout();
         if (!res.ok) {
           if (!ignore) {
             try { localStorage.removeItem(USER_CACHE_KEY); } catch {}

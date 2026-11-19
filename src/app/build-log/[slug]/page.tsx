@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getPublishedPost } from "@/lib/posts-repository";
 import { PublishedArticle, articleMetadata } from "@/components/mdx/published-article";
 type Props = { params: Promise<{ slug: string }> };
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 export async function generateMetadata({ params }: Props) {
   const post = await getPublishedPost("build-log", (await params).slug);
   if (!post) notFound();

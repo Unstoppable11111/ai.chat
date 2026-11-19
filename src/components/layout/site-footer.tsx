@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HoverPrefetchLink } from "@/components/shared/hover-prefetch-link";
 import { Sparkles, ArrowUpRight, Mail } from "lucide-react";
 import { navigation } from "@/data/site";
 
@@ -33,13 +33,13 @@ export function SiteFooter() {
           <div className="flex flex-col items-start gap-4 md:items-end">
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
               {navigation.map((item) => (
-                <Link
+                <HoverPrefetchLink
                   key={item.href}
                   href={item.href}
                   className="relative py-0.5 hover:text-foreground after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-0 after:bg-brand-cyan after:transition-all after:duration-300 hover:after:w-full"
                 >
                   {item.label}
-                </Link>
+                </HoverPrefetchLink>
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2 md:justify-end">

@@ -5,7 +5,7 @@ import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { listPublishedPostSummaries, experimentListItem } from "@/lib/posts-repository";
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "前沿交互实验室 · Creative Coding & Playgrounds",

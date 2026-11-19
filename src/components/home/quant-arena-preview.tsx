@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import Link from "next/link";
+import { HoverPrefetchLink } from "@/components/shared/hover-prefetch-link";
 import { motion } from "motion/react";
 import { 
   Activity, 
@@ -58,7 +58,10 @@ export function QuantArenaPreview() {
 
   useEffect(() => {
     let ignore = false;
-    fetch("/api-market/public-summary")
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 5000);
+
+    fetch("/api-market/public-summary", { signal: controller.signal })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!ignore && data?.success) {
@@ -68,10 +71,15 @@ export function QuantArenaPreview() {
       })
       .catch(() => {
         // 容错使用默认
+      })
+      .finally(() => {
+        window.clearTimeout(timer);
       });
 
     return () => {
       ignore = true;
+      window.clearTimeout(timer);
+      controller.abort();
     };
   }, []);
 
@@ -92,13 +100,13 @@ export function QuantArenaPreview() {
           </p>
         </div>
 
-        <Link
+        <HoverPrefetchLink
           href="/market"
           className="shimmer-beam inline-flex items-center gap-2 self-start md:self-auto px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs md:text-sm font-medium hover:bg-slate-800 hover:-translate-y-0.5 transition-all group shadow-sm"
         >
           <span>进入完整量化实验室</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+        </HoverPrefetchLink>
       </Reveal>
 
       {/* 市场环境脉搏条 */}
@@ -290,13 +298,13 @@ export function QuantArenaPreview() {
                 已接入专属账户【<strong className="text-emerald-300 font-mono">{user.username}</strong>】· 三大策略<strong>完整分时与每日 K 线交易事件穿透</strong>及<strong>私有持仓诊断</strong>已解锁就绪。
               </span>
             </div>
-            <Link
+            <HoverPrefetchLink
               href="/market"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-colors shrink-0 shadow-sm"
             >
               <span>进入量化工作台</span>
               <ChevronRight className="w-4 h-4" />
-            </Link>
+            </HoverPrefetchLink>
           </>
         ) : (
           <>

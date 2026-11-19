@@ -180,23 +180,14 @@ export function ChatExperience({
 
                         if (chat.loading && index === chat.messages.length - 1) {
                           const sec = Math.max(1, Math.round(chat.streamStatus.elapsedMs / 1000));
-                          const phaseText =
-                            chat.streamStatus.phase === "stalled"
-                              ? `模型响应较慢，疑似卡住（已等待 ${sec}s）…`
-                              : chat.streamStatus.phase === "waiting"
-                                ? `正在等待 ${chat.streamStatus.model} 上游响应（已等待 ${sec}s）…`
-                                : message.reasoning_content
-                                  ? "正在组织最终回答…"
-                                  : "正在深度思考生成中…";
+                          const phaseText = message.reasoning_content
+                            ? "正在组织最终回答…"
+                            : chat.streamStatus.elapsedMs >= 3000
+                              ? `正在思考中（${sec}s）…`
+                              : "正在思考中…";
                           return (
                             <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
-                              <span
-                                className={`h-2 w-2 rounded-full ${
-                                  chat.streamStatus.phase === "stalled"
-                                    ? "bg-amber-500 animate-ping"
-                                    : "bg-cyan-500 animate-pulse"
-                                }`}
-                              />
+                              <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" />
                               <span>{phaseText}</span>
                             </div>
                           );
@@ -420,7 +411,7 @@ export function ChatExperience({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {chat.issue.code === "UPSTREAM_STALLED" ? "模型响应较慢 / 疑似卡住" : "模型调用出现异常"}
+                    {chat.issue.code === "UPSTREAM_STALLED" ? "思考时间较长，是否继续等待？" : "模型调用出现异常"}
                   </h3>
                   <p className="text-[11px] font-mono text-slate-400">
                     MODEL: {chat.issue.model} · {chat.issue.code}
@@ -442,55 +433,68 @@ export function ChatExperience({
             </p>
 
             <div className="mt-4 flex flex-col gap-2">
-              {chat.issue.model !== "lumen" && (
-                <button
-                  type="button"
-                  onClick={() => void chat.switchModelAndRetry("lumen")}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-cyan-500 hover:to-blue-500 transition-all cursor-pointer"
-                >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
-                  <span>切换至 Lumen 流光并立即重试</span>
-                </button>
-              )}
-
               {chat.issue.code === "UPSTREAM_STALLED" ? (
-                <div className="grid grid-cols-2 gap-2">
+                <>
                   <button
                     type="button"
                     onClick={chat.dismissIssue}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-cyan-500 hover:to-blue-500 transition-all cursor-pointer"
                   >
-                    继续等待
+                    <span>继续等待</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={chat.stop}
-                    className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 cursor-pointer"
-                  >
-                    停止生成
-                  </button>
-                </div>
+                  <div className={`grid gap-2 ${chat.issue.model !== "lumen" ? "grid-cols-2" : "grid-cols-1"}`}>
+                    {chat.issue.model !== "lumen" && (
+                      <button
+                        type="button"
+                        onClick={() => void chat.switchModelAndRetry("lumen")}
+                        className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
+                      >
+                        <ArrowRightLeft className="h-3.5 w-3.5" />
+                        <span>切换 Lumen 重试</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={chat.stop}
+                      className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 cursor-pointer"
+                    >
+                      停止生成
+                    </button>
+                  </div>
+                </>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      chat.dismissIssue();
-                      void chat.send("", true);
-                    }}
-                    className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span>重新尝试</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={chat.dismissIssue}
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 cursor-pointer"
-                  >
-                    暂不处理
-                  </button>
-                </div>
+                <>
+                  {chat.issue.model !== "lumen" && (
+                    <button
+                      type="button"
+                      onClick={() => void chat.switchModelAndRetry("lumen")}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-cyan-500 hover:to-blue-500 transition-all cursor-pointer"
+                    >
+                      <ArrowRightLeft className="h-3.5 w-3.5" />
+                      <span>切换至 Lumen 流光并立即重试</span>
+                    </button>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        chat.dismissIssue();
+                        void chat.send("", true);
+                      }}
+                      className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      <span>重新尝试</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={chat.dismissIssue}
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 cursor-pointer"
+                    >
+                      暂不处理
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </div>

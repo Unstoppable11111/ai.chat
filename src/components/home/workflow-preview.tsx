@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useSyncExternalStore } from "react";
-import Link from "next/link";
+import { HoverPrefetchLink } from "@/components/shared/hover-prefetch-link";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Sparkles,
@@ -98,14 +98,14 @@ export function WorkflowPreview() {
           </p>
         </div>
 
-        <Link
+        <HoverPrefetchLink
           href="/workflow"
           className="shimmer-beam inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 hover:scale-[1.02] transition-all shrink-0 cursor-pointer"
         >
           <Play className="w-4 h-4 fill-white" />
           <span>{mounted && user ? "进入专属创作者工作台" : "立即体验工业化工作流"}</span>
           <ArrowRight className="w-4 h-4" />
-        </Link>
+        </HoverPrefetchLink>
       </Reveal>
 
       {/* 五大标准生产环节卡片流 */}
@@ -259,13 +259,13 @@ export function WorkflowPreview() {
                     {PIPELINE_STEPS[activeStep].en} · {PIPELINE_STEPS[activeStep].desc}
                   </span>
                 </div>
-                <Link
+                <HoverPrefetchLink
                   href="/workflow"
                   className="text-xs text-white hover:text-cyan-300 font-bold flex items-center gap-1 shrink-0"
                 >
                   <span>探索全部章节</span>
                   <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                </HoverPrefetchLink>
               </motion.div>
             </AnimatePresence>
           </div>

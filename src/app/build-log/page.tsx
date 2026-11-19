@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components/shared/section-heading";
 import { listPublishedPostSummaries, postListItem } from "@/lib/posts-repository";
 import { Database, ShieldCheck } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "技术笔记与架构记录",

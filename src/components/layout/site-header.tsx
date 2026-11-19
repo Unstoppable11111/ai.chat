@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
+import { HoverPrefetchLink } from "@/components/shared/hover-prefetch-link";
 import {
   Command,
   Hand,
@@ -29,26 +29,8 @@ import { navigation, siteConfig } from "@/data/site";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
 
-// 极客工坊下拉菜单中的全部路由：这些页面包含较重的客户端包（three / 画布 / 编辑器），
-// 菜单项原本只在展开后才渲染 <Link>，导致点击时才开始加载资源，表现为“点了没反应/很慢”。
-// 因此在空闲时与菜单展开时主动 prefetch，使点击时目标页面的资源已就绪。
-const WORKSHOP_ROUTES = [
-  "/experiments",
-  "/experiments/ziwei",
-  "/experiments/image-studio",
-  "/experiments/gods-eye",
-  "/experiments/fluid",
-  "/experiments/cyber-hack",
-  "/experiments/ai-town",
-  "/experiments/geo-detective",
-  "/experiments/pelican",
-  "/gesture",
-  "/workflow",
-];
-
 export function SiteHeader() {
   const pathname = usePathname();
-  const router = useRouter();
   const { user, isLoading, openAuthModal, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -107,22 +89,6 @@ export function SiteHeader() {
     };
   }, []);
 
-  // 空闲时预取工坊路由 + 菜单展开时立刻预取（router.prefetch 仅在生产环境生效，开发环境为空操作）
-  useEffect(() => {
-    const prefetchAll = () => WORKSHOP_ROUTES.forEach((href) => router.prefetch(href));
-    if (experimentsOpen || mobileMenuOpen) {
-      prefetchAll();
-      return;
-    }
-    const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
-    if (idle) {
-      const id = idle(prefetchAll, { timeout: 3000 });
-      return () => (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(id);
-    }
-    const timer = window.setTimeout(prefetchAll, 1500);
-    return () => window.clearTimeout(timer);
-  }, [experimentsOpen, mobileMenuOpen, router]);
-
   // 路由跳转时自动收起所有浮层
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -155,7 +121,7 @@ export function SiteHeader() {
             )}
           >
             {/* 左侧 Brand Logo 与站点名称 */}
-            <Link href="/" className="flex min-w-0 shrink items-center gap-2 md:gap-3 group">
+            <HoverPrefetchLink href="/" className="flex min-w-0 shrink items-center gap-2 md:gap-3 group">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-900/8 bg-white/90 shadow-2xs group-hover:scale-105 group-hover:border-sky-300 transition-all sm:h-9 sm:w-9">
                 <Sparkles className="h-4 w-4 text-brand-cyan" />
               </span>
@@ -170,7 +136,7 @@ export function SiteHeader() {
                   </span>
                 </p>
               </div>
-            </Link>
+            </HoverPrefetchLink>
 
             {/* 桌面端居中主导航体系（>= xl 屏幕展示，呼吸感充裕） */}
             <nav className="hidden shrink-0 items-center gap-0.5 xl:flex" aria-label="主导航">
@@ -183,7 +149,7 @@ export function SiteHeader() {
                     item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                   return (
-                    <Link
+                    <HoverPrefetchLink
                       key={item.href}
                       href={item.href}
                       className={cn(
@@ -201,7 +167,7 @@ export function SiteHeader() {
                         />
                       )}
                       <span className="relative z-10">{item.label}</span>
-                    </Link>
+                    </HoverPrefetchLink>
                   );
                 })}
 
@@ -245,18 +211,18 @@ export function SiteHeader() {
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         高可用工坊与交互空间 (9款)
                       </span>
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments"
                         onClick={() => setExperimentsOpen(false)}
                         className="text-[10px] font-semibold text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-0.5"
                       >
                         <span>门户大厅</span>
                         <ArrowRight className="w-2.5 h-2.5" />
-                      </Link>
+                      </HoverPrefetchLink>
                     </div>
 
                     <div className="space-y-1 max-h-[380px] overflow-y-auto no-scrollbar pr-0.5">
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments/ziwei"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-amber-50/80 hover:text-amber-900 transition-colors group"
@@ -277,9 +243,9 @@ export function SiteHeader() {
                             倪海厦《天纪》排盘、双人合盘与古籍库
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
 
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments/image-studio"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-purple-50/80 hover:text-purple-900 transition-colors group"
@@ -300,9 +266,9 @@ export function SiteHeader() {
                             Cloudflare & Pollinations 智能双通道
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
 
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments/gods-eye"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-sky-50/80 hover:text-sky-900 transition-colors group"
@@ -323,9 +289,9 @@ export function SiteHeader() {
                             Cesium 4K 全球遥感与态势感知
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
 
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments/fluid"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-purple-50/80 hover:text-purple-900 transition-colors group"
@@ -346,9 +312,9 @@ export function SiteHeader() {
                             触控丝绸光束与流体涡流画布
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
 
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments/cyber-hack"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-emerald-50/80 hover:text-emerald-900 transition-colors group"
@@ -369,9 +335,9 @@ export function SiteHeader() {
                             拟真命令行节点漏洞爆破与数字雨
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
 
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments/ai-town"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-amber-50/80 hover:text-amber-900 transition-colors group"
@@ -392,9 +358,9 @@ export function SiteHeader() {
                             NPC 居民自主漫游八卦与全镇广播
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
 
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments/geo-detective"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-sky-50/80 hover:text-sky-900 transition-colors group"
@@ -415,9 +381,9 @@ export function SiteHeader() {
                             实景环境勘查与世界地图插旗竞猜
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
 
-                      <Link
+                      <HoverPrefetchLink
                         href="/gesture"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-violet-50/80 hover:text-violet-900 transition-colors group"
@@ -438,9 +404,9 @@ export function SiteHeader() {
                             摄像头手掌张开与拳头力场粒子
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
 
-                      <Link
+                      <HoverPrefetchLink
                         href="/experiments/pelican"
                         onClick={() => setExperimentsOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-900 transition-colors group"
@@ -461,7 +427,7 @@ export function SiteHeader() {
                             大语言模型性能双盲对抗竞技
                           </p>
                         </div>
-                      </Link>
+                      </HoverPrefetchLink>
                     </div>
                   </motion.div>
                 )}
@@ -520,7 +486,7 @@ export function SiteHeader() {
                         <p className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           核心工作台与资产
                         </p>
-                        <Link
+                        <HoverPrefetchLink
                           href="/workflow"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
@@ -530,8 +496,8 @@ export function SiteHeader() {
                             <span className="font-medium">自动化小说与分镜工作流</span>
                           </div>
                           <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">书架</span>
-                        </Link>
-                        <Link
+                        </HoverPrefetchLink>
+                        <HoverPrefetchLink
                           href="/experiments/ziwei"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-amber-50/80 hover:text-amber-900 transition-colors group"
@@ -541,8 +507,8 @@ export function SiteHeader() {
                             <span className="font-medium">天纪 · 紫微斗数与双人合盘</span>
                           </div>
                           <span className="text-[10px] text-amber-800 bg-amber-100/60 px-1.5 py-0.5 rounded font-bold">无限次</span>
-                        </Link>
-                        <Link
+                        </HoverPrefetchLink>
+                        <HoverPrefetchLink
                           href="/experiments/image-studio"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-purple-50/80 hover:text-purple-800 transition-colors group"
@@ -552,8 +518,8 @@ export function SiteHeader() {
                             <span className="font-medium">AI 创意视觉与生图工坊</span>
                           </div>
                           <span className="text-[10px] text-purple-600 bg-purple-100/50 px-1.5 py-0.5 rounded font-bold">FLUX</span>
-                        </Link>
-                        <Link
+                        </HoverPrefetchLink>
+                        <HoverPrefetchLink
                           href="/chat"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
@@ -563,8 +529,8 @@ export function SiteHeader() {
                             <span className="font-medium">贾维斯专属 AI 对话记忆</span>
                           </div>
                           <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">记忆</span>
-                        </Link>
-                        <Link
+                        </HoverPrefetchLink>
+                        <HoverPrefetchLink
                           href="/market"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
@@ -574,8 +540,8 @@ export function SiteHeader() {
                             <span className="font-medium">量化投研与策略中心</span>
                           </div>
                           <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">多空</span>
-                        </Link>
-                        <Link
+                        </HoverPrefetchLink>
+                        <HoverPrefetchLink
                           href="/gesture"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-700 hover:bg-cyan-50/80 hover:text-cyan-800 transition-colors group"
@@ -585,7 +551,7 @@ export function SiteHeader() {
                             <span className="font-medium">3D 手势视效空间</span>
                           </div>
                           <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">交互</span>
-                        </Link>
+                        </HoverPrefetchLink>
                       </div>
 
                       {/* 退出登录操作区 */}
@@ -679,7 +645,7 @@ export function SiteHeader() {
                     .map((item) => {
                       const active = pathname === item.href;
                       return (
-                        <Link
+                        <HoverPrefetchLink
                           key={item.href}
                           href={item.href}
                           onClick={() => setMobileMenuOpen(false)}
@@ -691,7 +657,7 @@ export function SiteHeader() {
                           )}
                         >
                           {item.label}
-                        </Link>
+                        </HoverPrefetchLink>
                       );
                     })}
                 </div>
@@ -706,17 +672,17 @@ export function SiteHeader() {
                       极客工坊 (9款高互动实验)
                     </p>
                   </div>
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments"
                     onClick={() => setMobileMenuOpen(false)}
                     className="text-[10px] text-sky-600 font-semibold hover:underline flex items-center gap-0.5"
                   >
                     <span>全部</span>
                     <ArrowRight className="w-2.5 h-2.5" />
-                  </Link>
+                  </HoverPrefetchLink>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments/ziwei"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-amber-500/10 text-amber-900 hover:bg-amber-500/15 border border-amber-500/25 sm:col-span-2"
@@ -726,9 +692,9 @@ export function SiteHeader() {
                       <span className="truncate">天纪 · 紫微斗数 (AI 命盘精批与双人合盘)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-amber-500/15 font-bold shrink-0">天纪</span>
-                  </Link>
+                  </HoverPrefetchLink>
 
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments/image-studio"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-purple-500/5 text-purple-700 hover:bg-purple-500/10 border border-purple-500/20 sm:col-span-2"
@@ -738,9 +704,9 @@ export function SiteHeader() {
                       <span className="truncate">AI 生图工坊 (FLUX.1 智能双通道)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-purple-500/10 font-bold shrink-0">STUDIO</span>
-                  </Link>
+                  </HoverPrefetchLink>
 
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments/gods-eye"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-sky-500/5 text-sky-700 hover:bg-sky-500/10 border border-sky-500/20"
@@ -750,9 +716,9 @@ export function SiteHeader() {
                       <span className="truncate">上帝之眼 (3D 遥感)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-sky-500/10 shrink-0">3D</span>
-                  </Link>
+                  </HoverPrefetchLink>
 
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments/fluid"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-purple-500/5 text-purple-700 hover:bg-purple-500/10 border border-purple-500/20"
@@ -762,9 +728,9 @@ export function SiteHeader() {
                       <span className="truncate">霓虹流体 (物理粒子)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-purple-500/10 shrink-0">PHYS</span>
-                  </Link>
+                  </HoverPrefetchLink>
 
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments/cyber-hack"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-emerald-500/5 text-emerald-700 hover:bg-emerald-500/10 border border-emerald-500/20"
@@ -774,9 +740,9 @@ export function SiteHeader() {
                       <span className="truncate">赛博黑客 (渗透终端)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-emerald-500/10 shrink-0">HACK</span>
-                  </Link>
+                  </HoverPrefetchLink>
 
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments/ai-town"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-amber-500/5 text-amber-700 hover:bg-amber-500/10 border border-amber-500/20"
@@ -786,9 +752,9 @@ export function SiteHeader() {
                       <span className="truncate">AI 智能小镇 (像素沙盒)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-amber-500/10 shrink-0">AGENT</span>
-                  </Link>
+                  </HoverPrefetchLink>
 
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments/geo-detective"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-sky-500/5 text-sky-700 hover:bg-sky-500/10 border border-sky-500/20"
@@ -798,9 +764,9 @@ export function SiteHeader() {
                       <span className="truncate">地理大侦探 (街景寻踪)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-sky-500/10 shrink-0">GEO</span>
-                  </Link>
+                  </HoverPrefetchLink>
 
-                  <Link
+                  <HoverPrefetchLink
                     href="/gesture"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-violet-500/5 text-brand-violet hover:bg-violet-500/10 border border-violet-500/20"
@@ -810,9 +776,9 @@ export function SiteHeader() {
                       <span className="truncate">手势互动 (视效空间)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-violet-500/10 shrink-0">VISION</span>
-                  </Link>
+                  </HoverPrefetchLink>
 
-                  <Link
+                  <HoverPrefetchLink
                     href="/experiments/pelican"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-medium bg-cyan-500/5 text-cyan-700 hover:bg-cyan-500/10 border border-cyan-500/20 sm:col-span-2"
@@ -822,7 +788,7 @@ export function SiteHeader() {
                       <span className="truncate">鹈鹕盲测 (大模型对抗竞技)</span>
                     </div>
                     <span className="text-[9px] font-mono px-1 rounded bg-cyan-500/10 shrink-0">ARENA</span>
-                  </Link>
+                  </HoverPrefetchLink>
                 </div>
               </div>
 

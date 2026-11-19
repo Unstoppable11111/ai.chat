@@ -453,14 +453,34 @@ export async function fetchIndexDefenseGap(): Promise<{
   }
 }
 
-let sentimentCache: { data: MarketSentimentMetrics; expireAt: number } | null = null;
+const STALE_TTL_MS = 5 * 60 * 1000;
+let sentimentCache: { data: MarketSentimentMetrics; expireAt: number; staleUntil: number } | null = null;
+let sentimentPending: Promise<MarketSentimentMetrics | null> | null = null;
+
+function refreshMarketSentiment(): Promise<MarketSentimentMetrics | null> {
+  if (!sentimentPending) {
+    sentimentPending = computeRealMarketSentiment().finally(() => {
+      sentimentPending = null;
+    });
+  }
+  return sentimentPending;
+}
 
 export async function getRealMarketSentiment(): Promise<MarketSentimentMetrics | null> {
   const now = Date.now();
   if (sentimentCache && sentimentCache.expireAt > now) {
     return sentimentCache.data;
   }
+  if (sentimentCache && sentimentCache.staleUntil > now) {
+    // 性能优化：先秒回近期缓存，同时在后台去重刷新，避免阻塞前端请求
+    void refreshMarketSentiment();
+    return sentimentCache.data;
+  }
+  const fresh = await refreshMarketSentiment();
+  return fresh ?? sentimentCache?.data ?? null;
+}
 
+async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | null> {
   try {
     // 多源并行：拉取全市场涨幅前100、跌幅前100、15日量能日K、行业板块行情、中军指数剪刀差与全市场涨跌家数
     const [
@@ -681,7 +701,12 @@ export async function getRealMarketSentiment(): Promise<MarketSentimentMetrics |
       timestamp: new Date().toISOString(),
     };
 
-    sentimentCache = { data: sentimentData, expireAt: now + CACHE_TTL_MS };
+    const storedAt = Date.now();
+    sentimentCache = {
+      data: sentimentData,
+      expireAt: storedAt + CACHE_TTL_MS,
+      staleUntil: storedAt + STALE_TTL_MS,
+    };
     return sentimentData;
   } catch (err) {
     console.error("[QuotesService] 实时情绪指标拉取异常:", err);
@@ -696,7 +721,47 @@ const INDEX_MAP: Record<string, string> = {
   "000688": "科创50",
 };
 
+let indicesCache: { data: RealMarketSnapshotData; expireAt: number; staleUntil: number } | null = null;
+let indicesPending: Promise<RealMarketSnapshotData> | null = null;
+
+function refreshRealIndices(): Promise<RealMarketSnapshotData> {
+  if (!indicesPending) {
+    indicesPending = computeRealIndicesAndTurnover()
+      .then((res) => {
+        if (res.indices.length > 0) {
+          const ts = Date.now();
+          indicesCache = {
+            data: res,
+            expireAt: ts + CACHE_TTL_MS,
+            staleUntil: ts + STALE_TTL_MS,
+          };
+        }
+        return res;
+      })
+      .finally(() => {
+        indicesPending = null;
+      });
+  }
+  return indicesPending;
+}
+
 export async function fetchRealIndicesAndTurnover(): Promise<RealMarketSnapshotData> {
+  const now = Date.now();
+  if (indicesCache && indicesCache.expireAt > now) {
+    return indicesCache.data;
+  }
+  if (indicesCache && indicesCache.staleUntil > now) {
+    void refreshRealIndices();
+    return indicesCache.data;
+  }
+  const fresh = await refreshRealIndices();
+  if (fresh.indices.length === 0 && indicesCache) {
+    return indicesCache.data;
+  }
+  return fresh;
+}
+
+async function computeRealIndicesAndTurnover(): Promise<RealMarketSnapshotData> {
   // 1. 优先从东方财富 API 获取高精度指数行情与涨跌全景分布
   try {
     const resEm = await fetch(

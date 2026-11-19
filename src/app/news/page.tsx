@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/shared/section-heading";
 import { listPublishedPostSummaries, postListItem } from "@/lib/posts-repository";
 import { Radio } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "科技资讯",

@@ -4,7 +4,7 @@ import { PageIntro } from "@/components/shared/page-intro";
 import { PageShell } from "@/components/shared/page-shell";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { listPublishedPostSummaries, projectListItem } from "@/lib/posts-repository";
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "项目案例",

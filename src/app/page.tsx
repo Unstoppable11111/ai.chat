@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 export default async function HomePage() {
   const buildLogPosts = await listPublishedPostSummaries("build-log");
   const buildLogs = buildLogPosts.slice(0, 4).map(postListItem);

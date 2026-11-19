@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { sameOrigin, readJsonBody } from "@/lib/server-security";
@@ -66,8 +67,15 @@ likes: 0
     } catch {
       // 数据库异常不阻断本地文件生成
     }
-    // 新文章入库后立即刷新文章列表缓存
+    // 新文章入库后立即刷新文章列表与页面 ISR 缓存
     invalidatePublishedPostsCache();
+    try {
+      revalidatePath("/");
+      revalidatePath("/build-log");
+      revalidatePath(`/build-log/${slug}`);
+    } catch {
+      // 非 Next 运行时单元测试场景忽略路由刷新
+    }
 
     return NextResponse.json({
       success: true,

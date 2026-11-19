@@ -1,8 +1,21 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { Message, ThinkingLevelId } from "./chat-types";
 import { useAuth } from "@/components/auth/auth-provider";
+
+const CHAT_INIT_TIMEOUT_MS = 4000;
+
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = CHAT_INIT_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
 
 export type Thread = { id: string; title: string; messages: Message[] };
 export type History = { current: string; threads: Thread[] };
@@ -44,6 +57,7 @@ export type ChatState = {
   dismissIssue: () => void;
   switchModelAndRetry: (nextModel: string) => Promise<void>;
   refreshQuota: () => Promise<void>;
+  activateChat: () => void;
   setModel: (model: string) => void;
   setThinkingLevel: (level: ThinkingLevelId) => void;
   send: (text: string, retry?: boolean, modelOverride?: string) => Promise<void>;
@@ -57,7 +71,13 @@ export type ChatState = {
 const ChatContext = createContext<ChatState | null>(null);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const { user, openAuthModal } = useAuth();
+  const [activated, setActivated] = useState(false);
+  const isChatActive = activated || pathname === "/chat";
+  const activateChat = useCallback(() => {
+    setActivated(true);
+  }, []);
   const [history, setHistory] = useState<History>(initial);
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
@@ -90,7 +110,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const refreshQuota = useCallback(async () => {
     try {
-      const res = await fetch("/api-chat-backend", { cache: "no-store" });
+      const res = await fetchWithTimeout("/api-chat-backend", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setQuota({
@@ -107,13 +127,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // 监听登录态与挂载同步提问配额
+  // 非 /chat 页面延后 5 秒再激活聊天会话网络预热，避免首屏加载时抢占带宽引起浏览器转圈
   useEffect(() => {
+    if (isChatActive) return;
+    const timer = window.setTimeout(() => {
+      setActivated(true);
+    }, 5000);
+    return () => window.clearTimeout(timer);
+  }, [isChatActive]);
+
+  // 监听登录态与激活时机，同步提问配额
+  useEffect(() => {
+    if (!isChatActive) return;
     let active = true;
 
     const fetchQuota = async () => {
       try {
-        const res = await fetch("/api-chat-backend", { cache: "no-store" });
+        const res = await fetchWithTimeout("/api-chat-backend", { cache: "no-store" });
         if (res.ok && active) {
           const data = await res.json();
           setQuota({
@@ -140,10 +170,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       active = false;
       window.removeEventListener("auth-state-changed", handleAuthChange);
     };
-  }, [user?.id]);
+  }, [isChatActive, user?.id]);
 
-  // 当当前登录用户 ID 变更时（登录/登出/换账号），重新初始化加载专属记忆
+  // 当激活聊天或登录用户 ID 变更时，按需初始化加载专属记忆
   useEffect(() => {
+    if (!isChatActive) return;
     let active = true;
     abort.current?.abort();
 
@@ -155,7 +186,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       try {
         let raw: string | null = null;
         if (isAuthenticated) {
-          const res = await fetch("/api-chat-history", { cache: "no-store" });
+          const res = await fetchWithTimeout("/api-chat-history", { cache: "no-store" });
           if (res.ok) {
             const data = await res.json();
             raw = data.history ? JSON.stringify(data.history) : null;
@@ -210,7 +241,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       active = false;
       abort.current?.abort();
     };
-  }, [user?.id]);
+  }, [isChatActive, user?.id]);
 
   // 对话变动时防抖保存
   useEffect(() => {
@@ -424,7 +455,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               code: "UPSTREAM_STALLED",
               model: statusModel,
               elapsedMs,
-              message: `模型 ${statusModel} 已等待 ${Math.max(1, Math.round(elapsedMs / 1000))} 秒仍未返回内容，当前上游通道可能拥堵或卡住。`,
+              message: `已持续思考 ${Math.max(30, Math.round(elapsedMs / 1000))} 秒，当前问题较复杂或队列较忙，是否继续等待？`,
             });
           } else if (nextPhase === "streaming") {
             setIssue((prev) => (prev?.code === "UPSTREAM_STALLED" ? null : prev));
@@ -561,6 +592,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         dismissIssue,
         switchModelAndRetry,
         refreshQuota,
+        activateChat,
         setModel,
         setThinkingLevel,
         send,

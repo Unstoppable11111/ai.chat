@@ -84,6 +84,7 @@ function buildProactiveGreeting(pathname: string, messages: { role: string; cont
 export function ChatWidget() {
   const pathname = usePathname();
   const chat = useChat();
+  const { activateChat } = chat;
   const [open, setOpen] = useState(false);
   const [hasUnreadReply, setHasUnreadReply] = useState(false);
   const [proactiveBubble, setProactiveBubble] = useState<{ text: string; prompt: string } | null>(null);
@@ -102,12 +103,14 @@ export function ChatWidget() {
 
   useEffect(() => {
     const handler = () => {
+      activateChat();
       lastSeenSignatureRef.current = getMessageSignature(chat.messages);
       setHasUnreadReply(false);
       setProactiveBubble(null);
       setOpen(true);
     };
     const prepare = (event: Event) => {
+      activateChat();
       const prompt = (event as CustomEvent<{ prompt?: string }>).detail?.prompt;
       setDraft(typeof prompt === "string" ? prompt.slice(0, 4000) : "");
       lastSeenSignatureRef.current = getMessageSignature(chat.messages);
@@ -123,7 +126,7 @@ export function ChatWidget() {
       window.removeEventListener("open-chat-widget", handler);
       window.removeEventListener("trigger-ai-chat", prepare);
     };
-  }, [chat.messages]);
+  }, [activateChat, chat.messages]);
 
   useEffect(() => {
     if (open) {
@@ -219,6 +222,7 @@ export function ChatWidget() {
             <button
               type="button"
               onClick={() => {
+                chat.activateChat();
                 const prompt = proactiveBubble.prompt;
                 dismissProactiveBubble();
                 lastSeenSignatureRef.current = getMessageSignature(chat.messages);
@@ -249,9 +253,16 @@ export function ChatWidget() {
           type="button"
           aria-label="打开 AI 助手"
           title="戳一戳，和 JARVIS 聊聊"
-          onPointerEnter={() => void loadChatExperience()}
-          onFocus={() => void loadChatExperience()}
+          onPointerEnter={() => {
+            chat.activateChat();
+            void loadChatExperience();
+          }}
+          onFocus={() => {
+            chat.activateChat();
+            void loadChatExperience();
+          }}
           onClick={() => {
+            chat.activateChat();
             lastSeenSignatureRef.current = getMessageSignature(chat.messages);
             setHasUnreadReply(false);
             setProactiveBubble(null);
