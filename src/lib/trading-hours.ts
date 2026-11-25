@@ -8,6 +8,49 @@
  * 3. 严格规则：非开盘时间自动停止 5 分钟定期轮询，且禁止手动触发刷新。
  */
 
+// 2026 年 A 股法定节假日休市日期（非周末）
+const HOLIDAYS_2026 = new Set([
+  "2026-01-01", "2026-01-02",
+  "2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23",
+  "2026-04-06",
+  "2026-05-01", "2026-05-04", "2026-05-05",
+  "2026-06-19",
+  "2026-09-25",
+  "2026-10-01", "2026-10-02", "2026-10-05", "2026-10-06", "2026-10-07",
+]);
+
+export function getShanghaiParts(targetDate: Date = new Date()) {
+  const cstStr = targetDate.toLocaleString("en-US", { timeZone: "Asia/Shanghai" });
+  const cst = new Date(cstStr);
+  const pad = (n: number) => (n < 10 ? `0${n}` : String(n));
+  const year = cst.getFullYear();
+  const month = pad(cst.getMonth() + 1);
+  const day = pad(cst.getDate());
+  const hour = cst.getHours();
+  const minute = cst.getMinutes();
+  const second = cst.getSeconds();
+  return {
+    dateStr: `${year}-${month}-${day}`,
+    timeStr: `${pad(hour)}:${pad(minute)}:${pad(second)}`,
+    hhmm: `${pad(hour)}:${pad(minute)}`,
+    dayOfWeek: cst.getDay(),
+    hour,
+    minute,
+    totalMinutes: hour * 60 + minute,
+  };
+}
+
+export function getShanghaiDateStr(targetDate: Date = new Date()): string {
+  return getShanghaiParts(targetDate).dateStr;
+}
+
+export function isAShareTradingDay(targetDate: Date = new Date()): boolean {
+  const { dayOfWeek, dateStr } = getShanghaiParts(targetDate);
+  if (dayOfWeek === 0 || dayOfWeek === 6) return false;
+  if (HOLIDAYS_2026.has(dateStr)) return false;
+  return true;
+}
+
 export interface AShareTradingStatus {
   isTrading: boolean;
   phase:
@@ -37,15 +80,16 @@ export function checkAShareTradingTime(targetDate: Date = new Date()): AShareTra
   const pad = (n: number) => (n < 10 ? `0${n}` : String(n));
   const timeDisplay = `${pad(hour)}:${pad(minute)}:${pad(second)}`;
 
-  // 1. 周末判断
-  if (dayOfWeek === 0 || dayOfWeek === 6) {
+  // 1. 周末或法定节假日判断
+  const { dateStr } = getShanghaiParts(targetDate);
+  if (dayOfWeek === 0 || dayOfWeek === 6 || HOLIDAYS_2026.has(dateStr)) {
     return {
       isTrading: false,
       phase: "WEEKEND",
-      statusText: "周末休市",
-      detail: "周末非交易日已自动停止轮询，全市场行情锁定最新收盘价",
+      statusText: HOLIDAYS_2026.has(dateStr) ? "节假日休市" : "周末休市",
+      detail: "非交易日已自动停止轮询，全市场行情锁定最新收盘价",
       cstTimeStr: timeDisplay,
-      nextSessionHint: "下周一 09:15 集合竞价开盘",
+      nextSessionHint: "下一交易日 09:15 集合竞价开盘",
     };
   }
 

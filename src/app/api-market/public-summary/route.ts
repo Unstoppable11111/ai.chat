@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getPublicArenaSummary } from "@/lib/quant-arena/arena-store";
 import { fetchRealIndicesAndTurnover, getRealMarketSentiment } from "@/lib/quotes-service";
+import { evaluateMarketTrafficLight } from "@/lib/quant-arena/swing-rules";
 
 const SUMMARY_TTL_MS = 30 * 1000;
 const SUMMARY_STALE_MS = 5 * 60 * 1000;
@@ -12,17 +12,10 @@ let summaryCache: { payload: Record<string, unknown>; expireAt: number; staleUnt
 let summaryPending: Promise<Record<string, unknown>> | null = null;
 
 async function computePublicSummary(): Promise<Record<string, unknown>> {
-  // 并行拉取实盘账户、指数成交额与市场情绪，替代原有串行等待，显著缩短冷启动耗时
-  const [arenaResult, snapshotResult, sentimentResult] = await Promise.allSettled([
-    getPublicArenaSummary(),
+  const [snapshotResult, sentimentResult] = await Promise.allSettled([
     fetchRealIndicesAndTurnover(),
     getRealMarketSentiment(),
   ]);
-
-  if (arenaResult.status === "rejected") {
-    throw arenaResult.reason;
-  }
-  const arenaSummary = arenaResult.value;
 
   let turnoverYi: number | null = null;
   let turnoverLabel = "--";
@@ -30,6 +23,8 @@ async function computePublicSummary(): Promise<Record<string, unknown>> {
   let downCount: number | null = null;
   let limitUp: number | null = null;
   let limitDown: number | null = null;
+  let brokenRatio: number | null = null;
+  let sentimentTemp: number | null = null;
   let leaders: string[] = [];
 
   if (snapshotResult.status === "fulfilled") {
@@ -50,28 +45,37 @@ async function computePublicSummary(): Promise<Record<string, unknown>> {
     const sentiment = sentimentResult.value;
     limitUp = sentiment.limit_up_count;
     limitDown = sentiment.limit_down_count;
+    brokenRatio = sentiment.broken_limit_ratio;
+    sentimentTemp = sentiment.sentiment_temperature;
     if (sentiment.highest_limit_leaders?.length) {
       leaders = sentiment.highest_limit_leaders;
     }
   }
 
+  const trafficLight = evaluateMarketTrafficLight(sentimentTemp);
+
   return {
     success: true,
     market_pulse: {
-      state: upCount && downCount ? (upCount > downCount ? "偏多震荡攻坚" : "结构分化整固") : "大盘评估中",
-      style: "科技成长 · 核心资产",
-      suggested_position: "动态仓位评估",
+      state: trafficLight.label,
+      style: "沪深主板 + 创业板 · 科技波段",
+      suggested_position:
+        trafficLight.light === "RED"
+          ? "防守 ≤30%"
+          : trafficLight.light === "YELLOW"
+          ? "均衡 40%~60%"
+          : "积极 65%~85%",
       turnover_label: turnoverLabel,
       turnover_yi: turnoverYi,
       up_count: upCount,
       down_count: downCount,
       limit_up_count: limitUp,
       limit_down_count: limitDown,
-      mainlines: leaders.length > 0 ? leaders : ["热点轮动监测中"],
+      broken_ratio: brokenRatio,
+      traffic_light: trafficLight,
+      mainlines: leaders.length > 0 ? leaders : ["科技产业链主线追踪中"],
     },
-    strategies: arenaSummary.accounts,
-    rankings: arenaSummary.rankings,
-    updated_at: arenaSummary.updated_at,
+    updated_at: new Date().toISOString(),
   };
 }
 

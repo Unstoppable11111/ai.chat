@@ -13,6 +13,7 @@ export async function migrateDatabase(db) {
     "CREATE TABLE IF NOT EXISTS studio_sessions (token_hash CHAR(64) PRIMARY KEY,user_id VARCHAR(64) NOT NULL,expires_at DATETIME NOT NULL,INDEX(expires_at),FOREIGN KEY(user_id) REFERENCES studio_users(id) ON DELETE CASCADE) ENGINE=InnoDB",
     "CREATE TABLE IF NOT EXISTS user_chat_histories (user_id VARCHAR(64) PRIMARY KEY,history JSON NOT NULL,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,FOREIGN KEY(user_id) REFERENCES studio_users(id) ON DELETE CASCADE) ENGINE=InnoDB",
     "CREATE TABLE IF NOT EXISTS user_portfolios (id INT AUTO_INCREMENT PRIMARY KEY,user_id VARCHAR(64) NOT NULL,stock_code VARCHAR(16) NOT NULL,stock_name VARCHAR(64) NOT NULL,quantity INT NOT NULL,cost_price DECIMAL(16,3) NOT NULL,hold_type VARCHAR(32) NOT NULL,notes TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,INDEX(user_id)) ENGINE=InnoDB",
+    "CREATE TABLE IF NOT EXISTS stock_rolling_pool (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,user_id VARCHAR(64) NOT NULL,stock_code VARCHAR(16) NOT NULL,stock_name VARCHAR(64) NOT NULL,board VARCHAR(32) NOT NULL,sector VARCHAR(64) NOT NULL,added_date DATE NOT NULL,last_counted_date DATE NOT NULL,observed_days INT NOT NULL DEFAULT 0,max_days INT NOT NULL DEFAULT 5,entry_ref_price DECIMAL(16,3) NOT NULL,buy_low DECIMAL(16,3) NULL,buy_high DECIMAL(16,3) NULL,breakout_price DECIMAL(16,3) NULL,invalid_price DECIMAL(16,3) NULL,vol_ratio_5_20 DECIMAL(10,2) NULL,limit_up_count_1y INT NULL,moat_score DECIMAL(6,1) NULL,structure_score DECIMAL(6,1) NULL,thesis TEXT NULL,status VARCHAR(24) NOT NULL DEFAULT 'OBSERVING',triggered_signal VARCHAR(32) NULL,drop_date DATE NULL,drop_reason VARCHAR(255) NULL,exit_price DECIMAL(16,3) NULL,created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,INDEX idx_user_status(user_id,status),INDEX idx_user_added(user_id,added_date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     "CREATE TABLE IF NOT EXISTS arena_snapshots (user_id VARCHAR(64) PRIMARY KEY,snapshot JSON NOT NULL,last_run_key VARCHAR(100),updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,FOREIGN KEY(user_id) REFERENCES studio_users(id) ON DELETE CASCADE) ENGINE=InnoDB",
     "CREATE TABLE IF NOT EXISTS arena_requests (user_id VARCHAR(64) NOT NULL,request_key VARCHAR(64) NOT NULL,PRIMARY KEY(user_id,request_key),FOREIGN KEY(user_id) REFERENCES studio_users(id) ON DELETE CASCADE) ENGINE=InnoDB",
     "CREATE TABLE IF NOT EXISTS posts (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,slug VARCHAR(191) NOT NULL UNIQUE,collection VARCHAR(64) NOT NULL,title VARCHAR(255) NOT NULL,excerpt TEXT,cover VARCHAR(1024),tags JSON,content LONGTEXT,views INT UNSIGNED NOT NULL DEFAULT 0,likes INT UNSIGNED NOT NULL DEFAULT 0,created_at DATETIME DEFAULT CURRENT_TIMESTAMP,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
@@ -33,6 +34,28 @@ export async function migrateDatabase(db) {
     if (!columns.some(column => column.Field === name)) await db.query(`ALTER TABLE posts ADD COLUMN ${name} ${type}`);
   }
   await db.execute("UPDATE posts SET published_at=created_at WHERE published_at IS NULL");
+
+  // 迁移：user_portfolios 增加波段纪律与深套修复风控字段
+  const [portfolioCols] = await db.query("SHOW COLUMNS FROM user_portfolios");
+  for (const [name, type] of Object.entries({
+    sector: "VARCHAR(64) NULL",
+    position_mode: "VARCHAR(32) NOT NULL DEFAULT 'swing_normal'",
+    available_quantity: "INT NULL",
+    entry_date: "VARCHAR(20) NULL",
+    support_defense_price: "DECIMAL(16,3) NULL",
+    rebound_watch_prices: "JSON NULL",
+    peak_price_since_entry: "DECIMAL(16,3) NULL",
+    take_profit_pct_1: "DECIMAL(8,2) NOT NULL DEFAULT 15.00",
+    take_profit_pct_2: "DECIMAL(8,2) NOT NULL DEFAULT 25.00",
+    trailing_pullback_pct: "DECIMAL(8,2) NOT NULL DEFAULT 7.00",
+    stop_loss_pct: "DECIMAL(8,2) NOT NULL DEFAULT -8.00",
+    suppress_cost_stoploss: "BOOLEAN NOT NULL DEFAULT 0",
+    thesis: "TEXT NULL",
+  })) {
+    if (!portfolioCols.some(column => column.Field === name)) {
+      await db.query(`ALTER TABLE user_portfolios ADD COLUMN ${name} ${type}`);
+    }
+  }
 
   // 迁移与自愈：studio_users 增加 is_admin 超级管理员字段并赋权 chen 账户
   try {

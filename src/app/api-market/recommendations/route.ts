@@ -3,7 +3,6 @@ import { requestOwner } from "@/lib/server-security";
 import {
   listGoldStocks,
   createGoldStock,
-  updateGoldStockStatus,
   calcGoldStockStats,
   ensureGoldStockTable,
   STRATEGY_CRITERIA,
@@ -11,6 +10,7 @@ import {
   type GoldStockStatus,
 } from "@/lib/gold-stock-db";
 import { getRealStockQuotes } from "@/lib/quotes-service";
+import { getShanghaiDateStr } from "@/lib/trading-hours";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -37,13 +37,13 @@ export async function GET(request: Request) {
       limit: 100,
     });
 
-    // 2. 对持仓中的推荐实时更新价格和状态
+    // 2. 对持仓中的推荐只读计算最新实时价与浮盈（严禁在 GET 中触发写库副作用）
     const holdingRecords = records.filter(r => r.status === "holding");
     if (holdingRecords.length > 0) {
       const codes = [...new Set(holdingRecords.map(r => r.stock_code))];
       try {
         const quotes = await getRealStockQuotes(codes);
-        const today = new Date().toISOString().slice(0, 10);
+        const today = getShanghaiDateStr();
 
         for (const rec of holdingRecords) {
           const quote = quotes[rec.stock_code];
@@ -55,7 +55,6 @@ export async function GET(request: Request) {
           );
           const maxReturn = Math.max(returnPct, rec.max_return_pct ?? returnPct);
 
-          // 判定是否触发止盈/止损/到期
           let newStatus: GoldStockStatus = "holding";
           const criteria = STRATEGY_CRITERIA[rec.strategy];
           const daysSince = Math.floor(
@@ -70,19 +69,6 @@ export async function GET(request: Request) {
             newStatus = "expired";
           }
 
-          // 更新数据库
-          await updateGoldStockStatus(rec.id, {
-            current_price: currentPrice,
-            max_return_pct: maxReturn,
-            ...(newStatus !== "holding" ? {
-              actual_return_pct: returnPct,
-              exit_price: currentPrice,
-              exit_date: today,
-              status: newStatus,
-            } : {}),
-          });
-
-          // 同步到返回数据
           rec.current_price = currentPrice;
           rec.max_return_pct = maxReturn;
           if (newStatus !== "holding") {
@@ -158,7 +144,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getShanghaiDateStr();
     const result = await createGoldStock({
       strategy: strategy as GoldStockStrategy,
       recommend_date: today,

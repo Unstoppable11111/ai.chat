@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchRealIndicesAndTurnover, getRealMarketSentiment } from "@/lib/quotes-service";
 import { checkAShareTradingTime } from "@/lib/trading-hours";
+import { evaluateMarketTrafficLight } from "@/lib/quant-arena/swing-rules";
 
 export async function GET() {
   try {
@@ -76,6 +77,9 @@ export async function GET() {
     const marketStyle = leadersList.length > 0 
       ? `${leadersList.slice(0, 3).join(" · ")} 领涨`
       : "科技成长 · 结构轮动";
+    const trafficLight = evaluateMarketTrafficLight(
+      realSentiment?.sentiment_temperature ?? marketScore
+    );
 
     return NextResponse.json({
       success: true,
@@ -84,6 +88,7 @@ export async function GET() {
       market_score: marketScore,
       market_state: marketState,
       market_style: marketStyle,
+      traffic_light: trafficLight,
       suggested_position: marketScore >= 70 ? "70%~90%" : marketScore >= 50 ? "50%~70%" : "30%~50%",
       confidence: "high",
       indices: directData.indices,

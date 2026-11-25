@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { MarketSentimentMetrics } from "@/lib/quotes-service";
+import { evaluateMarketTrafficLight } from "@/lib/quant-arena/swing-rules";
 
 interface MarketSentimentMetricsBarProps {
   initialMetrics?: MarketSentimentMetrics | null;
@@ -111,12 +112,51 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
 
   const leaders = metrics?.highest_limit_leaders && metrics.highest_limit_leaders.length > 0
     ? metrics.highest_limit_leaders
-    : ["ST龙元", "国创高新", "大连重工"];
+    : [];
+
+  const trafficLight = evaluateMarketTrafficLight(temp);
+  const trafficStyle =
+    trafficLight.light === "RED"
+      ? {
+          wrap: "bg-rose-950/60 border-rose-500/40 text-rose-200",
+          dot: "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.9)]",
+          badge: "bg-rose-500/20 text-rose-300 border-rose-500/40",
+        }
+      : trafficLight.light === "YELLOW"
+      ? {
+          wrap: "bg-amber-950/50 border-amber-500/40 text-amber-100",
+          dot: "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.85)]",
+          badge: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+        }
+      : {
+          wrap: "bg-emerald-950/50 border-emerald-500/40 text-emerald-100",
+          dot: "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.85)]",
+          badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+        };
 
   const aiSummary = metrics?.ai_summary;
 
   return (
     <div className="rounded-3xl bg-[#0c1626]/90 border border-cyan-500/30 p-5 shadow-2xl backdrop-blur-xl space-y-4">
+      {/* 市场情绪红绿灯买点总闸门 */}
+      <div className={`rounded-2xl border px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2 ${trafficStyle.wrap}`}>
+        <div className="flex items-center gap-3">
+          <span className={`w-3.5 h-3.5 rounded-full shrink-0 ${trafficStyle.dot}`} />
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-extrabold tracking-wide">市场情绪红绿灯总闸门：{trafficLight.label}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-mono ${trafficStyle.badge}`}>
+                买点A(回踩低吸): {trafficLight.allow_pullback_buy ? "放行" : "屏蔽"} · 买点B(放量突破): {trafficLight.allow_breakout_buy ? "放行" : "屏蔽"}
+              </span>
+            </div>
+            <p className="text-[11px] opacity-90 mt-0.5">{trafficLight.summary}</p>
+          </div>
+        </div>
+        <div className="text-[11px] font-mono opacity-80 shrink-0">
+          阈值：&lt;30红灯 · 30~55黄灯 · ≥55绿灯
+        </div>
+      </div>
+
       {/* 头部标题与即时状态栏 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-900/40 pb-3">
         <div className="flex items-center gap-2">
@@ -178,7 +218,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           </div>
           <div className="mt-2 pt-2 border-t border-cyan-950/80 text-[10.5px] text-slate-400 truncate">
             <span className="text-rose-400 font-semibold">前排标杆: </span>
-            {leaders.join(" · ")}
+            {leaders.length > 0 ? leaders.join(" · ") : "暂无连板高标（待数据更新）"}
           </div>
         </div>
 

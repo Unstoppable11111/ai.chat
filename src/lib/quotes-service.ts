@@ -3,6 +3,8 @@
  * 彻底消除价格幻觉，严格保障 A 股最新现价与昨收基准价的真实性与准确性
  */
 
+import type { DailyKlineBar } from "@/lib/quant-arena/swing-rules";
+
 export interface RealQuote {
   code: string;
   name: string;
@@ -14,8 +16,26 @@ export interface RealQuote {
   change_pct: number;
   volume: number;
   amount: number;
+  turnover_pct?: number;
+  vol_ratio?: number;
   source: "tencent" | "sina" | "cache";
   timestamp: string;
+}
+
+export interface RealSectorQuoteItem {
+  code: string;
+  name: string;
+  change_pct: number;
+  amount: number;
+  leader_name: string;
+  leader_change: number;
+}
+
+export interface ClsTelegraphItem {
+  time: string;
+  title: string;
+  content: string;
+  source: string;
 }
 
 // 内存行情缓存（TTL: 30秒）
@@ -68,6 +88,8 @@ async function fetchTencentQuotes(codes: string[]): Promise<Map<string, RealQuot
         const changePct = parseFloat(parts[32]) || (preClose > 0 ? Number((((currentPrice - preClose) / preClose) * 100).toFixed(2)) : 0);
         const volume = parseFloat(parts[36]) || 0;
         const amount = parseFloat(parts[37]) || 0;
+        const turnoverPct = parts[38] !== undefined ? parseFloat(parts[38]) : NaN;
+        const volRatio = parts[49] !== undefined ? parseFloat(parts[49]) : NaN;
 
         if (code && currentPrice > 0) {
           results.set(code, {
@@ -81,6 +103,8 @@ async function fetchTencentQuotes(codes: string[]): Promise<Map<string, RealQuot
             change_pct: changePct,
             volume,
             amount,
+            ...(Number.isFinite(turnoverPct) && turnoverPct >= 0 ? { turnover_pct: turnoverPct } : {}),
+            ...(Number.isFinite(volRatio) && volRatio > 0 ? { vol_ratio: volRatio } : {}),
             source: "tencent",
             timestamp: /^\d{14}$/.test(parts[30]) ? `${parts[30].slice(0,4)}-${parts[30].slice(4,6)}-${parts[30].slice(6,8)}T${parts[30].slice(8,10)}:${parts[30].slice(10,12)}:${parts[30].slice(12,14)}+08:00` : "",
           });
@@ -600,7 +624,7 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
       ? parseFloat(((finalBrokenCount / totalLimitAttempts) * 100).toFixed(1))
       : 0;
 
-    const leaders = limitUps.length > 0 ? limitUps.slice(0, 3) : ["ST龙元", "国创高新", "大连重工"];
+    const leaders = limitUps.length > 0 ? limitUps.slice(0, 3) : [];
 
     // 1. 真实量能指标 (绝不写死常量)
     const volumeRatio = multiVol?.ma5_ratio ?? 1.0;
@@ -951,5 +975,181 @@ async function computeRealIndicesAndTurnover(): Promise<RealMarketSnapshotData> 
       flat_count: 0,
     };
   }
+}
+
+// ==========================================
+// 扩展行情服务：个股前复权日K / 行业板块列表 / 财联社电报快讯
+// ==========================================
+
+const klineCache = new Map<string, { bars: DailyKlineBar[]; expireAt: number }>();
+const KLINE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+export async function fetchStockDailyKline(rawCode: string, days = 260): Promise<DailyKlineBar[]> {
+  const cleanCode = String(rawCode || "").replace(/^(sh|sz|bj)/i, "").trim();
+  if (!/^\d{6}$/.test(cleanCode)) return [];
+  const cacheKey = `${cleanCode}:${days}`;
+  const cached = klineCache.get(cacheKey);
+  if (cached && cached.expireAt > Date.now()) {
+    return cached.bars;
+  }
+
+  const tcCode = toTencentCode(cleanCode);
+  try {
+    const res = await fetch(
+      `https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=${tcCode},day,,,${days},qfq`,
+      {
+        cache: "no-store",
+        headers: { "User-Agent": "Mozilla/5.0", Referer: "https://stockapp.finance.qq.com/" },
+        signal: AbortSignal.timeout(5000),
+      }
+    );
+    if (!res.ok) return cached?.bars || [];
+    const json = (await res.json()) as {
+      data?: Record<string, { qfqday?: unknown[]; day?: unknown[] }>;
+    };
+    const payload = json?.data?.[tcCode];
+    const rawDays = Array.isArray(payload?.qfqday)
+      ? payload.qfqday
+      : Array.isArray(payload?.day)
+      ? payload.day
+      : [];
+
+    const bars: DailyKlineBar[] = [];
+    for (const row of rawDays) {
+      if (!Array.isArray(row) || row.length < 6) continue;
+      const date = String(row[0] || "");
+      const open = parseFloat(String(row[1]));
+      const close = parseFloat(String(row[2]));
+      const high = parseFloat(String(row[3]));
+      const low = parseFloat(String(row[4]));
+      const volume = parseFloat(String(row[5]));
+      if (date && Number.isFinite(close) && close > 0) {
+        bars.push({
+          date,
+          open: Number.isFinite(open) ? open : close,
+          close,
+          high: Number.isFinite(high) ? high : close,
+          low: Number.isFinite(low) ? low : close,
+          volume: Number.isFinite(volume) ? volume : 0,
+        });
+      }
+    }
+
+    if (bars.length > 0) {
+      klineCache.set(cacheKey, { bars, expireAt: Date.now() + KLINE_CACHE_TTL_MS });
+    }
+    return bars;
+  } catch (err) {
+    console.warn(`[QuotesService] 拉取 ${cleanCode} 日K异常:`, err);
+    return cached?.bars || [];
+  }
+}
+
+let sectorsListCache: { items: RealSectorQuoteItem[]; expireAt: number } | null = null;
+
+export async function fetchAllSectorsList(): Promise<RealSectorQuoteItem[]> {
+  if (sectorsListCache && sectorsListCache.expireAt > Date.now()) {
+    return sectorsListCache.items;
+  }
+  try {
+    const res = await fetch("https://money.finance.sina.com.cn/q/view/newSinaHy.php", {
+      headers: { Referer: "https://finance.sina.com.cn", "User-Agent": "Mozilla/5.0" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(4500),
+    });
+    if (!res.ok) return sectorsListCache?.items || [];
+    const text = new TextDecoder("gbk").decode(await res.arrayBuffer());
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return sectorsListCache?.items || [];
+    const parsed = JSON.parse(match[0]) as Record<string, unknown>;
+    const sectors = Object.values(parsed)
+      .filter((row): row is string => typeof row === "string")
+      .map((row) => {
+        const p = row.split(",");
+        return {
+          code: p[0] || "",
+          name: p[1] || "",
+          change_pct: Number(p[5]),
+          amount: Number(p[7]),
+          leader_name: p[12] || "--",
+          leader_change: Number(p[9]) || 0,
+        };
+      })
+      .filter((row) => row.code && row.name && Number.isFinite(row.change_pct) && Number.isFinite(row.amount))
+      .sort((a, b) => b.change_pct - a.change_pct);
+
+    if (sectors.length > 0) {
+      sectorsListCache = { items: sectors, expireAt: Date.now() + 30 * 1000 };
+    }
+    return sectors;
+  } catch {
+    return sectorsListCache?.items || [];
+  }
+}
+
+export async function fetchClsTelegraphNews(limit = 15): Promise<ClsTelegraphItem[]> {
+  try {
+    const res = await fetch(
+      `https://www.cls.cn/nodeapi/telegraphList?app=CailianpressWeb&os=web&sv=7.7.5&rn=${Math.min(30, limit)}`,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+          Referer: "https://www.cls.cn/telegraph",
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(4500),
+      }
+    );
+    if (res.ok) {
+      const json = (await res.json()) as {
+        data?: { roll_data?: Array<{ ctime?: number; title?: string; content?: string; brief?: string }> };
+      };
+      const items = json?.data?.roll_data || [];
+      if (items.length > 0) {
+        return items.slice(0, limit).map((item) => {
+          const dt = item.ctime ? new Date(item.ctime * 1000) : new Date();
+          const bj = new Date(dt.toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
+          const pad = (n: number) => String(n).padStart(2, "0");
+          return {
+            time: `${pad(bj.getHours())}:${pad(bj.getMinutes())}`,
+            title: String(item.title || item.brief || "").trim().slice(0, 80) || "财联社快讯",
+            content: String(item.content || item.brief || "").trim().slice(0, 220),
+            source: "财联社电报",
+          };
+        });
+      }
+    }
+  } catch {
+    // 财联社接口失败时静默降级至新浪财经快讯
+  }
+
+  try {
+    const res = await fetch(
+      `https://zhibo.sina.com.cn/api/zhibo/feed?page=1&page_size=${Math.min(20, limit)}&zhibo_id=152`,
+      {
+        headers: { "User-Agent": "Mozilla/5.0", Referer: "https://finance.sina.com.cn/" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(4500),
+      }
+    );
+    if (res.ok) {
+      const json = (await res.json()) as {
+        result?: { data?: { feed?: { list?: Array<{ create_time?: string; rich_text?: string }> } } };
+      };
+      const list = json?.result?.data?.feed?.list || [];
+      return list.slice(0, limit).map((item) => {
+        const text = String(item.rich_text || "").replace(/<[^>]+>/g, "").trim();
+        return {
+          time: String(item.create_time || "").slice(11, 16) || "--:--",
+          title: text.slice(0, 48) || "新浪财经直播",
+          content: text.slice(0, 220),
+          source: "新浪财经",
+        };
+      });
+    }
+  } catch {
+    // 均不可达时返回空数组
+  }
+  return [];
 }
 
