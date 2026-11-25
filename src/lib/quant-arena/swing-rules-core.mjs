@@ -82,17 +82,51 @@ export function evaluateMarketTrafficLight(score, minPullback = 30, minBreakout 
   };
 }
 
+function getElapsedTradingFraction(now = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Shanghai",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(now);
+    const h = Number(parts.find((p) => p.type === "hour")?.value || 0);
+    const m = Number(parts.find((p) => p.type === "minute")?.value || 0);
+    const totalMin = h * 60 + m;
+    if (totalMin < 570) return 1.0; // 盘前视同上日完整收盘
+    if (totalMin <= 690) return Math.max(10, totalMin - 570) / 240; // 上午盘 09:30-11:30
+    if (totalMin < 780) return 120 / 240; // 午休
+    if (totalMin <= 900) return Math.min(240, 120 + (totalMin - 780)) / 240; // 下午盘 13:00-15:00
+    return 1.0; // 收盘后
+  } catch {
+    return 1.0;
+  }
+}
+
 export function computeStockTechnicals(bars, code = "", liveQuote = undefined) {
   const list = [...bars];
   if (liveQuote && liveQuote.price > 0 && list.length > 0) {
     const last = list[list.length - 1];
-    list[list.length - 1] = {
-      ...last,
-      close: liveQuote.price,
-      high: Math.max(last.high, liveQuote.high || liveQuote.price),
-      low: Math.min(last.low, liveQuote.low || liveQuote.price),
-      volume: liveQuote.volume && liveQuote.volume > 0 ? liveQuote.volume : last.volume,
-    };
+    const quoteDate = typeof liveQuote.quote_date === "string" ? liveQuote.quote_date.slice(0, 10) : "";
+    if (quoteDate && last.date && quoteDate > last.date) {
+      // 当实时行情属于新的交易日时追加今日实时K线，严禁覆盖昨日收盘K线
+      list.push({
+        date: quoteDate,
+        open: liveQuote.open || liveQuote.price,
+        close: liveQuote.price,
+        high: liveQuote.high || liveQuote.price,
+        low: liveQuote.low || liveQuote.price,
+        volume: liveQuote.volume && liveQuote.volume > 0 ? liveQuote.volume : 0,
+      });
+    } else {
+      list[list.length - 1] = {
+        ...last,
+        close: liveQuote.price,
+        high: Math.max(last.high, liveQuote.high || liveQuote.price),
+        low: Math.min(last.low, liveQuote.low || liveQuote.price),
+        volume: liveQuote.volume && liveQuote.volume > 0 ? liveQuote.volume : last.volume,
+      };
+    }
   }
 
   if (!list.length) {
@@ -105,6 +139,7 @@ export function computeStockTechnicals(bars, code = "", liveQuote = undefined) {
       ma60: null,
       above_ma20: false,
       vol_ratio_5_20: null,
+      avg_vol_5d: null,
       ret_5d_pct: null,
       ret_20d_pct: null,
       high_60d: null,
@@ -135,6 +170,8 @@ export function computeStockTechnicals(bars, code = "", liveQuote = undefined) {
   const ma60 = closes.length >= 60 ? mean(tail(closes, 60)) : null;
 
   const vol5 = mean(tail(vols, 5));
+  const completedPrev5 = vols.length >= 6 ? vols.slice(-6, -1) : tail(vols, 5);
+  const avgVol5d = mean(completedPrev5);
   const prev20Vols = vols.length >= 25 ? vols.slice(-25, -5) : tail(vols, 20);
   const volPrev20 = mean(prev20Vols);
   const volRatio5To20 = vol5 && volPrev20 && volPrev20 > 0 ? vol5 / volPrev20 : null;
@@ -184,6 +221,7 @@ export function computeStockTechnicals(bars, code = "", liveQuote = undefined) {
     ma60: roundOpt(ma60),
     above_ma20: Boolean(ma20 && latestClose >= ma20),
     vol_ratio_5_20: roundOpt(volRatio5To20),
+    avg_vol_5d: roundOpt(avgVol5d, 0),
     ret_5d_pct: roundOpt(ret5d),
     ret_20d_pct: roundOpt(ret20d),
     high_60d: roundOpt(high60d),
@@ -199,19 +237,48 @@ export function computeStockTechnicals(bars, code = "", liveQuote = undefined) {
   };
 }
 
+function resolveLiveVolRatio(liveQuote, tech, fallback = 0) {
+  const direct = Number(liveQuote?.vol_ratio || 0);
+  if (direct > 0) return direct;
+  if (liveQuote?.volume > 0 && tech?.avg_vol_5d && tech.avg_vol_5d > 0) {
+    const frac = getElapsedTradingFraction();
+    const projectedVol = frac > 0 ? liveQuote.volume / frac : liveQuote.volume;
+    return Number((projectedVol / tech.avg_vol_5d).toFixed(2));
+  }
+  return fallback;
+}
+
 export function evaluateHoldingSwingSignals(holding, liveQuote, tech, sectorChangePct) {
   const boardInfo = classifyAShareBoard(holding.code, holding.name);
-  const mode =
+  const rawMode =
     holding.position_mode === "deep_drawdown_recovery"
       ? "deep_drawdown_recovery"
       : "swing_normal";
+  const suppressCostSl = Boolean(holding.suppress_cost_stoploss);
   const cost = Number(holding.cost_price) || 0;
   const shares = Number(holding.quantity) || 0;
+  const livePriceEst = Number(liveQuote?.price || 0);
+  const estPnlPct = cost > 0 && livePriceEst > 0 ? ((livePriceEst - cost) / cost) * 100 : 0;
+  const mode =
+    rawMode === "deep_drawdown_recovery" || suppressCostSl || estPnlPct <= -12
+      ? "deep_drawdown_recovery"
+      : "swing_normal";
 
   const slPct = Number.isFinite(Number(holding.stop_loss_pct)) ? Number(holding.stop_loss_pct) : -8.0;
-  const fallbackStopLoss =
-    mode === "deep_drawdown_recovery" && holding.support_defense_price && holding.support_defense_price > 0
+  const manualSupport =
+    holding.support_defense_price && holding.support_defense_price > 0
       ? Number(holding.support_defense_price)
+      : null;
+  const autoSupport =
+    tech?.low_20d && tech.low_20d > 0
+      ? Number((tech.low_20d * 0.995).toFixed(2))
+      : livePriceEst > 0
+      ? Number((livePriceEst * 0.94).toFixed(2))
+      : null;
+  const effectiveSupport = manualSupport ?? (mode === "deep_drawdown_recovery" ? autoSupport : null);
+  const fallbackStopLoss =
+    mode === "deep_drawdown_recovery" && effectiveSupport
+      ? effectiveSupport
       : Number((cost * (1 + slPct / 100)).toFixed(2));
 
   if (!liveQuote || !Number.isFinite(liveQuote.price) || liveQuote.price <= 0) {
@@ -263,7 +330,7 @@ export function evaluateHoldingSwingSignals(holding, liveQuote, tech, sectorChan
       : prevClose > 0
       ? Number((((price - prevClose) / prevClose) * 100).toFixed(2))
       : 0;
-  const volRatio = Number(liveQuote.vol_ratio || 0);
+  const volRatio = resolveLiveVolRatio(liveQuote, tech, 0);
   const turnoverPct = Number(liveQuote.turnover_pct || 0);
 
   const amplitudePct = prevClose > 0 ? Number((((highP - lowP) / prevClose) * 100).toFixed(2)) : 0;
@@ -283,14 +350,14 @@ export function evaluateHoldingSwingSignals(holding, liveQuote, tech, sectorChan
   const tp2 = Number(holding.take_profit_pct_2 ?? 25.0);
   const trailAct = tp1;
   const trailPb = Number(holding.trailing_pullback_pct ?? 7.0);
-  const suppressCostSl = Boolean(holding.suppress_cost_stoploss);
-  const supportPrice =
-    holding.support_defense_price && holding.support_defense_price > 0
-      ? Number(holding.support_defense_price)
-      : null;
-  const reboundLevels = Array.isArray(holding.rebound_watch_prices)
+  const manualRebounds = Array.isArray(holding.rebound_watch_prices)
     ? holding.rebound_watch_prices.map(Number).filter((n) => Number.isFinite(n) && n > 0)
     : [];
+  const reboundLevels =
+    manualRebounds.length > 0
+      ? manualRebounds
+      : [tech?.ma20, tech?.ma60].filter((n) => typeof n === "number" && Number.isFinite(n) && n > 0);
+  const supportPrice = effectiveSupport;
   const ma20 = tech?.ma20 ?? null;
 
   const signals = [];
@@ -329,11 +396,11 @@ export function evaluateHoldingSwingSignals(holding, liveQuote, tech, sectorChan
         `现价 ¥${price.toFixed(2)} 跌破前低关键防守位 ¥${supportPrice.toFixed(2)}，触发风控减仓预警`,
         true
       );
-    } else if (supportPrice !== null && price <= supportPrice * 1.02) {
+    } else if (supportPrice !== null && price <= supportPrice * 1.03) {
       add(
         "support_near",
         "WATCH",
-        `现价 ¥${price.toFixed(2)} 逼近前低防守位 ¥${supportPrice.toFixed(2)}，观察资金承接`,
+        `现价 ¥${price.toFixed(2)} 逼近防守支撑位 ¥${supportPrice.toFixed(2)}（距今 ${(((price - supportPrice) / price) * 100).toFixed(1)}%），密切观察资金承接`,
         false
       );
     }
@@ -346,6 +413,13 @@ export function evaluateHoldingSwingSignals(holding, liveQuote, tech, sectorChan
         "WATCH",
         `现价 ¥${price.toFixed(2)} 站上修复观察位 ¥${topLv.toFixed(2)}，留意放量持续性`,
         true
+      );
+    } else if (ma20 && price < ma20) {
+      add(
+        "below_ma20_drawdown_watch",
+        "WATCH",
+        `现价 ¥${price.toFixed(2)} 位于 MA20(¥${ma20.toFixed(2)}) 下方，重点盯防支撑位 ¥${supportPrice ? supportPrice.toFixed(2) : fallbackStopLoss.toFixed(2)}，未放量收复 MA20 前勿盲目补仓`,
+        false
       );
     }
     if (pnlPct >= 0) {
@@ -434,10 +508,13 @@ export function evaluateHoldingSwingSignals(holding, liveQuote, tech, sectorChan
   } else if (actionSigs.length > 0) {
     recommendation = "触发风控防守预警，建议复核减仓";
   } else if (mode === "deep_drawdown_recovery") {
+    const defText = supportPrice ? `¥${supportPrice.toFixed(2)}` : `¥${fallbackStopLoss.toFixed(2)}`;
     recommendation =
       ma20 && price >= ma20
-        ? "站上MA20右侧修复观察，暂持股待涨"
-        : "深套修复观察期：未破前低暂持股观望，等待放量站稳MA20";
+        ? `站上MA20右侧修复观察（防守位${defText}），暂持股待涨`
+        : `深套修复防守：紧盯支撑位${defText}，未放量收复${ma20 ? `MA20(¥${ma20.toFixed(2)})` : "均线"}前勿盲目补仓`;
+  } else if (pnlPct <= -8 && ma20 && price < ma20) {
+    recommendation = `浮亏 ${pnlPct.toFixed(2)}% 且位于MA20(¥${ma20.toFixed(2)})下方，趋势偏弱严禁盲目补仓`;
   }
 
   return {
@@ -493,10 +570,7 @@ export function evaluateWatchlistSwingSignals(item, liveQuote, sectorChangePct, 
 
   const price = Number(liveQuote.price);
   const chgPct = Number(liveQuote.change_pct || 0);
-  const volRatio =
-    liveQuote.vol_ratio && liveQuote.vol_ratio > 0
-      ? Number(liveQuote.vol_ratio)
-      : Number(tech?.vol_ratio_5_20 || 1.0);
+  const volRatio = resolveLiveVolRatio(liveQuote, tech, Number(tech?.vol_ratio_5_20 || 1.0));
 
   const buyLow = item.buy_low;
   const buyHigh = item.buy_high;

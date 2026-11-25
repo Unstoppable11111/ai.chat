@@ -44,17 +44,20 @@ async function listTargetUsers(targetUserId?: string): Promise<string[]> {
   if (!getDbPool()) return [];
   await ensureRollingPoolTable();
 
-  // 对拥有实盘持仓或观察池的活跃用户执行定时监控与盘前/盘后推送
-  const rows = await executeQuery<{ user_id: string }>(
-    `SELECT DISTINCT u.id AS user_id
-     FROM studio_users u
-     WHERE u.disabled = 0
-       AND (
-         EXISTS (SELECT 1 FROM user_portfolios p WHERE p.user_id = u.id)
-         OR EXISTS (SELECT 1 FROM stock_rolling_pool w WHERE w.user_id = u.id)
-       )`
-  );
-  return (rows || []).map((r) => r.user_id);
+  // 分别查询活跃用户与持仓/观察池 user_id 并在内存取交集，彻底避免历史表与新表因字符集排序规则不同导致 ER_CANT_AGGREGATE_2COLLATIONS
+  const [activeUsers, portfolioUsers, poolUsers] = await Promise.all([
+    executeQuery<{ id: string }>(`SELECT id FROM studio_users WHERE disabled = 0`),
+    executeQuery<{ user_id: string }>(`SELECT DISTINCT user_id FROM user_portfolios`),
+    executeQuery<{ user_id: string }>(`SELECT DISTINCT user_id FROM stock_rolling_pool`),
+  ]);
+
+  const activeSet = new Set((activeUsers || []).map((r) => r.id));
+  const candidateIds = new Set<string>([
+    ...(portfolioUsers || []).map((r) => r.user_id),
+    ...(poolUsers || []).map((r) => r.user_id),
+  ]);
+
+  return [...candidateIds].filter((id) => activeSet.has(id));
 }
 
 /**
@@ -227,6 +230,7 @@ export async function runIntradayTickJob(options?: { targetUserId?: string; forc
         const liveInput = q
           ? {
               price: q.current_price,
+              quote_date: q.timestamp ? q.timestamp.slice(0, 10) : undefined,
               prev_close: q.pre_close,
               open: q.open,
               high: q.high,
@@ -274,6 +278,7 @@ export async function runIntradayTickJob(options?: { targetUserId?: string; forc
         const liveInput = q
           ? {
               price: q.current_price,
+              quote_date: q.timestamp ? q.timestamp.slice(0, 10) : undefined,
               prev_close: q.pre_close,
               open: q.open,
               high: q.high,

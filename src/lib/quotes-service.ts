@@ -372,7 +372,7 @@ export async function fetchHistoricalDailyVolume(days = 15): Promise<MultiDayVol
   }
 }
 
-// 2. 真实抓取新浪49个行业板块行情，计算真实主线吸金占比与领涨板块
+// 2. 真实抓取行业板块行情（新浪 + 东财双源容灾），计算真实主线吸金占比与领涨板块
 export async function fetchRealSectorMetrics(): Promise<{
   concentration_pct: number;
   mainline_name: string;
@@ -380,39 +380,19 @@ export async function fetchRealSectorMetrics(): Promise<{
   top_gainers: string;
 } | null> {
   try {
-    const res = await fetch("https://vip.stock.finance.sina.com.cn/q/view/newSinaHy.php", {
-      cache: "no-store",
-      headers: { "User-Agent": "Mozilla/5.0", Referer: "https://finance.sina.com.cn" },
-      signal: AbortSignal.timeout(3500),
-    });
-    if (!res.ok) return null;
-    const buf = await res.arrayBuffer();
-    const text = new TextDecoder("gbk").decode(buf);
-    const raw = text.replace(/^var\s+S_Finance_bankuai_sinaindustry\s*=\s*/, "").replace(/;\s*$/, "");
-    const obj = JSON.parse(raw) as Record<string, string>;
-    const list: Array<{ name: string; changePct: number; amount: number }> = [];
-    for (const v of Object.values(obj)) {
-      const parts = String(v).split(",");
-      if (parts.length >= 8) {
-        list.push({
-          name: parts[1],
-          changePct: parseFloat(parts[5]) || 0,
-          amount: parseFloat(parts[7]) || 0,
-        });
-      }
-    }
-    if (list.length === 0) return null;
+    const sectors = await fetchAllSectorsList();
+    if (!sectors.length) return null;
 
-    const totalAmount = list.reduce((sum, item) => sum + item.amount, 0);
-    const byAmount = [...list].sort((a, b) => b.amount - a.amount);
+    const totalAmount = sectors.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const byAmount = [...sectors].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0));
     const top3Turnover = byAmount.slice(0, 3);
-    const top3Amount = top3Turnover.reduce((sum, item) => sum + item.amount, 0);
+    const top3Amount = top3Turnover.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const concentration = totalAmount > 0 ? parseFloat(((top3Amount / totalAmount) * 100).toFixed(1)) : 0;
     const mainlineName = top3Turnover.map((s) => s.name).join(" · ");
 
-    const byGain = [...list].sort((a, b) => b.changePct - a.changePct);
+    const byGain = [...sectors].sort((a, b) => b.change_pct - a.change_pct);
     const top3Gain = byGain.slice(0, 3);
-    const topGainersStr = top3Gain.map((s) => `${s.name}(${s.changePct >= 0 ? "+" : ""}${s.changePct.toFixed(2)}%)`).join(" · ");
+    const topGainersStr = top3Gain.map((s) => `${s.name}(${s.change_pct >= 0 ? "+" : ""}${s.change_pct.toFixed(2)}%)`).join(" · ");
 
     let evalText = "";
     if (concentration >= 35) {
@@ -430,7 +410,7 @@ export async function fetchRealSectorMetrics(): Promise<{
       top_gainers: topGainersStr,
     };
   } catch (err) {
-    console.warn("[QuotesService] 获取新浪行业板块行情异常:", err);
+    console.warn("[QuotesService] 计算行业板块主线指标异常:", err);
     return null;
   }
 }
@@ -504,21 +484,105 @@ export async function getRealMarketSentiment(): Promise<MarketSentimentMetrics |
   return fresh ?? sentimentCache?.data ?? null;
 }
 
+function getShanghaiCompactDate(date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const y = parts.find((p) => p.type === "year")?.value || "";
+  const m = parts.find((p) => p.type === "month")?.value || "";
+  const d = parts.find((p) => p.type === "day")?.value || "";
+  return `${y}${m}${d}`;
+}
+
+async function fetchEastmoneyLimitPools(dateCompact: string): Promise<{
+  limitUpCount: number;
+  brokenLimitCount: number;
+  limitDownCount: number;
+  highestHeight: number;
+  leaders: string[];
+} | null> {
+  try {
+    const baseParams = `ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&Pagesize=300&date=${dateCompact}`;
+    const headers = { "User-Agent": "Mozilla/5.0", Referer: "https://quote.eastmoney.com/" };
+    const [ztRes, zbRes, dtRes] = await Promise.all([
+      fetch(`https://push2ex.eastmoney.com/getTopicZTPool?${baseParams}&sort=fbt:asc`, {
+        cache: "no-store",
+        headers,
+        signal: AbortSignal.timeout(4500),
+      }).catch(() => null),
+      fetch(`https://push2ex.eastmoney.com/getTopicZBPool?${baseParams}&sort=fbt:asc`, {
+        cache: "no-store",
+        headers,
+        signal: AbortSignal.timeout(4500),
+      }).catch(() => null),
+      fetch(`https://push2ex.eastmoney.com/getTopicDTPool?${baseParams}&sort=fund:asc`, {
+        cache: "no-store",
+        headers,
+        signal: AbortSignal.timeout(4500),
+      }).catch(() => null),
+    ]);
+
+    if (!ztRes || !ztRes.ok) return null;
+    const ztJson = (await ztRes.json()) as {
+      data?: { tc?: number; pool?: Array<{ n?: string; lbc?: number; fbt?: number }> } | null;
+    };
+    if (!ztJson?.data) return null;
+
+    const ztPool = Array.isArray(ztJson.data.pool) ? ztJson.data.pool : [];
+    const limitUpCount = Number(ztJson.data.tc ?? ztPool.length) || 0;
+
+    let brokenLimitCount = 0;
+    if (zbRes && zbRes.ok) {
+      const zbJson = (await zbRes.json()) as { data?: { tc?: number; pool?: unknown[] } | null };
+      if (zbJson?.data) {
+        brokenLimitCount = Number(zbJson.data.tc ?? (Array.isArray(zbJson.data.pool) ? zbJson.data.pool.length : 0)) || 0;
+      }
+    }
+
+    let limitDownCount = 0;
+    if (dtRes && dtRes.ok) {
+      const dtJson = (await dtRes.json()) as { data?: { tc?: number; pool?: unknown[] } | null };
+      if (dtJson?.data) {
+        limitDownCount = Number(dtJson.data.tc ?? (Array.isArray(dtJson.data.pool) ? dtJson.data.pool.length : 0)) || 0;
+      }
+    }
+
+    const sortedLeaders = [...ztPool].sort(
+      (a, b) => (Number(b.lbc) || 1) - (Number(a.lbc) || 1) || (Number(a.fbt) || 999999) - (Number(b.fbt) || 999999)
+    );
+    const highestHeight = limitUpCount > 0 ? Math.max(1, ...ztPool.map((p) => Number(p.lbc) || 1)) : 0;
+    const leaders = sortedLeaders
+      .slice(0, 3)
+      .map((p) => {
+        const lbc = Number(p.lbc) || 1;
+        const name = String(p.n || "").trim();
+        return lbc > 1 ? `${name}(${lbc}板)` : name;
+      })
+      .filter(Boolean);
+
+    return { limitUpCount, brokenLimitCount, limitDownCount, highestHeight, leaders };
+  } catch (err) {
+    console.warn("[QuotesService] 拉取东财涨跌停与炸板池异常:", err);
+    return null;
+  }
+}
+
 async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | null> {
   try {
-    // 多源并行：拉取全市场涨幅前100、跌幅前100、15日量能日K、行业板块行情、中军指数剪刀差与全市场涨跌家数
+    const todayCompact = getShanghaiCompactDate();
+    // 多源并行：优先复用共享指数涨跌分布 + 东财实时涨停/炸板/跌停池 + 新浪深跌统计 + 15日量能 + 行业主线 + 护盘剪刀差
     const [
-      resGainers,
+      emPools,
       resLosers,
       multiVol,
       sectorData,
       defenseData,
-      resUlist
+      indicesSnapshot,
     ] = await Promise.all([
-      fetch(
-        "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page=1&num=100&sort=changepercent&asc=0&node=hs_a",
-        { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0", Referer: "https://finance.sina.com.cn" }, signal: AbortSignal.timeout(4000) }
-      ).catch(() => null),
+      fetchEastmoneyLimitPools(todayCompact),
       fetch(
         "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page=1&num=100&sort=changepercent&asc=1&node=hs_a",
         { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0", Referer: "https://finance.sina.com.cn" }, signal: AbortSignal.timeout(4000) }
@@ -526,50 +590,48 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
       fetchHistoricalDailyVolume(15).catch(() => null),
       fetchRealSectorMetrics().catch(() => null),
       fetchIndexDefenseGap().catch(() => null),
-      fetch(
-        "https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&secids=1.000001,0.399001,0.399006,1.000688&fields=f12,f14,f2,f3,f6,f104,f105,f106",
-        { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(3500) }
-      ).catch(() => null),
+      fetchRealIndicesAndTurnover().catch(() => null),
     ]);
 
     const limitUps: string[] = [];
     const brokenLimits: string[] = [];
-    let limitDownCount = 0;
+    let sinaLimitDownCount = 0;
     let deepDropsCount = 0; // 跌幅 <= -5.0% 的深跌个股数
 
-    if (resGainers && resGainers.ok) {
-      try {
-        const gainers = (await resGainers.json()) as Array<{
-          symbol?: string;
-          name?: string;
-          changepercent?: string | number;
-          high?: string | number;
-          settlement?: string | number;
-          trade?: string | number;
-        }>;
-
-        for (const item of gainers) {
-          const pct = parseFloat(String(item.changepercent || 0)) || 0;
-          const high = parseFloat(String(item.high || 0)) || 0;
-          const settle = parseFloat(String(item.settlement || 0)) || 0;
-          const trade = parseFloat(String(item.trade || 0)) || 0;
-          const code = String(item.symbol || "");
-          const name = String(item.name || "");
-          if (settle <= 0 || trade <= 0) continue;
-
-          const is20 = code.startsWith("sz30") || code.startsWith("sh68");
-          const is30 = code.startsWith("bj");
-          const limitThresh = is30 ? 29.5 : is20 ? 19.5 : 9.8;
-          const brokenRatioThresh = is30 ? 1.295 : is20 ? 1.195 : 1.095;
-
-          if (pct >= limitThresh) {
-            limitUps.push(name);
-          } else if (high >= settle * brokenRatioThresh && trade < high) {
-            brokenLimits.push(name);
+    // 当东财涨停池暂不可用时（如非交易时段），降级使用新浪涨幅榜前100统计涨停
+    if (!emPools) {
+      const resGainers = await fetch(
+        "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page=1&num=100&sort=changepercent&asc=0&node=hs_a",
+        { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0", Referer: "https://finance.sina.com.cn" }, signal: AbortSignal.timeout(4000) }
+      ).catch(() => null);
+      if (resGainers && resGainers.ok) {
+        try {
+          const gainers = (await resGainers.json()) as Array<{
+            symbol?: string;
+            name?: string;
+            changepercent?: string | number;
+            high?: string | number;
+            settlement?: string | number;
+            trade?: string | number;
+          }>;
+          for (const item of gainers) {
+            const pct = parseFloat(String(item.changepercent || 0)) || 0;
+            const high = parseFloat(String(item.high || 0)) || 0;
+            const settle = parseFloat(String(item.settlement || 0)) || 0;
+            const trade = parseFloat(String(item.trade || 0)) || 0;
+            const code = String(item.symbol || "");
+            const name = String(item.name || "");
+            if (settle <= 0 || trade <= 0) continue;
+            const is20 = code.startsWith("sz30") || code.startsWith("sh68");
+            const is30 = code.startsWith("bj");
+            const limitThresh = is30 ? 29.5 : is20 ? 19.5 : 9.8;
+            const brokenRatioThresh = is30 ? 1.295 : is20 ? 1.195 : 1.095;
+            if (pct >= limitThresh) limitUps.push(name);
+            else if (high >= settle * brokenRatioThresh && trade < high) brokenLimits.push(name);
           }
+        } catch (err) {
+          console.warn("[QuotesService] 解析新浪涨停行情异常:", err);
         }
-      } catch (err) {
-        console.warn("[QuotesService] 解析新浪涨停行情异常:", err);
       }
     }
 
@@ -587,7 +649,7 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
           const limitThresh = is30 ? -29.5 : is20 ? -19.5 : -9.8;
 
           if (pct <= limitThresh) {
-            limitDownCount++;
+            sinaLimitDownCount++;
           }
           if (pct <= -5.0) {
             deepDropsCount++;
@@ -598,33 +660,24 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
       }
     }
 
-    // 全市场涨跌家数
-    let totalUp = 0;
-    let totalDown = 0;
-    if (resUlist && resUlist.ok) {
-      try {
-        const udata = await resUlist.json();
-        const diffList = udata?.data?.diff || [];
-        for (const item of diffList) {
-          if (item.f12 === "000001" || item.f12 === "399001") {
-            totalUp += Number(item.f104) || 0;
-            totalDown += Number(item.f105) || 0;
-          }
-        }
-      } catch (err) {
-        console.warn("[QuotesService] 解析东方财富涨跌家数异常:", err);
-      }
-    }
+    // 复用统一的全市场涨跌家数（彻底消除重复请求与 Body has already been read）
+    const totalUp = indicesSnapshot?.up_count || 0;
+    const totalDown = indicesSnapshot?.down_count || 0;
 
-    const finalLimitUpCount = limitUps.length;
-    const finalBrokenCount = brokenLimits.length;
-    const finalLimitDownCount = limitDownCount;
+    const finalLimitUpCount = emPools ? emPools.limitUpCount : limitUps.length;
+    const finalBrokenCount = emPools ? emPools.brokenLimitCount : brokenLimits.length;
+    const finalLimitDownCount = emPools ? emPools.limitDownCount : sinaLimitDownCount;
+    const highestHeight = emPools ? emPools.highestHeight : (finalLimitUpCount > 0 ? 1 : 0);
     const totalLimitAttempts = finalLimitUpCount + finalBrokenCount;
     const brokenRatio = totalLimitAttempts > 0 
       ? parseFloat(((finalBrokenCount / totalLimitAttempts) * 100).toFixed(1))
       : 0;
 
-    const leaders = limitUps.length > 0 ? limitUps.slice(0, 3) : [];
+    const leaders = emPools
+      ? emPools.leaders
+      : limitUps.length > 0
+      ? limitUps.slice(0, 3)
+      : [];
 
     // 1. 真实量能指标 (绝不写死常量)
     const volumeRatio = multiVol?.ma5_ratio ?? 1.0;
@@ -694,7 +747,7 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
       limit_down_count: finalLimitDownCount,
       broken_limit_count: finalBrokenCount,
       broken_limit_ratio: brokenRatio,
-      highest_limit_height: 5,
+      highest_limit_height: highestHeight,
       highest_limit_leaders: leaders,
       main_net_flow_yi: 128.5,
       main_buy_ratio: 56.4,
@@ -1046,48 +1099,148 @@ export async function fetchStockDailyKline(rawCode: string, days = 260): Promise
 }
 
 let sectorsListCache: { items: RealSectorQuoteItem[]; expireAt: number } | null = null;
+let sectorsPending: Promise<RealSectorQuoteItem[]> | null = null;
 
-export async function fetchAllSectorsList(): Promise<RealSectorQuoteItem[]> {
-  if (sectorsListCache && sectorsListCache.expireAt > Date.now()) {
-    return sectorsListCache.items;
-  }
+async function computeAllSectorsList(): Promise<RealSectorQuoteItem[]> {
+  // 通道 1：新浪行业板块（49个经典行业，含成交额与领涨股）
   try {
     const res = await fetch("https://money.finance.sina.com.cn/q/view/newSinaHy.php", {
       headers: { Referer: "https://finance.sina.com.cn", "User-Agent": "Mozilla/5.0" },
       cache: "no-store",
       signal: AbortSignal.timeout(4500),
     });
-    if (!res.ok) return sectorsListCache?.items || [];
-    const text = new TextDecoder("gbk").decode(await res.arrayBuffer());
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return sectorsListCache?.items || [];
-    const parsed = JSON.parse(match[0]) as Record<string, unknown>;
-    const sectors = Object.values(parsed)
-      .filter((row): row is string => typeof row === "string")
-      .map((row) => {
-        const p = row.split(",");
-        return {
-          code: p[0] || "",
-          name: p[1] || "",
-          change_pct: Number(p[5]),
-          amount: Number(p[7]),
-          leader_name: p[12] || "--",
-          leader_change: Number(p[9]) || 0,
-        };
-      })
-      .filter((row) => row.code && row.name && Number.isFinite(row.change_pct) && Number.isFinite(row.amount))
-      .sort((a, b) => b.change_pct - a.change_pct);
+    if (res.ok) {
+      const text = new TextDecoder("gbk").decode(await res.arrayBuffer());
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]) as Record<string, unknown>;
+        const sectors = Object.values(parsed)
+          .filter((row): row is string => typeof row === "string")
+          .map((row) => {
+            const p = row.split(",");
+            return {
+              code: p[0] || "",
+              name: p[1] || "",
+              change_pct: Number(p[5]),
+              amount: Number(p[7]),
+              leader_name: p[12] || "--",
+              leader_change: Number(p[9]) || 0,
+            };
+          })
+          .filter((row) => row.code && row.name && Number.isFinite(row.change_pct) && Number.isFinite(row.amount))
+          .sort((a, b) => b.change_pct - a.change_pct);
 
-    if (sectors.length > 0) {
-      sectorsListCache = { items: sectors, expireAt: Date.now() + 30 * 1000 };
+        if (sectors.length > 0) {
+          sectorsListCache = { items: sectors, expireAt: Date.now() + 30 * 1000 };
+          return sectors;
+        }
+      }
     }
-    return sectors;
   } catch {
-    return sectorsListCache?.items || [];
+    // 降级到东财行业板块接口
   }
+
+  // 通道 2：东方财富行业板块实时列表（m:90+t:2+f:!50）
+  try {
+    const res = await fetch(
+      "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=100&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:90+t:2+f:!50&fields=f12,f14,f3,f6,f128,f136",
+      {
+        headers: { Referer: "https://quote.eastmoney.com/", "User-Agent": "Mozilla/5.0" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(4500),
+      }
+    );
+    if (res.ok) {
+      const json = (await res.json()) as {
+        data?: {
+          diff?: Array<{
+            f12?: string;
+            f14?: string;
+            f3?: number;
+            f6?: number;
+            f128?: string;
+            f136?: number;
+          }>;
+        };
+      };
+      const diff = json?.data?.diff || [];
+      const sectors = diff
+        .map((d) => ({
+          code: String(d.f12 || ""),
+          name: String(d.f14 || ""),
+          change_pct: Number(d.f3) || 0,
+          amount: Number(d.f6) || 0,
+          leader_name: String(d.f128 || "--"),
+          leader_change: Number(d.f136) || 0,
+        }))
+        .filter((row) => row.code && row.name && Number.isFinite(row.change_pct))
+        .sort((a, b) => b.change_pct - a.change_pct);
+
+      if (sectors.length > 0) {
+        sectorsListCache = { items: sectors, expireAt: Date.now() + 30 * 1000 };
+        return sectors;
+      }
+    }
+  } catch (err) {
+    console.warn("[QuotesService] 东财行业板块备用接口异常:", err);
+  }
+
+  return sectorsListCache?.items || [];
 }
 
+export async function fetchAllSectorsList(): Promise<RealSectorQuoteItem[]> {
+  if (sectorsListCache && sectorsListCache.expireAt > Date.now()) {
+    return sectorsListCache.items;
+  }
+  if (!sectorsPending) {
+    sectorsPending = computeAllSectorsList().finally(() => {
+      sectorsPending = null;
+    });
+  }
+  return sectorsPending;
+}
+
+const FX_NOISE_RE = /^(?:马来西亚|日本\d+年期|美联储|欧洲央行|澳元|日元|美元兑|英镑|瑞士央行|韩国央行)/;
+
 export async function fetchClsTelegraphNews(limit = 15): Promise<ClsTelegraphItem[]> {
+  const fetchCount = Math.min(35, Math.max(limit * 2, 15));
+
+  // 通道 1：东方财富 7x24 A股财经要闻快讯（纯A股与宏观产业焦点，避免海外外汇直播噪音）
+  try {
+    const res = await fetch(
+      `https://newsapi.eastmoney.com/kuaixun/v1/getlist_102_ajaxResult_${fetchCount}_1_.html`,
+      {
+        headers: { "User-Agent": "Mozilla/5.0", Referer: "https://kuaixun.eastmoney.com/" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(4500),
+      }
+    );
+    if (res.ok) {
+      const rawText = await res.text();
+      const jsonText = rawText.replace(/^var\s+ajaxResult\s*=\s*/, "").replace(/;\s*$/, "");
+      const parsed = JSON.parse(jsonText) as {
+        LivesList?: Array<{ title?: string; simtitle?: string; digest?: string; showtime?: string }>;
+      };
+      const lives = parsed?.LivesList || [];
+      if (lives.length > 0) {
+        const cleaned = lives
+          .map((item) => ({
+            time: String(item.showtime || "").slice(11, 16) || "--:--",
+            title: String(item.title || item.simtitle || "").trim().slice(0, 80) || "东财A股快讯",
+            content: String(item.digest || item.title || "").trim().slice(0, 220),
+            source: "东财7x24",
+          }))
+          .filter((item) => !FX_NOISE_RE.test(item.title) && !FX_NOISE_RE.test(item.content));
+        if (cleaned.length > 0) {
+          return cleaned.slice(0, limit);
+        }
+      }
+    }
+  } catch {
+    // 降级到财联社或新浪A股频道
+  }
+
+  // 通道 2：财联社电报
   try {
     const res = await fetch(
       `https://www.cls.cn/nodeapi/telegraphList?app=CailianpressWeb&os=web&sv=7.7.5&rn=${Math.min(30, limit)}`,
@@ -1120,12 +1273,13 @@ export async function fetchClsTelegraphNews(limit = 15): Promise<ClsTelegraphIte
       }
     }
   } catch {
-    // 财联社接口失败时静默降级至新浪财经快讯
+    // 降级到新浪A股要闻滚动接口
   }
 
+  // 通道 3：新浪 A 股证券滚动要闻（lid=2516）
   try {
     const res = await fetch(
-      `https://zhibo.sina.com.cn/api/zhibo/feed?page=1&page_size=${Math.min(20, limit)}&zhibo_id=152`,
+      `https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2516&num=${Math.min(25, fetchCount)}&page=1`,
       {
         headers: { "User-Agent": "Mozilla/5.0", Referer: "https://finance.sina.com.cn/" },
         cache: "no-store",
@@ -1134,18 +1288,23 @@ export async function fetchClsTelegraphNews(limit = 15): Promise<ClsTelegraphIte
     );
     if (res.ok) {
       const json = (await res.json()) as {
-        result?: { data?: { feed?: { list?: Array<{ create_time?: string; rich_text?: string }> } } };
+        result?: { data?: Array<{ title?: string; intro?: string; ctime?: string | number }> };
       };
-      const list = json?.result?.data?.feed?.list || [];
-      return list.slice(0, limit).map((item) => {
-        const text = String(item.rich_text || "").replace(/<[^>]+>/g, "").trim();
-        return {
-          time: String(item.create_time || "").slice(11, 16) || "--:--",
-          title: text.slice(0, 48) || "新浪财经直播",
-          content: text.slice(0, 220),
-          source: "新浪财经",
-        };
-      });
+      const list = json?.result?.data || [];
+      if (list.length > 0) {
+        return list.slice(0, limit).map((item) => {
+          const sec = Number(item.ctime || 0);
+          const dt = sec > 0 ? new Date(sec * 1000) : new Date();
+          const bj = new Date(dt.toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
+          const pad = (n: number) => String(n).padStart(2, "0");
+          return {
+            time: `${pad(bj.getHours())}:${pad(bj.getMinutes())}`,
+            title: String(item.title || "新浪证券要闻").trim().slice(0, 80),
+            content: String(item.intro || item.title || "").trim().slice(0, 220),
+            source: "新浪证券",
+          };
+        });
+      }
     }
   } catch {
     // 均不可达时返回空数组

@@ -41,6 +41,7 @@ export interface StockTechnicals {
   ma60: number | null;
   above_ma20: boolean;
   vol_ratio_5_20: number | null;
+  avg_vol_5d?: number | null;
   ret_5d_pct: number | null;
   ret_20d_pct: number | null;
   high_60d: number | null;
@@ -57,6 +58,7 @@ export interface StockTechnicals {
 
 export interface SwingLiveQuote {
   price: number;
+  quote_date?: string;
   prev_close?: number;
   open?: number;
   high?: number;

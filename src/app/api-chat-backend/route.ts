@@ -89,15 +89,31 @@ export async function POST(request: Request) {
     }
   }
 
-  let model = models[modelKey] || "gemini-3.5-flash-lite";
-
-  // 思考等级组合 (Thinking Level)
+  const baseModel = models[modelKey] || "gemini-3.5-flash-lite";
   const thinkingLevel = typeof body.thinkingLevel === "string" ? body.thinkingLevel : "off";
-  if (["low", "medium", "high", "off"].includes(thinkingLevel)) {
-    model = `${model}@think=${thinkingLevel}`;
-  }
+  const hasThinkLevel = ["low", "medium", "high", "off"].includes(thinkingLevel);
 
-  if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_BASE_URL || !model) return fail("AI 服务暂未就绪", 503);
+  const supportsThinkSuffix = (id: string) =>
+    ["gemini-3.5-flash-lite", "4hydrogen", "gemini-4-hydrogen", "gemini-hydrogen", "4argon", "gemini-argon", "4carbon", "gemini-3.8-flash", "gemini-most-complex-work"].includes(id);
+
+  const rawCandidates = (() => {
+    if (modelKey === "lumen" || modelKey === "4hydrogen" || modelKey === "gemini-hydrogen" || modelKey === "gemini-4-hydrogen") {
+      return [baseModel, balancedUpstream, "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.1-pro"];
+    }
+    if (modelKey === "spark" || modelKey === "gemini-3.5-flash-lite" || modelKey === "jarvis-speed") {
+      return [baseModel, "gemini-3.8-flash", "4hydrogen"];
+    }
+    if (modelKey === "nova" || modelKey === "4argon" || modelKey === "gemini-argon") {
+      return [baseModel, "gemini-3.1-pro", "4hydrogen", "gemini-3.5-flash-lite"];
+    }
+    return [baseModel, balancedUpstream, "gemini-3.5-flash-lite", "gemini-3.8-flash"];
+  })();
+
+  const candidateModels = rawCandidates
+    .map((m) => (hasThinkLevel && supportsThinkSuffix(m) ? `${m}@think=${thinkingLevel}` : m))
+    .filter((m, idx, arr) => Boolean(m) && arr.indexOf(m) === idx);
+
+  if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_BASE_URL || !candidateModels.length) return fail("AI 服务暂未就绪", 503);
   try {
     const daily = Math.max(1,Math.min(10000,Number(process.env.CHAT_DAILY_REQUESTS) || 100));
     if (!await takeQuota("chat:global-minute", 30, 60000) || !await takeQuota("chat:global-day", daily, 86400000) || !await takeQuota(`chat:${clientKey(request)}`, 6, 60000)) return fail("当前请求额度已用完，请稍后再试", 429);
@@ -161,38 +177,168 @@ export async function POST(request: Request) {
       }, 3000);
 
       try {
-        const upstream = await fetch(`${baseUrl}/chat/completions`, {
-          method: "POST",
-          signal: abort.signal,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model,
-            stream: true,
-            max_tokens: maxTokens,
-            messages: [{ role: "system", content: system }, ...messages],
-          }),
-        });
+        let lastErrStatus = 502;
+        let lastErrDetail = "";
+        let activeReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+        let bufferedChunks: Uint8Array[] = [];
 
-        if (!upstream.ok || !upstream.body) {
-          const errText = await upstream.text().catch(() => "");
-          await upstream.body?.cancel().catch(() => {});
+        const sseDecoder = new TextDecoder();
+
+        const inspectSseError = (text: string): string | null => {
+          for (const line of text.split(/\r?\n/)) {
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const obj = JSON.parse(payload) as {
+                error?: { message?: string } | string;
+                message?: string;
+                choices?: Array<{ delta?: { content?: string; reasoning_content?: string } }>;
+              };
+              if (obj?.error) {
+                return (
+                  (typeof obj.error === "object" ? obj.error.message : obj.error) ||
+                  obj.message ||
+                  "上游模型返回错误"
+                );
+              }
+            } catch {
+              // 分包截断时忽略，等待后续字节拼齐
+            }
+          }
+          return null;
+        };
+
+        const hasMeaningfulContent = (text: string): boolean => {
+          for (const line of text.split(/\r?\n/)) {
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const obj = JSON.parse(payload) as {
+                choices?: Array<{ delta?: { content?: string; reasoning_content?: string } }>;
+              };
+              const delta = obj?.choices?.[0]?.delta;
+              if (delta && (delta.content || delta.reasoning_content)) {
+                return true;
+              }
+            } catch {
+              // ignore partial frame
+            }
+          }
+          return false;
+        };
+
+        for (const candidateModel of candidateModels) {
+          if (closed || request.signal.aborted) break;
+          let upstream: Response;
+          try {
+            upstream = await fetch(`${baseUrl}/chat/completions`, {
+              method: "POST",
+              signal: abort.signal,
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                model: candidateModel,
+                stream: true,
+                max_tokens: maxTokens,
+                messages: [{ role: "system", content: system }, ...messages],
+              }),
+            });
+          } catch (err) {
+            lastErrDetail = err instanceof Error ? err.message : "上游请求失败";
+            continue;
+          }
+
+          if (!upstream.ok || !upstream.body) {
+            const errText = await upstream.text().catch(() => "");
+            await upstream.body?.cancel().catch(() => {});
+            lastErrStatus = upstream.status;
+            lastErrDetail = errText.slice(0, 140) || `HTTP ${upstream.status}`;
+            continue;
+          }
+
+          const candidateReader = upstream.body.getReader();
+          const preBuffer: Uint8Array[] = [];
+          let peekText = "";
+          let probeFailed = false;
+          let sawValidDelta = false;
+
+          while (!closed) {
+            const { done, value } = await candidateReader.read();
+            if (value && value.byteLength > 0) {
+              preBuffer.push(value);
+              peekText += sseDecoder.decode(value, { stream: true });
+              const sseErr = inspectSseError(peekText);
+              if (sseErr) {
+                lastErrStatus = 502;
+                lastErrDetail = sseErr.slice(0, 140);
+                probeFailed = true;
+                break;
+              }
+              if (hasMeaningfulContent(peekText)) {
+                sawValidDelta = true;
+                break;
+              }
+            }
+            if (done) {
+              peekText += sseDecoder.decode();
+              const sseErr = inspectSseError(peekText);
+              if (sseErr) {
+                lastErrStatus = 502;
+                lastErrDetail = sseErr.slice(0, 140);
+                probeFailed = true;
+              } else if (!hasMeaningfulContent(peekText)) {
+                lastErrDetail = "上游返回空流响应";
+                probeFailed = true;
+              } else {
+                sawValidDelta = true;
+              }
+              break;
+            }
+          }
+
+          if (probeFailed || !sawValidDelta) {
+            await candidateReader.cancel().catch(() => {});
+            try {
+              candidateReader.releaseLock();
+            } catch {}
+            continue;
+          }
+
+          activeReader = candidateReader;
+          bufferedChunks = preBuffer;
+          break;
+        }
+
+        if (!activeReader) {
           cleanup();
           emit(controller, "error", {
             code: "UPSTREAM_ERROR",
-            status: upstream.status,
+            status: lastErrStatus,
             model: modelKey,
-            message: `模型 ${modelKey} 上游响应异常（HTTP ${upstream.status}）${errText ? `：${errText.slice(0, 120)}` : ""}`,
+            message: `模型 ${modelKey} 上游响应异常${lastErrDetail ? `：${lastErrDetail}` : ""}`,
           });
           closed = true;
           controller.close();
           return;
         }
 
-        reader = upstream.body.getReader();
-        let gotFirstChunk = false;
+        reader = activeReader;
+        if (heartbeat) {
+          clearInterval(heartbeat);
+          heartbeat = null;
+        }
+        emit(controller, "status", {
+          phase: "streaming",
+          elapsedMs: Date.now() - startedAt,
+          model: modelKey,
+        });
+        for (const chunk of bufferedChunks) {
+          if (!closed) controller.enqueue(chunk);
+        }
 
         while (!closed) {
           const { done, value } = await reader.read();
@@ -203,18 +349,6 @@ export async function POST(request: Request) {
             closed = true;
             controller.close();
             break;
-          }
-          if (!gotFirstChunk) {
-            gotFirstChunk = true;
-            if (heartbeat) {
-              clearInterval(heartbeat);
-              heartbeat = null;
-            }
-            emit(controller, "status", {
-              phase: "streaming",
-              elapsedMs: Date.now() - startedAt,
-              model: modelKey,
-            });
           }
           controller.enqueue(value);
         }

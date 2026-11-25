@@ -204,6 +204,7 @@ export async function GET(request: Request) {
       const liveInput = quote
         ? {
             price: quote.current_price,
+            quote_date: quote.timestamp ? quote.timestamp.slice(0, 10) : undefined,
             prev_close: quote.pre_close,
             open: quote.open,
             high: quote.high,

@@ -125,3 +125,40 @@ test("5日观察池买点A/B与情绪红绿灯联动判定", () => {
   assert.equal(greenBuyB.triggered_signal, "BUY_B");
   assert.equal(greenBuyB.llm_escalate, true);
 });
+
+test("深套修复兼容兜底：即使旧持仓为 swing_normal 且未设支撑位，仍自动推导20日低点防守且不误报正常持有", () => {
+  const holding = {
+    code: "002436",
+    name: "兴森科技",
+    quantity: 6300,
+    cost_price: 34.0,
+    position_mode: "swing_normal",
+    suppress_cost_stoploss: true,
+    support_defense_price: null,
+  };
+  const liveQuote = {
+    price: 24.38,
+    quote_date: "2026-11-25",
+    prev_close: 24.9,
+    open: 24.8,
+    high: 25.0,
+    low: 24.2,
+    change_pct: -2.09,
+    volume: 1200000,
+  };
+  const bars = Array.from({ length: 25 }, (_, i) => ({
+    date: `2026-10-${String(i + 1).padStart(2, "0")}`,
+    open: 26.5,
+    close: 26.7,
+    high: 27.2,
+    low: 23.42,
+    volume: 1000000,
+  }));
+  const tech = computeStockTechnicals(bars, "002436", liveQuote);
+  assert.equal(tech.latest_date, "2026-11-25", "新交易日实时行情应追加而非覆盖昨日K线");
+  const res = evaluateHoldingSwingSignals(holding, liveQuote, tech, -0.5);
+  assert.equal(res.position_mode, "deep_drawdown_recovery");
+  assert.ok(res.stop_loss_price < liveQuote.price, `防守价(${res.stop_loss_price})应低于现价(${liveQuote.price})`);
+  assert.ok(!res.recommendation.includes("趋势/仓位正常"), `深套亏28%不应建议正常持有: ${res.recommendation}`);
+  assert.ok(res.signals.some((s) => s.key === "below_ma20_drawdown_watch"));
+});

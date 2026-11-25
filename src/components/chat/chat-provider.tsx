@@ -463,7 +463,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           event = "";
           return;
         } else if (event === "error" || parsed.error) {
-          const errMsg = parsed.message || "回答中断，请重试";
+          const errMsg =
+            (typeof parsed.message === "string" && parsed.message.trim()) ||
+            (typeof parsed.error?.message === "string" && parsed.error.message.trim()) ||
+            (typeof parsed.error === "string" && parsed.error.trim()) ||
+            "回答中断，请重试";
           setIssue({
             code: typeof parsed.code === "string" ? parsed.code : "UPSTREAM_ERROR",
             model: typeof parsed.model === "string" ? parsed.model : activeModel,

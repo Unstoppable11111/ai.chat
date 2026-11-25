@@ -1,6 +1,6 @@
 import { executeQuery, executeRawDdl, executeWrite, getDbPool } from "@/lib/db";
-import { addUserHolding, getUserHoldings } from "@/lib/portfolio-db";
-import { getShanghaiDateStr } from "@/lib/trading-hours";
+import { addUserHolding, getUserHoldings, updateUserHolding } from "@/lib/portfolio-db";
+import { getShanghaiDateStr, isAShareTradingDay } from "@/lib/trading-hours";
 import { classifyAShareBoard } from "@/lib/quant-arena/swing-rules";
 
 export type RollingPoolStatus =
@@ -97,8 +97,11 @@ export async function ensureRollingPoolTable(): Promise<void> {
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           INDEX idx_user_status(user_id, status),
           INDEX idx_user_added(user_id, added_date)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
       );
+      await executeRawDdl(
+        "ALTER TABLE stock_rolling_pool CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+      ).catch(() => {});
     } catch (err) {
       rollingTableReadyPromise = null;
       throw err;
@@ -208,6 +211,24 @@ export async function listUserRollingPool(userId: string): Promise<{
   );
 
   const items = (rows || []).map(normalizeRollingRow);
+
+  // 在交易日跨日查看观察池时自动推进 observed_days，避免次日盘中仍卡在 Day 0/5
+  const todayStr = getShanghaiDateStr();
+  if (isAShareTradingDay()) {
+    const toAdvance = items.filter(
+      (i) => i.status === "OBSERVING" && todayStr > i.added_date && todayStr > i.last_counted_date
+    );
+    for (const item of toAdvance) {
+      const nextDays = item.observed_days + 1;
+      await executeWrite(
+        `UPDATE stock_rolling_pool SET observed_days=?, last_counted_date=? WHERE id=? AND user_id=?`,
+        [nextDays, todayStr, item.id, userId]
+      ).catch(() => {});
+      item.observed_days = nextDays;
+      item.last_counted_date = todayStr;
+    }
+  }
+
   return {
     active: items.filter((i) => i.status === "OBSERVING"),
     archive: items.filter((i) => i.status !== "OBSERVING").slice(0, 60),
@@ -398,7 +419,10 @@ export async function seedInitialSelectPortfolio(userId: string): Promise<{
 }> {
   const holdings = await getUserHoldings(userId);
   let addedHolding = false;
-  if (!holdings.some((h) => h.stock_code === "002436")) {
+  const existingXingsen = holdings.find((h) => h.stock_code === "002436");
+  const xingsenThesis =
+    "PCB与IC载板国产替代标的；当前处于深套修复观察期，重点跟踪23.30前低防守、27.50(MA20)右侧转强及回购专项贷款公告后的资金承接情况";
+  if (!existingXingsen) {
     await addUserHolding(userId, {
       stock_code: "002436",
       stock_name: "兴森科技",
@@ -417,9 +441,22 @@ export async function seedInitialSelectPortfolio(userId: string): Promise<{
       trailing_pullback_pct: 7,
       stop_loss_pct: -8,
       suppress_cost_stoploss: true,
-      thesis:
-        "PCB与IC载板国产替代标的；当前处于深套修复观察期，重点跟踪23.30前低防守、27.50(MA20)右侧转强及回购专项贷款公告后的资金承接情况",
+      thesis: xingsenThesis,
       notes: "从本机 select 初始账本导入（请核对券商精确成本价后修改）",
+    });
+    addedHolding = true;
+  } else if (
+    existingXingsen.position_mode !== "deep_drawdown_recovery" ||
+    !existingXingsen.support_defense_price
+  ) {
+    // 保留用户已填写的实际持仓数量与成本价，仅补齐深套修复防守参数与板块配置
+    await updateUserHolding(existingXingsen.id, userId, {
+      sector: existingXingsen.sector || "元件",
+      position_mode: "deep_drawdown_recovery",
+      support_defense_price: existingXingsen.support_defense_price ?? 23.3,
+      rebound_watch_prices: existingXingsen.rebound_watch_prices ?? [27.5, 34.45],
+      suppress_cost_stoploss: true,
+      thesis: existingXingsen.thesis || xingsenThesis,
     });
     addedHolding = true;
   }
