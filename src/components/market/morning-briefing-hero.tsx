@@ -34,13 +34,13 @@ export function MorningBriefingHero({
       const res = await fetch("/api-market/daily-board", { cache: "no-store" });
       if (!res.ok) return;
       const json = await res.json();
-      if (json.success && json.board) {
-        if (json.board.premarket) {
-          setPremarket(json.board.premarket as PremarketHeroData);
+      if (json.success) {
+        if (json.premarket) {
+          setPremarket(json.premarket as PremarketHeroData);
         }
-        const ticks = json.board.intraday?.ticks;
+        const ticks = json.intraday?.entries;
         if (Array.isArray(ticks) && ticks.length > 0) {
-          const last = ticks[ticks.length - 1];
+          const last = ticks[0];
           setLatestTickSummary(
             `最新巡检 ${last.tick_time} · ${last.traffic_light?.label || ""} · 涨${last.up_count}/跌${last.down_count} · 涨停${last.limit_up_count}`
           );

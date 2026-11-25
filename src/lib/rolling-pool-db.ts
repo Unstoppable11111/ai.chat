@@ -114,7 +114,10 @@ export async function ensureRollingPoolTable(): Promise<void> {
 function formatDateField(val: unknown): string {
   if (!val) return "";
   if (val instanceof Date) {
-    return val.toISOString().slice(0, 10);
+    const y = val.getFullYear();
+    const m = String(val.getMonth() + 1).padStart(2, "0");
+    const d = String(val.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   }
   return String(val).slice(0, 10);
 }
