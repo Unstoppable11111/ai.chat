@@ -23,12 +23,14 @@ export function ChatExperience({
 }) {
   const chat = useChat();
   const { isAuthenticated, openAuthModal } = useAuth();
-  const [input, setInput] = useState(initialDraft);
+  const [input, setInput] = useState("");
+  const [defaultPrompt, setDefaultPrompt] = useState(() => initialDraft.trim());
   const [curatingMessage, setCuratingMessage] = useState<{ title: string; content: string } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const autoScroll = useRef(true);
 
   const isGuestExhausted = !isAuthenticated && !chat.quota.unlimited && chat.quota.remaining <= 0;
+  const effectivePrompt = input.trim() || defaultPrompt;
 
   useEffect(() => {
     if (autoScroll.current && scroller.current) {
@@ -41,9 +43,10 @@ export function ChatExperience({
       openAuthModal("login");
       return;
     }
-    if (!input.trim() || chat.loading || !chat.ready) return;
-    const value = input;
+    const value = input.trim() || defaultPrompt;
+    if (!value || chat.loading || !chat.ready) return;
     setInput("");
+    setDefaultPrompt("");
     autoScroll.current = true;
     void chat.send(value);
   };
@@ -317,10 +320,10 @@ export function ChatExperience({
             placeholder={
               isGuestExhausted
                 ? "今日 3 次免费提问额度已用尽，超级管理员 chen 享有无限特权…"
-                : "输入您的问题，向 JARVIS 提问…"
+                : defaultPrompt || "输入您的问题，向 JARVIS 提问…"
             }
             maxLength={4000}
-            rows={compact ? 1 : 2}
+            rows={compact ? 2 : 3}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(event) => {
@@ -334,7 +337,7 @@ export function ChatExperience({
                 submit();
               }
             }}
-            className="w-full max-h-36 min-h-[44px] resize-none bg-transparent px-2 py-1 text-sm sm:text-base placeholder:text-slate-400 focus:outline-none leading-relaxed"
+            className="w-full max-h-44 min-h-[76px] resize-none bg-transparent px-2 py-1.5 text-sm sm:text-base placeholder:text-slate-400 focus:outline-none leading-relaxed"
           />
 
           <div className="flex items-center justify-between pt-1.5 px-1 border-t border-slate-100/80">
@@ -369,8 +372,8 @@ export function ChatExperience({
                 <button
                   type="submit"
                   aria-label="发送消息"
-                  title="发送消息"
-                  disabled={!chat.ready || !input.trim()}
+                  title={input.trim() ? "发送消息" : defaultPrompt ? "直接发送默认提示词" : "发送消息"}
+                  disabled={!chat.ready || !effectivePrompt}
                   className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-medium transition-all shadow-xs disabled:opacity-40 disabled:hover:from-cyan-600 disabled:hover:to-blue-600 cursor-pointer"
                 >
                   <span>发送</span>

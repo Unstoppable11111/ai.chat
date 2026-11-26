@@ -43,32 +43,30 @@ export function MemorySelector() {
               : "bg-white/90 border-slate-200/90 hover:border-slate-300 hover:bg-white text-slate-800"
           )}
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-600 border border-cyan-500/20">
               <Brain className="h-4 w-4" />
             </div>
-            <div className="min-w-0 flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="truncate text-xs sm:text-sm font-medium text-slate-900 max-w-[220px] sm:max-w-[340px]">
-                  {currentThread ? currentThread.title : "开启新对话"}
+            <div className="min-w-0 flex-1 flex items-center gap-1.5">
+              <span className="truncate text-xs sm:text-sm font-medium text-slate-900">
+                {currentThread ? currentThread.title : "开启新对话"}
+              </span>
+              {user ? (
+                <span className="hidden sm:inline-flex shrink-0 whitespace-nowrap items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                  <Cloud className="w-2.5 h-2.5 shrink-0 text-emerald-500" />
+                  云端记忆
                 </span>
-                {user ? (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                    <Cloud className="w-2.5 h-2.5 text-emerald-500" />
-                    云端记忆
-                  </span>
-                ) : (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
-                    <CloudOff className="w-2.5 h-2.5 text-slate-400" />
-                    本地访客
-                  </span>
-                )}
-              </div>
+              ) : (
+                <span className="hidden sm:inline-flex shrink-0 whitespace-nowrap items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                  <CloudOff className="w-2.5 h-2.5 shrink-0 text-slate-400" />
+                  本地访客
+                </span>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[11px] font-mono text-muted-foreground hidden md:inline">
+            <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap hidden md:inline">
               {history.threads.length} 个记忆片段
             </span>
             <ChevronDown
