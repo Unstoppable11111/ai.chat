@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import ReactMarkdown from "react-markdown";
+import { useState, useEffect, useCallback, Fragment, type ReactNode } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   Calendar,
@@ -22,6 +22,86 @@ import type {
 } from "@/lib/daily-board-db";
 
 type BoardSubTab = "premarket" | "intraday" | "postmarket" | "anomaly";
+
+const CELL_BREAK_TOKEN = "\u23ce";
+
+function normalizeMarkdownForDisplay(raw: string): string {
+  if (!raw) return "";
+  return raw
+    .split(/\r?\n/)
+    .map((line) => {
+      if (/^\s*\|/.test(line)) {
+        return line.replace(/<br\s*\/?>/gi, ` ${CELL_BREAK_TOKEN} `);
+      }
+      return line.replace(/<br\s*\/?>/gi, "\n\n");
+    })
+    .join("\n");
+}
+
+function splitCellTextWithBreaks(text: string): ReactNode {
+  if (!text.includes(CELL_BREAK_TOKEN)) return text;
+  const parts = text.split(CELL_BREAK_TOKEN);
+  return parts.map((part, idx) => (
+    <Fragment key={idx}>
+      {idx > 0 && <br />}
+      {part.trim()}
+    </Fragment>
+  ));
+}
+
+function renderCellChildren(node: ReactNode): ReactNode {
+  if (typeof node === "string") return splitCellTextWithBreaks(node);
+  if (Array.isArray(node)) {
+    return node.map((child, idx) => <Fragment key={idx}>{renderCellChildren(child)}</Fragment>);
+  }
+  return node;
+}
+
+const markdownComponents: Components = {
+  h1: ({ children }) => (
+    <h1 className="text-base font-bold text-cyan-200 border-b border-slate-700/70 pb-1.5 mt-4 mb-2.5 first:mt-0">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-sm sm:text-[15px] font-bold text-cyan-300 border-l-2 border-cyan-400 pl-2.5 mt-5 mb-2.5 first:mt-0">
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-[13px] font-bold text-slate-100 mt-4 mb-2 first:mt-0">{children}</h3>
+  ),
+  p: ({ children }) => (
+    <p className="text-[13px] text-slate-200/95 leading-7 my-2">{renderCellChildren(children)}</p>
+  ),
+  ul: ({ children }) => <ul className="list-disc pl-5 space-y-1.5 my-2 text-[13px] text-slate-200">{children}</ul>,
+  ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1.5 my-2 text-[13px] text-slate-200">{children}</ol>,
+  li: ({ children }) => <li className="leading-relaxed">{renderCellChildren(children)}</li>,
+  strong: ({ children }) => <strong className="font-semibold text-white">{renderCellChildren(children)}</strong>,
+  blockquote: ({ children }) => (
+    <blockquote className="my-3 border-l-2 border-amber-400/70 bg-amber-950/20 px-3.5 py-2 rounded-r-xl text-xs text-amber-200/90">
+      {children}
+    </blockquote>
+  ),
+  table: ({ children }) => (
+    <div className="my-3.5 w-full overflow-x-auto rounded-xl border border-slate-700/80 bg-slate-950/75 shadow-inner">
+      <table className="w-full min-w-[680px] border-collapse text-left text-xs">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-slate-800/90 border-b border-slate-700">{children}</thead>,
+  tbody: ({ children }) => <tbody className="divide-y divide-slate-800/75">{children}</tbody>,
+  tr: ({ children }) => <tr className="hover:bg-slate-900/60 transition-colors">{children}</tr>,
+  th: ({ children }) => (
+    <th className="px-3.5 py-2.5 text-[11px] font-bold text-cyan-200 whitespace-nowrap tracking-wide">
+      {renderCellChildren(children)}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="px-3.5 py-2.5 text-xs text-slate-200 align-top leading-relaxed first:min-w-[116px] first:whitespace-nowrap first:font-semibold first:text-cyan-100">
+      {renderCellChildren(children)}
+    </td>
+  ),
+};
 
 interface DailyBoardViewProps {
   onNotify?: (text: string, type?: "info" | "success" | "warning") => void;
@@ -280,8 +360,10 @@ export function DailyBoardView({ onNotify, refreshSignal = 0 }: DailyBoardViewPr
                 </span>
               </div>
 
-              <div className="prose prose-invert prose-sm max-w-none text-slate-200 leading-relaxed">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{premarket.plan_markdown}</ReactMarkdown>
+              <div className="max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                  {normalizeMarkdownForDisplay(premarket.plan_markdown)}
+                </ReactMarkdown>
               </div>
 
               {premarket.news?.length > 0 && (
@@ -540,8 +622,10 @@ export function DailyBoardView({ onNotify, refreshSignal = 0 }: DailyBoardViewPr
                     ))}
                   </div>
 
-                  <div className="prose prose-invert prose-sm max-w-none text-slate-200 leading-relaxed pt-1">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{rec.analysis_markdown}</ReactMarkdown>
+                  <div className="max-w-none pt-1">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                      {normalizeMarkdownForDisplay(rec.analysis_markdown)}
+                    </ReactMarkdown>
                   </div>
                 </div>
               ))}

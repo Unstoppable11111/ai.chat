@@ -2,6 +2,7 @@ import { executeQuery, getDbPool } from "@/lib/db";
 import { takeQuota } from "@/lib/server-security";
 import { getUserHoldings } from "@/lib/portfolio-db";
 import { listUserRollingPool, ensureRollingPoolTable } from "@/lib/rolling-pool-db";
+import { listUserSignalTrades, syncUserSignalPaperTrades } from "@/lib/signal-paper-db";
 import {
   appendAnomalyRecord,
   appendIntradayTick,
@@ -179,14 +180,15 @@ export async function runIntradayTickJob(options?: { targetUserId?: string; forc
         .join(" | ")
     : "指数行情待刷新";
 
-  // 收集全用户持仓和观察股代码，一次性批量拉取行情
+  // 收集全用户持仓、观察股及正在持仓的模拟信号单代码，一次性批量拉取行情
   const userStates = await Promise.all(
     users.map(async (userId) => {
-      const [holdings, pool] = await Promise.all([
+      const [holdings, pool, signalTrades] = await Promise.all([
         getUserHoldings(userId),
         listUserRollingPool(userId),
+        listUserSignalTrades(userId).catch(() => []),
       ]);
-      return { userId, holdings, activeWatch: pool.active };
+      return { userId, holdings, activeWatch: pool.active, signalTrades };
     })
   );
 
@@ -195,6 +197,7 @@ export async function runIntradayTickJob(options?: { targetUserId?: string; forc
       userStates.flatMap((u) => [
         ...u.holdings.map((h) => h.stock_code),
         ...u.activeWatch.map((w) => w.stock_code),
+        ...u.signalTrades.filter((t) => t.status === "OPEN").map((t) => t.stock_code),
       ])
     ),
   ];
@@ -311,6 +314,53 @@ export async function runIntradayTickJob(options?: { targetUserId?: string; forc
           tech
         );
       });
+
+      // 自动同步推荐股买点建仓与模拟持仓 T+1 卖出监控
+      const paperQuotesByCode: Record<string, { price: number; quote_date?: string; prev_close?: number; open?: number; high?: number; low?: number; change_pct?: number; volume?: number; amount?: number; vol_ratio?: number; turnover_pct?: number } | undefined> = {};
+      for (const code of allCodes) {
+        const q = quotesMap[code];
+        if (q) {
+          paperQuotesByCode[code] = {
+            price: q.current_price,
+            quote_date: q.timestamp ? q.timestamp.slice(0, 10) : undefined,
+            prev_close: q.pre_close,
+            open: q.open,
+            high: q.high,
+            low: q.low,
+            change_pct: q.change_pct,
+            volume: q.volume,
+            amount: q.amount,
+            vol_ratio: q.vol_ratio,
+            turnover_pct: q.turnover_pct,
+          };
+        }
+      }
+      const buySignalsForPaper: Array<{
+        poolItem: (typeof state.activeWatch)[number];
+        signal: "BUY_A" | "BUY_B";
+        price: number;
+        reason: string;
+      }> = [];
+      watchEvals.forEach((we, idx) => {
+        const item = state.activeWatch[idx];
+        if (item && (we.triggered_signal === "BUY_A" || we.triggered_signal === "BUY_B") && we.price) {
+          buySignalsForPaper.push({
+            poolItem: item,
+            signal: we.triggered_signal,
+            price: we.price,
+            reason: we.status_summary,
+          });
+        }
+      });
+      await syncUserSignalPaperTrades({
+        userId: state.userId,
+        activePool: state.activeWatch,
+        buySignals: buySignalsForPaper,
+        quotesByCode: paperQuotesByCode,
+        klineByCode: klineMap,
+        tradeDateStr: today,
+        timeStr: hhmm,
+      }).catch((err) => console.warn("[MarketScheduler] signal paper sync warning:", err));
 
       const escalateItems: Array<{ code: string; reason: string }> = [];
       for (const he of holdingEvals) {
@@ -440,12 +490,21 @@ export async function runPostmarketJob(options?: { targetUserId?: string; force?
     tradeDateStr: today,
   });
 
-  // 抓取所有观察池涉及股票的最新收盘快照
+  // 抓取所有观察池及未平仓模拟单涉及股票的最新收盘快照
   const watchByUser = await Promise.all(
-    users.map(async (u) => ({ userId: u, pool: await listUserRollingPool(u) }))
+    users.map(async (u) => ({
+      userId: u,
+      pool: await listUserRollingPool(u),
+      signalTrades: await listUserSignalTrades(u).catch(() => []),
+    }))
   );
   const allWatchCodes = [
-    ...new Set(watchByUser.flatMap((u) => u.pool.active.map((w) => w.stock_code))),
+    ...new Set(
+      watchByUser.flatMap((u) => [
+        ...u.pool.active.map((w) => w.stock_code),
+        ...u.signalTrades.filter((t) => t.status === "OPEN").map((t) => t.stock_code),
+      ])
+    ),
   ];
   const quotesMap = allWatchCodes.length ? await getRealStockQuotes(allWatchCodes) : {};
 
@@ -453,6 +512,31 @@ export async function runPostmarketJob(options?: { targetUserId?: string; force?
   for (const { userId } of watchByUser) {
     try {
       const settled = await settleAndEnrollForUser(userId, screenerResult, quotesMap, 3);
+      const paperQuotesByCode: Record<string, { price: number; quote_date?: string; prev_close?: number; open?: number; high?: number; low?: number; change_pct?: number; volume?: number; amount?: number; vol_ratio?: number; turnover_pct?: number } | undefined> = {};
+      for (const code of allWatchCodes) {
+        const q = quotesMap[code];
+        if (q) {
+          paperQuotesByCode[code] = {
+            price: q.current_price,
+            quote_date: q.timestamp ? q.timestamp.slice(0, 10) : undefined,
+            prev_close: q.pre_close,
+            open: q.open,
+            high: q.high,
+            low: q.low,
+            change_pct: q.change_pct,
+            volume: q.volume,
+            amount: q.amount,
+            vol_ratio: q.vol_ratio,
+            turnover_pct: q.turnover_pct,
+          };
+        }
+      }
+      await syncUserSignalPaperTrades({
+        userId,
+        quotesByCode: paperQuotesByCode,
+        tradeDateStr: today,
+        timeStr: "15:00",
+      }).catch(() => {});
       const report: PostmarketReportPayload = {
         report_date: today,
         generated_at: new Date().toISOString(),

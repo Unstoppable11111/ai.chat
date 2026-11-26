@@ -6,6 +6,7 @@ import {
   computeStockTechnicals,
   evaluateHoldingSwingSignals,
   evaluateWatchlistSwingSignals,
+  evaluateSignalPaperExit,
 } from "../src/lib/quant-arena/swing-rules-core.mjs";
 
 test("板块准入过滤：仅允许沪深主板与创业板，严格拦截科创/北交/ETF/ST", () => {
@@ -161,4 +162,80 @@ test("深套修复兼容兜底：即使旧持仓为 swing_normal 且未设支撑
   assert.ok(res.stop_loss_price < liveQuote.price, `防守价(${res.stop_loss_price})应低于现价(${liveQuote.price})`);
   assert.ok(!res.recommendation.includes("趋势/仓位正常"), `深套亏28%不应建议正常持有: ${res.recommendation}`);
   assert.ok(res.signals.some((s) => s.key === "below_ma20_drawdown_watch"));
+});
+
+test("5日推荐股模拟卖出规则：T+1拦截及5类自动卖出触发正确", () => {
+  const baseTrade = {
+    stock_code: "002916",
+    stock_name: "深南电路",
+    buy_date: "2026-11-24",
+    buy_price: 100.0,
+    stop_loss_price: 92.0,
+    peak_price: 100.0,
+    hold_days: 0,
+  };
+
+  // 1. T+1 当日即使跌破止损位也严禁当日卖出
+  const sameDay = evaluateSignalPaperExit(
+    baseTrade,
+    { price: 90.0, change_pct: -10.0, high: 101.0 },
+    { ma20: 98.0 },
+    "2026-11-24"
+  );
+  assert.equal(sameDay.should_sell, false);
+  assert.equal(sameDay.t_plus_1_locked, true);
+
+  // 2. 次日跌破止损价 -> HARD_STOP_LOSS
+  const stopLoss = evaluateSignalPaperExit(
+    baseTrade,
+    { price: 91.5, change_pct: -5.0, high: 95.0 },
+    { ma20: 98.0 },
+    "2026-11-25"
+  );
+  assert.equal(stopLoss.should_sell, true);
+  assert.equal(stopLoss.sell_signal, "HARD_STOP_LOSS");
+  assert.equal(stopLoss.is_win, false);
+
+  // 3. 浮盈 >= +20% -> TAKE_PROFIT_2
+  const tp2 = evaluateSignalPaperExit(
+    baseTrade,
+    { price: 121.0, change_pct: 6.0, high: 121.0 },
+    { ma20: 105.0 },
+    "2026-11-26"
+  );
+  assert.equal(tp2.should_sell, true);
+  assert.equal(tp2.sell_signal, "TAKE_PROFIT_2");
+  assert.equal(tp2.is_win, true);
+
+  // 4. 曾冲高 +15% 回撤 >= 5% -> TRAILING_STOP
+  const trail = evaluateSignalPaperExit(
+    { ...baseTrade, peak_price: 115.0 },
+    { price: 108.5, change_pct: -2.0, high: 112.0 },
+    { ma20: 102.0 },
+    "2026-11-26"
+  );
+  assert.equal(trail.should_sell, true);
+  assert.equal(trail.sell_signal, "TRAILING_STOP");
+  assert.equal(trail.is_win, true);
+
+  // 5. 跌破 MA20 且当日大跌 <= -3% -> MA20_BREAK
+  const maBreak = evaluateSignalPaperExit(
+    baseTrade,
+    { price: 96.0, change_pct: -3.5, high: 99.0 },
+    { ma20: 98.0 },
+    "2026-11-26"
+  );
+  assert.equal(maBreak.should_sell, true);
+  assert.equal(maBreak.sell_signal, "MA20_BREAK");
+
+  // 6. 持有满 10 个交易日时间止损 -> MAX_HOLD_EXPIRED
+  const expired = evaluateSignalPaperExit(
+    baseTrade,
+    { price: 103.0, change_pct: 0.5, high: 104.0 },
+    { ma20: 101.0 },
+    "2026-12-08"
+  );
+  assert.equal(expired.should_sell, true);
+  assert.equal(expired.sell_signal, "MAX_HOLD_EXPIRED");
+  assert.equal(expired.is_win, true);
 });

@@ -74,41 +74,59 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
   }, [initialMetrics]);
 
   const multiVol = metrics?.multi_day_volume;
+  const hasLive = Boolean(metrics);
 
   // 1. 基础短线盘口实测值
-  const limitUp = metrics?.limit_up_count ?? 40;
-  const limitDown = metrics?.limit_down_count ?? 15;
-  const brokenCount = metrics?.broken_limit_count ?? 12;
-  const brokenRatio = metrics?.broken_limit_ratio ?? 23.1;
+  const limitUp = metrics?.limit_up_count ?? 0;
+  const limitDown = metrics?.limit_down_count ?? 0;
+  const brokenCount = metrics?.broken_limit_count ?? 0;
+  const brokenRatio = metrics?.broken_limit_ratio ?? 0;
+  const sealRate =
+    metrics?.seal_rate_pct ??
+    (limitUp + brokenCount > 0 ? Number(((limitUp / (limitUp + brokenCount)) * 100).toFixed(1)) : 0);
+  const tiers = metrics?.limit_up_tiers;
+  const upRatioPct = metrics?.up_ratio_pct ?? null;
 
-  // 2. 多周期真实量能对比 (T-1 / MA5 / MA10)
-  const volumeRatio = multiVol?.ma5_ratio ?? metrics?.volume_ma5_ratio ?? 0.93;
-  const volumeDiffPct = multiVol?.ma5_diff_pct ?? metrics?.volume_diff_pct ?? -7.13;
-  const t1Ratio = multiVol?.t1_ratio ?? 0.93;
-  const t1DiffPct = multiVol?.t1_diff_pct ?? -6.87;
-  const ma10Ratio = multiVol?.ma10_ratio ?? 0.91;
-  const ma10DiffPct = multiVol?.ma10_diff_pct ?? -8.96;
+  // 2. 多周期真实量能与昨日同期对比 (T-1 / MA5 / MA10 / 昨日同期分时)
+  const volumeRatio = multiVol?.ma5_ratio ?? metrics?.volume_ma5_ratio ?? 0;
+  const volumeDiffPct = multiVol?.ma5_diff_pct ?? metrics?.volume_diff_pct ?? 0;
+  const t1Ratio = multiVol?.t1_ratio ?? 0;
+  const t1DiffPct = multiVol?.t1_diff_pct ?? 0;
+  const ma10Ratio = multiVol?.ma10_ratio ?? 0;
+  const ma10DiffPct = multiVol?.ma10_diff_pct ?? 0;
 
-  const todayVolYi = multiVol?.today_volume_yi_shou ?? 10.44;
-  const yesterdayVolYi = multiVol?.t1_volume_yi_shou ?? 11.21;
-  const ma5VolYi = multiVol?.ma5_volume_yi_shou ?? 11.24;
-  const ma10VolYi = multiVol?.ma10_volume_yi_shou ?? 11.46;
+  const todayVolYi = multiVol?.today_volume_yi_shou ?? 0;
+  const projectedVolYi = multiVol?.projected_volume_yi_shou ?? todayVolYi;
+  const yesterdayVolYi = multiVol?.t1_volume_yi_shou ?? 0;
+  const ma5VolYi = multiVol?.ma5_volume_yi_shou ?? 0;
+  const ma10VolYi = multiVol?.ma10_volume_yi_shou ?? 0;
+
+  const hasSameTime = Boolean(
+    multiVol?.today_amount_yi && multiVol?.yesterday_same_time_yi && multiVol?.as_of_time
+  );
+  const sameTimeDiffPct = multiVol?.same_time_diff_pct ?? 0;
+  const sameTimeDiffYi = multiVol?.same_time_diff_yi ?? 0;
+  const dailySeries = multiVol?.daily_series || [];
+  const maxSeriesVol = Math.max(
+    1,
+    ...dailySeries.map((d) => Number(d.volume_yi_shou) || 0)
+  );
 
   // 3. 独家特色量化指标
-  const mainlinePct = metrics?.mainline_concentration_pct ?? 31.2;
-  const mainlineName = metrics?.mainline_name ?? "电子信息 · 电子器件 · 机械行业";
-  const mainlineEval = metrics?.mainline_evaluation ?? "主线结构性聚焦，资金沉淀在头部赛道";
-  const mainlineGainers = metrics?.mainline_top_gainers ?? "船舶制造 · 电力行业 · 金融行业";
+  const mainlinePct = metrics?.mainline_concentration_pct ?? 0;
+  const mainlineName = metrics?.mainline_name ?? "等待行业主线数据...";
+  const mainlineEval = metrics?.mainline_evaluation ?? "正在计算行业板块资金集中度";
+  const mainlineGainers = metrics?.mainline_top_gainers ?? "--";
 
-  const highRiskIndex = metrics?.high_risk_index ?? 100;
-  const highRiskLevel = metrics?.high_risk_level ?? "HIGH";
-  const highRiskDesc = metrics?.high_risk_desc ?? "情绪严重退潮，全市场超100家个股深跌>-5%，高标批量核按钮，严禁追高接力";
+  const highRiskIndex = metrics?.high_risk_index ?? 0;
+  const highRiskLevel = metrics?.high_risk_level ?? "LOW";
+  const highRiskDesc = metrics?.high_risk_desc ?? "正在统计全市场深跌核按钮强度...";
 
-  const temp = metrics?.sentiment_temperature ?? 39;
-  const tempPhase = metrics?.temperature_phase ?? "弱势退潮分歧区 · 4000+家下跌防守控仓";
+  const temp = metrics?.sentiment_temperature ?? 50;
+  const tempPhase = metrics?.temperature_phase ?? "多空情绪实时测算中...";
 
-  const midCapDefense = metrics?.mid_cap_defense_coefficient ?? 0.72;
-  const defenseStatus = metrics?.defense_status ?? "沪深300强力护盘抗跌（跑赢小盘+0.72%），但小微题材承压";
+  const midCapDefense = metrics?.mid_cap_defense_coefficient ?? 0;
+  const defenseStatus = metrics?.defense_status ?? "正在监测沪深300与国证2000剪刀差";
 
   const leaders = metrics?.highest_limit_leaders && metrics.highest_limit_leaders.length > 0
     ? metrics.highest_limit_leaders
@@ -194,146 +212,240 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
         </div>
       </div>
 
-      {/* 第一行：短线必看 4 大基础盘口要素 (红涨绿跌经典规范) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {/* 指标 1: 实时涨停数量 */}
+      {/* 第一行：短线必看 4 大基础盘口要素 (连板梯队 / 涨跌停 / 封板率与赚钱效应 / 昨日同期与5日10日量比) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+        {/* 指标 1: 实时涨停与连板梯队 */}
         <div className="p-3.5 rounded-2xl bg-[#091322]/85 border border-cyan-900/40 hover:border-rose-500/50 transition-all flex flex-col justify-between shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-300 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-500" />
-              实时涨停家数
+              涨停与连板梯队
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono font-bold">
-              多头动能
+              最高 {metrics?.highest_limit_height ?? 0} 板
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <div className="text-3xl font-black text-rose-400 font-mono tracking-tight">
-              {limitUp}
-              <span className="text-xs font-normal text-slate-400 ml-1">家</span>
+              {hasLive ? limitUp : "--"}
+              <span className="text-xs font-normal text-slate-400 ml-1">家涨停</span>
             </div>
-            <span className="text-[11px] text-slate-400 font-mono">
-              梯队龙头活跃
-            </span>
+            {upRatioPct !== null && (
+              <span className="text-[11px] font-mono text-slate-300">
+                全市场涨家占比 <strong className={upRatioPct >= 50 ? "text-rose-400" : "text-emerald-400"}>{upRatioPct}%</strong>
+              </span>
+            )}
           </div>
+          {tiers && (
+            <div className="mt-2 grid grid-cols-4 gap-1 text-[10px] font-mono text-center">
+              <div className="rounded bg-[#050c18] py-1 border border-slate-800/80">
+                <div className="text-slate-400 text-[9px]">首板</div>
+                <div className="text-rose-300 font-bold">{tiers.first_board}</div>
+              </div>
+              <div className="rounded bg-[#050c18] py-1 border border-slate-800/80">
+                <div className="text-slate-400 text-[9px]">2板</div>
+                <div className="text-rose-300 font-bold">{tiers.second_board}</div>
+              </div>
+              <div className="rounded bg-[#050c18] py-1 border border-slate-800/80">
+                <div className="text-slate-400 text-[9px]">3板</div>
+                <div className="text-amber-300 font-bold">{tiers.third_board}</div>
+              </div>
+              <div className="rounded bg-[#050c18] py-1 border border-slate-800/80">
+                <div className="text-slate-400 text-[9px]">4板+</div>
+                <div className="text-amber-400 font-bold">{tiers.high_board}</div>
+              </div>
+            </div>
+          )}
           <div className="mt-2 pt-2 border-t border-cyan-950/80 text-[10.5px] text-slate-400 truncate">
             <span className="text-rose-400 font-semibold">前排标杆: </span>
-            {leaders.length > 0 ? leaders.join(" · ") : "暂无连板高标（待数据更新）"}
+            {leaders.length > 0 ? leaders.join(" · ") : "暂无连板高标"}
           </div>
         </div>
 
-        {/* 指标 2: 实时跌停数量 */}
+        {/* 指标 2: 空头跌停与深跌亏钱效应 */}
         <div className="p-3.5 rounded-2xl bg-[#091322]/85 border border-cyan-900/40 hover:border-emerald-500/50 transition-all flex flex-col justify-between shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-300 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              实时跌停家数
+              跌停与亏钱效应
             </span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                limitDown > 20
+                limitDown > 15
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
                   : "bg-slate-800 text-slate-400 border border-slate-700"
               }`}
             >
-              {limitDown > 20 ? "恐慌杀跌" : "空头释放"}
+              {limitDown > 15 ? "空头杀跌" : "跌停受控"}
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <div className="text-3xl font-black text-emerald-400 font-mono tracking-tight">
-              {limitDown}
-              <span className="text-xs font-normal text-slate-400 ml-1">家</span>
+              {hasLive ? limitDown : "--"}
+              <span className="text-xs font-normal text-slate-400 ml-1">家跌停</span>
             </div>
             <span className="text-[11px] text-slate-400 font-mono">
-              空头杀伤力 {limitDown > 15 ? "强" : "偏弱"}
+              深跌(&lt;-5%) {metrics?.deep_drop_count ?? 0} 家
             </span>
           </div>
+          {metrics?.up_count !== undefined && metrics?.down_count !== undefined && (
+            <div className="mt-2 space-y-1">
+              <div className="flex justify-between text-[10px] font-mono">
+                <span className="text-rose-400">涨 {metrics.up_count}</span>
+                <span className="text-emerald-400">跌 {metrics.down_count}</span>
+              </div>
+              <div className="w-full h-1.5 rounded-full bg-emerald-500/40 overflow-hidden">
+                <div
+                  className="h-full bg-rose-500 transition-all duration-500"
+                  style={{ width: `${upRatioPct ?? 50}%` }}
+                />
+              </div>
+            </div>
+          )}
           <div className="mt-2 pt-2 border-t border-cyan-950/80 text-[10.5px] text-slate-400 truncate">
             <span className="text-emerald-400 font-semibold">风控研判: </span>
-            {limitDown <= 15 ? "跌停相对可控，注意局部退潮" : "跌停快速扩容，防范深度核按钮"}
+            {limitDown <= 15 ? "跌停较温和，严防高位跟风退潮" : "跌停快速扩容，严禁接力防核按钮"}
           </div>
         </div>
 
-        {/* 指标 3: 实时炸板率 (短线接力核心命脉) */}
+        {/* 指标 3: 实时封板率与炸板率 */}
         <div className="p-3.5 rounded-2xl bg-[#091322]/85 border border-cyan-900/40 hover:border-amber-500/50 transition-all flex flex-col justify-between shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-300 flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-              实时炸板率
+              封板率与炸板率
             </span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                brokenRatio <= 20
+                brokenRatio <= 22
                   ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                   : "bg-amber-500/20 text-amber-400 border border-amber-500/40"
               }`}
             >
-              {brokenRatio <= 20 ? "封板高强度" : "分歧炸板"}
+              {brokenRatio <= 22 ? "封板坚挺" : "分歧炸板"}
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <div
               className={`text-3xl font-black font-mono tracking-tight ${
-                brokenRatio <= 20 ? "text-rose-400" : "text-amber-400"
+                sealRate >= 75 ? "text-rose-400" : "text-amber-400"
               }`}
             >
-              {brokenRatio}%
+              {hasLive ? `${sealRate}%` : "--"}
+              <span className="text-xs font-normal text-slate-400 ml-1">封板</span>
             </div>
-            <span className="text-[11px] text-slate-400 font-mono">
-              炸板 {brokenCount} 家 / 触板 {limitUp + brokenCount}
+            <span className="text-[11px] text-amber-300 font-mono">
+              炸板 {brokenRatio}% ({brokenCount}/{limitUp + brokenCount})
             </span>
+          </div>
+          <div className="mt-2 w-full bg-[#050c18] rounded-full h-1.5 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-rose-500 to-amber-400 h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, sealRate)}%` }}
+            />
           </div>
           <div className="mt-2 pt-2 border-t border-cyan-950/80 text-[10.5px] text-slate-400 truncate">
             <span className="text-cyan-400 font-semibold">接力容错: </span>
-            {brokenRatio <= 20 ? "封板坚挺，打板胜率与溢价极高" : "部分冲高回落，注意甄选换手坚挺板"}
+            {brokenRatio <= 22 ? "触板封死率高，接力情绪偏良性" : "炸板增多，谨防冲高派发，优先低吸"}
           </div>
         </div>
 
-        {/* 指标 4: 多周期真实量能对比 (T-1 / MA5 / MA10 立体展现) */}
+        {/* 指标 4: 昨日同期 HH:MM + 5日/10日量比 + 近10日量能柱状图 */}
         <div className="p-3.5 rounded-2xl bg-[#091322]/85 border border-cyan-900/40 hover:border-cyan-500/50 transition-all flex flex-col justify-between shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-300 flex items-center gap-1.5">
               <Activity className="w-3.5 h-3.5 text-cyan-400" />
-              多周期量能比
+              {hasSameTime ? `昨日同期 (${multiVol?.as_of_time})` : "多周期量能比"}
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono font-bold">
-              {volumeDiffPct >= 0 ? "MA5放量" : "MA5缩量"}
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full border font-mono font-bold ${
+                (hasSameTime ? sameTimeDiffPct : volumeDiffPct) >= 0
+                  ? "bg-rose-500/15 text-rose-300 border-rose-500/30"
+                  : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+              }`}
+            >
+              {(hasSameTime ? sameTimeDiffPct : volumeDiffPct) >= 0 ? "放量博弈" : "缩量整固"}
             </span>
           </div>
 
-          <div className="mt-2 flex items-baseline justify-between">
-            <div className="text-3xl font-black text-white font-mono tracking-tight">
-              {volumeRatio}
-              <span className="text-xs font-normal text-slate-400 ml-1">x (MA5)</span>
+          <div className="mt-1.5 flex items-baseline justify-between gap-2">
+            <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
+              {hasSameTime ? (
+                <>
+                  <span className={sameTimeDiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}>
+                    {sameTimeDiffPct >= 0 ? `+${sameTimeDiffPct}%` : `${sameTimeDiffPct}%`}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {volumeRatio}
+                  <span className="text-xs font-normal text-slate-400 ml-1">x (MA5)</span>
+                </>
+              )}
             </div>
-            <span className={`text-[11px] font-mono font-bold ${volumeDiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
-              {volumeDiffPct >= 0 ? `+${volumeDiffPct}%` : `${volumeDiffPct}%`}
-            </span>
+            <div className="text-right font-mono text-[10.5px] leading-tight">
+              {hasSameTime ? (
+                <>
+                  <div className={sameTimeDiffYi >= 0 ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>
+                    {sameTimeDiffYi >= 0 ? `+${sameTimeDiffYi}` : sameTimeDiffYi}亿 较昨同期
+                  </div>
+                  <div className="text-slate-400">
+                    预计全天 <span className="text-cyan-300 font-semibold">{multiVol?.projected_full_yi}亿</span>
+                  </div>
+                </>
+              ) : (
+                <span className={volumeDiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}>
+                  {volumeDiffPct >= 0 ? `+${volumeDiffPct}%` : `${volumeDiffPct}%`}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* 三周期对比胶囊 */}
+          {/* 昨日(T-1) / 5日(MA5) / 10日(MA10) 同口径量比胶囊 */}
           <div className="mt-2 pt-2 border-t border-cyan-950/80 grid grid-cols-3 gap-1 text-[9.5px] font-mono">
             <div className="bg-[#050c18] rounded px-1 py-0.5 border border-cyan-900/30 flex flex-col items-center">
-              <span className="text-slate-400 text-[9px]">昨日(T-1)</span>
+              <span className="text-slate-400 text-[9px]">较昨全天</span>
               <span className={`font-bold ${t1DiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
                 {t1Ratio}x ({t1DiffPct >= 0 ? `+${t1DiffPct}%` : `${t1DiffPct}%`})
               </span>
             </div>
             <div className="bg-[#050c18] rounded px-1 py-0.5 border border-cyan-900/30 flex flex-col items-center">
-              <span className="text-slate-400 text-[9px]">5日(MA5)</span>
+              <span className="text-slate-400 text-[9px]">5日量比</span>
               <span className={`font-bold ${volumeDiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
                 {volumeRatio}x ({volumeDiffPct >= 0 ? `+${volumeDiffPct}%` : `${volumeDiffPct}%`})
               </span>
             </div>
             <div className="bg-[#050c18] rounded px-1 py-0.5 border border-cyan-900/30 flex flex-col items-center">
-              <span className="text-slate-400 text-[9px]">10日(MA10)</span>
+              <span className="text-slate-400 text-[9px]">10日量比</span>
               <span className={`font-bold ${ma10DiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
                 {ma10Ratio}x ({ma10DiffPct >= 0 ? `+${ma10DiffPct}%` : `${ma10DiffPct}%`})
               </span>
             </div>
           </div>
-          <div className="mt-1 text-[9.5px] text-slate-500 font-mono truncate">
-            今日 {todayVolYi} 亿手 · 昨日 {yesterdayVolYi} 亿手 · 5日均 {ma5VolYi} 亿手 · 10日均 {ma10VolYi} 亿手
+
+          {/* 近10日量能微型柱状趋势 + 详情 */}
+          {dailySeries.length > 0 && (
+            <div className="mt-1.5 flex items-end gap-1 h-5 pt-0.5" title="近10日两市全天/折算量能对比">
+              {dailySeries.map((pt) => {
+                const h = Math.max(15, Math.round((pt.volume_yi_shou / maxSeriesVol) * 100));
+                return (
+                  <div
+                    key={pt.date}
+                    title={`${pt.date}: ${pt.volume_yi_shou}亿手${pt.is_projected ? " (全天折算)" : ""}`}
+                    className={`flex-1 rounded-t-xs transition-all ${
+                      pt.is_projected ? "bg-cyan-400" : "bg-slate-600/80 hover:bg-cyan-500/70"
+                    }`}
+                    style={{ height: `${h}%` }}
+                  />
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-1 text-[9.5px] text-slate-400 font-mono truncate">
+            {hasSameTime
+              ? `实盘 ${multiVol?.today_amount_yi}亿 / 昨同期 ${multiVol?.yesterday_same_time_yi}亿 · 昨全天 ${multiVol?.yesterday_full_yi}亿`
+              : `折算 ${projectedVolYi}亿手 · 昨 ${yesterdayVolYi} · 5日均 ${ma5VolYi} · 10日均 ${ma10VolYi}`}
           </div>
         </div>
       </div>

@@ -8,6 +8,7 @@ import {
   computeStockTechnicals as rawComputeStockTechnicals,
   evaluateHoldingSwingSignals as rawEvaluateHoldingSwingSignals,
   evaluateWatchlistSwingSignals as rawEvaluateWatchlistSwingSignals,
+  evaluateSignalPaperExit as rawEvaluateSignalPaperExit,
 } from "./swing-rules-core.mjs";
 
 export type MarketTrafficLight = "RED" | "YELLOW" | "GREEN";
@@ -39,6 +40,9 @@ export interface StockTechnicals {
   ma10: number | null;
   ma20: number | null;
   ma60: number | null;
+  dist_ma5_pct?: number | null;
+  dist_ma20_pct?: number | null;
+  amp_20d_pct?: number | null;
   above_ma20: boolean;
   vol_ratio_5_20: number | null;
   avg_vol_5d?: number | null;
@@ -210,4 +214,38 @@ export function evaluateWatchlistSwingSignals(
     regime,
     (tech ?? undefined) as undefined
   ) as WatchItemSwingEvaluation;
+}
+
+export interface SignalPaperExitEvaluation {
+  should_sell: boolean;
+  sell_signal: string | null;
+  sell_price: number | null;
+  sell_reason: string | null;
+  pnl_pct: number;
+  is_win: boolean | null;
+  peak_price_candidate: number;
+  hold_days: number;
+  t_plus_1_locked: boolean;
+}
+
+export function evaluateSignalPaperExit(
+  trade: {
+    stock_code: string;
+    stock_name: string;
+    buy_date: string;
+    buy_price: number;
+    stop_loss_price?: number | null;
+    peak_price?: number | null;
+    hold_days?: number;
+  },
+  liveQuote: SwingLiveQuote | null | undefined,
+  tech: StockTechnicals | null | undefined,
+  tradeDateStr: string
+): SignalPaperExitEvaluation {
+  return rawEvaluateSignalPaperExit(
+    trade,
+    liveQuote,
+    tech,
+    tradeDateStr
+  ) as SignalPaperExitEvaluation;
 }

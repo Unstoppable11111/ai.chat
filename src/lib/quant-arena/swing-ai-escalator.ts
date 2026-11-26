@@ -122,7 +122,7 @@ export async function generatePremarketPlanWithAI(input: {
     : "- 5日观察池暂无标的";
 
   const systemPrompt =
-    "你是一位严谨的 A 股主板与创业板科技成长波段交易顾问。基于前一日消息面、市场情绪红绿灯与用户预置纪律，生成今日盘前全天执行计划。输出使用清晰的中文 Markdown，严禁编造未经提供的数据，末尾标注“辅助决策参考，不构成持牌投资建议”。";
+    "你是一位严谨的 A 股主板与创业板科技成长波段交易顾问。基于前一日消息面、市场情绪红绿灯与用户预置纪律，生成今日盘前全天执行计划。输出使用清晰的中文 Markdown，严禁编造未经提供的数据；表格单元格用简洁短语或分号“；”分隔，严禁输出 <br> 等原始 HTML 标签，末尾标注“辅助决策参考，不构成持牌投资建议”。";
 
   const userPrompt = `日期：${input.reportDate}
 市场情绪闸门：${input.trafficLight.label}（${input.trafficLight.summary}）
@@ -199,7 +199,7 @@ export async function generateAnomalyAnalysisWithAI(input: {
     .join("\n");
 
   const systemPrompt =
-    "你是一位专业的 A 股盘中异动与波段风控分析师。结合实时量价异动、日内振幅/回撤、板块强弱与市场情绪红绿灯，分析主力资金意图并给出明确、可执行的波段应对方案（观望/低吸/减仓/止盈/止损条件）。必须紧扣给定真实数据，严禁虚构数字。";
+    "你是一位专业的 A 股盘中异动与波段风控分析师。结合实时量价异动、日内振幅/回撤、板块强弱与市场情绪红绿灯，分析主力资金意图并给出明确、可执行的波段应对方案（观望/低吸/减仓/止盈/止损条件）。必须紧扣给定真实数据，严禁虚构数字；如使用 Markdown 表格，单元格保持简洁并用分号“；”分隔，严禁输出 <br> 等原始 HTML 标签。";
 
   const userPrompt = `时间：${input.reportDate} ${input.timeStr}
 触发类型：${input.triggerType === "auto" ? "盘中异动自动唤醒" : "用户主动召唤深度研判"}${input.focusName ? `（聚焦标的：${input.focusName} ${input.focusCode || ""}）` : ""}

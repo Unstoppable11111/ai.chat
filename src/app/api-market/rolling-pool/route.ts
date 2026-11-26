@@ -7,6 +7,7 @@ import {
   listUserRollingPool,
   seedInitialSelectPortfolio,
 } from "@/lib/rolling-pool-db";
+import { syncUserSignalPaperTrades } from "@/lib/signal-paper-db";
 import {
   fetchAllSectorsList,
   fetchStockDailyKline,
@@ -18,6 +19,7 @@ import {
   computeStockTechnicals,
   evaluateMarketTrafficLight,
   evaluateWatchlistSwingSignals,
+  type SwingLiveQuote,
 } from "@/lib/quant-arena/swing-rules";
 import {
   findSectorPerformance,
@@ -50,12 +52,21 @@ export async function GET(request: Request) {
     const klineMap = new Map(klineEntries);
     const trafficLight = evaluateMarketTrafficLight(sentiment?.sentiment_temperature ?? null);
 
-    const enrichedActive = active.map((item) => {
+    const buySignals: Array<{
+      poolItem: (typeof active)[number];
+      signal: "BUY_A" | "BUY_B";
+      price: number;
+      reason: string;
+    }> = [];
+    const quotesByCode: Record<string, SwingLiveQuote | undefined> = {};
+
+    const baseEnriched = active.map((item) => {
       const q = quotes[item.stock_code];
       const bars = klineMap.get(item.stock_code) || [];
       const liveInput = q
         ? {
             price: q.current_price,
+            quote_date: q.timestamp ? q.timestamp.slice(0, 10) : undefined,
             prev_close: q.pre_close,
             open: q.open,
             high: q.high,
@@ -67,6 +78,7 @@ export async function GET(request: Request) {
             turnover_pct: q.turnover_pct,
           }
         : null;
+      if (liveInput) quotesByCode[item.stock_code] = liveInput;
       const tech = computeStockTechnicals(bars, item.stock_code, liveInput);
       const resolvedSector = resolveStockSector(item.stock_code, item.stock_name, item.sector);
       const sectorPerf = findSectorPerformance(resolvedSector, sectorList);
@@ -88,6 +100,26 @@ export async function GET(request: Request) {
         tech
       );
 
+      if ((evaluation.triggered_signal === "BUY_A" || evaluation.triggered_signal === "BUY_B") && evaluation.price) {
+        buySignals.push({
+          poolItem: item,
+          signal: evaluation.triggered_signal,
+          price: evaluation.price,
+          reason: evaluation.status_summary,
+        });
+      }
+
+      // 计算波段盈亏比 (上攻突破潜在收益 vs 失效止损潜在回撤)
+      const refPrice = evaluation.price || item.entry_ref_price;
+      const rrRatio =
+        refPrice > 0 && item.breakout_price && item.invalid_price && refPrice > item.invalid_price
+          ? Number(
+              (
+                Math.max(0.01, (item.breakout_price - refPrice) / (refPrice - item.invalid_price))
+              ).toFixed(2)
+            )
+          : null;
+
       return {
         ...item,
         sector: resolvedSector,
@@ -98,11 +130,50 @@ export async function GET(request: Request) {
         dist_to_buy_high_pct: evaluation.dist_to_buy_high_pct,
         dist_to_breakout_pct: evaluation.dist_to_breakout_pct,
         dist_to_invalid_pct: evaluation.dist_to_invalid_pct,
+        dist_ma20_pct: tech.dist_ma20_pct ?? null,
+        amp_20d_pct: tech.amp_20d_pct ?? null,
+        rr_ratio: rrRatio,
         triggered_signal: evaluation.triggered_signal,
         signals: evaluation.signals,
         llm_escalate: evaluation.llm_escalate,
         status_summary: evaluation.status_summary,
         technicals: tech,
+      };
+    });
+
+    // 若观察池存在已触发买点或正在持仓的模拟单，自动同步模拟建仓/卖出状态
+    const syncRes = await syncUserSignalPaperTrades({
+      userId,
+      activePool: active,
+      buySignals,
+      quotesByCode,
+      klineByCode: klineMap,
+    }).catch(() => ({ openedCount: 0, closedCount: 0, trades: [] }));
+
+    const tradeByPoolId = new Map(syncRes.trades.map((t) => [t.pool_item_id, t]));
+    const enrichedActive = baseEnriched.map((item) => {
+      const tr = tradeByPoolId.get(item.id) || null;
+      return {
+        ...item,
+        paper_trade: tr
+          ? {
+              id: tr.id,
+              status: tr.status,
+              buy_signal: tr.buy_signal,
+              buy_date: tr.buy_date,
+              buy_time: tr.buy_time,
+              buy_price: tr.buy_price,
+              sell_signal: tr.sell_signal,
+              sell_date: tr.sell_date,
+              sell_time: tr.sell_time,
+              sell_price: tr.sell_price,
+              pnl_pct:
+                tr.status === "OPEN" && item.live_price && tr.buy_price > 0
+                  ? Number((((item.live_price - tr.buy_price) / tr.buy_price) * 100).toFixed(2))
+                  : tr.pnl_pct,
+              hold_days: tr.hold_days,
+            }
+          : null,
       };
     });
 

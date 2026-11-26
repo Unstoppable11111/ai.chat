@@ -198,9 +198,17 @@ export async function getRealStockQuotes(codes: string[]): Promise<Record<string
   return result;
 }
 
+export interface DailyVolumeBarPoint {
+  date: string;
+  volume_yi_shou: number;
+  actual_volume_yi_shou?: number;
+  is_projected?: boolean;
+}
+
 export interface MultiDayVolumeMetrics {
   today_date: string;
   today_volume_yi_shou: number;
+  projected_volume_yi_shou?: number;
   t1_date: string;
   t1_volume_yi_shou: number;
   t1_ratio: number;
@@ -214,6 +222,24 @@ export interface MultiDayVolumeMetrics {
   ma10_ratio: number;
   ma10_diff_pct: number;
   ma10_status: "放量" | "缩量" | "持平";
+  // 昨日同期与成交额精确对比（亿元）
+  as_of_time?: string;
+  is_intraday_sync?: boolean;
+  today_amount_yi?: number;
+  yesterday_same_time_yi?: number;
+  same_time_diff_yi?: number;
+  same_time_diff_pct?: number;
+  same_time_ratio?: number;
+  projected_full_yi?: number;
+  yesterday_full_yi?: number;
+  daily_series?: DailyVolumeBarPoint[];
+}
+
+export interface LimitUpTiersBreakdown {
+  first_board: number;
+  second_board: number;
+  third_board: number;
+  high_board: number;
 }
 
 export interface MarketSentimentMetrics {
@@ -221,15 +247,22 @@ export interface MarketSentimentMetrics {
   limit_down_count: number;
   broken_limit_count: number;
   broken_limit_ratio: number;
+  seal_rate_pct?: number;
   highest_limit_height: number;
   highest_limit_leaders: string[];
+  limit_up_tiers?: LimitUpTiersBreakdown;
+  up_count?: number;
+  down_count?: number;
+  flat_count?: number;
+  up_ratio_pct?: number;
+  deep_drop_count?: number;
   main_net_flow_yi: number;
   main_buy_ratio: number;
   retail_outflow_ratio: number;
   flow_evaluation: string;
   volume_ma5_ratio: number;
   volume_diff_pct: number;
-  // 多日真实量能对比 (今日 vs T-1 vs MA5 vs MA10)
+  // 多日真实量能对比 (今日 vs 昨日同期 vs T-1 vs MA5 vs MA10)
   multi_day_volume?: MultiDayVolumeMetrics;
   // 独家特色高级量化指标 (同花顺/东财难一眼看出的独家量化雷达)
   mainline_concentration_pct: number; // 主线资金集聚度 (Top 3 领涨赛道吸金占比)
@@ -275,10 +308,128 @@ export interface RealMarketSnapshotData {
   flat_count: number;
 }
 
-// 1. 真实抓取近15个交易日历史日K，计算今日 vs T-1, MA5, MA10 对比
+interface SameTimeTurnoverMetrics {
+  cur_date: string;
+  prev_date: string;
+  as_of_time: string;
+  is_intraday_sync: boolean;
+  progress: number;
+  today_amount_yi: number;
+  yesterday_same_time_yi: number;
+  yesterday_full_yi: number;
+  same_time_diff_yi: number;
+  same_time_diff_pct: number;
+  same_time_ratio: number;
+  projected_full_yi: number;
+}
+
+// 抓取两市近2个交易日1分钟分时成交额，精确对比「昨日同期 HH:MM」并推算今日全天预估成交额
+export async function fetchIntradaySameTimeTurnover(): Promise<SameTimeTurnoverMetrics | null> {
+  try {
+    const headers = { "User-Agent": "Mozilla/5.0", Referer: "https://quote.eastmoney.com/" };
+    const [resSh, resSz] = await Promise.all([
+      fetch(
+        "https://push2his.eastmoney.com/api/qt/stock/trends2/get?secid=1.000001&ndays=2&fields1=f1,f2,f3,f4,f5,f6,f7,f8&fields2=f51,f52,f53,f54,f55,f56,f57,f58",
+        { cache: "no-store", headers, signal: AbortSignal.timeout(4500) }
+      ),
+      fetch(
+        "https://push2his.eastmoney.com/api/qt/stock/trends2/get?secid=0.399001&ndays=2&fields1=f1,f2,f3,f4,f5,f6,f7,f8&fields2=f51,f52,f53,f54,f55,f56,f57,f58",
+        { cache: "no-store", headers, signal: AbortSignal.timeout(4500) }
+      ),
+    ]);
+    if (!resSh.ok || !resSz.ok) return null;
+
+    const jsonSh = (await resSh.json()) as { data?: { trends?: string[] } };
+    const jsonSz = (await resSz.json()) as { data?: { trends?: string[] } };
+    const allTrends = [...(jsonSh?.data?.trends || []), ...(jsonSz?.data?.trends || [])];
+    if (!allTrends.length) return null;
+
+    const dateSet = new Set<string>();
+    const parsed: Array<{ date: string; hhmm: string; amount: number }> = [];
+    for (const row of allTrends) {
+      const cols = String(row).split(",");
+      if (cols.length < 7) continue;
+      const dt = cols[0] || "";
+      const date = dt.slice(0, 10);
+      const hhmm = dt.slice(11, 16);
+      const amount = parseFloat(cols[6]) || 0;
+      if (date.length === 10 && hhmm.length === 5) {
+        dateSet.add(date);
+        parsed.push({ date, hhmm, amount });
+      }
+    }
+
+    const dates = [...dateSet].sort();
+    if (dates.length < 2) return null;
+    const prevDate = dates[dates.length - 2];
+    const curDate = dates[dates.length - 1];
+
+    let asOfTime = "09:30";
+    let todayAmountYuan = 0;
+    for (const item of parsed) {
+      if (item.date === curDate) {
+        todayAmountYuan += item.amount;
+        if (item.hhmm > asOfTime) asOfTime = item.hhmm;
+      }
+    }
+
+    let yesterdaySameTimeYuan = 0;
+    let yesterdayFullYuan = 0;
+    for (const item of parsed) {
+      if (item.date === prevDate) {
+        yesterdayFullYuan += item.amount;
+        if (item.hhmm <= asOfTime) {
+          yesterdaySameTimeYuan += item.amount;
+        }
+      }
+    }
+
+    if (todayAmountYuan <= 0 || yesterdayFullYuan <= 0) return null;
+
+    const isIntradaySync = asOfTime < "14:58";
+    const rawProgress = yesterdaySameTimeYuan > 0 ? yesterdaySameTimeYuan / yesterdayFullYuan : 1;
+    const progress = isIntradaySync ? Math.min(1, Math.max(0.04, rawProgress)) : 1;
+
+    const todayAmountYi = parseFloat((todayAmountYuan / 1e8).toFixed(1));
+    const yesterdaySameTimeYi = parseFloat((yesterdaySameTimeYuan / 1e8).toFixed(1));
+    const yesterdayFullYi = parseFloat((yesterdayFullYuan / 1e8).toFixed(1));
+    const sameTimeDiffYi = parseFloat((todayAmountYi - yesterdaySameTimeYi).toFixed(1));
+    const sameTimeDiffPct =
+      yesterdaySameTimeYi > 0
+        ? parseFloat((((todayAmountYi - yesterdaySameTimeYi) / yesterdaySameTimeYi) * 100).toFixed(2))
+        : 0;
+    const sameTimeRatio =
+      yesterdaySameTimeYi > 0
+        ? parseFloat((todayAmountYi / yesterdaySameTimeYi).toFixed(2))
+        : 1.0;
+    const projectedFullYi = isIntradaySync
+      ? Math.round(todayAmountYi / progress)
+      : Math.round(todayAmountYi);
+
+    return {
+      cur_date: curDate,
+      prev_date: prevDate,
+      as_of_time: asOfTime,
+      is_intraday_sync: isIntradaySync,
+      progress,
+      today_amount_yi: todayAmountYi,
+      yesterday_same_time_yi: yesterdaySameTimeYi,
+      yesterday_full_yi: yesterdayFullYi,
+      same_time_diff_yi: sameTimeDiffYi,
+      same_time_diff_pct: sameTimeDiffPct,
+      same_time_ratio: sameTimeRatio,
+      projected_full_yi: projectedFullYi,
+    };
+  } catch (err) {
+    console.warn("[QuotesService] 拉取两市昨日同期分时成交额异常:", err);
+    return null;
+  }
+}
+
+// 1. 真实抓取近15个交易日历史日K + 两市昨日同期分时对比，计算同口径 T-1 / MA5 / MA10 量比与10日量能走势
 export async function fetchHistoricalDailyVolume(days = 15): Promise<MultiDayVolumeMetrics | null> {
   try {
-    const [resSh, resSz] = await Promise.all([
+    const [resSh, resSz, sameTime] = await Promise.all([
       fetch(
         `https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sh000001,day,,,${days},qfq`,
         { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(4000) }
@@ -287,6 +438,7 @@ export async function fetchHistoricalDailyVolume(days = 15): Promise<MultiDayVol
         `https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sz399001,day,,,${days},qfq`,
         { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(4000) }
       ),
+      fetchIntradaySameTimeTurnover().catch(() => null),
     ]);
 
     if (!resSh.ok || !resSz.ok) return null;
@@ -317,41 +469,64 @@ export async function fetchHistoricalDailyVolume(days = 15): Promise<MultiDayVol
     const len = combined.length;
     const today = combined[len - 1];
     const yesterday = combined[len - 2] || today;
-    const last5 = combined.slice(Math.max(0, len - 5));
-    const last10 = combined.slice(Math.max(0, len - 10));
+    // 取前5个及前10个“已完整收盘交易日”均值，防止盘中半天量拉低 MA5/MA10
+    const prev5Completed = combined.slice(Math.max(0, len - 6), Math.max(1, len - 1));
+    const prev10Completed = combined.slice(Math.max(0, len - 11), Math.max(1, len - 1));
 
-    const ma5Vol = last5.reduce((sum, item) => sum + item.totalVol, 0) / Math.max(1, last5.length);
-    const ma10Vol = last10.reduce((sum, item) => sum + item.totalVol, 0) / Math.max(1, last10.length);
+    const ma5Vol =
+      prev5Completed.reduce((sum, item) => sum + item.totalVol, 0) / Math.max(1, prev5Completed.length);
+    const ma10Vol =
+      prev10Completed.reduce((sum, item) => sum + item.totalVol, 0) / Math.max(1, prev10Completed.length);
+
+    // 若处于盘中且拿到了昨日分时进度，将今日量能同口径折算为全天预计量能后再与 T-1/MA5/MA10 对比
+    const isIntradayScaled = Boolean(
+      sameTime && sameTime.is_intraday_sync && sameTime.cur_date === today.date && sameTime.progress < 0.98
+    );
+    const effectiveTodayVol =
+      isIntradayScaled && sameTime ? today.totalVol / sameTime.progress : today.totalVol;
 
     const todayYi = parseFloat((today.totalVol / 1e8).toFixed(2));
+    const projectedVolYi = parseFloat((effectiveTodayVol / 1e8).toFixed(2));
     const yesterdayYi = parseFloat((yesterday.totalVol / 1e8).toFixed(2));
     const ma5Yi = parseFloat((ma5Vol / 1e8).toFixed(2));
     const ma10Yi = parseFloat((ma10Vol / 1e8).toFixed(2));
 
     const t1DiffPct = yesterday.totalVol > 0
-      ? parseFloat((((today.totalVol - yesterday.totalVol) / yesterday.totalVol) * 100).toFixed(2))
+      ? parseFloat((((effectiveTodayVol - yesterday.totalVol) / yesterday.totalVol) * 100).toFixed(2))
       : 0;
     const t1Ratio = yesterday.totalVol > 0
-      ? parseFloat((today.totalVol / yesterday.totalVol).toFixed(2))
+      ? parseFloat((effectiveTodayVol / yesterday.totalVol).toFixed(2))
       : 1.0;
 
     const ma5DiffPct = ma5Vol > 0
-      ? parseFloat((((today.totalVol - ma5Vol) / ma5Vol) * 100).toFixed(2))
+      ? parseFloat((((effectiveTodayVol - ma5Vol) / ma5Vol) * 100).toFixed(2))
       : 0;
     const ma5Ratio = ma5Vol > 0
-      ? parseFloat((today.totalVol / ma5Vol).toFixed(2))
+      ? parseFloat((effectiveTodayVol / ma5Vol).toFixed(2))
       : 1.0;
 
     const ma10DiffPct = ma10Vol > 0
-      ? parseFloat((((today.totalVol - ma10Vol) / ma10Vol) * 100).toFixed(2))
+      ? parseFloat((((effectiveTodayVol - ma10Vol) / ma10Vol) * 100).toFixed(2))
       : 0;
     const ma10Ratio = ma10Vol > 0
-      ? parseFloat((today.totalVol / ma10Vol).toFixed(2))
+      ? parseFloat((effectiveTodayVol / ma10Vol).toFixed(2))
       : 1.0;
+
+    const dailySeries: DailyVolumeBarPoint[] = combined.slice(-10).map((bar, idx, arr) => {
+      const isLast = idx === arr.length - 1;
+      const actualYi = parseFloat((bar.totalVol / 1e8).toFixed(2));
+      return {
+        date: bar.date.slice(5),
+        volume_yi_shou: isLast ? projectedVolYi : actualYi,
+        actual_volume_yi_shou: actualYi,
+        is_projected: isLast && isIntradayScaled,
+      };
+    });
 
     return {
       today_date: today.date,
       today_volume_yi_shou: todayYi,
+      projected_volume_yi_shou: projectedVolYi,
       t1_date: yesterday.date,
       t1_volume_yi_shou: yesterdayYi,
       t1_ratio: t1Ratio,
@@ -365,6 +540,20 @@ export async function fetchHistoricalDailyVolume(days = 15): Promise<MultiDayVol
       ma10_ratio: ma10Ratio,
       ma10_diff_pct: ma10DiffPct,
       ma10_status: ma10DiffPct > 2 ? "放量" : ma10DiffPct < -2 ? "缩量" : "持平",
+      ...(sameTime
+        ? {
+            as_of_time: sameTime.as_of_time,
+            is_intraday_sync: sameTime.is_intraday_sync,
+            today_amount_yi: sameTime.today_amount_yi,
+            yesterday_same_time_yi: sameTime.yesterday_same_time_yi,
+            same_time_diff_yi: sameTime.same_time_diff_yi,
+            same_time_diff_pct: sameTime.same_time_diff_pct,
+            same_time_ratio: sameTime.same_time_ratio,
+            projected_full_yi: sameTime.projected_full_yi,
+            yesterday_full_yi: sameTime.yesterday_full_yi,
+          }
+        : {}),
+      daily_series: dailySeries,
     };
   } catch (err) {
     console.warn("[QuotesService] 拉取腾讯历史日K量能异常:", err);
@@ -503,6 +692,7 @@ async function fetchEastmoneyLimitPools(dateCompact: string): Promise<{
   limitDownCount: number;
   highestHeight: number;
   leaders: string[];
+  tiers: LimitUpTiersBreakdown;
 } | null> {
   try {
     const baseParams = `ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&Pagesize=300&date=${dateCompact}`;
@@ -550,6 +740,20 @@ async function fetchEastmoneyLimitPools(dateCompact: string): Promise<{
       }
     }
 
+    const tiers: LimitUpTiersBreakdown = {
+      first_board: 0,
+      second_board: 0,
+      third_board: 0,
+      high_board: 0,
+    };
+    for (const p of ztPool) {
+      const lbc = Number(p.lbc) || 1;
+      if (lbc <= 1) tiers.first_board++;
+      else if (lbc === 2) tiers.second_board++;
+      else if (lbc === 3) tiers.third_board++;
+      else tiers.high_board++;
+    }
+
     const sortedLeaders = [...ztPool].sort(
       (a, b) => (Number(b.lbc) || 1) - (Number(a.lbc) || 1) || (Number(a.fbt) || 999999) - (Number(b.fbt) || 999999)
     );
@@ -563,7 +767,7 @@ async function fetchEastmoneyLimitPools(dateCompact: string): Promise<{
       })
       .filter(Boolean);
 
-    return { limitUpCount, brokenLimitCount, limitDownCount, highestHeight, leaders };
+    return { limitUpCount, brokenLimitCount, limitDownCount, highestHeight, leaders, tiers };
   } catch (err) {
     console.warn("[QuotesService] 拉取东财涨跌停与炸板池异常:", err);
     return null;
@@ -663,6 +867,9 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
     // 复用统一的全市场涨跌家数（彻底消除重复请求与 Body has already been read）
     const totalUp = indicesSnapshot?.up_count || 0;
     const totalDown = indicesSnapshot?.down_count || 0;
+    const totalFlat = indicesSnapshot?.flat_count || 0;
+    const upRatioPct =
+      totalUp + totalDown > 0 ? parseFloat(((totalUp / (totalUp + totalDown)) * 100).toFixed(1)) : 50;
 
     const finalLimitUpCount = emPools ? emPools.limitUpCount : limitUps.length;
     const finalBrokenCount = emPools ? emPools.brokenLimitCount : brokenLimits.length;
@@ -672,6 +879,16 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
     const brokenRatio = totalLimitAttempts > 0 
       ? parseFloat(((finalBrokenCount / totalLimitAttempts) * 100).toFixed(1))
       : 0;
+    const sealRatePct =
+      totalLimitAttempts > 0
+        ? parseFloat(((finalLimitUpCount / totalLimitAttempts) * 100).toFixed(1))
+        : 0;
+    const limitUpTiers: LimitUpTiersBreakdown = emPools?.tiers || {
+      first_board: finalLimitUpCount,
+      second_board: 0,
+      third_board: 0,
+      high_board: 0,
+    };
 
     const leaders = emPools
       ? emPools.leaders
@@ -726,8 +943,12 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
     const defenseStatus = defenseData?.status ?? "权重护盘维稳，题材局部承压";
 
     // 6. AI 动态全景量化研判总结生成 (结合实测多维数据动态生成，绝不硬编码)
+    const sameTimeClause =
+      multiVol?.yesterday_same_time_yi && multiVol.today_amount_yi
+        ? `两市截至 ${multiVol.as_of_time} 成交 ${multiVol.today_amount_yi} 亿元，较昨日同期(${multiVol.yesterday_same_time_yi} 亿) ${multiVol.same_time_diff_yi && multiVol.same_time_diff_yi >= 0 ? "放量" : "缩量"} ${Math.abs(multiVol.same_time_diff_yi || 0)} 亿 (${multiVol.same_time_diff_pct && multiVol.same_time_diff_pct >= 0 ? "+" : ""}${multiVol.same_time_diff_pct || 0}%)，按昨日分时曲线推算全天预计 ${multiVol.projected_full_yi} 亿元；`
+        : "";
     const aiVolumeText = multiVol
-      ? `今日两市成交量 ${multiVol.today_volume_yi_shou} 亿手，较昨日(T-1) ${multiVol.t1_status} ${Math.abs(multiVol.t1_diff_pct)}% (${multiVol.t1_ratio}x)，较 5 日均量 ${multiVol.ma5_status} ${Math.abs(multiVol.ma5_diff_pct)}%，较 10 日均量 ${multiVol.ma10_status} ${Math.abs(multiVol.ma10_diff_pct)}%，呈现多周期共振${multiVol.ma5_diff_pct < -2 ? '缩量休整' : '放量博弈'}特征。`
+      ? `${sameTimeClause}同口径量能比：较昨日(T-1) ${multiVol.t1_ratio}x (${multiVol.t1_diff_pct >= 0 ? "+" : ""}${multiVol.t1_diff_pct}%)，较 5 日均量 ${multiVol.ma5_ratio}x (${multiVol.ma5_diff_pct >= 0 ? "+" : ""}${multiVol.ma5_diff_pct}%)，较 10 日均量 ${multiVol.ma10_ratio}x (${multiVol.ma10_diff_pct >= 0 ? "+" : ""}${multiVol.ma10_diff_pct}%)。`
       : `两市交投活跃，较 5 日均量呈现 ${volumeDiffPct >= 0 ? '放量' : '缩量'} ${Math.abs(volumeDiffPct)}% 态势。`;
 
     const aiBreadthText = totalUp + totalDown > 0
@@ -747,8 +968,15 @@ async function computeRealMarketSentiment(): Promise<MarketSentimentMetrics | nu
       limit_down_count: finalLimitDownCount,
       broken_limit_count: finalBrokenCount,
       broken_limit_ratio: brokenRatio,
+      seal_rate_pct: sealRatePct,
       highest_limit_height: highestHeight,
       highest_limit_leaders: leaders,
+      limit_up_tiers: limitUpTiers,
+      up_count: totalUp,
+      down_count: totalDown,
+      flat_count: totalFlat,
+      up_ratio_pct: upRatioPct,
+      deep_drop_count: deepDropsCount,
       main_net_flow_yi: 128.5,
       main_buy_ratio: 56.4,
       retail_outflow_ratio: 43.6,

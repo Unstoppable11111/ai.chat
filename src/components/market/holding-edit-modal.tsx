@@ -76,27 +76,34 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
   const [thesis, setThesis] = useState(initial?.thesis || "");
   const [notes, setNotes] = useState(initial?.notes || "");
 
+  const [searchSearchedOnce, setSearchSearchedOnce] = useState(false);
+
   useEffect(() => {
-    if (!searchQuery.trim() || isEdit) {
+    const q = searchQuery.trim();
+    if (!q || isEdit) {
       return;
     }
-    let active = true;
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       setIsSearching(true);
+      setSearchSearchedOnce(false);
       try {
-        const res = await fetch(`/api-market/stock-search?q=${encodeURIComponent(searchQuery.trim())}`);
-        if (res.ok && active) {
+        const res = await fetch(`/api-market/stock-search?q=${encodeURIComponent(q)}`, {
+          signal: controller.signal,
+        });
+        if (res.ok && !controller.signal.aborted) {
           const json = await res.json();
-          setSearchResults(json.results || []);
+          setSearchResults(json.items || json.results || []);
+          setSearchSearchedOnce(true);
         }
       } catch {
-        // ignore
+        // ignore abort / transient error
       } finally {
-        if (active) setIsSearching(false);
+        if (!controller.signal.aborted) setIsSearching(false);
       }
-    }, 300);
+    }, 240);
     return () => {
-      active = false;
+      controller.abort();
       clearTimeout(timer);
     };
   }, [searchQuery, isEdit]);
@@ -186,18 +193,20 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                   type="text"
                   value={searchQuery}
                   onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    if (!e.target.value.trim()) setSearchResults([]);
+                    const nextVal = e.target.value;
+                    setSearchQuery(nextVal);
+                    setSearchSearchedOnce(false);
+                    if (!nextVal.trim()) setSearchResults([]);
                   }}
-                  placeholder="例如：002436 或 兴森科技"
+                  placeholder="例如：002436 / 兴森科技 / XSKJ"
                   className="w-full pl-8 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:border-cyan-500 outline-none"
                 />
                 {isSearching && (
                   <span className="absolute right-3 top-2 text-[11px] text-cyan-400">搜索中...</span>
                 )}
               </div>
-              {searchResults.length > 0 && (
-                <div className="mt-1 rounded-lg border border-slate-700 bg-slate-950 max-h-40 overflow-y-auto divide-y divide-slate-800">
+              {searchResults.length > 0 ? (
+                <div className="mt-1 rounded-lg border border-slate-700 bg-slate-950 max-h-44 overflow-y-auto divide-y divide-slate-800">
                   {searchResults.map((item) => (
                     <button
                       key={item.code}
@@ -209,6 +218,7 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                           setCostPrice(String(item.current_price));
                         }
                         setSearchResults([]);
+                        setSearchSearchedOnce(false);
                         setSearchQuery("");
                       }}
                       className="w-full px-3 py-2 flex items-center justify-between hover:bg-slate-800 text-left cursor-pointer"
@@ -223,7 +233,11 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                     </button>
                   ))}
                 </div>
-              )}
+              ) : searchQuery.trim() && !isSearching && searchSearchedOnce ? (
+                <div className="mt-1 rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-400">
+                  未匹配到相关 A 股标的，可直接下方填写 6 位股票代码与名称
+                </div>
+              ) : null}
             </div>
           )}
 

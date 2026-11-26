@@ -137,6 +137,9 @@ export function computeStockTechnicals(bars, code = "", liveQuote = undefined) {
       ma10: null,
       ma20: null,
       ma60: null,
+      dist_ma5_pct: null,
+      dist_ma20_pct: null,
+      amp_20d_pct: null,
       above_ma20: false,
       vol_ratio_5_20: null,
       avg_vol_5d: null,
@@ -183,6 +186,18 @@ export function computeStockTechnicals(bars, code = "", liveQuote = undefined) {
 
   const high60d = Math.max(...tail(highs, 60));
   const low20d = Math.min(...tail(lows, 20));
+  const recent20Bars = tail(list, 20);
+  const ampValues = [];
+  for (let i = 0; i < recent20Bars.length; i++) {
+    const b = recent20Bars[i];
+    const base = b.open > 0 ? b.open : b.close;
+    if (base > 0 && b.high >= b.low) {
+      ampValues.push(((b.high - b.low) / base) * 100);
+    }
+  }
+  const amp20dPct = mean(ampValues);
+  const distMa5Pct = ma5 && ma5 > 0 ? ((latestClose - ma5) / ma5) * 100 : null;
+  const distMa20Pct = ma20 && ma20 > 0 ? ((latestClose - ma20) / ma20) * 100 : null;
   const high52w = Math.max(...tail(highs, 250));
   const low52w = Math.min(...tail(lows, 250));
   const pos52wPct =
@@ -219,6 +234,9 @@ export function computeStockTechnicals(bars, code = "", liveQuote = undefined) {
     ma10: roundOpt(ma10),
     ma20: roundOpt(ma20),
     ma60: roundOpt(ma60),
+    dist_ma5_pct: roundOpt(distMa5Pct),
+    dist_ma20_pct: roundOpt(distMa20Pct),
+    amp_20d_pct: roundOpt(amp20dPct),
     above_ma20: Boolean(ma20 && latestClose >= ma20),
     vol_ratio_5_20: roundOpt(volRatio5To20),
     avg_vol_5d: roundOpt(avgVol5d, 0),
@@ -669,5 +687,155 @@ export function evaluateWatchlistSwingSignals(item, liveQuote, sectorChangePct, 
     llm_escalate: escReasons.length > 0,
     escalate_reasons: escReasons,
     status_summary: statusSummary,
+  };
+}
+
+export function countTradingWeekdaysBetween(startDateStr, endDateStr) {
+  if (!startDateStr || !endDateStr || endDateStr <= startDateStr) return 0;
+  const start = new Date(`${startDateStr.slice(0, 10)}T00:00:00Z`);
+  const end = new Date(`${endDateStr.slice(0, 10)}T00:00:00Z`);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return 0;
+  let days = 0;
+  const cur = new Date(start.getTime() + 86400000);
+  while (cur.getTime() <= end.getTime()) {
+    const dow = cur.getUTCDay();
+    if (dow !== 0 && dow !== 6) days++;
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return days;
+}
+
+/**
+ * 5日推荐股信号自动模拟卖出规则（严格遵守 A 股 T+1）
+ */
+export function evaluateSignalPaperExit(trade, liveQuote, tech, tradeDateStr) {
+  const buyPrice = Number(trade.buy_price) || 0;
+  const price = Number(liveQuote?.price || 0);
+  const prevPeak = Math.max(Number(trade.peak_price || buyPrice), buyPrice);
+
+  if (price <= 0 || buyPrice <= 0) {
+    return {
+      should_sell: false,
+      sell_signal: null,
+      sell_price: null,
+      sell_reason: null,
+      pnl_pct: 0,
+      is_win: null,
+      peak_price_candidate: prevPeak,
+      hold_days: Number(trade.hold_days || 0),
+      t_plus_1_locked: false,
+    };
+  }
+
+  const pnlPct = Number((((price - buyPrice) / buyPrice) * 100).toFixed(2));
+  const nextPeak = Math.max(prevPeak, Number(liveQuote?.high || price), price);
+  const peakGainPct = ((nextPeak - buyPrice) / buyPrice) * 100;
+  const drawdownFromPeakPct = nextPeak > 0 ? ((nextPeak - price) / nextPeak) * 100 : 0;
+
+  const computedDays = countTradingWeekdaysBetween(trade.buy_date, tradeDateStr);
+  const holdDays = Math.max(Number(trade.hold_days || 0), computedDays);
+
+  // A 股 T+1：买入当日不触发卖出，仅跟踪峰值与浮盈
+  if (!tradeDateStr || tradeDateStr <= String(trade.buy_date).slice(0, 10)) {
+    return {
+      should_sell: false,
+      sell_signal: null,
+      sell_price: null,
+      sell_reason: null,
+      pnl_pct: pnlPct,
+      is_win: null,
+      peak_price_candidate: Number(nextPeak.toFixed(3)),
+      hold_days: 0,
+      t_plus_1_locked: true,
+    };
+  }
+
+  const stopLossPrice =
+    trade.stop_loss_price && Number(trade.stop_loss_price) > 0
+      ? Number(trade.stop_loss_price)
+      : null;
+  const dayChgPct = Number(liveQuote?.change_pct || 0);
+  const ma20 = tech?.ma20 ?? null;
+
+  if ((stopLossPrice && price <= stopLossPrice) || pnlPct <= -8.0) {
+    return {
+      should_sell: true,
+      sell_signal: "HARD_STOP_LOSS",
+      sell_price: price,
+      sell_reason: `触发止损：现价 ¥${price.toFixed(2)}（浮亏 ${pnlPct.toFixed(2)}%，触及失效/止损线）`,
+      pnl_pct: pnlPct,
+      is_win: pnlPct > 0,
+      peak_price_candidate: Number(nextPeak.toFixed(3)),
+      hold_days: holdDays,
+      t_plus_1_locked: false,
+    };
+  }
+
+  if (pnlPct >= 20.0) {
+    return {
+      should_sell: true,
+      sell_signal: "TAKE_PROFIT_2",
+      sell_price: price,
+      sell_reason: `触发二档止盈：浮盈达 +${pnlPct.toFixed(2)}%（>= +20%目标）`,
+      pnl_pct: pnlPct,
+      is_win: true,
+      peak_price_candidate: Number(nextPeak.toFixed(3)),
+      hold_days: holdDays,
+      t_plus_1_locked: false,
+    };
+  }
+
+  if (peakGainPct >= 10.0 && drawdownFromPeakPct >= 5.0) {
+    return {
+      should_sell: true,
+      sell_signal: "TRAILING_STOP",
+      sell_price: price,
+      sell_reason: `触发移动止盈：最高 ¥${nextPeak.toFixed(2)}(+${peakGainPct.toFixed(1)}%) 回撤 ${drawdownFromPeakPct.toFixed(2)}%`,
+      pnl_pct: pnlPct,
+      is_win: pnlPct > 0,
+      peak_price_candidate: Number(nextPeak.toFixed(3)),
+      hold_days: holdDays,
+      t_plus_1_locked: false,
+    };
+  }
+
+  if (ma20 && price < ma20 && dayChgPct <= -3.0) {
+    return {
+      should_sell: true,
+      sell_signal: "MA20_BREAK",
+      sell_price: price,
+      sell_reason: `趋势破位卖出：跌破MA20(¥${ma20.toFixed(2)})且日内跌幅 ${dayChgPct.toFixed(2)}%`,
+      pnl_pct: pnlPct,
+      is_win: pnlPct > 0,
+      peak_price_candidate: Number(nextPeak.toFixed(3)),
+      hold_days: holdDays,
+      t_plus_1_locked: false,
+    };
+  }
+
+  if (holdDays >= 10) {
+    return {
+      should_sell: true,
+      sell_signal: "MAX_HOLD_EXPIRED",
+      sell_price: price,
+      sell_reason: `持有满 ${holdDays} 个交易日时间止损结算（现价 ¥${price.toFixed(2)}）`,
+      pnl_pct: pnlPct,
+      is_win: pnlPct > 0,
+      peak_price_candidate: Number(nextPeak.toFixed(3)),
+      hold_days: holdDays,
+      t_plus_1_locked: false,
+    };
+  }
+
+  return {
+    should_sell: false,
+    sell_signal: null,
+    sell_price: null,
+    sell_reason: null,
+    pnl_pct: pnlPct,
+    is_win: null,
+    peak_price_candidate: Number(nextPeak.toFixed(3)),
+    hold_days: holdDays,
+    t_plus_1_locked: false,
   };
 }
