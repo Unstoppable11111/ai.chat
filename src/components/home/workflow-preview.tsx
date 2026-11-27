@@ -28,7 +28,7 @@ const PIPELINE_STEPS = [
     en: "Story Bible & Cards",
     desc: "全景世界观、三幕式伏笔链与高辨识度人物小传",
     icon: BookOpen,
-    accent: "text-purple-400 border-purple-500/30 bg-purple-500/10",
+    accent: "text-[#263844] border-[#E4E4E8] bg-[#F8F8F8]",
   },
   {
     step: "02",
@@ -36,7 +36,7 @@ const PIPELINE_STEPS = [
     en: "Context Cascading Engine",
     desc: "15字短句白描、去AI机械味与剧情冲突递进",
     icon: Wand2,
-    accent: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
+    accent: "text-[#263844] border-[#E4E4E8] bg-[#F8F8F8]",
   },
   {
     step: "03",
@@ -44,7 +44,7 @@ const PIPELINE_STEPS = [
     en: "Cinematic Visuals",
     desc: "融合主人公与核心场景的商业级海报与立绘资产",
     icon: Layers,
-    accent: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+    accent: "text-[#263844] border-[#E4E4E8] bg-[#F8F8F8]",
   },
   {
     step: "04",
@@ -52,7 +52,7 @@ const PIPELINE_STEPS = [
     en: "AI Video Storyboard",
     desc: "景别运镜、灯光色彩与可灵/Runway高精度Prompt",
     icon: Film,
-    accent: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+    accent: "text-[#263844] border-[#E4E4E8] bg-[#F8F8F8]",
   },
   {
     step: "05",
@@ -60,7 +60,7 @@ const PIPELINE_STEPS = [
     en: "Pitch Note & Strategy",
     desc: "对标爆款、核心受众痛点与付费卡点结构分析",
     icon: FileSpreadsheet,
-    accent: "text-rose-400 border-rose-500/30 bg-rose-500/10",
+    accent: "text-[#263844] border-[#E4E4E8] bg-[#F8F8F8]",
   },
 ];
 
@@ -71,36 +71,35 @@ export function WorkflowPreview() {
 
   return (
     <section className="container-shell py-12 md:py-20 relative overflow-hidden">
-      {/* 渐变装饰背景 */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-[radial-gradient(closest-side,rgba(168,85,247,0.1),transparent)] pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 -translate-y-1/2 w-[450px] h-[450px] bg-[radial-gradient(closest-side,rgba(6,182,212,0.1),transparent)] pointer-events-none" />
+      {/* 极简冷灰氛围装饰 */}
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-[radial-gradient(closest-side,rgba(38,56,68,0.04),transparent)] pointer-events-none" />
 
       {/* 头部标题与行动引导 */}
       <Reveal className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 relative z-10">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/25 text-purple-600 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-purple-500 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844] text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-[#263844]" />
               <span>工业级内容生产线 · 自动化小说 & AI 视频分镜工作流</span>
             </div>
             {mounted && user && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 text-[11px] font-mono font-medium">
-                <UserCheck className="w-3 h-3 text-emerald-500" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFFFFF] border border-[#E4E4E8] text-[#263844] text-[11px] font-mono font-medium">
+                <UserCheck className="w-3 h-3 text-[#33DD18]" />
                 <span>创作者已就绪: {user.username}</span>
               </span>
             )}
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-[#0F0F0F]">
             从一句话灵感，到商业爆款全套数字资产
           </h2>
-          <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
+          <p className="text-sm text-[#5C6873] max-w-2xl leading-relaxed">
             告别传统网文作坊与断章瓶颈。内置去 AI 味文笔精修、自动连续上下文级联、多小说书架与人物立绘，开启电影级工业化创作纪元。
           </p>
         </div>
 
         <HoverPrefetchLink
           href="/workflow"
-          className="shimmer-beam inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 hover:scale-[1.02] transition-all shrink-0 cursor-pointer"
+          className="shimmer-beam inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] text-xs sm:text-sm font-bold shadow-[0_8px_20px_rgba(15,15,15,0.12)] hover:scale-[1.02] transition-all shrink-0 cursor-pointer"
         >
           <Play className="w-4 h-4 fill-white" />
           <span>{mounted && user ? "进入专属创作者工作台" : "立即体验工业化工作流"}</span>
@@ -119,13 +118,13 @@ export function WorkflowPreview() {
                 onClick={() => setActiveStep(idx)}
                 className={`group h-full p-5 rounded-3xl border transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden ${
                   isSelected
-                    ? "bg-white/95 border-purple-500/40 shadow-xl shadow-purple-500/10 -translate-y-1.5"
-                    : "bg-white/70 border-slate-200/80 hover:bg-white/90 hover:border-slate-300 hover:-translate-y-1"
+                    ? "bg-[#FFFFFF] border-[#0F0F0F] shadow-md -translate-y-1.5"
+                    : "bg-[#FFFFFF]/90 border-[#E4E4E8] hover:bg-[#FFFFFF] hover:border-[#C8C8C8] hover:-translate-y-1"
                 }`}
               >
                 {/* 顶部环节标号与图标 */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="font-mono text-xs font-black text-slate-400 group-hover:text-purple-600 transition-colors">
+                  <span className="font-mono text-xs font-black text-[#5C6873] group-hover:text-[#0F0F0F] transition-colors">
                     {item.step}
                   </span>
                   <div className={`p-2 rounded-xl border ${item.accent} group-hover:scale-110 transition-transform`}>
@@ -135,19 +134,19 @@ export function WorkflowPreview() {
 
                 {/* 标题与描述 */}
                 <div className="space-y-1.5">
-                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-purple-900 transition-colors">
+                  <h3 className="text-sm font-bold text-[#0F0F0F] transition-colors">
                     {item.name}
                   </h3>
-                  <p className="text-[11px] font-mono text-slate-400">{item.en}</p>
-                  <p className="text-xs text-slate-600 leading-relaxed mt-2">{item.desc}</p>
+                  <p className="text-[11px] font-mono text-[#5C6873]">{item.en}</p>
+                  <p className="text-xs text-[#282828] leading-relaxed mt-2">{item.desc}</p>
                 </div>
 
                 {/* 底部活跃弹簧指示条 */}
-                <div className="mt-4 h-1 w-full rounded-full bg-slate-100 overflow-hidden relative">
+                <div className="mt-4 h-1 w-full rounded-full bg-[#F8F8F8] overflow-hidden relative">
                   {isSelected && (
                     <motion.div
                       layoutId="workflow-preview-step-bar"
-                      className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500"
+                      className="absolute inset-0 rounded-full bg-[#0F0F0F]"
                       transition={{ type: "spring", stiffness: 320, damping: 28 }}
                     />
                   )}
@@ -159,83 +158,84 @@ export function WorkflowPreview() {
       </div>
 
       {/* 实时工作流动态视窗预览 (Interactive Showcase) */}
-      <Reveal delay={0.12} className="rounded-3xl border border-slate-200/80 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden z-10">
+      <Reveal delay={0.12} className="rounded-3xl border border-[#282828] bg-[#0F0F0F] p-6 sm:p-8 text-[#FFFFFF] shadow-[0_24px_60px_-16px_rgba(15,15,15,0.28)] relative overflow-hidden z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* 左侧：示例小说卡片与视觉资产 */}
           <div className="lg:col-span-4 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-cyan-300 font-mono">
-              <Zap className="w-3.5 h-3.5 text-cyan-400" />
-              <span>当前孵化范例 · 赛博高能都市</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-[#E4E4E8] font-mono">
+              <Zap className="w-3.5 h-3.5 text-[#FFFFFF]" />
+              <span>当前孵化范例 · 高能都市叙事</span>
             </div>
 
-            <h4 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            <h4 className="text-xl sm:text-2xl font-black text-[#FFFFFF] tracking-tight">
               《微观时间倒流三秒》
             </h4>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-[#C8C8C8] leading-relaxed">
               急诊外科医生觉醒时间倒流能力，在医院深处无意撞破跨国药企活体克隆惊天阴谋。
             </p>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <span className="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 text-[11px] font-medium border border-cyan-500/30">
+              <span className="px-2.5 py-1 rounded-lg bg-white/10 text-[#E4E4E8] text-[11px] font-medium border border-white/15">
                 都市异能
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 text-[11px] font-medium border border-purple-500/30">
+              <span className="px-2.5 py-1 rounded-lg bg-white/10 text-[#E4E4E8] text-[11px] font-medium border border-white/15">
                 电影质感
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-[11px] font-medium border border-emerald-500/30">
+              <span className="px-2.5 py-1 rounded-lg bg-white/10 text-[#E4E4E8] text-[11px] font-medium border border-white/15">
                 微观时间回溯
               </span>
             </div>
 
             {/* 核心亮点 checklist */}
-            <div className="space-y-2 pt-3 text-xs text-slate-300">
+            <div className="space-y-2 pt-3 text-xs text-[#C8C8C8]">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#33DD18] shrink-0" />
                 <span>自动生成契合主角人设与主场景的电影级封面</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#33DD18] shrink-0" />
                 <span>支持单章定向微调与角色立绘资产按需生成</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#33DD18] shrink-0" />
                 <span>个人专属书架多小说并行绑定与云端持久化</span>
               </div>
             </div>
           </div>
 
-          {/* 右侧：高科技打字机视窗模拟 */}
-          <div className="lg:col-span-8 rounded-2xl bg-black/50 border border-white/10 p-5 sm:p-6 backdrop-blur-md space-y-4">
+          {/* 右侧：高精度终端预览视窗 */}
+          <div className="lg:col-span-8 rounded-2xl bg-[#161719] border border-[#282828] p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-rose-500/80" />
-                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                <span className="ml-2 text-xs font-mono text-slate-400">
+                <div className="w-2.5 h-2.5 rounded-full bg-white/25" />
+                <div className="w-2.5 h-2.5 rounded-full bg-white/25" />
+                <div className="w-2.5 h-2.5 rounded-full bg-white/25" />
+                <span className="ml-2 text-xs font-mono text-[#C8C8C8]/75">
                   pipeline-stream://chapter-1/de-ai-polished
                 </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white/10 text-[#E4E4E8] border border-white/15">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#33DD18]" />
                 SSE 极速推流中
               </span>
             </div>
 
             {/* 正文片段 */}
-            <div className="font-mono text-xs sm:text-sm text-slate-200 leading-relaxed space-y-2">
-              <p className="text-purple-300 font-bold">
+            <div className="font-mono text-xs sm:text-sm text-[#E4E4E8] leading-relaxed space-y-2">
+              <p className="text-[#FFFFFF] font-bold">
                 【第一章 暴雨急救室的倒流指针】
               </p>
-              <p className="text-slate-300">
+              <p className="text-[#C8C8C8]">
                 窗外暴雨如注，救护车刺耳的警笛划破长夜。心电监护仪尖锐的直线警报响起，病人的血压已跌破临界点。
               </p>
-              <p className="text-slate-400">
-                林渊深吸一口气，指尖银白色纳米手术刀微微下压。就在止血钳滑脱的刹那，他眼中掠过一抹炽蓝微光——
+              <p className="text-[#C8C8C8]/80">
+                林渊深吸一口气，指尖银白色纳米手术刀微微下压。就在止血钳滑脱的刹那，他眼中掠过一抹冷冽微光——
               </p>
-              <p className="text-cyan-300 font-semibold pl-3 border-l-2 border-cyan-400">
+              <p className="text-[#FFFFFF] font-semibold pl-3 border-l-2 border-[#C8C8C8]">
                 &ldquo;时间倒流，三秒。&rdquo;
               </p>
-              <p className="text-slate-400">
+              <p className="text-[#C8C8C8]/80">
                 世界瞬间凝滞，飞溅的血珠诡异倒退回血管，监护仪波形重新跳动。而在手术室紧闭的透视窗外，一个身穿黑色防化服的阴冷身影，正将一管标有&ldquo;第VII号长生原液&rdquo;的药剂迅速收入金属箱……
               </p>
             </div>
@@ -248,20 +248,20 @@ export function WorkflowPreview() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.22 }}
-                className="p-3.5 rounded-xl bg-slate-950/80 border border-cyan-500/20 text-[11px] font-mono text-cyan-200/90 flex flex-wrap items-center justify-between gap-2"
+                className="p-3.5 rounded-xl bg-[#0F0F0F] border border-[#282828] text-[11px] font-mono text-[#E4E4E8] flex flex-wrap items-center justify-between gap-2"
               >
                 <div>
-                  <span className="text-slate-500">
+                  <span className="text-[#C8C8C8]/70">
                     # [{PIPELINE_STEPS[activeStep].step} {PIPELINE_STEPS[activeStep].name}]：
                   </span>
-                  <span className="text-cyan-400">
+                  <span className="text-[#FFFFFF]">
                     {" "}
                     {PIPELINE_STEPS[activeStep].en} · {PIPELINE_STEPS[activeStep].desc}
                   </span>
                 </div>
                 <HoverPrefetchLink
                   href="/workflow"
-                  className="text-xs text-white hover:text-cyan-300 font-bold flex items-center gap-1 shrink-0"
+                  className="text-xs text-[#FFFFFF] hover:text-[#C8C8C8] font-bold flex items-center gap-1 shrink-0"
                 >
                   <span>探索全部章节</span>
                   <ArrowRight className="w-3.5 h-3.5" />

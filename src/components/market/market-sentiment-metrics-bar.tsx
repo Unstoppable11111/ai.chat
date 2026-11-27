@@ -136,30 +136,30 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
   const trafficStyle =
     trafficLight.light === "RED"
       ? {
-          wrap: "bg-[#D71018]/6 border-[#D71018]/30 text-[#0F0F0F]",
-          dot: "bg-[#D71018] shadow-[0_0_10px_rgba(215,16,24,0.45)]",
-          badge: "bg-[#D71018] text-[#FFFFFF] border-[#D71018]",
+          wrap: "bg-[#F8F8F8] border-[#E4E4E8] border-l-[3px] border-l-[#D71018] text-[#0F0F0F]",
+          dot: "bg-[#D71018]",
+          badge: "bg-[#D71018]/[0.06] text-[#D71018] border-[#D71018]/25",
         }
       : trafficLight.light === "YELLOW"
       ? {
-          wrap: "bg-[#FFFFF2] border-[#C8C8C8] text-[#0F0F0F]",
-          dot: "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.45)]",
-          badge: "bg-[#042328] text-[#E1F209] border-[#184120]",
+          wrap: "bg-[#F8F8F8] border-[#E4E4E8] border-l-[3px] border-l-amber-500 text-[#0F0F0F]",
+          dot: "bg-amber-500",
+          badge: "bg-amber-50 text-amber-800 border-amber-200",
         }
       : {
-          wrap: "bg-[#E0E7D9]/70 border-[#184120]/30 text-[#0F0F0F]",
-          dot: "bg-[#33DD18] shadow-[0_0_10px_rgba(51,221,24,0.5)]",
-          badge: "bg-[#184120] text-[#E1F209] border-[#184120]",
+          wrap: "bg-[#F8F8F8] border-[#E4E4E8] border-l-[3px] border-l-[#184120] text-[#0F0F0F]",
+          dot: "bg-[#33DD18]",
+          badge: "bg-[#E0E7D9]/55 text-[#184120] border-[#184120]/20",
         };
 
   const aiSummary = metrics?.ai_summary;
 
   return (
-    <div className="rounded-3xl bg-[#FFFFFF] border border-[#D8D8E4] p-5 shadow-[0_10px_32px_rgba(4,35,40,0.05)] space-y-4">
+    <div className="rounded-3xl bg-[#FFFFFF] border border-[#E4E4E8] p-5 shadow-[0_1px_2px_rgba(15,15,15,0.03),0_8px_24px_-8px_rgba(38,56,68,0.06)] space-y-4">
       {/* 市场情绪红绿灯买点总闸门 */}
       <div className={`rounded-2xl border px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2 ${trafficStyle.wrap}`}>
         <div className="flex items-center gap-3">
-          <span className={`w-3.5 h-3.5 rounded-full shrink-0 ${trafficStyle.dot}`} />
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${trafficStyle.dot}`} />
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-extrabold tracking-wide text-[#0F0F0F]">市场情绪红绿灯总闸门：{trafficLight.label}</span>
@@ -167,46 +167,46 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
                 买点A(回踩低吸): {trafficLight.allow_pullback_buy ? "放行" : "屏蔽"} · 买点B(放量突破): {trafficLight.allow_breakout_buy ? "放行" : "屏蔽"}
               </span>
             </div>
-            <p className="text-[11px] text-[#282828] mt-0.5">{trafficLight.summary}</p>
+            <p className="text-[11px] text-[#5C6873] mt-0.5">{trafficLight.summary}</p>
           </div>
         </div>
-        <div className="text-[11px] font-mono text-[#263844] shrink-0">
+        <div className="text-[11px] font-mono text-[#5C6873] shrink-0">
           阈值：&lt;30红灯 · 30~55黄灯 · ≥55绿灯
         </div>
       </div>
 
       {/* 头部标题与即时状态栏 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E0E0E0] pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E4E4E8] pb-3">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#D71018]/10 text-[#D71018] border border-[#D71018]/25">
-            <Flame className="w-4 h-4 animate-pulse" />
+          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#D71018]/[0.06] text-[#D71018] border border-[#D71018]/20">
+            <Flame className="w-4 h-4" />
           </span>
           <div>
             <h2 className="text-sm font-bold text-[#0F0F0F] flex items-center gap-2">
               全市场短线量化盘口与情绪大屏
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844] font-mono">
                 实时短线盘口 · 独家特色量化雷达
               </span>
             </h2>
-            <p className="text-[11px] text-[#263844]">
+            <p className="text-[11px] text-[#5C6873]">
               整合全市场实时涨跌停、炸板率、多周期量能比(T-1/MA5/MA10)及 4 大特色量化雷达指标 (100% 动态实时计算)
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-[11px] font-mono text-[#263844] flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#33DD18] animate-ping" />
+          <div className="text-[11px] font-mono text-[#5C6873] flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#33DD18]" />
             <span>数据源: 极速双通道 (新浪/腾讯实时日K)</span>
-            {lastUpdate && <span className="text-[#042328] font-semibold">({lastUpdate})</span>}
+            {lastUpdate && <span className="text-[#0F0F0F] font-semibold">({lastUpdate})</span>}
           </div>
           <button
             onClick={handleManualRefresh}
             disabled={loading}
-            className="px-2.5 py-1 rounded-xl bg-[#F8F8F4] hover:bg-[#E0E7D9]/70 text-[#042328] text-xs font-medium border border-[#D8D8E4] transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+            className="px-2.5 py-1 rounded-xl bg-[#FFFFFF] hover:bg-[#F8F8F8] text-[#282828] text-xs font-medium border border-[#E0E0E0] hover:border-[#0F0F0F] transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
             title="手动刷新实时盘口指标"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#042328]" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0F0F0F]" : ""}`} />
             <span>刷新</span>
           </button>
         </div>
@@ -215,44 +215,44 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
       {/* 第一行：短线必看 4 大基础盘口要素 (连板梯队 / 涨跌停 / 封板率与赚钱效应 / 昨日同期与5日10日量比) */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         {/* 指标 1: 实时涨停与连板梯队 */}
-        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] hover:border-[#D71018]/45 transition-all flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#D71018]" />
               涨停与连板梯队
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D71018]/10 text-[#D71018] border border-[#D71018]/25 font-mono font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D71018]/[0.06] text-[#D71018] border border-[#D71018]/20 font-mono font-bold">
               最高 {metrics?.highest_limit_height ?? 0} 板
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <div className="text-3xl font-black text-[#D71018] font-mono tracking-tight">
               {hasLive ? limitUp : "--"}
-              <span className="text-xs font-normal text-[#263844] ml-1">家涨停</span>
+              <span className="text-xs font-normal text-[#5C6873] ml-1">家涨停</span>
             </div>
             {upRatioPct !== null && (
-              <span className="text-[11px] font-mono text-[#263844]">
+              <span className="text-[11px] font-mono text-[#5C6873]">
                 涨家占比 <strong className={upRatioPct >= 50 ? "text-[#D71018]" : "text-[#184120]"}>{upRatioPct}%</strong>
               </span>
             )}
           </div>
           {tiers && (
             <div className="mt-2 grid grid-cols-4 gap-1 text-[10px] font-mono text-center">
-              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E0E0E0]">
-                <div className="text-[#263844]/70 text-[9px]">首板</div>
+              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E4E4E8]">
+                <div className="text-[#5C6873] text-[9px]">首板</div>
                 <div className="text-[#D71018] font-bold">{tiers.first_board}</div>
               </div>
-              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E0E0E0]">
-                <div className="text-[#263844]/70 text-[9px]">2板</div>
+              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E4E4E8]">
+                <div className="text-[#5C6873] text-[9px]">2板</div>
                 <div className="text-[#D71018] font-bold">{tiers.second_board}</div>
               </div>
-              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E0E0E0]">
-                <div className="text-[#263844]/70 text-[9px]">3板</div>
-                <div className="text-[#042328] font-bold">{tiers.third_board}</div>
+              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E4E4E8]">
+                <div className="text-[#5C6873] text-[9px]">3板</div>
+                <div className="text-[#0F0F0F] font-bold">{tiers.third_board}</div>
               </div>
-              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E0E0E0]">
-                <div className="text-[#263844]/70 text-[9px]">4板+</div>
-                <div className="text-[#042328] font-bold">{tiers.high_board}</div>
+              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E4E4E8]">
+                <div className="text-[#5C6873] text-[9px]">4板+</div>
+                <div className="text-[#0F0F0F] font-bold">{tiers.high_board}</div>
               </div>
             </div>
           )}
@@ -263,7 +263,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
         </div>
 
         {/* 指标 2: 空头跌停与深跌亏钱效应 */}
-        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] hover:border-[#184120]/45 transition-all flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#184120]" />
@@ -272,8 +272,8 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
                 limitDown > 15
-                  ? "bg-[#184120] text-[#E1F209] border border-[#184120]"
-                  : "bg-[#E0E7D9] text-[#184120] border border-[#184120]/20"
+                  ? "bg-[#184120] text-[#FFFFFF] border border-[#184120]"
+                  : "bg-[#E0E7D9]/55 text-[#184120] border border-[#184120]/20"
               }`}
             >
               {limitDown > 15 ? "空头杀跌" : "跌停受控"}
@@ -282,9 +282,9 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           <div className="mt-2 flex items-baseline justify-between">
             <div className="text-3xl font-black text-[#184120] font-mono tracking-tight">
               {hasLive ? limitDown : "--"}
-              <span className="text-xs font-normal text-[#263844] ml-1">家跌停</span>
+              <span className="text-xs font-normal text-[#5C6873] ml-1">家跌停</span>
             </div>
-            <span className="text-[11px] text-[#263844] font-mono">
+            <span className="text-[11px] text-[#5C6873] font-mono">
               深跌(&lt;-5%) {metrics?.deep_drop_count ?? 0} 家
             </span>
           </div>
@@ -309,17 +309,17 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
         </div>
 
         {/* 指标 3: 实时封板率与炸板率 */}
-        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] hover:border-[#042328]/45 transition-all flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-[#042328]" />
+              <AlertTriangle className="w-3.5 h-3.5 text-[#263844]" />
               封板率与炸板率
             </span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
                 brokenRatio <= 22
-                  ? "bg-[#D71018]/10 text-[#D71018] border border-[#D71018]/25"
-                  : "bg-[#042328] text-[#E1F209] border border-[#184120]"
+                  ? "bg-[#D71018]/[0.06] text-[#D71018] border border-[#D71018]/20"
+                  : "bg-[#F2F7F9] text-[#263844] border border-[#D8D8E4]"
               }`}
             >
               {brokenRatio <= 22 ? "封板坚挺" : "分歧炸板"}
@@ -328,40 +328,40 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           <div className="mt-2 flex items-baseline justify-between">
             <div
               className={`text-3xl font-black font-mono tracking-tight ${
-                sealRate >= 75 ? "text-[#D71018]" : "text-[#042328]"
+                sealRate >= 75 ? "text-[#D71018]" : "text-[#0F0F0F]"
               }`}
             >
               {hasLive ? `${sealRate}%` : "--"}
-              <span className="text-xs font-normal text-[#263844] ml-1">封板</span>
+              <span className="text-xs font-normal text-[#5C6873] ml-1">封板</span>
             </div>
-            <span className="text-[11px] text-[#263844] font-mono">
+            <span className="text-[11px] text-[#5C6873] font-mono">
               炸板 {brokenRatio}% ({brokenCount}/{limitUp + brokenCount})
             </span>
           </div>
           <div className="mt-2 w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-[#D71018] to-[#042328] h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#D71018] to-[#263844] h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, sealRate)}%` }}
             />
           </div>
           <div className="mt-2 pt-2 border-t border-[#E4E4E8] text-[10.5px] text-[#282828] truncate">
-            <span className="text-[#042328] font-semibold">接力容错: </span>
+            <span className="text-[#0F0F0F] font-semibold">接力容错: </span>
             {brokenRatio <= 22 ? "触板封死率高，接力情绪偏良性" : "炸板增多，谨防冲高派发，优先低吸"}
           </div>
         </div>
 
         {/* 指标 4: 昨日同期 HH:MM + 5日/10日量比 + 近10日量能柱状图 */}
-        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] hover:border-[#042328]/45 transition-all flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-[#042328]" />
+              <Activity className="w-3.5 h-3.5 text-[#263844]" />
               {hasSameTime ? `昨日同期 (${multiVol?.as_of_time})` : "多周期量能比"}
             </span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full border font-mono font-bold ${
                 (hasSameTime ? sameTimeDiffPct : volumeDiffPct) >= 0
-                  ? "bg-[#D71018]/10 text-[#D71018] border-[#D71018]/25"
-                  : "bg-[#E0E7D9] text-[#184120] border-[#184120]/25"
+                  ? "bg-[#D71018]/[0.06] text-[#D71018] border-[#D71018]/20"
+                  : "bg-[#E0E7D9]/55 text-[#184120] border-[#184120]/20"
               }`}
             >
               {(hasSameTime ? sameTimeDiffPct : volumeDiffPct) >= 0 ? "放量博弈" : "缩量整固"}
@@ -377,7 +377,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
               ) : (
                 <>
                   {volumeRatio}
-                  <span className="text-xs font-normal text-[#263844] ml-1">x (MA5)</span>
+                  <span className="text-xs font-normal text-[#5C6873] ml-1">x (MA5)</span>
                 </>
               )}
             </div>
@@ -387,8 +387,8 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
                   <div className={sameTimeDiffYi >= 0 ? "text-[#D71018] font-bold" : "text-[#184120] font-bold"}>
                     {sameTimeDiffYi >= 0 ? `+${sameTimeDiffYi}` : sameTimeDiffYi}亿 较昨同期
                   </div>
-                  <div className="text-[#263844]">
-                    预计全天 <span className="text-[#042328] font-bold">{multiVol?.projected_full_yi}亿</span>
+                  <div className="text-[#5C6873]">
+                    预计全天 <span className="text-[#0F0F0F] font-bold">{multiVol?.projected_full_yi}亿</span>
                   </div>
                 </>
               ) : (
@@ -401,20 +401,20 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
 
           {/* 昨日(T-1) / 5日(MA5) / 10日(MA10) 同口径量比胶囊 */}
           <div className="mt-2 pt-2 border-t border-[#E4E4E8] grid grid-cols-3 gap-1 text-[9.5px] font-mono">
-            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E0E0E0] flex flex-col items-center">
-              <span className="text-[#263844]/70 text-[9px]">较昨全天</span>
+            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E4E4E8] flex flex-col items-center">
+              <span className="text-[#5C6873] text-[9px]">较昨全天</span>
               <span className={`font-bold ${t1DiffPct >= 0 ? "text-[#D71018]" : "text-[#184120]"}`}>
                 {t1Ratio}x ({t1DiffPct >= 0 ? `+${t1DiffPct}%` : `${t1DiffPct}%`})
               </span>
             </div>
-            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E0E0E0] flex flex-col items-center">
-              <span className="text-[#263844]/70 text-[9px]">5日量比</span>
+            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E4E4E8] flex flex-col items-center">
+              <span className="text-[#5C6873] text-[9px]">5日量比</span>
               <span className={`font-bold ${volumeDiffPct >= 0 ? "text-[#D71018]" : "text-[#184120]"}`}>
                 {volumeRatio}x ({volumeDiffPct >= 0 ? `+${volumeDiffPct}%` : `${volumeDiffPct}%`})
               </span>
             </div>
-            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E0E0E0] flex flex-col items-center">
-              <span className="text-[#263844]/70 text-[9px]">10日量比</span>
+            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E4E4E8] flex flex-col items-center">
+              <span className="text-[#5C6873] text-[9px]">10日量比</span>
               <span className={`font-bold ${ma10DiffPct >= 0 ? "text-[#D71018]" : "text-[#184120]"}`}>
                 {ma10Ratio}x ({ma10DiffPct >= 0 ? `+${ma10DiffPct}%` : `${ma10DiffPct}%`})
               </span>
@@ -431,7 +431,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
                     key={pt.date}
                     title={`${pt.date}: ${pt.volume_yi_shou}亿手${pt.is_projected ? " (全天折算)" : ""}`}
                     className={`flex-1 rounded-t-xs transition-all ${
-                      pt.is_projected ? "bg-[#042328]" : "bg-[#C8C8C8] hover:bg-[#263844]"
+                      pt.is_projected ? "bg-[#0F0F0F]" : "bg-[#D8D8E4] hover:bg-[#263844]"
                     }`}
                     style={{ height: `${h}%` }}
                   />
@@ -440,7 +440,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             </div>
           )}
 
-          <div className="mt-1 text-[9.5px] text-[#263844] font-mono truncate">
+          <div className="mt-1 text-[9.5px] text-[#5C6873] font-mono truncate">
             {hasSameTime
               ? `实盘 ${multiVol?.today_amount_yi}亿 / 昨同期 ${multiVol?.yesterday_same_time_yi}亿 · 昨全天 ${multiVol?.yesterday_full_yi}亿`
               : `折算 ${projectedVolYi}亿手 · 昨 ${yesterdayVolYi} · 5日均 ${ma5VolYi} · 10日均 ${ma10VolYi}`}
@@ -451,19 +451,19 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
       {/* 第二行：4 大独家特色高级量化指标 (同花顺/东财难一眼看出的独家量化雷达) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-1">
         {/* 独家 1: 主线资金集聚度 (真实新浪49行业板块成交计算) */}
-        <div className="p-4 rounded-2xl bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#042328]/45 transition-all flex flex-col justify-between space-y-2.5">
+        <div className="p-4 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-[#042328]" />
+              <Layers className="w-3.5 h-3.5 text-[#263844]" />
               主线资金集聚度
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844] font-mono font-bold">
               Top3 吸金占比
             </span>
           </div>
 
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-black text-[#042328] font-mono tracking-tight">
+            <div className="text-2xl font-black text-[#0F0F0F] font-mono tracking-tight">
               {mainlinePct}%
             </div>
             <span className="text-[10px] text-[#D71018] font-mono font-bold">
@@ -474,26 +474,26 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           {/* 进度条 */}
           <div className="w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-[#042328] to-[#184120] h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#263844] to-[#0F0F0F] h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, (mainlinePct / 50) * 100)}%` }}
             />
           </div>
 
           <div className="text-[10.5px] text-[#282828] line-clamp-1">
-            <span className="text-[#263844]">吸金行业: </span>
+            <span className="text-[#5C6873]">吸金行业: </span>
             <span className="text-[#0F0F0F] font-semibold">{mainlineName}</span>
           </div>
           <div className="text-[10px] text-[#D71018] truncate font-medium">
-            <span className="text-[#263844] font-normal">领涨板块: </span>
+            <span className="text-[#5C6873] font-normal">领涨板块: </span>
             {mainlineGainers}
           </div>
-          <p className="text-[10px] text-[#263844] leading-snug truncate">
+          <p className="text-[10px] text-[#5C6873] leading-snug truncate">
             💡 {mainlineEval}
           </p>
         </div>
 
         {/* 独家 2: 高标核按钮大面风险指数 (真实深跌>-5%个股测算) */}
-        <div className="p-4 rounded-2xl bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#184120]/45 transition-all flex flex-col justify-between space-y-2.5">
+        <div className="p-4 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-[#184120]" />
@@ -502,10 +502,10 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
                 highRiskLevel === "LOW"
-                  ? "bg-[#E0E7D9] text-[#184120] border border-[#184120]/25"
+                  ? "bg-[#E0E7D9]/55 text-[#184120] border border-[#184120]/20"
                   : highRiskLevel === "MEDIUM"
-                  ? "bg-[#FFFFF2] text-[#0F0F0F] border border-[#C8C8C8]"
-                  : "bg-[#D71018] text-[#FFFFFF] border border-[#D71018]"
+                  ? "bg-amber-50 text-amber-800 border border-amber-200"
+                  : "bg-[#D71018]/[0.06] text-[#D71018] border border-[#D71018]/25"
               }`}
             >
               {highRiskLevel === "LOW" ? "低风险 · 安全" : highRiskLevel === "MEDIUM" ? "中风险 · 分歧" : "高风险 · 预警"}
@@ -520,7 +520,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             >
               {highRiskIndex}%
             </div>
-            <span className="text-[10px] text-[#263844] font-mono">
+            <span className="text-[10px] text-[#5C6873] font-mono">
               全市场深跌强度
             </span>
           </div>
@@ -540,13 +540,13 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
         </div>
 
         {/* 独家 3: 多空情绪综合温度计 (0~100°C 严格结合涨跌比与盘口推导) */}
-        <div className="p-4 rounded-2xl bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#D71018]/45 transition-all flex flex-col justify-between space-y-2.5">
+        <div className="p-4 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
               <Gauge className="w-3.5 h-3.5 text-[#D71018]" />
               多空情绪温度计
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844] font-mono font-bold">
               全景加权
             </span>
           </div>
@@ -554,37 +554,37 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           <div className="flex items-baseline justify-between">
             <div
               className={`text-2xl font-black font-mono tracking-tight flex items-baseline gap-0.5 ${
-                temp >= 60 ? "text-[#D71018]" : temp >= 40 ? "text-[#042328]" : "text-[#184120]"
+                temp >= 60 ? "text-[#D71018]" : temp >= 40 ? "text-[#0F0F0F]" : "text-[#184120]"
               }`}
             >
               {temp}
-              <span className="text-sm font-normal text-[#263844]">°C</span>
+              <span className="text-sm font-normal text-[#5C6873]">°C</span>
             </div>
-            <span className="text-[10px] text-[#263844] font-mono">
+            <span className="text-[10px] text-[#5C6873] font-mono">
               0°C 冰点 ~ 100°C 狂热
             </span>
           </div>
 
           <div className="w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-[#184120] via-[#042328] to-[#D71018] h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#184120] via-[#263844] to-[#D71018] h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, temp)}%` }}
             />
           </div>
 
           <p className="text-[10.5px] text-[#282828] leading-snug line-clamp-2">
-            🌡️ <span className="text-[#042328] font-semibold">{tempPhase}</span>
+            🌡️ <span className="text-[#0F0F0F] font-semibold">{tempPhase}</span>
           </p>
         </div>
 
         {/* 独家 4: 百亿中军大盘护盘系数 (沪深300 vs 国证2000真实剪刀差) */}
-        <div className="p-4 rounded-2xl bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#042328]/45 transition-all flex flex-col justify-between space-y-2.5">
+        <div className="p-4 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
-              <Scale className="w-3.5 h-3.5 text-[#042328]" />
+              <Scale className="w-3.5 h-3.5 text-[#263844]" />
               百亿中军护盘系数
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844] font-mono font-bold">
               剪刀差监测
             </span>
           </div>
@@ -593,20 +593,20 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             <div className={`text-2xl font-black font-mono tracking-tight ${midCapDefense >= 0 ? "text-[#D71018]" : "text-[#184120]"}`}>
               {midCapDefense >= 0 ? `+${midCapDefense}%` : `${midCapDefense}%`}
             </div>
-            <span className="text-[10px] text-[#263844] font-mono">
+            <span className="text-[10px] text-[#5C6873] font-mono">
               沪深300 vs 国证2000
             </span>
           </div>
 
           <div className="w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-[#042328] h-full rounded-full transition-all duration-500"
+              className="bg-[#0F0F0F] h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, Math.abs(midCapDefense) * 50 + 20)}%` }}
             />
           </div>
 
           <p className="text-[10.5px] text-[#282828] leading-snug line-clamp-2">
-            ⚖️ <span className="text-[#042328] font-semibold">结构研判: </span>
+            ⚖️ <span className="text-[#0F0F0F] font-semibold">结构研判: </span>
             {defenseStatus}
           </p>
         </div>
@@ -614,31 +614,31 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
 
       {/* 第三行：AI 动态全景量化研判与操作纪律 (基于实测数据动态生成，绝不写死) */}
       {aiSummary && (
-        <div className="rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] p-4 space-y-3">
-          <div className="flex items-center justify-between border-b border-[#E0E0E0] pb-2">
+        <div className="rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] p-4 space-y-3">
+          <div className="flex items-center justify-between border-b border-[#E4E4E8] pb-2">
             <div className="flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#042328] text-[#E1F209]">
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#0F0F0F] text-[#FFFFFF]">
                 <Bot className="w-3.5 h-3.5" />
               </span>
               <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
                 AI 盘口研判与量化纪律总结
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E0E7D9] text-[#184120] border border-[#184120]/20 font-mono">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F2F7F9] text-[#263844] border border-[#D8D8E4] font-mono">
                   全自动多维推导
                 </span>
               </span>
             </div>
-            <span className="text-[10.5px] text-[#263844] flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-[#042328]" />
+            <span className="text-[10.5px] text-[#5C6873] flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#263844]" />
               动态交叉验证 · 拒绝假数据
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
             {/* 1. 量能走势分析 */}
-            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D8D8E4] flex flex-col justify-between">
+            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#E4E4E8] flex flex-col justify-between">
               <div>
-                <span className="font-bold text-[#042328] flex items-center gap-1 mb-1">
-                  <Activity className="w-3 h-3 text-[#042328]" />
+                <span className="font-bold text-[#0F0F0F] flex items-center gap-1 mb-1">
+                  <Activity className="w-3 h-3 text-[#263844]" />
                   多周期量能真实研判:
                 </span>
                 <p className="text-[#282828] text-[11px] leading-relaxed">
@@ -648,9 +648,9 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             </div>
 
             {/* 2. 多空全景分析 */}
-            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D8D8E4] flex flex-col justify-between">
+            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#E4E4E8] flex flex-col justify-between">
               <div>
-                <span className="font-bold text-[#263844] flex items-center gap-1 mb-1">
+                <span className="font-bold text-[#0F0F0F] flex items-center gap-1 mb-1">
                   <Gauge className="w-3 h-3 text-[#263844]" />
                   多空温度与梯队情绪:
                 </span>
@@ -661,7 +661,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             </div>
 
             {/* 3. 权重与行业主线分析 */}
-            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D8D8E4] flex flex-col justify-between">
+            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#E4E4E8] flex flex-col justify-between">
               <div>
                 <span className="font-bold text-[#184120] flex items-center gap-1 mb-1">
                   <Scale className="w-3 h-3 text-[#184120]" />
@@ -674,7 +674,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             </div>
 
             {/* 4. 操盘纪律与建议 */}
-            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D71018]/25 flex flex-col justify-between">
+            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D71018]/20 flex flex-col justify-between">
               <div>
                 <span className="font-bold text-[#D71018] flex items-center gap-1 mb-1">
                   <ShieldCheck className="w-3 h-3 text-[#D71018]" />

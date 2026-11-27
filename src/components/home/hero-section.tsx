@@ -53,8 +53,8 @@ export function HeroSection() {
     >
       {/* Subtle architectural ambient highlight */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-8%] left-[18%] w-[64vw] h-[54vh] bg-[radial-gradient(closest-side,rgba(14,165,233,0.06),transparent)]" />
-        <div className="absolute top-[18%] right-[-4%] w-[52vw] h-[54vh] bg-[radial-gradient(closest-side,rgba(139,92,246,0.05),transparent)]" />
+        <div className="absolute top-[-8%] left-[18%] w-[64vw] h-[54vh] bg-[radial-gradient(closest-side,rgba(38,56,68,0.04),transparent)]" />
+        <div className="absolute top-[18%] right-[-4%] w-[52vw] h-[54vh] bg-[radial-gradient(closest-side,rgba(216,216,228,0.22),transparent)]" />
       </div>
 
       <div
@@ -65,15 +65,15 @@ export function HeroSection() {
           style={enableScrollMotion ? { opacity: chromeOpacity, y: chromeY } : undefined}
           className="flex justify-between items-center z-20 w-full max-w-7xl mx-auto pointer-events-none"
         >
-          <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/90 px-3.5 py-1.5 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)]">
+          <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[#E4E4E8] bg-[#FFFFFF] px-3.5 py-1.5 shadow-[0_2px_10px_rgba(38,56,68,0.05)]">
             <span className="relative flex h-2 w-2">
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#33DD18]" />
             </span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-700 font-semibold">
-              STUDIO OS v3.0 // LUMINOUS EDITION
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#263844] font-semibold">
+              STUDIO OS v3.0 // SWISS EDITION
             </span>
           </div>
-          <p className="text-[10px] md:text-xs uppercase tracking-[0.28em] text-muted-foreground/85 font-mono hidden sm:block">
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.28em] text-[#5C6873] font-mono hidden sm:block">
             BUILD · EXPERIMENT · RECORD
           </p>
         </motion.div>
@@ -84,61 +84,61 @@ export function HeroSection() {
           <div className="pointer-events-auto hidden lg:block">
             <HoverPrefetchLink
               href="/market"
-              className="absolute left-[5%] top-[16%] flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-[0_12px_32px_-8px_rgba(15,23,42,0.08)] hover:-translate-y-1 hover:border-emerald-400/60 hover:shadow-[0_18px_36px_-10px_rgba(16,185,129,0.16)] transition-all duration-300"
+              className="absolute left-[5%] top-[16%] flex items-center gap-3 rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF] px-4 py-2.5 shadow-[0_12px_32px_-8px_rgba(38,56,68,0.08)] hover:-translate-y-1 hover:border-[#C8C8C8] transition-all duration-300"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F8F8F8] border border-[#E4E4E8] text-[#0F0F0F]">
                 <TrendingUp className="h-4 w-4" />
               </span>
               <div className="text-left">
-                <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                <p className="text-[9px] font-mono uppercase tracking-wider text-[#5C6873]">
                   QUANT ARENA
                 </p>
-                <p className="text-xs font-semibold text-foreground">三大实盘策略在线</p>
+                <p className="text-xs font-semibold text-[#0F0F0F]">三大实盘策略在线</p>
               </div>
             </HoverPrefetchLink>
 
             <HoverPrefetchLink
               href="/build-log"
-              className="absolute right-[5%] top-[18%] flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-[0_12px_32px_-8px_rgba(15,23,42,0.08)] hover:-translate-y-1 hover:border-sky-400/60 hover:shadow-[0_18px_36px_-10px_rgba(14,165,233,0.18)] transition-all duration-300"
+              className="absolute right-[5%] top-[18%] flex items-center gap-3 rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF] px-4 py-2.5 shadow-[0_12px_32px_-8px_rgba(38,56,68,0.08)] hover:-translate-y-1 hover:border-[#C8C8C8] transition-all duration-300"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-cyan/10 text-brand-cyan">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F8F8F8] border border-[#E4E4E8] text-[#0F0F0F]">
                 <Cpu className="h-4 w-4" />
               </span>
               <div className="text-left">
-                <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                <p className="text-[9px] font-mono uppercase tracking-wider text-[#5C6873]">
                   RAG ENGINE
                 </p>
-                <p className="text-xs font-semibold text-foreground">65+ 深度技术白皮书</p>
+                <p className="text-xs font-semibold text-[#0F0F0F]">65+ 深度技术白皮书</p>
               </div>
             </HoverPrefetchLink>
 
             <HoverPrefetchLink
               href="/workflow"
-              className="absolute left-[7%] bottom-[14%] flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-[0_12px_32px_-8px_rgba(15,23,42,0.08)] hover:-translate-y-1 hover:border-violet-400/60 hover:shadow-[0_18px_36px_-10px_rgba(139,92,246,0.18)] transition-all duration-300"
+              className="absolute left-[7%] bottom-[14%] flex items-center gap-3 rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF] px-4 py-2.5 shadow-[0_12px_32px_-8px_rgba(38,56,68,0.08)] hover:-translate-y-1 hover:border-[#C8C8C8] transition-all duration-300"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-violet/10 text-brand-violet">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F8F8F8] border border-[#E4E4E8] text-[#0F0F0F]">
                 <Sparkles className="h-4 w-4" />
               </span>
               <div className="text-left">
-                <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                <p className="text-[9px] font-mono uppercase tracking-wider text-[#5C6873]">
                   AI WORKFLOW
                 </p>
-                <p className="text-xs font-semibold text-foreground">小说 & 影视分镜流水线</p>
+                <p className="text-xs font-semibold text-[#0F0F0F]">小说 & 影视分镜流水线</p>
               </div>
             </HoverPrefetchLink>
 
             <HoverPrefetchLink
               href="/chat"
-              className="absolute right-[7%] bottom-[16%] flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-[0_12px_32px_-8px_rgba(15,23,42,0.08)] hover:-translate-y-1 hover:border-sky-400/60 hover:shadow-[0_18px_36px_-10px_rgba(14,165,233,0.18)] transition-all duration-300"
+              className="absolute right-[7%] bottom-[16%] flex items-center gap-3 rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF] px-4 py-2.5 shadow-[0_12px_32px_-8px_rgba(38,56,68,0.08)] hover:-translate-y-1 hover:border-[#C8C8C8] transition-all duration-300"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-sky-400">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0F0F0F] text-[#FFFFFF]">
                 <Bot className="h-4 w-4" />
               </span>
               <div className="text-left">
-                <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                <p className="text-[9px] font-mono uppercase tracking-wider text-[#5C6873]">
                   JARVIS AGENT
                 </p>
-                <p className="text-xs font-semibold text-foreground">全库知识流式对话</p>
+                <p className="text-xs font-semibold text-[#0F0F0F]">全库知识流式对话</p>
               </div>
             </HoverPrefetchLink>
           </div>
@@ -161,8 +161,8 @@ export function HeroSection() {
                 }}
                 className={
                   line.accent
-                    ? "block bg-gradient-to-r from-brand-cyan via-brand-violet to-sky-500 bg-clip-text text-transparent"
-                    : "block bg-gradient-to-b from-slate-950 via-slate-900 to-slate-700 bg-clip-text text-transparent"
+                    ? "block bg-gradient-to-r from-[#0F0F0F] via-[#263844] to-[#6B7A85] bg-clip-text text-transparent"
+                    : "block text-[#0F0F0F]"
                 }
               >
                 {line.text}
@@ -181,7 +181,7 @@ export function HeroSection() {
               transition={{ duration: 0.48, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
               className="mt-6 sm:mt-8 flex flex-col items-center gap-3.5"
             >
-            <p className="text-[11px] sm:text-xs text-slate-600 font-medium tracking-wide text-center max-w-[320px] sm:max-w-lg">
+            <p className="text-[11px] sm:text-xs text-[#5C6873] font-medium tracking-wide text-center max-w-[320px] sm:max-w-lg">
               个人全栈工程 · A股量化竞技场 · WebGL 交互实验 · RAG 知识库
             </p>
 
@@ -189,7 +189,7 @@ export function HeroSection() {
               <MagneticButton strength={0.22}>
                 <HoverPrefetchLink
                   href="/projects"
-                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200/90 bg-white/95 text-[11px] sm:text-xs font-medium text-foreground shadow-2xs hover:border-sky-300 hover:shadow-sm transition-all"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#E4E4E8] bg-[#FFFFFF] text-[11px] sm:text-xs font-medium text-[#282828] shadow-2xs hover:border-[#0F0F0F] hover:text-[#0F0F0F] transition-all"
                 >
                   <span>精选项目</span>
                 </HoverPrefetchLink>
@@ -197,7 +197,7 @@ export function HeroSection() {
               <MagneticButton strength={0.22}>
                 <HoverPrefetchLink
                   href="/experiments"
-                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200/90 bg-white/95 text-[11px] sm:text-xs font-medium text-foreground shadow-2xs hover:border-sky-300 hover:shadow-sm transition-all"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#E4E4E8] bg-[#FFFFFF] text-[11px] sm:text-xs font-medium text-[#282828] shadow-2xs hover:border-[#0F0F0F] hover:text-[#0F0F0F] transition-all"
                 >
                   <span>极客工坊</span>
                 </HoverPrefetchLink>
@@ -205,7 +205,7 @@ export function HeroSection() {
               <MagneticButton strength={0.22}>
                 <HoverPrefetchLink
                   href="/market"
-                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 text-[11px] sm:text-xs font-semibold text-emerald-700 shadow-2xs hover:bg-emerald-500/15 transition-all"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#0F0F0F] bg-[#0F0F0F] text-[11px] sm:text-xs font-semibold text-[#FFFFFF] shadow-2xs hover:bg-[#282828] transition-all"
                 >
                   <span>量化投研</span>
                 </HoverPrefetchLink>
@@ -213,7 +213,7 @@ export function HeroSection() {
               <MagneticButton strength={0.22}>
                 <HoverPrefetchLink
                   href="/build-log"
-                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200/90 bg-white/95 text-[11px] sm:text-xs font-medium text-foreground shadow-2xs hover:border-sky-300 hover:shadow-sm transition-all"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#E4E4E8] bg-[#FFFFFF] text-[11px] sm:text-xs font-medium text-[#282828] shadow-2xs hover:border-[#0F0F0F] hover:text-[#0F0F0F] transition-all"
                 >
                   <span>技术白皮书</span>
                 </HoverPrefetchLink>
@@ -221,7 +221,7 @@ export function HeroSection() {
               <MagneticButton strength={0.22}>
                 <HoverPrefetchLink
                   href="/gesture"
-                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-brand-violet/25 bg-brand-violet/10 text-[11px] sm:text-xs font-semibold text-brand-violet shadow-2xs hover:bg-brand-violet/15 transition-all"
+                  className="shimmer-beam inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#E4E4E8] bg-[#FFFFFF] text-[11px] sm:text-xs font-medium text-[#282828] shadow-2xs hover:border-[#0F0F0F] hover:text-[#0F0F0F] transition-all"
                 >
                   <Hand className="h-3 w-3" />
                   <span>3D 手势交互</span>
@@ -237,9 +237,9 @@ export function HeroSection() {
           style={enableScrollMotion ? { opacity: chromeOpacity, y: chromeY } : undefined}
           className="flex flex-col items-center gap-2 pb-2 z-20"
         >
-          <div className="flex items-center gap-2 px-3.5 py-1 rounded-full border border-slate-200/80 bg-white/85 shadow-2xs">
-            <ArrowDown className="h-3 w-3 text-brand-cyan animate-bounce" />
-            <p className="text-[10px] md:text-xs font-mono uppercase tracking-[0.25em] text-muted-foreground">
+          <div className="flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#E4E4E8] bg-[#FFFFFF] shadow-2xs">
+            <ArrowDown className="h-3 w-3 text-[#263844] animate-bounce" />
+            <p className="text-[10px] md:text-xs font-mono uppercase tracking-[0.25em] text-[#5C6873]">
               SCROLL TO EXPLORE
             </p>
           </div>
@@ -250,7 +250,7 @@ export function HeroSection() {
           style={enableScrollMotion ? { opacity: dockOpacity, scale: dockScale } : { opacity: 0 }}
           className="absolute inset-0 hidden items-center justify-center z-30 pointer-events-none px-4 sm:px-6 md:flex"
         >
-          <div className="translate-y-[8vh] container-shell w-full max-w-4xl rounded-3xl border border-slate-200/90 bg-white/96 p-6 sm:p-8 shadow-[0_24px_72px_-12px_rgba(15,23,42,0.12)]">
+          <div className="translate-y-[8vh] container-shell w-full max-w-4xl rounded-3xl border border-[#E4E4E8] bg-[#FFFFFF]/96 p-6 sm:p-8 shadow-[0_24px_72px_-12px_rgba(38,56,68,0.12)]">
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
               {[
                 { label: "PROJECTS", zh: "项目案例", href: "/projects" },
@@ -267,14 +267,14 @@ export function HeroSection() {
                   <HoverPrefetchLink
                     href={item.href}
                     className={cn(
-                      "workspace-link block group rounded-2xl border border-slate-200/80 bg-slate-50/70 px-3 py-3 hover:border-sky-300 hover:bg-sky-50/50 transition-all",
+                      "workspace-link block group rounded-2xl border border-[#E4E4E8] bg-[#F8F8F8] px-3 py-3 hover:border-[#0F0F0F] hover:bg-[#FFFFFF] transition-all",
                       dockInteractive ? "pointer-events-auto" : "pointer-events-none"
                     )}
                   >
-                    <span className="block text-[10px] font-mono tracking-[0.16em] text-slate-400 group-hover:text-sky-600 transition-colors">
+                    <span className="block text-[10px] font-mono tracking-[0.16em] text-[#5C6873] group-hover:text-[#0F0F0F] transition-colors">
                       {item.label}
                     </span>
-                    <span className="mt-1 block text-xs font-semibold text-slate-800">
+                    <span className="mt-1 block text-xs font-semibold text-[#0F0F0F]">
                       {item.zh}
                     </span>
                   </HoverPrefetchLink>

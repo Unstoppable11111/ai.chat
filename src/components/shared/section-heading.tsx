@@ -23,8 +23,8 @@ export function SectionHeading({
       <div className="max-w-2xl">
         {eyebrow ? (
           <div className="mb-3 inline-flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-brand-cyan">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#263844]" />
+            <p className="text-xs font-mono font-medium uppercase tracking-[0.22em] text-[#263844]">
               {eyebrow}
             </p>
           </div>

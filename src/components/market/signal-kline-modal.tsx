@@ -158,24 +158,22 @@ function SignalKlineBody({
   const inspectBar = inspectIdx >= 0 ? bars[inspectIdx] : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#042328]/45 backdrop-blur-sm p-3 sm:p-5 overflow-y-auto">
-      <div className="w-full max-w-5xl rounded-2xl bg-[#FFFFFF] border border-[#D8D8E4] text-[#0F0F0F] shadow-[0_24px_72px_rgba(4,35,40,0.22)] overflow-hidden my-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E0E0E0] bg-[#042328] text-[#FFFFF2]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F0F0F]/40 backdrop-blur-sm p-3 sm:p-5 overflow-y-auto">
+      <div className="w-full max-w-5xl rounded-2xl bg-[#FFFFFF] border border-[#E4E4E8] text-[#0F0F0F] shadow-[0_24px_72px_rgba(15,15,15,0.16)] overflow-hidden my-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E4E4E8] bg-[#FFFFFF] text-[#0F0F0F]">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-base font-bold text-[#FFFFF2]">
-              {stockName} <span className="font-mono text-[#E1F209]">{stockCode}</span>
+            <span className="text-base font-bold text-[#0F0F0F]">
+              {stockName} <span className="font-mono text-[#263844]">{stockCode}</span>
             </span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#184120] text-[#E0E7D9] border border-[#33DD18]/30 font-mono">
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#F2F7F9] text-[#263844] border border-[#D8D8E4] font-mono">
               模拟账户日 K 线 &amp; 买卖点复盘 (MA5/10/20)
             </span>
             {activeTrade && (
               <span
                 className={`text-[11px] px-2.5 py-0.5 rounded-full font-mono font-bold border ${
-                  activeTrade.status === "OPEN"
-                    ? "bg-[#D71018] text-[#FFFFFF] border-[#D71018]"
-                    : activeTrade.pnl_pct >= 0
-                    ? "bg-[#D71018]/90 text-[#FFFFFF] border-[#D71018]"
-                    : "bg-[#E0E7D9] text-[#184120] border-[#184120]/30"
+                  activeTrade.status === "OPEN" || activeTrade.pnl_pct >= 0
+                    ? "bg-[#D71018]/[0.06] text-[#D71018] border-[#D71018]/25"
+                    : "bg-[#E0E7D9]/55 text-[#184120] border-[#184120]/20"
                 }`}
               >
                 {activeTrade.status === "OPEN" ? "模拟持仓中" : "已结算"} ·{" "}
@@ -187,7 +185,7 @@ function SignalKlineBody({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#E0E7D9] hover:text-[#FFFFF2] hover:bg-white/10 cursor-pointer"
+            className="p-1.5 rounded-lg text-[#5C6873] hover:text-[#0F0F0F] hover:bg-[#F8F8F8] cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -195,7 +193,7 @@ function SignalKlineBody({
 
         <div className="p-4 sm:p-5 space-y-4">
           {loading ? (
-            <div className="h-[360px] flex items-center justify-center text-xs text-[#263844]">
+            <div className="h-[360px] flex items-center justify-center text-xs text-[#5C6873]">
               正在拉取真实前复权日 K 线与买卖点标记...
             </div>
           ) : error ? (
@@ -203,28 +201,28 @@ function SignalKlineBody({
           ) : (
             <>
               {/* 顶部十字线 OHLCV 信息条 */}
-              <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-[#F8F8F4] border border-[#E0E0E0] text-[11px] font-mono text-[#282828]">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-[#F8F8F8] border border-[#E4E4E8] text-[11px] font-mono text-[#282828]">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-[#042328] font-bold">{inspectBar?.date || "--"}</span>
+                  <span className="text-[#0F0F0F] font-bold">{inspectBar?.date || "--"}</span>
                   <span>开 ¥{inspectBar?.open?.toFixed(2) ?? "--"}</span>
                   <span className={inspectBar && inspectBar.close >= inspectBar.open ? "text-[#D71018] font-bold" : "text-[#184120] font-bold"}>
                     收 ¥{inspectBar?.close?.toFixed(2) ?? "--"}
                   </span>
                   <span>高 ¥{inspectBar?.high?.toFixed(2) ?? "--"}</span>
                   <span>低 ¥{inspectBar?.low?.toFixed(2) ?? "--"}</span>
-                  <span className="text-[#263844]">
+                  <span className="text-[#5C6873]">
                     量 {inspectBar ? `${(inspectBar.volume / 10000).toFixed(1)}万手` : "--"}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-amber-700 font-semibold">MA5 {inspectBar?.ma5?.toFixed(2) ?? "--"}</span>
-                  <span className="text-[#042328] font-semibold">MA10 {inspectBar?.ma10?.toFixed(2) ?? "--"}</span>
-                  <span className="text-[#263844] font-semibold">MA20 {inspectBar?.ma20?.toFixed(2) ?? "--"}</span>
+                  <span className="text-[#263844] font-semibold">MA5 {inspectBar?.ma5?.toFixed(2) ?? "--"}</span>
+                  <span className="text-[#8A949E] font-semibold">MA10 {inspectBar?.ma10?.toFixed(2) ?? "--"}</span>
+                  <span className="text-[#0F0F0F] font-semibold">MA20 {inspectBar?.ma20?.toFixed(2) ?? "--"}</span>
                 </div>
               </div>
 
               {/* SVG K线画布 */}
-              <div className="w-full overflow-x-auto rounded-xl border border-[#D8D8E4] bg-[#F8F8F4] p-2.5">
+              <div className="w-full overflow-x-auto rounded-xl border border-[#E4E4E8] bg-[#F8F8F8] p-2.5">
                 <svg
                   viewBox={`0 0 ${width} ${height}`}
                   className="w-full min-w-[660px] h-auto select-none"
@@ -236,8 +234,8 @@ function SignalKlineBody({
                     const pVal = maxP - pSpan * t;
                     return (
                       <g key={t}>
-                        <line x1={padL} y1={y} x2={width - padR} y2={y} stroke="#E0E0E0" strokeDasharray="3 3" />
-                        <text x={padL - 6} y={y + 4} textAnchor="end" fill="#263844" fontSize="10" fontFamily="monospace">
+                        <line x1={padL} y1={y} x2={width - padR} y2={y} stroke="#E4E4E8" strokeDasharray="3 3" />
+                        <text x={padL - 6} y={y + 4} textAnchor="end" fill="#5C6873" fontSize="10" fontFamily="monospace">
                           {pVal.toFixed(2)}
                         </text>
                       </g>
@@ -337,9 +335,9 @@ function SignalKlineBody({
                   })}
 
                   {/* MA5 / MA10 / MA20 均线 */}
-                  <path d={buildMaPath("ma5")} fill="none" stroke="#d97706" strokeWidth="1.4" />
-                  <path d={buildMaPath("ma10")} fill="none" stroke="#042328" strokeWidth="1.4" />
-                  <path d={buildMaPath("ma20")} fill="none" stroke="#263844" strokeWidth="1.3" strokeDasharray="2 2" />
+                  <path d={buildMaPath("ma5")} fill="none" stroke="#263844" strokeWidth="1.35" />
+                  <path d={buildMaPath("ma10")} fill="none" stroke="#8A949E" strokeWidth="1.3" />
+                  <path d={buildMaPath("ma20")} fill="none" stroke="#0F0F0F" strokeWidth="1.3" strokeDasharray="2 2" />
 
                   {/* B 买点 与 S 卖点 标记 */}
                   {trades.map((tr) => {
@@ -392,23 +390,23 @@ function SignalKlineBody({
                                 strokeDasharray="3 3"
                               />
                             )}
-                            <line x1={sx} y1={sy} x2={sx} y2={Math.max(18, sy - 24)} stroke="#042328" strokeWidth="1.2" />
-                            <circle cx={sx} cy={sy} r="4.5" fill="#042328" stroke="#E1F209" strokeWidth="1.4" />
+                            <line x1={sx} y1={sy} x2={sx} y2={Math.max(18, sy - 24)} stroke="#0F0F0F" strokeWidth="1.2" />
+                            <circle cx={sx} cy={sy} r="4.5" fill="#0F0F0F" stroke="#FFFFFF" strokeWidth="1.4" />
                             <rect
                               x={sx - 40}
                               y={Math.max(4, sy - 38)}
                               width="80"
                               height="18"
                               rx="4"
-                              fill="#042328"
-                              stroke="#E1F209"
+                              fill="#0F0F0F"
+                              stroke="#FFFFFF"
                               strokeWidth="1"
                             />
                             <text
                               x={sx}
                               y={Math.max(16, sy - 25)}
                               textAnchor="middle"
-                              fill="#E1F209"
+                              fill="#FFFFFF"
                               fontSize="10"
                               fontWeight="bold"
                               fontFamily="monospace"
@@ -442,7 +440,7 @@ function SignalKlineBody({
                         x={xOfIdx(i)}
                         y={height - 6}
                         textAnchor="middle"
-                        fill="#263844"
+                        fill="#5C6873"
                         fontSize="10"
                         fontFamily="monospace"
                       >
@@ -456,17 +454,17 @@ function SignalKlineBody({
               <div className="space-y-2">
                 <h4 className="text-xs font-bold text-[#0F0F0F]">该标的模拟账户买卖记录（共 {trades.length} 笔）</h4>
                 {!trades.length ? (
-                  <p className="text-xs text-[#263844]/75">该标的尚无已触发的模拟买卖信号。</p>
+                  <p className="text-xs text-[#5C6873]">该标的尚无已触发的模拟买卖信号。</p>
                 ) : (
                   <div className="space-y-2">
                     {trades.map((tr) => (
                       <div
                         key={tr.id}
-                        className="rounded-xl border border-[#D8D8E4] bg-[#F8F8F4] p-3 flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs"
+                        className="rounded-xl border border-[#E4E4E8] bg-[#F8F8F8] p-3 flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs"
                       >
                         <div className="space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="px-2 py-0.5 rounded bg-[#D71018]/10 text-[#D71018] border border-[#D71018]/30 font-mono font-bold">
+                            <span className="px-2 py-0.5 rounded bg-[#D71018]/[0.06] text-[#D71018] border border-[#D71018]/20 font-mono font-bold">
                               买入 {tr.buy_signal}
                             </span>
                             <span className="font-mono text-[#0F0F0F] font-semibold">
@@ -474,8 +472,8 @@ function SignalKlineBody({
                             </span>
                             {tr.status === "CLOSED" && tr.sell_price ? (
                               <>
-                                <span className="text-[#263844]">→</span>
-                                <span className="px-2 py-0.5 rounded bg-[#042328] text-[#E1F209] border border-[#184120] font-mono font-bold">
+                                <span className="text-[#5C6873]">→</span>
+                                <span className="px-2 py-0.5 rounded bg-[#0F0F0F] text-[#FFFFFF] font-mono font-bold">
                                   {SELL_LABEL_MAP[tr.sell_signal || ""] || tr.sell_signal || "卖出"}
                                 </span>
                                 <span className="font-mono text-[#0F0F0F] font-semibold">
@@ -483,12 +481,12 @@ function SignalKlineBody({
                                 </span>
                               </>
                             ) : (
-                              <span className="px-2 py-0.5 rounded bg-[#E0E7D9] text-[#184120] border border-[#184120]/25 text-[10px] font-semibold">
+                              <span className="px-2 py-0.5 rounded bg-[#E0E7D9]/55 text-[#184120] border border-[#184120]/15 text-[10px] font-semibold">
                                 持仓监控中 · 已持有 {tr.hold_days} 个交易日
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] text-[#263844]">
+                          <div className="text-[11px] text-[#5C6873]">
                             买入触发：{tr.buy_reason}
                             {tr.sell_reason ? ` ｜ 卖出触发：${tr.sell_reason}` : ""}
                           </div>
@@ -504,7 +502,7 @@ function SignalKlineBody({
                               {tr.pnl_pct >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                               {tr.pnl_pct >= 0 ? `+${tr.pnl_pct.toFixed(2)}%` : `${tr.pnl_pct.toFixed(2)}%`}
                             </div>
-                            <div className="text-[10px] text-[#263844] flex items-center gap-2 justify-end">
+                            <div className="text-[10px] text-[#5C6873] flex items-center gap-2 justify-end">
                               <span className="inline-flex items-center gap-0.5">
                                 <ShieldAlert className="w-3 h-3 text-[#263844]" /> 止损 ¥{tr.stop_loss_price?.toFixed(2) ?? "--"}
                               </span>

@@ -56,7 +56,7 @@ export function BackToTop() {
           exit={reduceMotion ? undefined : { opacity: 0, scale: 0.7, y: 16 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           onClick={scrollToTop}
-          className={`fixed bottom-5 z-[45] flex h-12 w-12 sm:bottom-6 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-slate-200/90 bg-white/95 backdrop-blur-md text-slate-700 shadow-[0_10px_28px_-6px_rgba(15,23,42,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 active:scale-95 group cursor-pointer ${
+          className={`fixed bottom-5 z-[45] flex h-12 w-12 sm:bottom-6 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-[#E4E4E8] bg-[#FFFFFF]/95 backdrop-blur-md text-[#282828] shadow-[0_8px_24px_-6px_rgba(38,56,68,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0F0F0F] hover:text-[#0F0F0F] active:scale-95 group cursor-pointer ${
             hasChatDock ? "right-[5.5rem] sm:right-[6.5rem]" : "right-4 sm:right-6"
           }`}
           aria-label="回到顶部"
@@ -68,8 +68,8 @@ export function BackToTop() {
           >
             <defs>
               <linearGradient id="backToTopGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#0ea5e9" />
-                <stop offset="100%" stopColor="#8b5cf6" />
+                <stop offset="0%" stopColor="#0F0F0F" />
+                <stop offset="100%" stopColor="#263844" />
               </linearGradient>
             </defs>
             {/* 底环轨道 */}

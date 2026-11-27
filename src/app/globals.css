@@ -5,26 +5,26 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #F2F7F9;
-  --background-muted: #F8F8F4;
+  --background: #F8F8F8;
+  --background-muted: #F2F7F9;
   --panel: #FFFFFF;
   --panel-strong: #FFFFFF;
-  --panel-soft: rgba(255, 255, 255, 0.86);
+  --panel-soft: rgba(255, 255, 255, 0.88);
   --foreground: #0F0F0F;
-  --muted-foreground: #263844;
-  --line: #E0E0E0;
+  --muted-foreground: #5C6873;
+  --line: #E4E4E8;
   --line-strong: #D8D8E4;
-  --brand-cyan: #042328;
-  --brand-lime: #E1F209;
-  --brand-violet: #184120;
+  --brand-cyan: #263844;
+  --brand-lime: #184120;
+  --brand-violet: #0F0F0F;
   --radius-xs: 10px;
   --radius-sm: 14px;
   --radius-md: 20px;
   --radius-lg: 28px;
   --radius-pill: 999px;
-  --shadow-soft: 0 12px 30px rgba(4, 35, 40, 0.06);
-  --shadow-panel: 0 24px 64px rgba(38, 56, 68, 0.08);
-  --shadow-lift: 0 28px 80px rgba(4, 35, 40, 0.14);
+  --shadow-soft: 0 1px 2px rgba(15, 15, 15, 0.03), 0 8px 24px -8px rgba(38, 56, 68, 0.06);
+  --shadow-panel: 0 12px 40px -12px rgba(38, 56, 68, 0.08);
+  --shadow-lift: 0 18px 48px -12px rgba(15, 15, 15, 0.12);
   --container: 1280px;
 }
 
@@ -104,11 +104,10 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.35;
+  opacity: 0.14;
   background:
-    radial-gradient(ellipse at 14% 12%, rgba(224, 231, 217, 0.45), transparent 40%),
-    radial-gradient(ellipse at 86% 14%, rgba(216, 216, 228, 0.32), transparent 42%),
-    radial-gradient(ellipse at 45% 88%, rgba(4, 35, 40, 0.04), transparent 44%);
+    radial-gradient(ellipse at 16% 12%, rgba(38, 56, 68, 0.05), transparent 42%),
+    radial-gradient(ellipse at 84% 16%, rgba(216, 216, 228, 0.35), transparent 44%);
   /* 性能优化：移除全屏 fixed 层上的 filter: blur(20px)，渐变本身已足够柔和，避免整屏模糊合成开销 */
 }
 
@@ -120,14 +119,14 @@ body::after {
   z-index: 0;
   background: linear-gradient(
     to bottom,
-    rgba(242, 247, 249, 0),
-    rgba(248, 248, 244, 0.25) 48%,
-    rgba(242, 247, 249, 0)
+    rgba(248, 248, 248, 0),
+    rgba(242, 247, 249, 0.2) 48%,
+    rgba(248, 248, 248, 0)
   );
 }
 
 ::selection {
-  background: rgba(225, 242, 9, 0.42);
+  background: rgba(38, 56, 68, 0.14);
   color: #0F0F0F;
 }
 
@@ -137,10 +136,9 @@ hr,
   border: 0;
   margin: 0.75rem 0;
   background:
-    radial-gradient(ellipse at center, rgba(4, 35, 40, 0.06), transparent 58%),
-    linear-gradient(to right, transparent, #D8D8E4, transparent);
+    linear-gradient(to right, transparent, #E4E4E8, transparent);
   mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent);
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 a,
@@ -231,11 +229,11 @@ img {
 }
 
 .glass-panel {
-  background: linear-gradient(180deg, #FFFFFF, #F8F8F4);
-  border: 1px solid #D8D8E4;
+  background: #FFFFFF;
+  border: 1px solid #E4E4E8;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.98),
-    0 12px 34px -8px rgba(4, 35, 40, 0.06);
+    0 1px 2px rgba(15, 15, 15, 0.03),
+    0 8px 24px -8px rgba(38, 56, 68, 0.06);
   transform: translateZ(0);
   transition:
     border-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -245,27 +243,27 @@ img {
 }
 
 .glass-panel:hover {
-  border-color: rgba(4, 35, 40, 0.28);
+  border-color: #C8C8C8;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 18px 42px -10px rgba(4, 35, 40, 0.12);
+    0 4px 12px rgba(15, 15, 15, 0.04),
+    0 16px 36px -10px rgba(38, 56, 68, 0.1);
 }
 
 .glass-chrome {
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid #D8D8E4;
+  border: 1px solid #E4E4E8;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.98),
-    0 10px 32px -8px rgba(4, 35, 40, 0.08);
-  backdrop-filter: blur(14px);
+    0 1px 2px rgba(15, 15, 15, 0.03),
+    0 10px 30px -10px rgba(38, 56, 68, 0.08);
+  backdrop-filter: blur(16px);
 }
 
 .luminous-surface {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8F8F4 100%);
-  border: 1px solid #E0E0E0;
+  background: #FFFFFF;
+  border: 1px solid #E4E4E8;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 10px 28px -8px rgba(4, 35, 40, 0.05);
+    0 1px 2px rgba(15, 15, 15, 0.03),
+    0 8px 24px -8px rgba(38, 56, 68, 0.05);
 }
 
 .editorial-pill {
@@ -274,12 +272,12 @@ img {
   gap: 0.45rem;
   border-radius: 9999px;
   border: 1px solid #D8D8E4;
-  background: #F8F8F4;
+  background: #F2F7F9;
   padding: 0.3rem 0.78rem;
   font-size: 0.72rem;
   font-weight: 600;
   color: #263844;
-  box-shadow: 0 2px 8px -2px rgba(4, 35, 40, 0.05);
+  box-shadow: 0 1px 3px rgba(15, 15, 15, 0.03);
 }
 
 .hover-lift {
@@ -359,7 +357,7 @@ img {
 }
 
 .text-gradient {
-  background: linear-gradient(120deg, #0F0F0F 0%, #042328 48%, #184120 100%);
+  background: linear-gradient(120deg, #0F0F0F 0%, #263844 58%, #5C6873 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -379,7 +377,7 @@ img {
   margin-bottom: 1rem;
   font-size: 1.5rem;
   line-height: 1.2;
-  color: #042328;
+  color: #0F0F0F;
 }
 
 .prose-studio h3 {
@@ -408,18 +406,17 @@ img {
 .prose-studio :not(pre) > code {
   padding: 0.18rem 0.4rem;
   border-radius: 0.5rem;
-  background: #E0E7D9;
-  color: #184120;
-  border: 1px solid #C8C8C8;
+  background: #F2F7F9;
+  color: #263844;
+  border: 1px solid #E0E0E0;
 }
 
 .prose-studio pre {
   overflow-x: auto;
-  border: 1px solid #D8D8E4;
-  border-radius: 20px;
-  background:
-    linear-gradient(180deg, #FFFFFF, #F8F8F4) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 18px 48px rgba(4, 35, 40, 0.06);
+  border: 1px solid #E4E4E8;
+  border-radius: 16px;
+  background: #F8F8F8 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 24px rgba(38, 56, 68, 0.05);
   padding: 1rem;
   color: #0F0F0F;
 }
@@ -435,11 +432,10 @@ img {
 
 .prose-studio blockquote {
   margin: 1.5rem 0;
-  border-left: 3px solid #042328;
-  border-radius: 20px;
+  border-left: 2px solid #263844;
+  border-radius: 16px;
   padding: 1.1rem 1.25rem;
-  background:
-    linear-gradient(90deg, rgba(224, 231, 217, 0.55), rgba(242, 247, 249, 0.75));
+  background: #F2F7F9;
   color: #263844;
 }
 
@@ -472,8 +468,7 @@ img {
   height: 2px;
   width: 100%;
   transform-origin: 0 50%;
-  background: linear-gradient(90deg, #042328, #184120, #E1F209);
-  box-shadow: 0 0 14px rgba(4, 35, 40, 0.35);
+  background: linear-gradient(90deg, #0F0F0F, #263844);
 }
 
 .hide-scrollbar {

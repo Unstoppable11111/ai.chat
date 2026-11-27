@@ -122,16 +122,16 @@ export function SiteHeader() {
           >
             {/* 左侧 Brand Logo 与站点名称 */}
             <HoverPrefetchLink href="/" className="flex min-w-0 shrink items-center gap-2 md:gap-3 group">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8D8E4] bg-[#042328] text-[#E1F209] shadow-2xs group-hover:scale-105 group-hover:border-[#184120] transition-all sm:h-9 sm:w-9">
-                <Sparkles className="h-4 w-4 text-[#E1F209]" />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#0F0F0F] bg-[#0F0F0F] text-[#FFFFFF] shadow-2xs group-hover:scale-105 transition-all sm:h-9 sm:w-9">
+                <Sparkles className="h-4 w-4 text-[#FFFFFF]" />
               </span>
               <div className="min-w-0">
                 <p className="whitespace-nowrap text-xs font-bold tracking-[0.14em] text-[#0F0F0F] sm:text-sm sm:tracking-[0.18em]">
                   {siteConfig.title}
                 </p>
-                <p className="hidden text-[11px] text-[#263844]/80 md:flex md:items-center md:gap-1.5 truncate">
+                <p className="hidden text-[11px] text-[#5C6873] md:flex md:items-center md:gap-1.5 truncate">
                   <span>个人技术展示与项目记录</span>
-                  <span className="rounded-full bg-[#E0E7D9] border border-[#C8C8C8] px-1.5 py-0 font-mono text-[9px] font-semibold text-[#184120]">
+                  <span className="rounded-full bg-[#F8F8F8] border border-[#E0E0E0] px-1.5 py-0 font-mono text-[9px] font-semibold text-[#263844]">
                     v3.0
                   </span>
                 </p>
@@ -155,21 +155,18 @@ export function SiteHeader() {
                       className={cn(
                         "relative inline-flex shrink-0 whitespace-nowrap justify-center rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
                         active
-                          ? "text-[#FFFFF2] font-semibold"
-                          : "text-[#263844] hover:bg-[#E0E7D9]/55 hover:text-[#0F0F0F]"
+                          ? "text-[#0F0F0F] font-semibold"
+                          : "text-[#5C6873] hover:bg-[#0F0F0F]/[0.03] hover:text-[#0F0F0F]"
                       )}
                     >
                       {active && (
                         <motion.span
                           layoutId="header-nav-pill"
-                          className="absolute inset-0 rounded-full bg-[#042328] border border-[#184120] shadow-[0_6px_16px_rgba(4,35,40,0.22)]"
+                          className="absolute inset-0 rounded-full bg-[#0F0F0F]/[0.06] border border-[#0F0F0F]/[0.08]"
                           transition={{ type: "spring", stiffness: 380, damping: 30 }}
                         />
                       )}
-                      <span className="relative z-10 flex items-center gap-1.5">
-                        {active && <span className="h-1.5 w-1.5 rounded-full bg-[#E1F209]" />}
-                        {item.label}
-                      </span>
+                      <span className="relative z-10">{item.label}</span>
                     </HoverPrefetchLink>
                   );
                 })}
@@ -182,21 +179,17 @@ export function SiteHeader() {
                   className={cn(
                     "inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all cursor-pointer",
                     experimentsOpen || isExperimentActive
-                      ? "bg-[#042328] text-[#FFFFF2] border border-[#184120] font-semibold shadow-2xs"
-                      : "text-[#263844] hover:bg-[#E0E7D9]/55 hover:text-[#0F0F0F]"
+                      ? "bg-[#0F0F0F]/[0.06] text-[#0F0F0F] border border-[#E0E0E0] font-semibold"
+                      : "text-[#5C6873] hover:bg-[#0F0F0F]/[0.03] hover:text-[#0F0F0F]"
                   )}
                   aria-expanded={experimentsOpen}
                   aria-label="前沿极客实验室"
                 >
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#33DD18] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#33DD18]"></span>
-                  </span>
+                  <span className="inline-flex rounded-full h-1.5 w-1.5 bg-[#33DD18]" />
                   <span>极客工坊</span>
                   <ChevronDown
                     className={cn(
-                      "h-3 w-3 transition-transform duration-200",
-                      experimentsOpen || isExperimentActive ? "text-[#E1F209]" : "text-[#263844]",
+                      "h-3 w-3 text-[#5C6873] transition-transform duration-200",
                       experimentsOpen && "rotate-180"
                     )}
                   />
@@ -447,11 +440,11 @@ export function SiteHeader() {
                   <button
                     type="button"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#D8D8E4] bg-[#F8F8F4] p-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium text-[#0F0F0F] shadow-2xs hover:bg-[#E0E7D9]/70 hover:border-[#042328]/30 transition-all cursor-pointer"
+                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#E4E4E8] bg-[#FFFFFF] p-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium text-[#0F0F0F] shadow-2xs hover:bg-[#F8F8F8] hover:border-[#C8C8C8] transition-all cursor-pointer"
                     aria-label={`用户菜单: ${user.username}`}
                     title={user.username}
                   >
-                    <span className="flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-[#042328] text-[10px] font-bold text-[#E1F209] uppercase shadow-2xs">
+                    <span className="flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-[#0F0F0F] text-[10px] font-bold text-[#FFFFFF] uppercase shadow-2xs">
                       {user.username.slice(0, 1)}
                     </span>
                     <span className="hidden sm:inline max-w-[80px] md:max-w-[110px] truncate font-mono text-xs">
@@ -459,27 +452,27 @@ export function SiteHeader() {
                     </span>
                     <ChevronDown
                       className={cn(
-                        "hidden sm:inline h-3.5 w-3.5 text-[#263844] transition-transform duration-200",
+                        "hidden sm:inline h-3.5 w-3.5 text-[#5C6873] transition-transform duration-200",
                         userMenuOpen && "rotate-180"
                       )}
                     />
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-2xl p-2.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
+                    <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF]/95 backdrop-blur-2xl p-2.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
                       {/* 用户头部信息卡片 */}
-                      <div className="px-3 py-2.5 rounded-xl bg-gradient-to-br from-slate-50 to-cyan-50/60 border border-slate-100 mb-2">
+                      <div className="px-3 py-2.5 rounded-xl bg-[#F8F8F8] border border-[#E4E4E8] mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-xs font-bold text-white uppercase shadow-2xs">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0F0F0F] text-xs font-bold text-[#FFFFFF] uppercase shadow-2xs">
                             {user.username.slice(0, 1)}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="font-bold text-slate-900 truncate font-mono text-sm leading-tight">
+                            <p className="font-bold text-[#0F0F0F] truncate font-mono text-sm leading-tight">
                               {user.username}
                             </p>
                             <div className="flex items-center gap-1 mt-0.5">
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                              <span className="text-[10px] text-emerald-700 font-medium">全站专属资产已绑定</span>
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#33DD18]" />
+                              <span className="text-[10px] text-[#263844] font-medium">全站专属资产已绑定</span>
                             </div>
                           </div>
                         </div>
@@ -590,11 +583,11 @@ export function SiteHeader() {
                 <button
                   type="button"
                   onClick={() => openAuthModal("login")}
-                  className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#042328] bg-[#042328] h-8 w-8 sm:h-auto sm:w-auto sm:px-3.5 sm:py-1.5 text-xs sm:text-sm font-medium text-[#FFFFF2] shadow-2xs hover:bg-[#184120] transition-all cursor-pointer"
+                  className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#0F0F0F] bg-[#0F0F0F] h-8 w-8 sm:h-auto sm:w-auto sm:px-3.5 sm:py-1.5 text-xs sm:text-sm font-medium text-[#FFFFFF] shadow-2xs hover:bg-[#282828] transition-all cursor-pointer"
                   title="登录 / 注册"
                   aria-label="登录或注册"
                 >
-                  <User className="h-3.5 w-3.5 text-[#E1F209]" />
+                  <User className="h-3.5 w-3.5 text-[#FFFFFF]" />
                   <span className="hidden sm:inline">登录 / 注册</span>
                 </button>
               )}
@@ -602,14 +595,14 @@ export function SiteHeader() {
               {/* 搜索命令面板按钮：移动端纯圆形图标，桌面端展开快捷键 */}
               <button
                 type="button"
-                className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#D8D8E4] bg-[#FFFFFF] h-8 w-8 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 text-sm text-[#263844] shadow-2xs hover:text-[#0F0F0F] hover:border-[#042328]/30 hover:bg-[#F8F8F4]"
+                className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#E4E4E8] bg-[#FFFFFF] h-8 w-8 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 text-sm text-[#263844] shadow-2xs hover:text-[#0F0F0F] hover:border-[#C8C8C8] hover:bg-[#F8F8F8]"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-command-menu"))}
                 aria-label="打开搜索菜单"
                 title="搜索与快捷指令"
               >
                 <Command className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline text-xs font-medium">菜单</span>
-                <span className="hidden rounded-full border border-[#E0E0E0] bg-[#F8F8F8] px-1.5 py-0.2 text-[10px] text-[#263844] sm:inline">
+                <span className="hidden rounded-full border border-[#E0E0E0] bg-[#F8F8F8] px-1.5 py-0.2 text-[10px] text-[#5C6873] sm:inline">
                   Ctrl K
                 </span>
               </button>
@@ -835,7 +828,7 @@ export function SiteHeader() {
                       setMobileMenuOpen(false);
                       openAuthModal("login");
                     }}
-                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium text-xs shadow-sm cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] font-medium text-xs shadow-sm cursor-pointer"
                   >
                     <User className="w-3.5 h-3.5" />
                     <span>登录 / 注册账号</span>

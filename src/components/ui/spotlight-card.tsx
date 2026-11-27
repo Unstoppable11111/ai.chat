@@ -17,7 +17,7 @@ interface SpotlightCardProps extends React.HTMLAttributes<HTMLDivElement> {
 export function SpotlightCard({
   children,
   className,
-  spotlightColor = "rgba(14, 165, 233, 0.14)",
+  spotlightColor = "rgba(38, 56, 68, 0.055)",
   enableTilt,
   tiltEnabled,
   ...props
