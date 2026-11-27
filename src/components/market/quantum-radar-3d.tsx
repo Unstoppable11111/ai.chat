@@ -67,10 +67,10 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // 2. 颜色体系：霓虹青、极光翠绿、纯净星白
-    const cyanHex = 0x06b6d4; // cyan-500 赛博青
-    const emeraldHex = 0x10b981; // emerald-500 极光绿
-    const brightHex = 0x38bdf8; // sky-400 璀璨高光
+    // 2. 颜色体系：高定松墨绿、亮绿、酸黄绿、雾绿
+    const cyanHex = 0x33dd18; // 亮绿
+    const emeraldHex = 0xe1f209; // 酸黄绿
+    const brightHex = 0xe0e7d9; // 雾绿高光
 
     const group = new THREE.Group();
     scene.add(group);
@@ -134,8 +134,8 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
     const posArr = new Float32Array(particleCount * 3);
     const colorArr = new Float32Array(particleCount * 3);
 
-    const c1 = new THREE.Color(0x06b6d4);
-    const c2 = new THREE.Color(0x10b981);
+    const c1 = new THREE.Color(0x33dd18);
+    const c2 = new THREE.Color(0xe1f209);
 
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2;
@@ -249,42 +249,37 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
 
   if (!webglSupported) {
     return (
-      <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c182b]/80 via-[#08101e]/90 to-[#0e1d35]/80 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.15)] select-none">
-        {/* 2.5D 纯 CSS / SVG 赛博全息引力核（WebGL 降级安全渲染） */}
+      <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#042328] via-[#0F0F0F] to-[#184120] border border-[#184120] shadow-[0_8px_20px_rgba(4,35,40,0.22)] select-none">
+        {/* 2.5D 纯 CSS / SVG 量子引力核（WebGL 降级安全渲染） */}
         <div className="relative flex items-center justify-center w-24 h-24">
-          {/* 外层赛博青动态旋转虚线环 */}
-          <div className="absolute inset-0 rounded-full border border-dashed border-cyan-400/50 animate-[spin_12s_linear_infinite]" />
-          {/* 次级极光绿逆向旋转引力环 */}
+          <div className="absolute inset-0 rounded-full border border-dashed border-[#E1F209]/60 animate-[spin_12s_linear_infinite]" />
           <div
-            className="absolute inset-2 rounded-full border-2 border-emerald-400/60 animate-[spin_7s_linear_infinite_reverse]"
+            className="absolute inset-2 rounded-full border-2 border-[#33DD18]/65 animate-[spin_7s_linear_infinite_reverse]"
             style={{ transform: "rotateX(55deg) rotateY(25deg)" }}
           />
-          {/* 内部高亮脉冲光圈 */}
-          <div className="absolute inset-4 rounded-full border border-sky-400/40 animate-ping opacity-60" />
-          {/* 核心菱形悬浮晶格多面体 */}
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 via-sky-300 to-emerald-400 shadow-[0_0_16px_rgba(6,182,212,0.85)] animate-pulse flex items-center justify-center rotate-45">
-            <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_6px_#ffffff]" />
+          <div className="absolute inset-4 rounded-full border border-[#E0E7D9]/45 animate-ping opacity-60" />
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E1F209] via-[#33DD18] to-[#E0E7D9] shadow-[0_0_16px_rgba(225,242,9,0.7)] animate-pulse flex items-center justify-center rotate-45">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#FFFFF2] shadow-[0_0_6px_#ffffff]" />
           </div>
-          {/* 漫游极光微粒 */}
-          <div className="absolute -top-1 left-3 w-1.5 h-1.5 rounded-full bg-cyan-300 animate-ping" />
-          <div className="absolute bottom-1 right-2 w-1 h-1 rounded-full bg-emerald-300 animate-ping" style={{ animationDelay: "600ms" }} />
+          <div className="absolute -top-1 left-3 w-1.5 h-1.5 rounded-full bg-[#E1F209] animate-ping" />
+          <div className="absolute bottom-1 right-2 w-1 h-1 rounded-full bg-[#33DD18] animate-ping" style={{ animationDelay: "600ms" }} />
         </div>
 
         {/* 状态指示与标签 */}
-        <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-cyan-300 font-mono tracking-wider">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-          AURORA GRAVITY CORE · 2.5D 全息引力核
+        <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-[#E0E7D9] font-mono tracking-wider">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#33DD18] animate-ping" />
+          AURORA GRAVITY CORE · 2.5D 量子雷达
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c182b]/80 via-[#08101e]/90 to-[#0e1d35]/80 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+    <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#042328] via-[#0F0F0F] to-[#184120] border border-[#184120] shadow-[0_8px_20px_rgba(4,35,40,0.22)]">
       <div ref={containerRef} className="w-full h-full cursor-crosshair pointer-events-auto" />
-      <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-cyan-300 font-mono tracking-wider">
-        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-        AURORA GRAVITY CORE · 3D 全息极光引力核
+      <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-[#E0E7D9] font-mono tracking-wider">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#33DD18] animate-ping" />
+        AURORA GRAVITY CORE · 3D 量子雷达
       </div>
     </div>
   );

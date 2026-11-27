@@ -122,16 +122,16 @@ export function SiteHeader() {
           >
             {/* 左侧 Brand Logo 与站点名称 */}
             <HoverPrefetchLink href="/" className="flex min-w-0 shrink items-center gap-2 md:gap-3 group">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-900/8 bg-white/90 shadow-2xs group-hover:scale-105 group-hover:border-sky-300 transition-all sm:h-9 sm:w-9">
-                <Sparkles className="h-4 w-4 text-brand-cyan" />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8D8E4] bg-[#042328] text-[#E1F209] shadow-2xs group-hover:scale-105 group-hover:border-[#184120] transition-all sm:h-9 sm:w-9">
+                <Sparkles className="h-4 w-4 text-[#E1F209]" />
               </span>
               <div className="min-w-0">
-                <p className="whitespace-nowrap text-xs font-bold tracking-[0.14em] text-foreground/90 sm:text-sm sm:tracking-[0.18em]">
+                <p className="whitespace-nowrap text-xs font-bold tracking-[0.14em] text-[#0F0F0F] sm:text-sm sm:tracking-[0.18em]">
                   {siteConfig.title}
                 </p>
-                <p className="hidden text-[11px] text-muted-foreground md:flex md:items-center md:gap-1.5 truncate">
+                <p className="hidden text-[11px] text-[#263844]/80 md:flex md:items-center md:gap-1.5 truncate">
                   <span>个人技术展示与项目记录</span>
-                  <span className="rounded-full bg-sky-500/10 border border-sky-500/20 px-1.5 py-0 font-mono text-[9px] font-semibold text-sky-600">
+                  <span className="rounded-full bg-[#E0E7D9] border border-[#C8C8C8] px-1.5 py-0 font-mono text-[9px] font-semibold text-[#184120]">
                     v3.0
                   </span>
                 </p>
@@ -153,20 +153,23 @@ export function SiteHeader() {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "relative inline-flex shrink-0 whitespace-nowrap justify-center rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+                        "relative inline-flex shrink-0 whitespace-nowrap justify-center rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
                         active
-                          ? "text-foreground font-semibold"
-                          : "text-muted-foreground hover:bg-slate-900/[0.04] hover:text-foreground"
+                          ? "text-[#FFFFF2] font-semibold"
+                          : "text-[#263844] hover:bg-[#E0E7D9]/55 hover:text-[#0F0F0F]"
                       )}
                     >
                       {active && (
                         <motion.span
                           layoutId="header-nav-pill"
-                          className="absolute inset-0 rounded-full bg-slate-900/[0.08] border border-slate-900/10 shadow-2xs"
+                          className="absolute inset-0 rounded-full bg-[#042328] border border-[#184120] shadow-[0_6px_16px_rgba(4,35,40,0.22)]"
                           transition={{ type: "spring", stiffness: 380, damping: 30 }}
                         />
                       )}
-                      <span className="relative z-10">{item.label}</span>
+                      <span className="relative z-10 flex items-center gap-1.5">
+                        {active && <span className="h-1.5 w-1.5 rounded-full bg-[#E1F209]" />}
+                        {item.label}
+                      </span>
                     </HoverPrefetchLink>
                   );
                 })}
@@ -179,20 +182,21 @@ export function SiteHeader() {
                   className={cn(
                     "inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all cursor-pointer",
                     experimentsOpen || isExperimentActive
-                      ? "bg-sky-500/10 text-sky-700 border border-sky-500/30 font-semibold shadow-2xs"
-                      : "text-muted-foreground hover:bg-slate-900/[0.04] hover:text-foreground"
+                      ? "bg-[#042328] text-[#FFFFF2] border border-[#184120] font-semibold shadow-2xs"
+                      : "text-[#263844] hover:bg-[#E0E7D9]/55 hover:text-[#0F0F0F]"
                   )}
                   aria-expanded={experimentsOpen}
                   aria-label="前沿极客实验室"
                 >
                   <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#33DD18] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#33DD18]"></span>
                   </span>
                   <span>极客工坊</span>
                   <ChevronDown
                     className={cn(
-                      "h-3 w-3 text-muted-foreground transition-transform duration-200",
+                      "h-3 w-3 transition-transform duration-200",
+                      experimentsOpen || isExperimentActive ? "text-[#E1F209]" : "text-[#263844]",
                       experimentsOpen && "rotate-180"
                     )}
                   />
@@ -443,11 +447,11 @@ export function SiteHeader() {
                   <button
                     type="button"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 p-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium text-slate-800 shadow-2xs hover:bg-cyan-500/20 transition-all cursor-pointer"
+                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#D8D8E4] bg-[#F8F8F4] p-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium text-[#0F0F0F] shadow-2xs hover:bg-[#E0E7D9]/70 hover:border-[#042328]/30 transition-all cursor-pointer"
                     aria-label={`用户菜单: ${user.username}`}
                     title={user.username}
                   >
-                    <span className="flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-[10px] font-bold text-white uppercase shadow-2xs">
+                    <span className="flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-[#042328] text-[10px] font-bold text-[#E1F209] uppercase shadow-2xs">
                       {user.username.slice(0, 1)}
                     </span>
                     <span className="hidden sm:inline max-w-[80px] md:max-w-[110px] truncate font-mono text-xs">
@@ -455,7 +459,7 @@ export function SiteHeader() {
                     </span>
                     <ChevronDown
                       className={cn(
-                        "hidden sm:inline h-3.5 w-3.5 text-slate-500 transition-transform duration-200",
+                        "hidden sm:inline h-3.5 w-3.5 text-[#263844] transition-transform duration-200",
                         userMenuOpen && "rotate-180"
                       )}
                     />
@@ -586,11 +590,11 @@ export function SiteHeader() {
                 <button
                   type="button"
                   onClick={() => openAuthModal("login")}
-                  className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-slate-900/8 bg-white/70 h-8 w-8 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium text-slate-700 shadow-2xs hover:border-cyan-500/40 hover:text-cyan-700 transition-all cursor-pointer"
+                  className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#042328] bg-[#042328] h-8 w-8 sm:h-auto sm:w-auto sm:px-3.5 sm:py-1.5 text-xs sm:text-sm font-medium text-[#FFFFF2] shadow-2xs hover:bg-[#184120] transition-all cursor-pointer"
                   title="登录 / 注册"
                   aria-label="登录或注册"
                 >
-                  <User className="h-3.5 w-3.5 text-slate-500" />
+                  <User className="h-3.5 w-3.5 text-[#E1F209]" />
                   <span className="hidden sm:inline">登录 / 注册</span>
                 </button>
               )}
@@ -598,14 +602,14 @@ export function SiteHeader() {
               {/* 搜索命令面板按钮：移动端纯圆形图标，桌面端展开快捷键 */}
               <button
                 type="button"
-                className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-slate-900/8 bg-white/70 h-8 w-8 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 text-sm text-muted-foreground shadow-2xs hover:text-foreground hover:bg-white"
+                className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#D8D8E4] bg-[#FFFFFF] h-8 w-8 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 text-sm text-[#263844] shadow-2xs hover:text-[#0F0F0F] hover:border-[#042328]/30 hover:bg-[#F8F8F4]"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-command-menu"))}
                 aria-label="打开搜索菜单"
                 title="搜索与快捷指令"
               >
                 <Command className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline text-xs font-medium">菜单</span>
-                <span className="hidden rounded-full border border-slate-900/8 px-1.5 py-0.2 text-[10px] text-foreground/70 sm:inline">
+                <span className="hidden rounded-full border border-[#E0E0E0] bg-[#F8F8F8] px-1.5 py-0.2 text-[10px] text-[#263844] sm:inline">
                   Ctrl K
                 </span>
               </button>

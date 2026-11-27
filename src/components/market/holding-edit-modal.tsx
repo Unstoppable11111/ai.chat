@@ -165,11 +165,11 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="w-full max-w-2xl rounded-2xl bg-slate-900 border border-slate-700 text-slate-100 shadow-2xl overflow-hidden my-6">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-950/60">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#042328]/45 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="w-full max-w-2xl rounded-2xl bg-[#FFFFFF] border border-[#D8D8E4] text-[#0F0F0F] shadow-[0_24px_70px_rgba(4,35,40,0.22)] overflow-hidden my-6">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E0E0E0] bg-[#042328] text-[#FFFFF2]">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-cyan-400" />
+            <ShieldCheck className="w-5 h-5 text-[#E1F209]" />
             <h3 className="text-base font-bold">
               {isEdit ? `编辑持仓纪律 · ${name} (${code})` : "录入实盘持仓与波段纪律"}
             </h3>
@@ -177,7 +177,7 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+            className="p-1.5 rounded-lg text-[#E0E7D9] hover:text-[#FFFFF2] hover:bg-white/10 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -186,9 +186,9 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
         <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs">
           {!isEdit && (
             <div className="relative">
-              <label className="block text-slate-400 mb-1">智能搜股联想（输入代码/拼音/名称）</label>
+              <label className="block text-[#263844] font-medium mb-1">智能搜股联想（输入代码/拼音/名称）</label>
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                <Search className="w-3.5 h-3.5 text-[#263844]/60 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -199,14 +199,14 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                     if (!nextVal.trim()) setSearchResults([]);
                   }}
                   placeholder="例如：002436 / 兴森科技 / XSKJ"
-                  className="w-full pl-8 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:border-cyan-500 outline-none"
+                  className="w-full pl-8 pr-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] placeholder:text-[#263844]/50 focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
                 />
                 {isSearching && (
-                  <span className="absolute right-3 top-2 text-[11px] text-cyan-400">搜索中...</span>
+                  <span className="absolute right-3 top-2 text-[11px] text-[#042328] font-medium">搜索中...</span>
                 )}
               </div>
               {searchResults.length > 0 ? (
-                <div className="mt-1 rounded-lg border border-slate-700 bg-slate-950 max-h-44 overflow-y-auto divide-y divide-slate-800">
+                <div className="mt-1 rounded-lg border border-[#D8D8E4] bg-[#FFFFFF] max-h-44 overflow-y-auto divide-y divide-[#E4E4E8] shadow-md">
                   {searchResults.map((item) => (
                     <button
                       key={item.code}
@@ -221,20 +221,20 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                         setSearchSearchedOnce(false);
                         setSearchQuery("");
                       }}
-                      className="w-full px-3 py-2 flex items-center justify-between hover:bg-slate-800 text-left cursor-pointer"
+                      className="w-full px-3 py-2 flex items-center justify-between hover:bg-[#F2F7F9] text-left cursor-pointer"
                     >
                       <span>
-                        <strong className="text-white">{item.name}</strong>
-                        <span className="ml-2 font-mono text-slate-400">{item.code}</span>
+                        <strong className="text-[#0F0F0F]">{item.name}</strong>
+                        <span className="ml-2 font-mono text-[#263844]">{item.code}</span>
                       </span>
                       {item.current_price ? (
-                        <span className="font-mono text-cyan-300">¥{item.current_price.toFixed(2)}</span>
+                        <span className="font-mono font-semibold text-[#042328]">¥{item.current_price.toFixed(2)}</span>
                       ) : null}
                     </button>
                   ))}
                 </div>
               ) : searchQuery.trim() && !isSearching && searchSearchedOnce ? (
-                <div className="mt-1 rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-400">
+                <div className="mt-1 rounded-lg border border-[#E0E0E0] bg-[#F8F8F4] px-3 py-2 text-[11px] text-[#263844]">
                   未匹配到相关 A 股标的，可直接下方填写 6 位股票代码与名称
                 </div>
               ) : null}
@@ -243,7 +243,7 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-slate-400 mb-1">股票代码 *</label>
+              <label className="block text-[#263844] mb-1">股票代码 *</label>
               <input
                 type="text"
                 required
@@ -251,22 +251,22 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="6位代码"
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono disabled:opacity-60"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] font-mono focus:bg-[#FFFFFF] focus:border-[#042328] outline-none disabled:opacity-60"
               />
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">股票名称 *</label>
+              <label className="block text-[#263844] mb-1">股票名称 *</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="如 兴森科技"
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
               />
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">成本价 (元) *</label>
+              <label className="block text-[#263844] mb-1">成本价 (元) *</label>
               <input
                 type="number"
                 step="0.001"
@@ -274,11 +274,11 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                 value={costPrice}
                 onChange={(e) => setCostPrice(e.target.value)}
                 placeholder="37.49"
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] font-mono focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
               />
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">持有股数 *</label>
+              <label className="block text-[#263844] mb-1">持有股数 *</label>
               <input
                 type="number"
                 step="100"
@@ -288,38 +288,38 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                   setQuantity(e.target.value);
                   if (!isEdit) setAvailableQuantity(e.target.value);
                 }}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] font-mono focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-slate-400 mb-1">可卖股数 (T+1)</label>
+              <label className="block text-[#263844] mb-1">可卖股数 (T+1)</label>
               <input
                 type="number"
                 step="100"
                 value={availableQuantity}
                 onChange={(e) => setAvailableQuantity(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] font-mono focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
               />
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">所属主板块</label>
+              <label className="block text-[#263844] mb-1">所属主板块</label>
               <input
                 type="text"
                 value={sector}
                 onChange={(e) => setSector(e.target.value)}
                 placeholder="如 元件 / 半导体"
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
               />
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">仓位角色</label>
+              <label className="block text-[#263844] mb-1">仓位角色</label>
               <select
                 value={holdType}
                 onChange={(e) => setHoldType(e.target.value as "core" | "trend" | "attack" | "trial")}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
               >
                 <option value="core">底仓核心 (Core)</option>
                 <option value="trend">波段趋势 (Trend)</option>
@@ -330,17 +330,17 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
           </div>
 
           {/* 持仓风控模式切换 */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 space-y-3">
+          <div className="rounded-xl border border-[#D8D8E4] bg-[#F2F7F9]/75 p-3.5 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="font-semibold text-slate-200">波段风控模式</span>
+              <span className="font-bold text-[#0F0F0F]">波段风控模式</span>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => handleModeSwitch("swing_normal")}
                   className={`px-3 py-1 rounded-lg border text-xs cursor-pointer transition ${
                     positionMode === "swing_normal"
-                      ? "bg-cyan-600/30 border-cyan-500 text-cyan-200 font-bold"
-                      : "bg-slate-900 border-slate-700 text-slate-400"
+                      ? "bg-[#042328] border-[#184120] text-[#E1F209] font-bold"
+                      : "bg-[#FFFFFF] border-[#D8D8E4] text-[#263844]"
                   }`}
                 >
                   标准波段模式
@@ -350,8 +350,8 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                   onClick={() => handleModeSwitch("deep_drawdown_recovery")}
                   className={`px-3 py-1 rounded-lg border text-xs cursor-pointer transition ${
                     positionMode === "deep_drawdown_recovery"
-                      ? "bg-amber-600/30 border-amber-500 text-amber-200 font-bold"
-                      : "bg-slate-900 border-slate-700 text-slate-400"
+                      ? "bg-[#042328] border-[#184120] text-[#E1F209] font-bold"
+                      : "bg-[#FFFFFF] border-[#D8D8E4] text-[#263844]"
                   }`}
                 >
                   深套修复模式
@@ -362,24 +362,24 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
             {positionMode === "deep_drawdown_recovery" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-amber-300 mb-1">前低关键防守价 (跌破触发风控预警)</label>
+                  <label className="block text-[#D71018] font-medium mb-1">前低关键防守价 (跌破触发风控预警)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={supportDefensePrice}
                     onChange={(e) => setSupportDefensePrice(e.target.value)}
                     placeholder="如 23.30"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-amber-500/40 text-white font-mono"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FFFFFF] border border-[#D71018]/35 text-[#0F0F0F] font-mono outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-amber-300 mb-1">右侧修复观察位 (逗号分隔)</label>
+                  <label className="block text-[#184120] font-medium mb-1">右侧修复观察位 (逗号分隔)</label>
                   <input
                     type="text"
                     value={reboundWatchPrices}
                     onChange={(e) => setReboundWatchPrices(e.target.value)}
                     placeholder="如 27.50, 34.45"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-amber-500/40 text-white font-mono"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FFFFFF] border border-[#184120]/35 text-[#0F0F0F] font-mono outline-none"
                   />
                 </div>
               </div>
@@ -387,99 +387,99 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
               <div>
-                <label className="block text-slate-400 mb-1">一档止盈 (%)</label>
+                <label className="block text-[#263844] mb-1">一档止盈 (%)</label>
                 <input
                   type="number"
                   step="0.5"
                   value={tp1}
                   onChange={(e) => setTp1(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg bg-[#FFFFFF] border border-[#D8D8E4] text-[#0F0F0F] font-mono"
                 />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">二档止盈 (%)</label>
+                <label className="block text-[#263844] mb-1">二档止盈 (%)</label>
                 <input
                   type="number"
                   step="0.5"
                   value={tp2}
                   onChange={(e) => setTp2(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg bg-[#FFFFFF] border border-[#D8D8E4] text-[#0F0F0F] font-mono"
                 />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">高点回撤锁利 (%)</label>
+                <label className="block text-[#263844] mb-1">高点回撤锁利 (%)</label>
                 <input
                   type="number"
                   step="0.5"
                   value={trailPb}
                   onChange={(e) => setTrailPb(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg bg-[#FFFFFF] border border-[#D8D8E4] text-[#0F0F0F] font-mono"
                 />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">硬止损线 (%)</label>
+                <label className="block text-[#263844] mb-1">硬止损线 (%)</label>
                 <input
                   type="number"
                   step="0.5"
                   value={slPct}
                   onChange={(e) => setSlPct(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg bg-[#FFFFFF] border border-[#D8D8E4] text-[#0F0F0F] font-mono"
                 />
               </div>
             </div>
 
-            <label className="inline-flex items-center gap-2 text-slate-300 cursor-pointer pt-1">
+            <label className="inline-flex items-center gap-2 text-[#282828] cursor-pointer pt-1">
               <input
                 type="checkbox"
                 checked={suppressSl}
                 onChange={(e) => setSuppressSl(e.target.checked)}
-                className="rounded border-slate-600"
+                className="rounded border-[#C8C8C8] accent-[#042328]"
               />
               <span>深套期间屏蔽固定 -8% 成本止损刷屏（改为监控前低防守位）</span>
             </label>
           </div>
 
           <div>
-            <label className="block text-slate-400 mb-1">核心买入逻辑 / 修复观察重点</label>
+            <label className="block text-[#263844] mb-1">核心买入逻辑 / 修复观察重点</label>
             <textarea
               rows={2}
               value={thesis}
               onChange={(e) => setThesis(e.target.value)}
               placeholder="例如：PCB与IC载板国产替代标的；重点跟踪23.30前低防守与27.50(MA20)放量站稳..."
-              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white"
+              className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-slate-400 mb-1">补充备注</label>
+            <label className="block text-[#263844] mb-1">补充备注</label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="可选：券商账户或特殊记录"
-              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white"
+              className="w-full px-3 py-2 rounded-lg bg-[#F8F8F4] border border-[#D8D8E4] text-[#0F0F0F] focus:bg-[#FFFFFF] focus:border-[#042328] outline-none"
             />
           </div>
 
           {errorMsg && (
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-300">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#D71018]/10 border border-[#D71018]/30 text-[#D71018]">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#E0E0E0]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 cursor-pointer"
+              className="px-4 py-2 rounded-lg border border-[#D8D8E4] text-[#263844] hover:bg-[#F8F8F4] cursor-pointer"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold cursor-pointer disabled:opacity-50"
+              className="px-5 py-2 rounded-lg bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] font-bold cursor-pointer disabled:opacity-50"
             >
               {submitting ? "保存中..." : isEdit ? "保存修改" : "确认录入"}
             </button>

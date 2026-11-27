@@ -136,77 +136,77 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
   const trafficStyle =
     trafficLight.light === "RED"
       ? {
-          wrap: "bg-rose-950/60 border-rose-500/40 text-rose-200",
-          dot: "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.9)]",
-          badge: "bg-rose-500/20 text-rose-300 border-rose-500/40",
+          wrap: "bg-[#D71018]/6 border-[#D71018]/30 text-[#0F0F0F]",
+          dot: "bg-[#D71018] shadow-[0_0_10px_rgba(215,16,24,0.45)]",
+          badge: "bg-[#D71018] text-[#FFFFFF] border-[#D71018]",
         }
       : trafficLight.light === "YELLOW"
       ? {
-          wrap: "bg-amber-950/50 border-amber-500/40 text-amber-100",
-          dot: "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.85)]",
-          badge: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+          wrap: "bg-[#FFFFF2] border-[#C8C8C8] text-[#0F0F0F]",
+          dot: "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.45)]",
+          badge: "bg-[#042328] text-[#E1F209] border-[#184120]",
         }
       : {
-          wrap: "bg-emerald-950/50 border-emerald-500/40 text-emerald-100",
-          dot: "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.85)]",
-          badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+          wrap: "bg-[#E0E7D9]/70 border-[#184120]/30 text-[#0F0F0F]",
+          dot: "bg-[#33DD18] shadow-[0_0_10px_rgba(51,221,24,0.5)]",
+          badge: "bg-[#184120] text-[#E1F209] border-[#184120]",
         };
 
   const aiSummary = metrics?.ai_summary;
 
   return (
-    <div className="rounded-3xl bg-[#0c1626]/90 border border-cyan-500/30 p-5 shadow-2xl backdrop-blur-xl space-y-4">
+    <div className="rounded-3xl bg-[#FFFFFF] border border-[#D8D8E4] p-5 shadow-[0_10px_32px_rgba(4,35,40,0.05)] space-y-4">
       {/* 市场情绪红绿灯买点总闸门 */}
       <div className={`rounded-2xl border px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2 ${trafficStyle.wrap}`}>
         <div className="flex items-center gap-3">
           <span className={`w-3.5 h-3.5 rounded-full shrink-0 ${trafficStyle.dot}`} />
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-extrabold tracking-wide">市场情绪红绿灯总闸门：{trafficLight.label}</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-mono ${trafficStyle.badge}`}>
+              <span className="text-xs font-extrabold tracking-wide text-[#0F0F0F]">市场情绪红绿灯总闸门：{trafficLight.label}</span>
+              <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-mono font-semibold ${trafficStyle.badge}`}>
                 买点A(回踩低吸): {trafficLight.allow_pullback_buy ? "放行" : "屏蔽"} · 买点B(放量突破): {trafficLight.allow_breakout_buy ? "放行" : "屏蔽"}
               </span>
             </div>
-            <p className="text-[11px] opacity-90 mt-0.5">{trafficLight.summary}</p>
+            <p className="text-[11px] text-[#282828] mt-0.5">{trafficLight.summary}</p>
           </div>
         </div>
-        <div className="text-[11px] font-mono opacity-80 shrink-0">
+        <div className="text-[11px] font-mono text-[#263844] shrink-0">
           阈值：&lt;30红灯 · 30~55黄灯 · ≥55绿灯
         </div>
       </div>
 
       {/* 头部标题与即时状态栏 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-900/40 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E0E0E0] pb-3">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30">
+          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#D71018]/10 text-[#D71018] border border-[#D71018]/25">
             <Flame className="w-4 h-4 animate-pulse" />
           </span>
           <div>
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <h2 className="text-sm font-bold text-[#0F0F0F] flex items-center gap-2">
               全市场短线量化盘口与情绪大屏
-              <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono">
                 实时短线盘口 · 独家特色量化雷达
               </span>
             </h2>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-[#263844]">
               整合全市场实时涨跌停、炸板率、多周期量能比(T-1/MA5/MA10)及 4 大特色量化雷达指标 (100% 动态实时计算)
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <div className="text-[11px] font-mono text-[#263844] flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#33DD18] animate-ping" />
             <span>数据源: 极速双通道 (新浪/腾讯实时日K)</span>
-            {lastUpdate && <span className="text-cyan-400">({lastUpdate})</span>}
+            {lastUpdate && <span className="text-[#042328] font-semibold">({lastUpdate})</span>}
           </div>
           <button
             onClick={handleManualRefresh}
             disabled={loading}
-            className="px-2.5 py-1 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 text-xs border border-cyan-700/40 transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+            className="px-2.5 py-1 rounded-xl bg-[#F8F8F4] hover:bg-[#E0E7D9]/70 text-[#042328] text-xs font-medium border border-[#D8D8E4] transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
             title="手动刷新实时盘口指标"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-cyan-400" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#042328]" : ""}`} />
             <span>刷新</span>
           </button>
         </div>
@@ -215,111 +215,111 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
       {/* 第一行：短线必看 4 大基础盘口要素 (连板梯队 / 涨跌停 / 封板率与赚钱效应 / 昨日同期与5日10日量比) */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         {/* 指标 1: 实时涨停与连板梯队 */}
-        <div className="p-3.5 rounded-2xl bg-[#091322]/85 border border-cyan-900/40 hover:border-rose-500/50 transition-all flex flex-col justify-between shadow-md">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] hover:border-[#D71018]/45 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-300 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
+            <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#D71018]" />
               涨停与连板梯队
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D71018]/10 text-[#D71018] border border-[#D71018]/25 font-mono font-bold">
               最高 {metrics?.highest_limit_height ?? 0} 板
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <div className="text-3xl font-black text-rose-400 font-mono tracking-tight">
+            <div className="text-3xl font-black text-[#D71018] font-mono tracking-tight">
               {hasLive ? limitUp : "--"}
-              <span className="text-xs font-normal text-slate-400 ml-1">家涨停</span>
+              <span className="text-xs font-normal text-[#263844] ml-1">家涨停</span>
             </div>
             {upRatioPct !== null && (
-              <span className="text-[11px] font-mono text-slate-300">
-                全市场涨家占比 <strong className={upRatioPct >= 50 ? "text-rose-400" : "text-emerald-400"}>{upRatioPct}%</strong>
+              <span className="text-[11px] font-mono text-[#263844]">
+                涨家占比 <strong className={upRatioPct >= 50 ? "text-[#D71018]" : "text-[#184120]"}>{upRatioPct}%</strong>
               </span>
             )}
           </div>
           {tiers && (
             <div className="mt-2 grid grid-cols-4 gap-1 text-[10px] font-mono text-center">
-              <div className="rounded bg-[#050c18] py-1 border border-slate-800/80">
-                <div className="text-slate-400 text-[9px]">首板</div>
-                <div className="text-rose-300 font-bold">{tiers.first_board}</div>
+              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E0E0E0]">
+                <div className="text-[#263844]/70 text-[9px]">首板</div>
+                <div className="text-[#D71018] font-bold">{tiers.first_board}</div>
               </div>
-              <div className="rounded bg-[#050c18] py-1 border border-slate-800/80">
-                <div className="text-slate-400 text-[9px]">2板</div>
-                <div className="text-rose-300 font-bold">{tiers.second_board}</div>
+              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E0E0E0]">
+                <div className="text-[#263844]/70 text-[9px]">2板</div>
+                <div className="text-[#D71018] font-bold">{tiers.second_board}</div>
               </div>
-              <div className="rounded bg-[#050c18] py-1 border border-slate-800/80">
-                <div className="text-slate-400 text-[9px]">3板</div>
-                <div className="text-amber-300 font-bold">{tiers.third_board}</div>
+              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E0E0E0]">
+                <div className="text-[#263844]/70 text-[9px]">3板</div>
+                <div className="text-[#042328] font-bold">{tiers.third_board}</div>
               </div>
-              <div className="rounded bg-[#050c18] py-1 border border-slate-800/80">
-                <div className="text-slate-400 text-[9px]">4板+</div>
-                <div className="text-amber-400 font-bold">{tiers.high_board}</div>
+              <div className="rounded bg-[#FFFFFF] py-1 border border-[#E0E0E0]">
+                <div className="text-[#263844]/70 text-[9px]">4板+</div>
+                <div className="text-[#042328] font-bold">{tiers.high_board}</div>
               </div>
             </div>
           )}
-          <div className="mt-2 pt-2 border-t border-cyan-950/80 text-[10.5px] text-slate-400 truncate">
-            <span className="text-rose-400 font-semibold">前排标杆: </span>
+          <div className="mt-2 pt-2 border-t border-[#E4E4E8] text-[10.5px] text-[#282828] truncate">
+            <span className="text-[#D71018] font-semibold">前排标杆: </span>
             {leaders.length > 0 ? leaders.join(" · ") : "暂无连板高标"}
           </div>
         </div>
 
         {/* 指标 2: 空头跌停与深跌亏钱效应 */}
-        <div className="p-3.5 rounded-2xl bg-[#091322]/85 border border-cyan-900/40 hover:border-emerald-500/50 transition-all flex flex-col justify-between shadow-md">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] hover:border-[#184120]/45 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-300 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#184120]" />
               跌停与亏钱效应
             </span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
                 limitDown > 15
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                  : "bg-slate-800 text-slate-400 border border-slate-700"
+                  ? "bg-[#184120] text-[#E1F209] border border-[#184120]"
+                  : "bg-[#E0E7D9] text-[#184120] border border-[#184120]/20"
               }`}
             >
               {limitDown > 15 ? "空头杀跌" : "跌停受控"}
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <div className="text-3xl font-black text-emerald-400 font-mono tracking-tight">
+            <div className="text-3xl font-black text-[#184120] font-mono tracking-tight">
               {hasLive ? limitDown : "--"}
-              <span className="text-xs font-normal text-slate-400 ml-1">家跌停</span>
+              <span className="text-xs font-normal text-[#263844] ml-1">家跌停</span>
             </div>
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className="text-[11px] text-[#263844] font-mono">
               深跌(&lt;-5%) {metrics?.deep_drop_count ?? 0} 家
             </span>
           </div>
           {metrics?.up_count !== undefined && metrics?.down_count !== undefined && (
             <div className="mt-2 space-y-1">
               <div className="flex justify-between text-[10px] font-mono">
-                <span className="text-rose-400">涨 {metrics.up_count}</span>
-                <span className="text-emerald-400">跌 {metrics.down_count}</span>
+                <span className="text-[#D71018] font-bold">涨 {metrics.up_count}</span>
+                <span className="text-[#184120] font-bold">跌 {metrics.down_count}</span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-emerald-500/40 overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-[#E0E7D9] overflow-hidden">
                 <div
-                  className="h-full bg-rose-500 transition-all duration-500"
+                  className="h-full bg-[#D71018] transition-all duration-500"
                   style={{ width: `${upRatioPct ?? 50}%` }}
                 />
               </div>
             </div>
           )}
-          <div className="mt-2 pt-2 border-t border-cyan-950/80 text-[10.5px] text-slate-400 truncate">
-            <span className="text-emerald-400 font-semibold">风控研判: </span>
+          <div className="mt-2 pt-2 border-t border-[#E4E4E8] text-[10.5px] text-[#282828] truncate">
+            <span className="text-[#184120] font-semibold">风控研判: </span>
             {limitDown <= 15 ? "跌停较温和，严防高位跟风退潮" : "跌停快速扩容，严禁接力防核按钮"}
           </div>
         </div>
 
         {/* 指标 3: 实时封板率与炸板率 */}
-        <div className="p-3.5 rounded-2xl bg-[#091322]/85 border border-cyan-900/40 hover:border-amber-500/50 transition-all flex flex-col justify-between shadow-md">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] hover:border-[#042328]/45 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-300 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-[#042328]" />
               封板率与炸板率
             </span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
                 brokenRatio <= 22
-                  ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                  : "bg-amber-500/20 text-amber-400 border border-amber-500/40"
+                  ? "bg-[#D71018]/10 text-[#D71018] border border-[#D71018]/25"
+                  : "bg-[#042328] text-[#E1F209] border border-[#184120]"
               }`}
             >
               {brokenRatio <= 22 ? "封板坚挺" : "分歧炸板"}
@@ -328,40 +328,40 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           <div className="mt-2 flex items-baseline justify-between">
             <div
               className={`text-3xl font-black font-mono tracking-tight ${
-                sealRate >= 75 ? "text-rose-400" : "text-amber-400"
+                sealRate >= 75 ? "text-[#D71018]" : "text-[#042328]"
               }`}
             >
               {hasLive ? `${sealRate}%` : "--"}
-              <span className="text-xs font-normal text-slate-400 ml-1">封板</span>
+              <span className="text-xs font-normal text-[#263844] ml-1">封板</span>
             </div>
-            <span className="text-[11px] text-amber-300 font-mono">
+            <span className="text-[11px] text-[#263844] font-mono">
               炸板 {brokenRatio}% ({brokenCount}/{limitUp + brokenCount})
             </span>
           </div>
-          <div className="mt-2 w-full bg-[#050c18] rounded-full h-1.5 overflow-hidden">
+          <div className="mt-2 w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-rose-500 to-amber-400 h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#D71018] to-[#042328] h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, sealRate)}%` }}
             />
           </div>
-          <div className="mt-2 pt-2 border-t border-cyan-950/80 text-[10.5px] text-slate-400 truncate">
-            <span className="text-cyan-400 font-semibold">接力容错: </span>
+          <div className="mt-2 pt-2 border-t border-[#E4E4E8] text-[10.5px] text-[#282828] truncate">
+            <span className="text-[#042328] font-semibold">接力容错: </span>
             {brokenRatio <= 22 ? "触板封死率高，接力情绪偏良性" : "炸板增多，谨防冲高派发，优先低吸"}
           </div>
         </div>
 
         {/* 指标 4: 昨日同期 HH:MM + 5日/10日量比 + 近10日量能柱状图 */}
-        <div className="p-3.5 rounded-2xl bg-[#091322]/85 border border-cyan-900/40 hover:border-cyan-500/50 transition-all flex flex-col justify-between shadow-md">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] hover:border-[#042328]/45 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-300 flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-[#042328]" />
               {hasSameTime ? `昨日同期 (${multiVol?.as_of_time})` : "多周期量能比"}
             </span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full border font-mono font-bold ${
                 (hasSameTime ? sameTimeDiffPct : volumeDiffPct) >= 0
-                  ? "bg-rose-500/15 text-rose-300 border-rose-500/30"
-                  : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                  ? "bg-[#D71018]/10 text-[#D71018] border-[#D71018]/25"
+                  : "bg-[#E0E7D9] text-[#184120] border-[#184120]/25"
               }`}
             >
               {(hasSameTime ? sameTimeDiffPct : volumeDiffPct) >= 0 ? "放量博弈" : "缩量整固"}
@@ -369,32 +369,30 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           </div>
 
           <div className="mt-1.5 flex items-baseline justify-between gap-2">
-            <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black text-[#0F0F0F] font-mono tracking-tight">
               {hasSameTime ? (
-                <>
-                  <span className={sameTimeDiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}>
-                    {sameTimeDiffPct >= 0 ? `+${sameTimeDiffPct}%` : `${sameTimeDiffPct}%`}
-                  </span>
-                </>
+                <span className={sameTimeDiffPct >= 0 ? "text-[#D71018]" : "text-[#184120]"}>
+                  {sameTimeDiffPct >= 0 ? `+${sameTimeDiffPct}%` : `${sameTimeDiffPct}%`}
+                </span>
               ) : (
                 <>
                   {volumeRatio}
-                  <span className="text-xs font-normal text-slate-400 ml-1">x (MA5)</span>
+                  <span className="text-xs font-normal text-[#263844] ml-1">x (MA5)</span>
                 </>
               )}
             </div>
             <div className="text-right font-mono text-[10.5px] leading-tight">
               {hasSameTime ? (
                 <>
-                  <div className={sameTimeDiffYi >= 0 ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>
+                  <div className={sameTimeDiffYi >= 0 ? "text-[#D71018] font-bold" : "text-[#184120] font-bold"}>
                     {sameTimeDiffYi >= 0 ? `+${sameTimeDiffYi}` : sameTimeDiffYi}亿 较昨同期
                   </div>
-                  <div className="text-slate-400">
-                    预计全天 <span className="text-cyan-300 font-semibold">{multiVol?.projected_full_yi}亿</span>
+                  <div className="text-[#263844]">
+                    预计全天 <span className="text-[#042328] font-bold">{multiVol?.projected_full_yi}亿</span>
                   </div>
                 </>
               ) : (
-                <span className={volumeDiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}>
+                <span className={volumeDiffPct >= 0 ? "text-[#D71018] font-bold" : "text-[#184120] font-bold"}>
                   {volumeDiffPct >= 0 ? `+${volumeDiffPct}%` : `${volumeDiffPct}%`}
                 </span>
               )}
@@ -402,22 +400,22 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           </div>
 
           {/* 昨日(T-1) / 5日(MA5) / 10日(MA10) 同口径量比胶囊 */}
-          <div className="mt-2 pt-2 border-t border-cyan-950/80 grid grid-cols-3 gap-1 text-[9.5px] font-mono">
-            <div className="bg-[#050c18] rounded px-1 py-0.5 border border-cyan-900/30 flex flex-col items-center">
-              <span className="text-slate-400 text-[9px]">较昨全天</span>
-              <span className={`font-bold ${t1DiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+          <div className="mt-2 pt-2 border-t border-[#E4E4E8] grid grid-cols-3 gap-1 text-[9.5px] font-mono">
+            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E0E0E0] flex flex-col items-center">
+              <span className="text-[#263844]/70 text-[9px]">较昨全天</span>
+              <span className={`font-bold ${t1DiffPct >= 0 ? "text-[#D71018]" : "text-[#184120]"}`}>
                 {t1Ratio}x ({t1DiffPct >= 0 ? `+${t1DiffPct}%` : `${t1DiffPct}%`})
               </span>
             </div>
-            <div className="bg-[#050c18] rounded px-1 py-0.5 border border-cyan-900/30 flex flex-col items-center">
-              <span className="text-slate-400 text-[9px]">5日量比</span>
-              <span className={`font-bold ${volumeDiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E0E0E0] flex flex-col items-center">
+              <span className="text-[#263844]/70 text-[9px]">5日量比</span>
+              <span className={`font-bold ${volumeDiffPct >= 0 ? "text-[#D71018]" : "text-[#184120]"}`}>
                 {volumeRatio}x ({volumeDiffPct >= 0 ? `+${volumeDiffPct}%` : `${volumeDiffPct}%`})
               </span>
             </div>
-            <div className="bg-[#050c18] rounded px-1 py-0.5 border border-cyan-900/30 flex flex-col items-center">
-              <span className="text-slate-400 text-[9px]">10日量比</span>
-              <span className={`font-bold ${ma10DiffPct >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+            <div className="bg-[#FFFFFF] rounded px-1 py-0.5 border border-[#E0E0E0] flex flex-col items-center">
+              <span className="text-[#263844]/70 text-[9px]">10日量比</span>
+              <span className={`font-bold ${ma10DiffPct >= 0 ? "text-[#D71018]" : "text-[#184120]"}`}>
                 {ma10Ratio}x ({ma10DiffPct >= 0 ? `+${ma10DiffPct}%` : `${ma10DiffPct}%`})
               </span>
             </div>
@@ -433,7 +431,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
                     key={pt.date}
                     title={`${pt.date}: ${pt.volume_yi_shou}亿手${pt.is_projected ? " (全天折算)" : ""}`}
                     className={`flex-1 rounded-t-xs transition-all ${
-                      pt.is_projected ? "bg-cyan-400" : "bg-slate-600/80 hover:bg-cyan-500/70"
+                      pt.is_projected ? "bg-[#042328]" : "bg-[#C8C8C8] hover:bg-[#263844]"
                     }`}
                     style={{ height: `${h}%` }}
                   />
@@ -442,7 +440,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
             </div>
           )}
 
-          <div className="mt-1 text-[9.5px] text-slate-400 font-mono truncate">
+          <div className="mt-1 text-[9.5px] text-[#263844] font-mono truncate">
             {hasSameTime
               ? `实盘 ${multiVol?.today_amount_yi}亿 / 昨同期 ${multiVol?.yesterday_same_time_yi}亿 · 昨全天 ${multiVol?.yesterday_full_yi}亿`
               : `折算 ${projectedVolYi}亿手 · 昨 ${yesterdayVolYi} · 5日均 ${ma5VolYi} · 10日均 ${ma10VolYi}`}
@@ -453,61 +451,61 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
       {/* 第二行：4 大独家特色高级量化指标 (同花顺/东财难一眼看出的独家量化雷达) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-1">
         {/* 独家 1: 主线资金集聚度 (真实新浪49行业板块成交计算) */}
-        <div className="p-4 rounded-2xl bg-[#081222]/90 border border-cyan-500/30 hover:border-cyan-400 transition-all flex flex-col justify-between space-y-2.5 shadow-md">
+        <div className="p-4 rounded-2xl bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#042328]/45 transition-all flex flex-col justify-between space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-[#042328]" />
               主线资金集聚度
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-mono font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono font-bold">
               Top3 吸金占比
             </span>
           </div>
 
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-black text-cyan-300 font-mono tracking-tight">
+            <div className="text-2xl font-black text-[#042328] font-mono tracking-tight">
               {mainlinePct}%
             </div>
-            <span className="text-[10px] text-rose-400 font-mono font-bold">
+            <span className="text-[10px] text-[#D71018] font-mono font-bold">
               {mainlinePct >= 35 ? "超强主线聚焦" : mainlinePct >= 28 ? "结构性抱团" : "分散轮动"}
             </span>
           </div>
 
           {/* 进度条 */}
-          <div className="w-full bg-[#050a14] rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#042328] to-[#184120] h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, (mainlinePct / 50) * 100)}%` }}
             />
           </div>
 
-          <div className="text-[10.5px] text-slate-300 line-clamp-1">
-            <span className="text-slate-400">吸金行业: </span>
-            <span className="text-white font-semibold">{mainlineName}</span>
+          <div className="text-[10.5px] text-[#282828] line-clamp-1">
+            <span className="text-[#263844]">吸金行业: </span>
+            <span className="text-[#0F0F0F] font-semibold">{mainlineName}</span>
           </div>
-          <div className="text-[10px] text-rose-400/90 truncate">
-            <span className="text-slate-400">领涨板块: </span>
+          <div className="text-[10px] text-[#D71018] truncate font-medium">
+            <span className="text-[#263844] font-normal">领涨板块: </span>
             {mainlineGainers}
           </div>
-          <p className="text-[10px] text-cyan-400/80 leading-snug truncate">
+          <p className="text-[10px] text-[#263844] leading-snug truncate">
             💡 {mainlineEval}
           </p>
         </div>
 
         {/* 独家 2: 高标核按钮大面风险指数 (真实深跌>-5%个股测算) */}
-        <div className="p-4 rounded-2xl bg-[#081222]/90 border border-cyan-500/30 hover:border-emerald-400/60 transition-all flex flex-col justify-between space-y-2.5 shadow-md">
+        <div className="p-4 rounded-2xl bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#184120]/45 transition-all flex flex-col justify-between space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#184120]" />
               高标核按钮风险指数
             </span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
                 highRiskLevel === "LOW"
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                  ? "bg-[#E0E7D9] text-[#184120] border border-[#184120]/25"
                   : highRiskLevel === "MEDIUM"
-                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
-                  : "bg-rose-500/20 text-rose-400 border border-rose-500/40"
+                  ? "bg-[#FFFFF2] text-[#0F0F0F] border border-[#C8C8C8]"
+                  : "bg-[#D71018] text-[#FFFFFF] border border-[#D71018]"
               }`}
             >
               {highRiskLevel === "LOW" ? "低风险 · 安全" : highRiskLevel === "MEDIUM" ? "中风险 · 分歧" : "高风险 · 预警"}
@@ -517,38 +515,38 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           <div className="flex items-baseline justify-between">
             <div
               className={`text-2xl font-black font-mono tracking-tight ${
-                highRiskLevel === "LOW" ? "text-emerald-400" : highRiskLevel === "MEDIUM" ? "text-amber-400" : "text-rose-400"
+                highRiskLevel === "LOW" ? "text-[#184120]" : highRiskLevel === "MEDIUM" ? "text-[#263844]" : "text-[#D71018]"
               }`}
             >
               {highRiskIndex}%
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">
+            <span className="text-[10px] text-[#263844] font-mono">
               全市场深跌强度
             </span>
           </div>
 
-          <div className="w-full bg-[#050a14] rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
-                highRiskLevel === "LOW" ? "bg-emerald-400" : highRiskLevel === "MEDIUM" ? "bg-amber-400" : "bg-rose-500"
+                highRiskLevel === "LOW" ? "bg-[#184120]" : highRiskLevel === "MEDIUM" ? "bg-[#263844]" : "bg-[#D71018]"
               }`}
               style={{ width: `${Math.min(100, highRiskIndex)}%` }}
             />
           </div>
 
-          <p className="text-[10.5px] text-slate-300 leading-snug line-clamp-2">
+          <p className="text-[10.5px] text-[#282828] leading-snug line-clamp-2">
             💡 {highRiskDesc}
           </p>
         </div>
 
         {/* 独家 3: 多空情绪综合温度计 (0~100°C 严格结合涨跌比与盘口推导) */}
-        <div className="p-4 rounded-2xl bg-[#081222]/90 border border-cyan-500/30 hover:border-rose-400 transition-all flex flex-col justify-between space-y-2.5 shadow-md">
+        <div className="p-4 rounded-2xl bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#D71018]/45 transition-all flex flex-col justify-between space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Gauge className="w-3.5 h-3.5 text-rose-400" />
+            <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
+              <Gauge className="w-3.5 h-3.5 text-[#D71018]" />
               多空情绪温度计
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-mono font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono font-bold">
               全景加权
             </span>
           </div>
@@ -556,59 +554,59 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
           <div className="flex items-baseline justify-between">
             <div
               className={`text-2xl font-black font-mono tracking-tight flex items-baseline gap-0.5 ${
-                temp >= 60 ? "text-rose-400" : temp >= 40 ? "text-amber-400" : "text-cyan-400"
+                temp >= 60 ? "text-[#D71018]" : temp >= 40 ? "text-[#042328]" : "text-[#184120]"
               }`}
             >
               {temp}
-              <span className="text-sm font-normal text-slate-300">°C</span>
+              <span className="text-sm font-normal text-[#263844]">°C</span>
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">
+            <span className="text-[10px] text-[#263844] font-mono">
               0°C 冰点 ~ 100°C 狂热
             </span>
           </div>
 
-          <div className="w-full bg-[#050a14] rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-cyan-400 via-amber-400 to-rose-500 h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#184120] via-[#042328] to-[#D71018] h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, temp)}%` }}
             />
           </div>
 
-          <p className="text-[10.5px] text-slate-300 leading-snug line-clamp-2">
-            🌡️ <span className="text-cyan-300 font-semibold">{tempPhase}</span>
+          <p className="text-[10.5px] text-[#282828] leading-snug line-clamp-2">
+            🌡️ <span className="text-[#042328] font-semibold">{tempPhase}</span>
           </p>
         </div>
 
         {/* 独家 4: 百亿中军大盘护盘系数 (沪深300 vs 国证2000真实剪刀差) */}
-        <div className="p-4 rounded-2xl bg-[#081222]/90 border border-cyan-500/30 hover:border-cyan-400 transition-all flex flex-col justify-between space-y-2.5 shadow-md">
+        <div className="p-4 rounded-2xl bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#042328]/45 transition-all flex flex-col justify-between space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Scale className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
+              <Scale className="w-3.5 h-3.5 text-[#042328]" />
               百亿中军护盘系数
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-mono font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono font-bold">
               剪刀差监测
             </span>
           </div>
 
           <div className="flex items-baseline justify-between">
-            <div className={`text-2xl font-black font-mono tracking-tight ${midCapDefense >= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+            <div className={`text-2xl font-black font-mono tracking-tight ${midCapDefense >= 0 ? "text-[#D71018]" : "text-[#184120]"}`}>
               {midCapDefense >= 0 ? `+${midCapDefense}%` : `${midCapDefense}%`}
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">
+            <span className="text-[10px] text-[#263844] font-mono">
               沪深300 vs 国证2000
             </span>
           </div>
 
-          <div className="w-full bg-[#050a14] rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-[#E4E4E8] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-cyan-400 h-full rounded-full transition-all duration-500"
+              className="bg-[#042328] h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, Math.abs(midCapDefense) * 50 + 20)}%` }}
             />
           </div>
 
-          <p className="text-[10.5px] text-slate-300 leading-snug line-clamp-2">
-            ⚖️ <span className="text-cyan-300 font-semibold">结构研判: </span>
+          <p className="text-[10.5px] text-[#282828] leading-snug line-clamp-2">
+            ⚖️ <span className="text-[#042328] font-semibold">结构研判: </span>
             {defenseStatus}
           </p>
         </div>
@@ -616,73 +614,73 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
 
       {/* 第三行：AI 动态全景量化研判与操作纪律 (基于实测数据动态生成，绝不写死) */}
       {aiSummary && (
-        <div className="rounded-2xl bg-[#081222]/95 border border-cyan-500/40 p-4 shadow-lg space-y-3">
-          <div className="flex items-center justify-between border-b border-cyan-900/40 pb-2">
+        <div className="rounded-2xl bg-[#F8F8F4] border border-[#D8D8E4] p-4 space-y-3">
+          <div className="flex items-center justify-between border-b border-[#E0E0E0] pb-2">
             <div className="flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#042328] text-[#E1F209]">
                 <Bot className="w-3.5 h-3.5" />
               </span>
-              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+              <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
                 AI 盘口研判与量化纪律总结
-                <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 font-mono">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E0E7D9] text-[#184120] border border-[#184120]/20 font-mono">
                   全自动多维推导
                 </span>
               </span>
             </div>
-            <span className="text-[10.5px] text-slate-400 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-cyan-400" />
+            <span className="text-[10.5px] text-[#263844] flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#042328]" />
               动态交叉验证 · 拒绝假数据
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
             {/* 1. 量能走势分析 */}
-            <div className="bg-[#050d1a]/80 p-3 rounded-xl border border-cyan-950 flex flex-col justify-between">
+            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D8D8E4] flex flex-col justify-between">
               <div>
-                <span className="font-bold text-cyan-300 flex items-center gap-1 mb-1">
-                  <Activity className="w-3 h-3 text-cyan-400" />
+                <span className="font-bold text-[#042328] flex items-center gap-1 mb-1">
+                  <Activity className="w-3 h-3 text-[#042328]" />
                   多周期量能真实研判:
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-[#282828] text-[11px] leading-relaxed">
                   {aiSummary.volume_analysis}
                 </p>
               </div>
             </div>
 
             {/* 2. 多空全景分析 */}
-            <div className="bg-[#050d1a]/80 p-3 rounded-xl border border-cyan-950 flex flex-col justify-between">
+            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D8D8E4] flex flex-col justify-between">
               <div>
-                <span className="font-bold text-amber-300 flex items-center gap-1 mb-1">
-                  <Gauge className="w-3 h-3 text-amber-400" />
+                <span className="font-bold text-[#263844] flex items-center gap-1 mb-1">
+                  <Gauge className="w-3 h-3 text-[#263844]" />
                   多空温度与梯队情绪:
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-[#282828] text-[11px] leading-relaxed">
                   {aiSummary.breadth_analysis}
                 </p>
               </div>
             </div>
 
             {/* 3. 权重与行业主线分析 */}
-            <div className="bg-[#050d1a]/80 p-3 rounded-xl border border-cyan-950 flex flex-col justify-between">
+            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D8D8E4] flex flex-col justify-between">
               <div>
-                <span className="font-bold text-purple-300 flex items-center gap-1 mb-1">
-                  <Scale className="w-3 h-3 text-purple-400" />
+                <span className="font-bold text-[#184120] flex items-center gap-1 mb-1">
+                  <Scale className="w-3 h-3 text-[#184120]" />
                   中军大盘与主线赛道:
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-[#282828] text-[11px] leading-relaxed">
                   {aiSummary.defense_analysis}
                 </p>
               </div>
             </div>
 
             {/* 4. 操盘纪律与建议 */}
-            <div className="bg-[#050d1a]/80 p-3 rounded-xl border border-rose-950/60 flex flex-col justify-between">
+            <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#D71018]/25 flex flex-col justify-between">
               <div>
-                <span className="font-bold text-rose-400 flex items-center gap-1 mb-1">
-                  <ShieldCheck className="w-3 h-3 text-rose-400" />
+                <span className="font-bold text-[#D71018] flex items-center gap-1 mb-1">
+                  <ShieldCheck className="w-3 h-3 text-[#D71018]" />
                   短线接力纪律与仓位指导:
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-[#282828] text-[11px] leading-relaxed">
                   {aiSummary.tactical_guidance}
                 </p>
               </div>

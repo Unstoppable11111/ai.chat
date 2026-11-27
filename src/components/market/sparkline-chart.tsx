@@ -9,8 +9,8 @@ interface SparklineChartProps {
 export function SparklineChart({ changePct = 0, className = "", points }: SparklineChartProps) {
   // 生成模拟或真实分时走势坐标（根据今日涨跌幅生成平滑波浪折线）
   const isUp = changePct >= 0;
-  const strokeColor = isUp ? "#f43f5e" : "#10b981"; // 红涨绿跌
-  const fillColor = isUp ? "rgba(244, 63, 94, 0.15)" : "rgba(16, 185, 129, 0.15)";
+  const strokeColor = isUp ? "#D71018" : "#184120"; // A股警示正红涨 / 森林绿跌
+  const fillColor = isUp ? "rgba(215, 16, 24, 0.14)" : "rgba(24, 65, 32, 0.14)";
 
   const sampleData = points && points.length >= 5
     ? points

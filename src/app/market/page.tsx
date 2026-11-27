@@ -42,7 +42,7 @@ import type {
 
 const QuantumRadar3D = dynamic(
   () => import("@/components/market/quantum-radar-3d").then((m) => m.QuantumRadar3D),
-  { ssr: false, loading: () => <div className="h-[300px] w-full animate-pulse rounded-2xl bg-slate-900" /> }
+  { ssr: false, loading: () => <div className="h-[112px] w-full animate-pulse rounded-2xl bg-[#042328]" /> }
 );
 
 interface HoldingDiagnosed extends HoldingEditableRecord {
@@ -283,30 +283,30 @@ export default function MarketDashboardPage() {
   const actionCount = holdings.filter((h) => h.highest_severity === "ACTION").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0f1d] via-[#070b16] to-[#0a1122] text-slate-100 pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-gradient-to-b from-[#F2F7F9] via-[#F8F8F8] to-[#F8F8F4] text-[#0F0F0F] pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative">
       {toastMsg && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-[#0c1626]/95 border border-cyan-500/40 text-xs text-cyan-200 shadow-[0_0_25px_rgba(6,182,212,0.25)] backdrop-blur-md">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-[#042328] border border-[#184120] text-xs text-[#FFFFF2] shadow-[0_12px_30px_rgba(4,35,40,0.28)] backdrop-blur-md">
+          <Sparkles className="w-3.5 h-3.5 text-[#E1F209] shrink-0" />
           <span>{toastMsg.text}</span>
         </div>
       )}
 
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* 顶部主工作台标头 */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-[#0c182b]/90 via-[#08101e]/95 to-[#0e1d35]/90 border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.12)] backdrop-blur-xl">
+        {/* 顶部主工作台标头（高定墨绿旗舰横幅） */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-[#042328] via-[#042328] to-[#184120] border border-[#184120] shadow-[0_18px_48px_rgba(4,35,40,0.18)]">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFFFFF]/10 border border-[#E1F209]/35 text-[#E1F209]">
                 <Activity className="h-4.5 w-4.5" />
               </span>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white flex flex-wrap items-center gap-2 font-mono">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#FFFFF2] flex flex-wrap items-center gap-2 font-mono">
                   CHEN TECH STUDIO ｜ A股波段纪律与5日轮动工作台
-                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                  <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#E1F209] text-[#042328]">
                     主板+创业板
                   </span>
                 </h1>
-                <p className="text-xs text-cyan-200/70">
+                <p className="text-xs text-[#E0E7D9]/85">
                   盘前全天计划 · 盘中5分钟规则监控 · 5日轮动观察池 · 异常自动唤醒AI研判
                 </p>
               </div>
@@ -317,18 +317,18 @@ export default function MarketDashboardPage() {
             <div
               className={`text-xs font-mono px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${
                 tradingStatus.isTrading
-                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/40"
-                  : "bg-slate-800/80 text-slate-400 border-slate-700"
+                  ? "bg-[#184120] text-[#FFFFF2] border-[#33DD18]/45"
+                  : "bg-[#FFFFFF]/10 text-[#E0E7D9] border-[#FFFFFF]/15"
               }`}
               title={tradingStatus.detail}
             >
               <span
                 className={`w-2 h-2 rounded-full ${
-                  tradingStatus.isTrading ? "bg-emerald-400 animate-pulse" : "bg-slate-500"
+                  tradingStatus.isTrading ? "bg-[#33DD18] animate-pulse" : "bg-[#C8C8C8]"
                 }`}
               />
               <span className="font-bold">{tradingStatus.statusText}</span>
-              <span className="text-[10px] text-slate-400 hidden sm:inline">({tradingStatus.cstTimeStr})</span>
+              <span className="text-[10px] text-[#E0E7D9]/75 hidden sm:inline">({tradingStatus.cstTimeStr})</span>
             </div>
 
             <button
@@ -344,20 +344,20 @@ export default function MarketDashboardPage() {
               disabled={!tradingStatus.isTrading}
               className={`text-xs font-mono px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
                 !tradingStatus.isTrading
-                  ? "bg-slate-900/60 text-slate-500 border-slate-800 cursor-not-allowed opacity-60"
+                  ? "bg-[#FFFFFF]/8 text-[#C8C8C8] border-[#FFFFFF]/15 cursor-not-allowed opacity-70"
                   : autoRefresh
-                  ? "bg-cyan-500/20 text-cyan-200 border-cyan-500/40 font-bold cursor-pointer"
-                  : "bg-[#0c1626]/70 text-cyan-400/50 border-cyan-950 cursor-pointer"
+                  ? "bg-[#E1F209] text-[#042328] border-[#E1F209] font-bold cursor-pointer"
+                  : "bg-[#FFFFFF]/10 text-[#FFFFF2] border-[#FFFFFF]/20 cursor-pointer"
               }`}
             >
-              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <Clock className="w-3.5 h-3.5" />
               {!tradingStatus.isTrading ? "5分轮询: 自动停刷" : autoRefresh ? "5分轮询: 开启" : "5分轮询: 关闭"}
             </button>
 
             <button
               onClick={() => void loadAll(true)}
               disabled={isRefreshing || isLoading}
-              className="px-3 py-1.5 rounded-xl border bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 rounded-xl border bg-[#FFFFFF]/12 hover:bg-[#FFFFFF]/20 text-[#FFFFF2] border-[#FFFFFF]/20 text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isLoading ? "animate-spin" : ""}`} />
               刷新
@@ -368,7 +368,7 @@ export default function MarketDashboardPage() {
                 setEditingHolding(null);
                 setHoldingModalOpen(true);
               }}
-              className="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white border border-cyan-400/30 flex items-center gap-1.5 cursor-pointer"
+              className="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-[#E1F209] hover:bg-[#FFFFF2] text-[#042328] border border-[#E1F209] flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               录入持仓
@@ -377,9 +377,9 @@ export default function MarketDashboardPage() {
             <button
               onClick={() => void handleTriggerAiAnalyze()}
               disabled={aiBusyCode !== null}
-              className="text-xs font-medium px-3.5 py-1.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/40 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-[#184120] hover:bg-[#263844] text-[#FFFFF2] border border-[#33DD18]/35 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <Bot className="w-3.5 h-3.5 text-indigo-300" />
+              <Bot className="w-3.5 h-3.5 text-[#E1F209]" />
               {aiBusyCode === "ALL" ? "AI研判中..." : "AI 立即看盘"}
             </button>
 
@@ -391,7 +391,7 @@ export default function MarketDashboardPage() {
         <MorningBriefingHero onOpenReportTab={() => setActiveTab("daily")} showToast={showToast} />
 
         {/* 主导航 Tabs (4个纯粹实战工作区) */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#09111e]/90 border border-cyan-500/30 w-full overflow-x-auto no-scrollbar shadow-lg">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#FFFFFF] border border-[#D8D8E4] w-full overflow-x-auto no-scrollbar shadow-[0_6px_20px_rgba(4,35,40,0.04)]">
           {[
             { id: "cockpit", label: "实盘看盘总览", icon: Activity },
             { id: "portfolio", label: `实盘持仓与风控 (${holdings.length})`, icon: TrendingUp },
@@ -405,17 +405,17 @@ export default function MarketDashboardPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as MainTab)}
                 className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
-                  isActive ? "text-white font-bold" : "text-slate-400 hover:text-white hover:bg-cyan-950/30"
+                  isActive ? "text-[#FFFFF2] font-bold" : "text-[#263844] hover:text-[#0F0F0F] hover:bg-[#F8F8F4]"
                 }`}
               >
                 {isActive && (
                   <motion.span
                     layoutId="market-main-tab-pill"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 shadow-[0_0_18px_rgba(6,182,212,0.35)] border border-cyan-400/40"
+                    className="absolute inset-0 rounded-xl bg-[#042328] shadow-[0_6px_16px_rgba(4,35,40,0.2)] border border-[#184120]"
                     transition={{ type: "spring", stiffness: 360, damping: 28 }}
                   />
                 )}
-                <Icon className="relative z-10 w-3.5 h-3.5" />
+                <Icon className={`relative z-10 w-3.5 h-3.5 ${isActive ? "text-[#E1F209]" : "text-[#263844]"}`} />
                 <span className="relative z-10">{tab.label}</span>
               </button>
             );
@@ -429,18 +429,18 @@ export default function MarketDashboardPage() {
           <div className="space-y-6">
             {/* 持仓风控摘要条 */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 rounded-3xl bg-[#0c1626]/90 border border-cyan-500/30 p-5 space-y-3">
+              <div className="lg:col-span-2 rounded-3xl bg-[#FFFFFF] border border-[#D8D8E4] p-5 space-y-3 shadow-[0_8px_28px_rgba(4,35,40,0.05)]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-cyan-400" />
-                    <h2 className="text-sm font-bold text-white">实盘持仓波段纪律监控</h2>
+                    <ShieldAlert className="w-4 h-4 text-[#042328]" />
+                    <h2 className="text-sm font-bold text-[#0F0F0F]">实盘持仓波段纪律监控</h2>
                     {actionCount > 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-[#D71018] text-[#FFFFFF] text-[10px] font-bold">
                         {actionCount} 只触发行动线
                       </span>
                     )}
                     {escalatedCount > 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-[#042328] text-[#E1F209] text-[10px] font-bold">
                         {escalatedCount} 只盘中异动
                       </span>
                     )}
@@ -449,7 +449,7 @@ export default function MarketDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setActiveTab("portfolio")}
-                      className="text-xs text-cyan-300 hover:text-cyan-200 underline cursor-pointer"
+                      className="text-xs text-[#042328] font-semibold hover:underline cursor-pointer"
                     >
                       进入持仓详情 →
                     </button>
@@ -458,13 +458,13 @@ export default function MarketDashboardPage() {
 
                 {holdings.length === 0 ? (
                   <div className="py-6 text-center space-y-3">
-                    <p className="text-xs text-slate-400">当前账户暂未录入实盘持仓，可一键导入兴森科技与3只观察股或手动录入。</p>
+                    <p className="text-xs text-[#263844]">当前账户暂未录入实盘持仓，可一键导入兴森科技与3只观察股或手动录入。</p>
                     <div className="flex justify-center gap-2">
                       <button
                         type="button"
                         onClick={() => void handleSeedSelect()}
                         disabled={seeding}
-                        className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs flex items-center gap-1.5 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-[#E0E7D9] border border-[#184120]/30 text-[#184120] font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
                       >
                         <DatabaseBackup className="w-3.5 h-3.5" />
                         <span>{seeding ? "导入中..." : "导入兴森科技+3只初始观察股"}</span>
@@ -475,7 +475,7 @@ export default function MarketDashboardPage() {
                           setEditingHolding(null);
                           setHoldingModalOpen(true);
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-[#042328] text-[#FFFFF2] font-bold text-xs cursor-pointer"
                       >
                         + 手动录入持仓
                       </button>
@@ -488,25 +488,25 @@ export default function MarketDashboardPage() {
                         key={h.id}
                         className={`p-3.5 rounded-2xl border space-y-2 text-xs ${
                           h.highest_severity === "ACTION"
-                            ? "bg-rose-950/30 border-rose-500/40"
+                            ? "bg-[#D71018]/6 border-[#D71018]/35"
                             : h.llm_escalate
-                            ? "bg-amber-950/25 border-amber-500/40"
-                            : "bg-slate-950/70 border-slate-800"
+                            ? "bg-[#FFFFF2] border-[#042328]/35"
+                            : "bg-[#F8F8F4] border-[#E0E0E0]"
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="font-bold text-white text-sm">{h.name}</span>
-                            <span className="ml-1.5 font-mono text-slate-400">{h.code}</span>
-                            <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300">
+                            <span className="font-bold text-[#0F0F0F] text-sm">{h.name}</span>
+                            <span className="ml-1.5 font-mono text-[#263844]">{h.code}</span>
+                            <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#FFFFFF] border border-[#D8D8E4] text-[#042328] font-medium">
                               {h.position_mode === "deep_drawdown_recovery" ? "深套修复" : "标准波段"}
                             </span>
                           </div>
                           <div className="text-right font-mono">
-                            <span className="font-bold text-white">¥{h.current_price.toFixed(2)}</span>
+                            <span className="font-bold text-[#0F0F0F]">¥{h.current_price.toFixed(2)}</span>
                             <span
-                              className={`ml-1.5 ${
-                                h.day_change_pct >= 0 ? "text-rose-400" : "text-emerald-400"
+                              className={`ml-1.5 font-bold ${
+                                h.day_change_pct >= 0 ? "text-[#D71018]" : "text-[#184120]"
                               }`}
                             >
                               {h.day_change_pct >= 0 ? "+" : ""}
@@ -514,10 +514,10 @@ export default function MarketDashboardPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <div className="flex items-center justify-between text-[11px] font-mono text-[#263844]">
                           <span>
                             浮盈{" "}
-                            <strong className={h.pnl >= 0 ? "text-rose-400" : "text-emerald-400"}>
+                            <strong className={h.pnl >= 0 ? "text-[#D71018]" : "text-[#184120]"}>
                               {h.pnl >= 0 ? "+" : ""}
                               {h.pnl_pct.toFixed(2)}%
                             </strong>
@@ -526,7 +526,7 @@ export default function MarketDashboardPage() {
                             振幅 {h.amplitude_pct ?? 0}% · 高点回撤 -{h.pullback_from_high_pct ?? 0}%
                           </span>
                         </div>
-                        <div className="text-[11px] text-cyan-200/90 bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                        <div className="text-[11px] text-[#282828] bg-[#FFFFFF] px-2.5 py-1.5 rounded-lg border border-[#E4E4E8]">
                           {h.advice_reason}
                         </div>
                       </div>
@@ -536,15 +536,15 @@ export default function MarketDashboardPage() {
               </div>
 
               {/* 右侧：快捷操作与资产总览 */}
-              <div className="rounded-3xl bg-[#0c1626]/90 border border-cyan-500/30 p-5 flex flex-col justify-between space-y-4">
+              <div className="rounded-3xl bg-[#FFFFFF] border border-[#D8D8E4] p-5 flex flex-col justify-between space-y-4 shadow-[0_8px_28px_rgba(4,35,40,0.05)]">
                 <div className="space-y-2">
-                  <div className="text-xs text-slate-400">账户持仓总市值</div>
-                  <div className="text-2xl font-black text-white font-mono">
+                  <div className="text-xs text-[#263844] font-medium">账户持仓总市值</div>
+                  <div className="text-2xl font-black text-[#0F0F0F] font-mono">
                     ¥ {formatMoney(diagnoseSummary?.total_market_value || 0)}
                   </div>
                   <div
                     className={`text-xs font-mono font-bold ${
-                      (diagnoseSummary?.total_pnl || 0) >= 0 ? "text-rose-400" : "text-emerald-400"
+                      (diagnoseSummary?.total_pnl || 0) >= 0 ? "text-[#D71018]" : "text-[#184120]"
                     }`}
                   >
                     累计浮盈 {(diagnoseSummary?.total_pnl || 0) >= 0 ? "+" : ""}
@@ -552,28 +552,28 @@ export default function MarketDashboardPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800 text-xs">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E0E0E0] text-xs">
                   <button
                     type="button"
                     onClick={() => setActiveTab("pool")}
-                    className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-left cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#F8F8F4] hover:bg-[#E0E7D9]/70 border border-[#D8D8E4] text-left cursor-pointer"
                   >
-                    <div className="font-bold text-cyan-300 flex items-center gap-1">
+                    <div className="font-bold text-[#042328] flex items-center gap-1">
                       <Radar className="w-3.5 h-3.5" />
                       5日观察池
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">查看买点A/B触发状态</div>
+                    <div className="text-[10px] text-[#263844] mt-0.5">查看买点A/B触发状态</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab("daily")}
-                    className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-left cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#F8F8F4] hover:bg-[#E0E7D9]/70 border border-[#D8D8E4] text-left cursor-pointer"
                   >
-                    <div className="font-bold text-emerald-300 flex items-center gap-1">
+                    <div className="font-bold text-[#184120] flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
                       每日看板
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">01盘前 / 02播报 / 03选股 / 04AI</div>
+                    <div className="text-[10px] text-[#263844] mt-0.5">01盘前 / 02播报 / 03选股 / 04AI</div>
                   </button>
                 </div>
               </div>
@@ -585,67 +585,67 @@ export default function MarketDashboardPage() {
             {/* 全景核心 4 联指标看板 */}
             {marketData && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="p-5 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 shadow-xl backdrop-blur-xl flex flex-col justify-between space-y-3">
+                <div className="p-5 rounded-3xl bg-[#FFFFFF] border border-[#D8D8E4] shadow-[0_8px_28px_rgba(4,35,40,0.05)] flex flex-col justify-between space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                    <span className="text-xs font-semibold text-[#263844] flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-[#042328] animate-pulse" />
                       情绪温度与红绿灯
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono">
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#042328] text-[#E1F209] font-mono font-semibold">
                       {marketData.market_state}
                     </span>
                   </div>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-4xl font-black text-white font-mono">
+                    <span className="text-4xl font-black text-[#0F0F0F] font-mono">
                       {trafficLight?.score ?? marketData.market_score}
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">/ 100</span>
+                    <span className="text-xs text-[#263844] font-mono">/ 100</span>
                   </div>
                   <QuantumRadar3D
                     score={trafficLight?.score ?? marketData.market_score}
                     marketState={trafficLight?.label ?? marketData.market_state}
                   />
-                  <p className="text-xs text-cyan-200/80 flex items-center gap-1.5 pt-1.5 border-t border-cyan-900/40">
-                    <Flame className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                    <span className="text-white font-bold truncate">{marketData.market_style}</span>
+                  <p className="text-xs text-[#263844] flex items-center gap-1.5 pt-1.5 border-t border-[#E0E0E0]">
+                    <Flame className="w-3.5 h-3.5 text-[#D71018] shrink-0" />
+                    <span className="text-[#0F0F0F] font-bold truncate">{marketData.market_style}</span>
                   </p>
                 </div>
 
-                <div className="p-5 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 shadow-xl backdrop-blur-xl flex flex-col justify-between space-y-4">
+                <div className="p-5 rounded-3xl bg-[#FFFFFF] border border-[#D8D8E4] shadow-[0_8px_28px_rgba(4,35,40,0.05)] flex flex-col justify-between space-y-4">
                   <div>
-                    <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
-                      <PieChart className="w-3.5 h-3.5 text-cyan-400" />
+                    <span className="text-xs font-semibold text-[#263844] flex items-center gap-1.5">
+                      <PieChart className="w-3.5 h-3.5 text-[#042328]" />
                       建议总仓位
                     </span>
-                    <div className="mt-2 text-3xl font-black text-cyan-400 font-mono">
+                    <div className="mt-2 text-3xl font-black text-[#042328] font-mono">
                       {marketData.suggested_position}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-[11px] text-[#282828] mt-1">
                       {trafficLight?.summary || diagnoseSummary?.overall_action}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-cyan-900/40 space-y-1.5">
-                    <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
-                      <Flame className="w-3.5 h-3.5 text-cyan-400" />
+                  <div className="pt-3 border-t border-[#E0E0E0] space-y-1.5">
+                    <span className="text-xs font-semibold text-[#263844] flex items-center gap-1.5">
+                      <Flame className="w-3.5 h-3.5 text-[#D71018]" />
                       两市成交额
                     </span>
-                    <div className="text-2xl font-bold text-white font-mono">
+                    <div className="text-2xl font-bold text-[#0F0F0F] font-mono">
                       {marketData.total_turnover_text || "--"}
                     </div>
-                    <div className="text-[11px] text-slate-400 font-mono">
+                    <div className="text-[11px] text-[#263844] font-mono">
                       {(marketData.volume_metrics as { status_detail?: string })?.status_detail || "实时统计中"}
                     </div>
                   </div>
                 </div>
 
-                <div className="p-5 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 shadow-xl backdrop-blur-xl md:col-span-2 flex flex-col justify-between space-y-4">
+                <div className="p-5 rounded-3xl bg-[#FFFFFF] border border-[#D8D8E4] shadow-[0_8px_28px_rgba(4,35,40,0.05)] md:col-span-2 flex flex-col justify-between space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-cyan-200 flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                    <span className="text-xs font-semibold text-[#263844] flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-[#042328]" />
                       四大核心股指实时全景
                     </span>
-                    <span className="text-[10px] text-cyan-400/60 font-mono">
+                    <span className="text-[10px] text-[#263844]/80 font-mono">
                       更新时间: {marketData.snapshot_time}
                     </span>
                   </div>
@@ -656,26 +656,26 @@ export default function MarketDashboardPage() {
                       return (
                         <div
                           key={idx.code}
-                          className="p-3 rounded-2xl bg-[#091322]/80 border border-cyan-900/40 flex flex-col justify-between"
+                          className="p-3 rounded-2xl bg-[#F8F8F4] border border-[#E0E0E0] flex flex-col justify-between"
                         >
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-white truncate">{idx.name}</span>
-                              <span className="text-[10px] text-slate-400 font-mono">{idx.code}</span>
+                              <span className="text-xs font-bold text-[#0F0F0F] truncate">{idx.name}</span>
+                              <span className="text-[10px] text-[#263844] font-mono">{idx.code}</span>
                             </div>
-                            <div className="text-base font-black text-white mt-1 font-mono">
+                            <div className="text-base font-black text-[#0F0F0F] mt-1 font-mono">
                               {idx.close.toFixed(2)}
                             </div>
                             <div
                               className={`text-xs font-bold flex items-center gap-0.5 mt-0.5 ${
-                                isUp ? "text-rose-400" : "text-emerald-400"
+                                isUp ? "text-[#D71018]" : "text-[#184120]"
                               }`}
                             >
                               {isUp ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                               <span>{idx.change_pct > 0 ? `+${idx.change_pct}%` : `${idx.change_pct}%`}</span>
                             </div>
                           </div>
-                          <div className="mt-2 pt-1 border-t border-cyan-900/40">
+                          <div className="mt-2 pt-1 border-t border-[#E4E4E8]">
                             <SparklineChart changePct={idx.change_pct} />
                           </div>
                         </div>
@@ -683,15 +683,15 @@ export default function MarketDashboardPage() {
                     })}
                   </div>
 
-                  <div className="pt-3 border-t border-cyan-900/40 flex items-center justify-between text-xs">
-                    <span className="text-cyan-200 flex items-center gap-1">
-                      <Scale className="w-3.5 h-3.5 text-cyan-400" />
+                  <div className="pt-3 border-t border-[#E0E0E0] flex items-center justify-between text-xs">
+                    <span className="text-[#263844] font-medium flex items-center gap-1">
+                      <Scale className="w-3.5 h-3.5 text-[#042328]" />
                       全市场涨跌分布
                     </span>
                     <div className="flex items-center gap-3 text-[11px] font-mono">
-                      <span className="text-rose-400 font-bold">涨 {marketData.up_count ?? "--"}</span>
-                      <span className="text-slate-400">平 {marketData.flat_count ?? "--"}</span>
-                      <span className="text-emerald-400 font-bold">跌 {marketData.down_count ?? "--"}</span>
+                      <span className="text-[#D71018] font-bold">涨 {marketData.up_count ?? "--"}</span>
+                      <span className="text-[#263844]">平 {marketData.flat_count ?? "--"}</span>
+                      <span className="text-[#184120] font-bold">跌 {marketData.down_count ?? "--"}</span>
                     </div>
                   </div>
                 </div>
@@ -704,15 +704,15 @@ export default function MarketDashboardPage() {
         {/* TAB 2: 实盘持仓与风控 (PORTFOLIO) */}
         {/* ========================================================================= */}
         {activeTab === "portfolio" && (
-          <div className="p-6 rounded-3xl bg-[#0c1626]/85 border border-cyan-500/25 backdrop-blur-xl shadow-xl space-y-6">
+          <div className="p-6 rounded-3xl bg-[#FFFFFF] border border-[#D8D8E4] shadow-[0_8px_28px_rgba(4,35,40,0.05)] space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-cyan-400" />
+                <h2 className="text-lg font-bold text-[#0F0F0F] flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-[#042328]" />
                   我的实盘持仓与波段纪律穿透
-                  <span className="text-xs font-normal text-slate-400">({holdings.length} 只标的)</span>
+                  <span className="text-xs font-normal text-[#263844]">({holdings.length} 只标的)</span>
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#263844] mt-0.5">
                   支持标准波段（+15%/+25%止盈、-8%止损、MA20+板块防守）与深套修复双模式，实时捕获日内冲高回落与深V异动。
                 </p>
               </div>
@@ -722,7 +722,7 @@ export default function MarketDashboardPage() {
                   type="button"
                   onClick={() => void handleSeedSelect()}
                   disabled={seeding}
-                  className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-xs flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-2 rounded-xl bg-[#E0E7D9] hover:bg-[#E0E7D9]/80 text-[#184120] border border-[#184120]/30 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
                   <DatabaseBackup className="w-3.5 h-3.5" />
                   <span>{seeding ? "导入中..." : "导入兴森科技+3只观察股"}</span>
@@ -733,19 +733,19 @@ export default function MarketDashboardPage() {
                     setEditingHolding(null);
                     setHoldingModalOpen(true);
                   }}
-                  className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] font-bold text-xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 text-[#E1F209]" />
                   <span>录入新持仓</span>
                 </button>
               </div>
             </div>
 
-            <div className="overflow-x-auto no-scrollbar">
-              <table className="w-full text-left text-xs text-slate-200 min-w-[1060px]">
-                <thead className="bg-[#091322]/90 text-cyan-300/80 font-semibold border-b border-cyan-500/30">
+            <div className="overflow-x-auto no-scrollbar rounded-2xl border border-[#D8D8E4]">
+              <table className="w-full text-left text-xs text-[#282828] min-w-[1060px]">
+                <thead className="bg-[#F8F8F4] text-[#042328] font-semibold border-b border-[#D8D8E4]">
                   <tr>
-                    <th className="py-3 px-3 rounded-l-xl">标的 / 模式</th>
+                    <th className="py-3 px-3">标的 / 模式</th>
                     <th className="py-3 px-3">板块 / 强度</th>
                     <th className="py-3 px-3 text-right">持股 / 可卖</th>
                     <th className="py-3 px-3 text-right">成本 / 现价</th>
@@ -753,13 +753,13 @@ export default function MarketDashboardPage() {
                     <th className="py-3 px-3 text-right">日内振幅 / 高撤</th>
                     <th className="py-3 px-3 text-right">防守 / 止损位</th>
                     <th className="py-3 px-3 min-w-[320px]">规则信号与操作建议</th>
-                    <th className="py-3 px-3 rounded-r-xl text-center">操作</th>
+                    <th className="py-3 px-3 text-center">操作</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-cyan-900/30">
+                <tbody className="divide-y divide-[#E4E4E8]">
                   {holdings.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-slate-400">
+                      <td colSpan={9} className="py-12 text-center text-[#263844]">
                         暂无实盘持仓，点击右上角「录入新持仓」或「导入兴森科技+3只观察股」。
                       </td>
                     </tr>
@@ -767,31 +767,31 @@ export default function MarketDashboardPage() {
                     holdings.map((item) => {
                       const isProfit = item.pnl >= 0;
                       return (
-                        <tr key={item.id || item.code} className="hover:bg-cyan-950/25 align-top">
+                        <tr key={item.id || item.code} className="hover:bg-[#F2F7F9]/75 align-top">
                           <td className="py-3.5 px-3 whitespace-nowrap">
-                            <div className="font-bold text-white">
-                              {item.name} <span className="font-mono text-cyan-400">{item.code}</span>
+                            <div className="font-bold text-[#0F0F0F]">
+                              {item.name} <span className="font-mono text-[#042328]">{item.code}</span>
                             </div>
                             <div className="flex items-center gap-1.5 mt-1">
                               <span
-                                className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                                className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${
                                   item.position_mode === "deep_drawdown_recovery"
-                                    ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                                    : "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
+                                    ? "bg-[#FFFFF2] text-[#0F0F0F] border-[#C8C8C8]"
+                                    : "bg-[#E0E7D9] text-[#184120] border-[#184120]/25"
                                 }`}
                               >
                                 {item.position_mode === "deep_drawdown_recovery" ? "深套修复" : "标准波段"}
                               </span>
-                              {item.board && <span className="text-[10px] text-slate-400">{item.board}</span>}
+                              {item.board && <span className="text-[10px] text-[#263844]">{item.board}</span>}
                             </div>
                           </td>
 
                           <td className="py-3.5 px-3 whitespace-nowrap">
-                            <div className="text-cyan-200 font-medium">{item.sector || "--"}</div>
+                            <div className="text-[#0F0F0F] font-medium">{item.sector || "--"}</div>
                             {typeof item.sector_change_pct === "number" && (
                               <div
-                                className={`text-[11px] font-mono ${
-                                  item.sector_change_pct >= 0 ? "text-rose-400" : "text-emerald-400"
+                                className={`text-[11px] font-mono font-semibold ${
+                                  item.sector_change_pct >= 0 ? "text-[#D71018]" : "text-[#184120]"
                                 }`}
                               >
                                 {item.sector_change_pct >= 0 ? "+" : ""}
@@ -801,19 +801,19 @@ export default function MarketDashboardPage() {
                           </td>
 
                           <td className="py-3.5 px-3 text-right font-mono whitespace-nowrap">
-                            <div className="text-white font-semibold">{item.quantity.toLocaleString()}</div>
-                            <div className="text-[10px] text-slate-400">
+                            <div className="text-[#0F0F0F] font-semibold">{item.quantity.toLocaleString()}</div>
+                            <div className="text-[10px] text-[#263844]">
                               可卖 {(item.available_quantity ?? item.quantity).toLocaleString()}
                             </div>
                           </td>
 
                           <td className="py-3.5 px-3 text-right font-mono whitespace-nowrap">
-                            <div className="text-slate-400">成本 ¥{item.cost_price.toFixed(2)}</div>
-                            <div className="text-white font-bold">
+                            <div className="text-[#263844]">成本 ¥{item.cost_price.toFixed(2)}</div>
+                            <div className="text-[#0F0F0F] font-bold">
                               现价 ¥{item.current_price.toFixed(2)}
                               <span
-                                className={`ml-1 text-[10px] ${
-                                  item.day_change_pct >= 0 ? "text-rose-400" : "text-emerald-400"
+                                className={`ml-1 text-[10px] font-bold ${
+                                  item.day_change_pct >= 0 ? "text-[#D71018]" : "text-[#184120]"
                                 }`}
                               >
                                 {item.day_change_pct >= 0 ? "+" : ""}
@@ -823,11 +823,11 @@ export default function MarketDashboardPage() {
                           </td>
 
                           <td className="py-3.5 px-3 text-right font-mono whitespace-nowrap">
-                            <div className={`font-bold ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
+                            <div className={`font-bold ${isProfit ? "text-[#D71018]" : "text-[#184120]"}`}>
                               {isProfit ? "+" : ""}
                               {item.pnl.toFixed(0)}
                             </div>
-                            <div className={`text-[11px] ${isProfit ? "text-rose-400" : "text-emerald-400"}`}>
+                            <div className={`text-[11px] font-semibold ${isProfit ? "text-[#D71018]" : "text-[#184120]"}`}>
                               {isProfit ? "+" : ""}
                               {item.pnl_pct.toFixed(2)}%
                             </div>
@@ -837,7 +837,7 @@ export default function MarketDashboardPage() {
                             <div>振幅 {item.amplitude_pct ?? 0}%</div>
                             <div
                               className={`text-[11px] ${
-                                (item.pullback_from_high_pct ?? 0) >= 5 ? "text-amber-300 font-bold" : "text-slate-400"
+                                (item.pullback_from_high_pct ?? 0) >= 5 ? "text-[#D71018] font-bold" : "text-[#263844]"
                               }`}
                             >
                               高回撤 -{item.pullback_from_high_pct ?? 0}%
@@ -845,30 +845,30 @@ export default function MarketDashboardPage() {
                           </td>
 
                           <td className="py-3.5 px-3 text-right font-mono whitespace-nowrap">
-                            <div className="text-amber-300 font-bold">¥{item.stop_loss_price.toFixed(2)}</div>
+                            <div className="text-[#042328] font-bold">¥{item.stop_loss_price.toFixed(2)}</div>
                             {item.technicals?.ma20 && (
-                              <div className="text-[10px] text-slate-400">
+                              <div className="text-[10px] text-[#263844]">
                                 MA20 ¥{item.technicals.ma20.toFixed(2)}
                               </div>
                             )}
                           </td>
 
                           <td className="py-3.5 px-3 min-w-[320px] max-w-[420px] space-y-1.5">
-                            <div className="font-bold text-cyan-200">{item.action}</div>
+                            <div className="font-bold text-[#042328]">{item.action}</div>
                             {(item.signals || []).map((sig, idx) => (
                               <div
                                 key={`${sig.key}-${idx}`}
                                 className={`text-[11px] px-2 py-1 rounded border ${
                                   sig.severity === "ACTION"
-                                    ? "bg-rose-500/15 border-rose-500/40 text-rose-200"
-                                    : "bg-slate-950/70 border-slate-800 text-slate-300"
+                                    ? "bg-[#D71018]/8 border-[#D71018]/30 text-[#D71018] font-medium"
+                                    : "bg-[#F8F8F4] border-[#E0E0E0] text-[#282828]"
                                 }`}
                               >
                                 {sig.message}
                               </div>
                             ))}
                             {item.thesis && (
-                              <p className="text-[10px] text-slate-400 line-clamp-2">{item.thesis}</p>
+                              <p className="text-[10px] text-[#263844] line-clamp-2">{item.thesis}</p>
                             )}
                           </td>
 
@@ -878,7 +878,7 @@ export default function MarketDashboardPage() {
                                 type="button"
                                 onClick={() => void handleTriggerAiAnalyze(item.code, item.name)}
                                 disabled={aiBusyCode !== null}
-                                className="p-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/30 cursor-pointer"
+                                className="p-1.5 rounded-lg bg-[#042328] hover:bg-[#184120] text-[#E1F209] border border-[#184120] cursor-pointer"
                                 title="AI 深度研判"
                               >
                                 <Bot className="w-3.5 h-3.5" />
@@ -889,7 +889,7 @@ export default function MarketDashboardPage() {
                                   setEditingHolding(item);
                                   setHoldingModalOpen(true);
                                 }}
-                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 cursor-pointer"
+                                className="p-1.5 rounded-lg bg-[#F8F8F4] hover:bg-[#E0E7D9] text-[#042328] border border-[#D8D8E4] cursor-pointer"
                                 title="编辑成本与风控参数"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
@@ -897,7 +897,7 @@ export default function MarketDashboardPage() {
                               <button
                                 type="button"
                                 onClick={() => void handleDeleteHolding(item.id)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 cursor-pointer"
+                                className="p-1.5 rounded-lg text-[#263844] hover:text-[#D71018] hover:bg-[#D71018]/10 cursor-pointer"
                                 title="删除持仓"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />

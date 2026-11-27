@@ -85,10 +85,10 @@ export function MorningBriefingHero({
 
   const lightBadgeCls =
     premarket?.traffic_light?.light === "GREEN"
-      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/35"
+      ? "bg-[#E0E7D9] text-[#184120] border-[#184120]/30"
       : premarket?.traffic_light?.light === "RED"
-      ? "bg-rose-500/15 text-rose-300 border-rose-500/35"
-      : "bg-amber-500/15 text-amber-300 border-amber-500/35";
+      ? "bg-[#D71018]/10 text-[#D71018] border-[#D71018]/30"
+      : "bg-amber-50 text-amber-800 border-amber-300";
 
   const previewExcerpt = premarket?.plan_markdown
     ? premarket.plan_markdown
@@ -102,27 +102,33 @@ export function MorningBriefingHero({
     : "每个交易日 08:35 自动拉取 A 股要闻、市场情绪红绿灯与个人持仓/5日观察池纪律生成全天作战计划。";
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-cyan-500/25 bg-[#0a172a]/80 p-5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="flex flex-col gap-4 rounded-2xl border border-[#D8D8E4] bg-[#FFFFFF] p-5 shadow-[0_6px_24px_rgba(4,35,40,0.04)] sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-100">
-            <Sparkles size={15} className="text-cyan-400" />
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#0F0F0F]">
+            <Sparkles size={15} className="text-[#042328]" />
             今日盘前作战总纲与盘中纪律摘要
           </span>
           {premarket?.traffic_light && (
-            <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-mono ${lightBadgeCls}`}>
+            <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-mono font-semibold ${lightBadgeCls}`}>
               {premarket.traffic_light.light === "RED" ? <ShieldAlert size={11} /> : <TrendingUp size={11} />}
               {premarket.traffic_light.label}
             </span>
           )}
           {premarket?.report_date && (
-            <span className="text-[11px] font-mono text-slate-400">{premarket.report_date}</span>
+            <span className="text-[11px] font-mono text-[#263844] bg-[#F8F8F4] border border-[#E0E0E0] px-2 py-0.5 rounded-full">
+              {premarket.report_date}
+            </span>
           )}
         </div>
-        <p className="text-xs sm:text-sm leading-relaxed text-slate-300 line-clamp-2">{previewExcerpt}</p>
-        {latestTickSummary && <p className="text-[11px] font-mono text-cyan-300/80">{latestTickSummary}</p>}
+        <p className="text-xs sm:text-sm leading-relaxed text-[#282828] line-clamp-2">{previewExcerpt}</p>
+        {latestTickSummary && (
+          <p className="text-[11px] font-mono text-[#184120] bg-[#E0E7D9]/55 inline-block px-2.5 py-0.5 rounded-lg border border-[#184120]/15">
+            {latestTickSummary}
+          </p>
+        )}
         {error && (
-          <p role="alert" className="text-xs text-amber-300">
+          <p role="alert" className="text-xs text-[#D71018]">
             {error}
           </p>
         )}
@@ -130,7 +136,7 @@ export function MorningBriefingHero({
       <div className="flex shrink-0 flex-wrap gap-2">
         <button
           onClick={onOpenReportTab}
-          className="flex items-center gap-1.5 rounded-xl border border-cyan-700/70 bg-cyan-950/30 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-900/40 transition-colors"
+          className="flex items-center gap-1.5 rounded-xl border border-[#D8D8E4] bg-[#F8F8F4] px-3.5 py-2 text-xs font-medium text-[#263844] hover:border-[#042328]/40 hover:bg-[#E0E7D9]/50 hover:text-[#0F0F0F] transition-colors cursor-pointer"
         >
           <Calendar size={14} />
           打开每日四合一看板
@@ -138,9 +144,9 @@ export function MorningBriefingHero({
         <button
           onClick={refreshPremarket}
           disabled={pending}
-          className="flex items-center gap-1.5 rounded-xl bg-cyan-700 px-3 py-2 text-xs text-white hover:bg-cyan-600 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-1.5 rounded-xl bg-[#042328] px-3.5 py-2 text-xs font-semibold text-[#FFFFF2] border border-[#184120] hover:bg-[#184120] disabled:opacity-50 transition-colors cursor-pointer"
         >
-          <RefreshCw size={14} className={pending ? "animate-spin" : ""} />
+          <RefreshCw size={14} className={pending ? "animate-spin text-[#E1F209]" : "text-[#E1F209]"} />
           {pending ? "生成中..." : "刷新盘前计划"}
         </button>
       </div>
