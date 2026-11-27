@@ -22,8 +22,9 @@ const FEATURED_LABS = [
     desc: "融合倪海厦《天纪》与《斗数全书》金标准盘，支持真太阳时、四化叠层、双人合盘与 AI 宗师流式批断。",
     href: "/experiments/ziwei",
     icon: Compass,
-    gradient: "from-amber-500/20 to-rose-600/10",
-    color: "text-amber-500",
+    hoverWash: "from-[#FFFFF2] to-[#E0E7D9]/25",
+    iconBox: "bg-[#FFFFF2] border-[#E0E7D9] text-[#282828]",
+    tagBox: "text-[#184120] bg-[#E0E7D9]/65 border-[#184120]/20",
   },
   {
     title: "AI 创意视觉工坊",
@@ -31,8 +32,9 @@ const FEATURED_LABS = [
     desc: "双通道 FLUX 极速生图负载均衡，结合 Cloudflare AI 极速算力与容灾故障切换。",
     href: "/experiments/image-studio",
     icon: Sparkles,
-    gradient: "from-purple-500/20 to-pink-600/10",
-    color: "text-purple-500",
+    hoverWash: "from-[#E0E7D9]/45 to-transparent",
+    iconBox: "bg-[#042328] border-[#042328] text-[#E1F209]",
+    tagBox: "text-[#042328] bg-[#E0E7D9]/75 border-[#184120]/20",
   },
   {
     title: "上帝之眼 · 3D 全球态势",
@@ -40,8 +42,9 @@ const FEATURED_LABS = [
     desc: "Cesium 直连 4K 高清卫星遥感，全球空天态势大屏与实时遥测。",
     href: "/experiments/gods-eye",
     icon: Globe2,
-    gradient: "from-cyan-500/20 to-blue-600/10",
-    color: "text-cyan-500",
+    hoverWash: "from-[#F2F7F9] to-transparent",
+    iconBox: "bg-[#F2F7F9] border-[#263844]/20 text-[#263844]",
+    tagBox: "text-[#263844] bg-[#F2F7F9] border-[#D8D8E4]",
   },
   {
     title: "霓虹流体与物理粒子",
@@ -49,8 +52,9 @@ const FEATURED_LABS = [
     desc: "Navier-Stokes 流体力学模拟，指尖触控丝绸光束与能量涡旋。",
     href: "/experiments/fluid",
     icon: Droplets,
-    gradient: "from-purple-500/20 to-pink-600/10",
-    color: "text-pink-500",
+    hoverWash: "from-[#E0E7D9]/50 to-transparent",
+    iconBox: "bg-[#E0E7D9] border-[#184120]/20 text-[#184120]",
+    tagBox: "text-[#184120] bg-[#E0E7D9]/70 border-[#184120]/20",
   },
   {
     title: "赛博黑客渗透终端",
@@ -58,8 +62,9 @@ const FEATURED_LABS = [
     desc: "沉浸式命令行入侵与节点探测，全息数字雨与 CRT 显像管音效。",
     href: "/experiments/cyber-hack",
     icon: Terminal,
-    gradient: "from-emerald-500/20 to-teal-600/10",
-    color: "text-emerald-500",
+    hoverWash: "from-[#E0E7D9]/45 to-transparent",
+    iconBox: "bg-[#042328] border-[#042328] text-[#33DD18]",
+    tagBox: "text-[#042328] bg-[#E0E7D9]/75 border-[#184120]/20",
   },
   {
     title: "AI 智能体虚拟小镇",
@@ -67,8 +72,9 @@ const FEATURED_LABS = [
     desc: "像素风自治社区，NPC 自主社交八卦，可直接交谈或发起广播。",
     href: "/experiments/ai-town",
     icon: Users,
-    gradient: "from-amber-500/20 to-orange-600/10",
-    color: "text-amber-500",
+    hoverWash: "from-[#FFFFF2] to-[#F2F7F9]/35",
+    iconBox: "bg-[#FFFFF2] border-[#E0E7D9] text-[#282828]",
+    tagBox: "text-[#263844] bg-[#F2F7F9] border-[#D8D8E4]",
   },
   {
     title: "地理大侦探 · 街景寻踪",
@@ -76,8 +82,9 @@ const FEATURED_LABS = [
     desc: "GeoGuessr 风格探案竞猜，勘查实景蛛丝马迹在世界地图插旗。",
     href: "/experiments/geo-detective",
     icon: Compass,
-    gradient: "from-sky-500/20 to-indigo-600/10",
-    color: "text-sky-500",
+    hoverWash: "from-[#F2F7F9] to-transparent",
+    iconBox: "bg-[#F2F7F9] border-[#263844]/20 text-[#263844]",
+    tagBox: "text-[#263844] bg-[#F2F7F9] border-[#D8D8E4]",
   },
   {
     title: "手势多模态视效空间",
@@ -85,8 +92,9 @@ const FEATURED_LABS = [
     desc: "摄像头实时手势识别，张开/握拳导引万颗发光粒子与音画律动。",
     href: "/gesture",
     icon: Hand,
-    gradient: "from-violet-500/20 to-purple-600/10",
-    color: "text-violet-500",
+    hoverWash: "from-[#E0E7D9]/45 to-transparent",
+    iconBox: "bg-[#042328] border-[#042328] text-[#E1F209]",
+    tagBox: "text-[#184120] bg-[#E0E7D9]/70 border-[#184120]/20",
   },
 ];
 
@@ -96,8 +104,8 @@ export function InteractiveLabShowcase() {
       {/* 模块标题与描述 */}
       <Reveal className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#263844] uppercase tracking-widest mb-1.5">
-            <Sparkles className="w-4 h-4 text-[#263844]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E0E7D9]/65 border border-[#184120]/20 text-xs font-mono font-bold text-[#184120] uppercase tracking-widest mb-2.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#184120]" />
             <span>PLAYABLE EXPERIMENTS // 强互动极客工坊</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
@@ -110,7 +118,7 @@ export function InteractiveLabShowcase() {
 
         <HoverPrefetchLink
           href="/experiments"
-          className="shimmer-beam inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#D8D8E4] bg-[#FFFFFF] text-xs font-semibold text-[#0F0F0F] hover:border-[#0F0F0F] hover:bg-[#F8F8F8] shadow-2xs transition-all"
+          className="shimmer-beam inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#184120]/25 bg-[#E0E7D9]/45 text-xs font-semibold text-[#042328] hover:bg-[#042328] hover:text-[#FFFFF2] hover:border-[#042328] shadow-2xs transition-all"
         >
           <span>探索全部 9 款实验</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -123,28 +131,28 @@ export function InteractiveLabShowcase() {
           const Icon = lab.icon;
           return (
             <Reveal key={lab.title} delay={idx * 0.05}>
-              <SpotlightCard className="h-full rounded-3xl border border-[#E4E4E8] bg-[#FFFFFF] shadow-[0_1px_2px_rgba(15,15,15,0.03),0_8px_24px_-8px_rgba(38,56,68,0.06)] hover:shadow-xl hover:border-[#C8C8C8] hover:-translate-y-1 transition-all duration-300">
+              <SpotlightCard className="h-full rounded-3xl border border-[#E4E4E8] bg-[#FFFFFF] shadow-[0_1px_2px_rgba(4,35,40,0.04),0_8px_24px_-8px_rgba(38,56,68,0.07)] hover:shadow-xl hover:border-[#184120]/30 hover:-translate-y-1 transition-all duration-300">
                 <HoverPrefetchLink
                   href={lab.href}
                   className="group relative flex h-full flex-col justify-between p-5 sm:p-6 overflow-hidden"
                 >
-                  {/* 极简冷雾背景 Hover 层次 */}
+                  {/* 主题感柔和 Hover 层次 */}
                   <div
-                    className="absolute inset-0 bg-gradient-to-br from-[#F2F7F9]/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    className={`absolute inset-0 bg-gradient-to-br ${lab.hoverWash} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
                   />
 
                   <div className="relative z-10 space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0F0F0F] text-[#FFFFFF] shadow-sm group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
-                        <Icon className="h-5 w-5 text-[#FFFFFF]" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border shadow-sm group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 ${lab.iconBox}`}>
+                        <Icon className="h-5 w-5" />
                       </div>
-                      <span className="text-[10px] font-mono font-bold text-[#263844] bg-[#F2F7F9] border border-[#D8D8E4] px-2.5 py-0.5 rounded-full">
+                      <span className={`text-[10px] font-mono font-bold border px-2.5 py-0.5 rounded-full ${lab.tagBox}`}>
                         {lab.tag}
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="text-base font-bold text-[#0F0F0F] group-hover:text-[#263844] transition-colors">
+                      <h3 className="text-base font-bold text-[#0F0F0F] group-hover:text-[#042328] transition-colors">
                         {lab.title}
                       </h3>
                       <p className="text-xs text-[#5C6873] mt-1 line-clamp-2 leading-relaxed">
@@ -154,12 +162,12 @@ export function InteractiveLabShowcase() {
                   </div>
 
                   {/* 底部启动体验引导 */}
-                  <div className="relative z-10 pt-4 mt-4 border-t border-[#E4E4E8] flex items-center justify-between text-xs font-semibold text-[#282828] group-hover:text-[#0F0F0F] transition-colors">
+                  <div className="relative z-10 pt-4 mt-4 border-t border-[#E4E4E8] flex items-center justify-between text-xs font-semibold text-[#282828] group-hover:text-[#042328] transition-colors">
                     <span className="flex items-center gap-1.5">
-                      <Play className="w-3.5 h-3.5 text-[#0F0F0F] fill-[#0F0F0F]" />
+                      <Play className="w-3.5 h-3.5 text-[#184120] fill-[#184120]" />
                       <span>立即启动试玩</span>
                     </span>
-                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform text-[#5C6873] group-hover:text-[#0F0F0F]" />
+                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform text-[#5C6873] group-hover:text-[#184120]" />
                   </div>
                 </HoverPrefetchLink>
               </SpotlightCard>

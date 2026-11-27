@@ -158,22 +158,22 @@ function SignalKlineBody({
   const inspectBar = inspectIdx >= 0 ? bars[inspectIdx] : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F0F0F]/40 backdrop-blur-sm p-3 sm:p-5 overflow-y-auto">
-      <div className="w-full max-w-5xl rounded-2xl bg-[#FFFFFF] border border-[#E4E4E8] text-[#0F0F0F] shadow-[0_24px_72px_rgba(15,15,15,0.16)] overflow-hidden my-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E4E4E8] bg-[#FFFFFF] text-[#0F0F0F]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#042328]/45 backdrop-blur-sm p-3 sm:p-5 overflow-y-auto">
+      <div className="w-full max-w-5xl rounded-2xl bg-[#FFFFFF] border border-[#E4E4E8] text-[#0F0F0F] shadow-[0_24px_72px_rgba(4,35,40,0.22)] overflow-hidden my-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-[#184120]/25 bg-gradient-to-r from-[#042328] via-[#0E262B] to-[#263844] text-[#FFFFF2]">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-base font-bold text-[#0F0F0F]">
-              {stockName} <span className="font-mono text-[#263844]">{stockCode}</span>
+            <span className="text-base font-bold text-[#FFFFF2]">
+              {stockName} <span className="font-mono text-[#E1F209]">{stockCode}</span>
             </span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#F2F7F9] text-[#263844] border border-[#D8D8E4] font-mono">
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-[#E0E7D9] border border-white/15 font-mono">
               模拟账户日 K 线 &amp; 买卖点复盘 (MA5/10/20)
             </span>
             {activeTrade && (
               <span
                 className={`text-[11px] px-2.5 py-0.5 rounded-full font-mono font-bold border ${
                   activeTrade.status === "OPEN" || activeTrade.pnl_pct >= 0
-                    ? "bg-[#D71018]/[0.06] text-[#D71018] border-[#D71018]/25"
-                    : "bg-[#E0E7D9]/55 text-[#184120] border-[#184120]/20"
+                    ? "bg-[#D71018]/20 text-[#FFFFFF] border-[#D71018]/50"
+                    : "bg-[#33DD18]/15 text-[#E0E7D9] border-[#33DD18]/40"
                 }`}
               >
                 {activeTrade.status === "OPEN" ? "模拟持仓中" : "已结算"} ·{" "}
@@ -185,7 +185,7 @@ function SignalKlineBody({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#5C6873] hover:text-[#0F0F0F] hover:bg-[#F8F8F8] cursor-pointer"
+            className="p-1.5 rounded-lg text-[#E0E7D9] hover:text-[#FFFFFF] hover:bg-white/10 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>

@@ -38,23 +38,23 @@ export const WorkflowIntro = React.memo(function WorkflowIntro({ onSelectPreset 
   };
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-900/10 bg-gradient-to-b from-white/90 via-white/70 to-white/50 p-6 md:p-8  shadow-xs">
+    <div className="relative overflow-hidden rounded-3xl border border-[#E4E4E8] border-t-4 border-t-[#042328] bg-[#FFFFFF]/95 p-6 md:p-8 shadow-[0_8px_28px_-8px_rgba(4,35,40,0.08)]">
       {/* 装饰光斑背景 */}
 
       <div className="relative z-10 space-y-6">
         {/* 顶部标签与标题 */}
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-800">
-            <Sparkles className="h-3.5 w-3.5 text-cyan-600 animate-pulse" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#184120]/20 bg-[#E0E7D9]/70 px-3.5 py-1 text-xs font-semibold text-[#184120]">
+            <Sparkles className="h-3.5 w-3.5 text-[#184120] animate-pulse" />
             <span>工业级内容生产流水线 · 电影级视觉分镜与角色立绘</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-[#0F0F0F]">
             自动化小说与{" "}
             <span className="text-gradient">AI 视频分镜工业化工作流</span>
           </h1>
 
-          <p className="max-w-3xl text-sm sm:text-base text-slate-600 leading-relaxed">
+          <p className="max-w-3xl text-sm sm:text-base text-[#282828] leading-relaxed">
             将初始故事灵感无缝转化为高商业价值的网文全案与电影级视频分镜。
             贯穿<strong>「世界观细纲 Bible」</strong>、<strong>「长文本连续正文」</strong>、
             <strong>「主角立绘与电影海报」</strong>、<strong>「可灵/Runway 分镜提示词」</strong>、
@@ -64,43 +64,43 @@ export const WorkflowIntro = React.memo(function WorkflowIntro({ onSelectPreset 
 
         {/* 工业化核心特性微徽标 */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-          <div className="flex items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white/60 p-3 shadow-2xs">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600">
+          <div className="flex items-center gap-2.5 rounded-2xl border border-[#E0E7D9] bg-[#F8F8F4] p-3 shadow-2xs">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#E0E7D9] text-[#184120]">
               <Layers className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-900">上下文接力</p>
-              <p className="text-[11px] text-muted-foreground">事实滚动摘要记忆</p>
+              <p className="text-xs font-bold text-[#0F0F0F]">上下文接力</p>
+              <p className="text-[11px] text-[#5C6873]">事实滚动摘要记忆</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white/60 p-3 shadow-2xs">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="flex items-center gap-2.5 rounded-2xl border border-[#D8D8E4] bg-[#F2F7F9]/60 p-3 shadow-2xs">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844]">
               <Clapperboard className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-900">电影级分镜</p>
-              <p className="text-[11px] text-muted-foreground">高精度中英视频Prompt</p>
+              <p className="text-xs font-bold text-[#0F0F0F]">电影级分镜</p>
+              <p className="text-[11px] text-[#5C6873]">高精度中英视频Prompt</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white/60 p-3 shadow-2xs">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+          <div className="flex items-center gap-2.5 rounded-2xl border border-[#E0E7D9] bg-[#FFFFF2] p-3 shadow-2xs">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#042328] text-[#E1F209]">
               <Zap className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-900">去 AI 味短句</p>
-              <p className="text-[11px] text-muted-foreground">15字短句+对白攻击性</p>
+              <p className="text-xs font-bold text-[#0F0F0F]">去 AI 味短句</p>
+              <p className="text-[11px] text-[#5C6873]">15字短句+对白攻击性</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white/60 p-3 shadow-2xs">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+          <div className="flex items-center gap-2.5 rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF] p-3 shadow-2xs">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#E0E7D9]/75 text-[#184120]">
               <Cpu className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-900">云端书架绑定</p>
-              <p className="text-[11px] text-muted-foreground">专属账户全资产持久化</p>
+              <p className="text-xs font-bold text-[#0F0F0F]">云端书架绑定</p>
+              <p className="text-[11px] text-[#5C6873]">专属账户全资产持久化</p>
             </div>
           </div>
         </div>
@@ -109,20 +109,20 @@ export const WorkflowIntro = React.memo(function WorkflowIntro({ onSelectPreset 
         <div className="pt-2">
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#042328]">
                 100+ 爆款赛道灵感库（点击一键载入设定）
               </span>
-              <span className="text-[10px] text-slate-400 font-mono">随机抽取中</span>
+              <span className="text-[10px] text-[#5C6873] font-mono">随机抽取中</span>
             </div>
             <button
               type="button"
               onClick={handleRefresh}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/80 border border-slate-200 text-slate-700 hover:text-cyan-700 hover:border-cyan-500/40 text-xs font-medium shadow-2xs transition-all cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844] hover:text-[#042328] hover:border-[#184120]/40 text-xs font-medium shadow-2xs transition-all cursor-pointer"
               title="换一批爆款灵感"
             >
               <RotateCw
                 className={`w-3.5 h-3.5 transition-transform duration-500 ${
-                  isRotating ? "rotate-180 text-cyan-600" : ""
+                  isRotating ? "rotate-180 text-[#184120]" : ""
                 }`}
               />
               <span>换一批灵感</span>
@@ -135,25 +135,25 @@ export const WorkflowIntro = React.memo(function WorkflowIntro({ onSelectPreset 
                 key={preset.id}
                 type="button"
                 onClick={() => onSelectPreset?.(preset.prompt, preset.genre, preset.style)}
-                className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white/70 p-3.5 text-left transition-all hover:border-cyan-500/40 hover:bg-white hover:shadow-sm cursor-pointer"
+                className="group relative flex flex-col justify-between rounded-2xl border border-[#E4E4E8] bg-[#F8F8F4] p-3.5 text-left transition-all hover:border-[#184120]/40 hover:bg-[#FFFFFF] hover:shadow-sm cursor-pointer"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+                    <span className="rounded-md bg-[#E0E7D9]/75 px-2 py-0.5 text-[10px] font-medium text-[#184120]">
                       {preset.genre}
                     </span>
-                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:text-cyan-600 group-hover:translate-x-0.5 transition-all" />
+                    <ArrowRight className="h-3.5 w-3.5 text-[#5C6873] group-hover:text-[#184120] group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <h2 className="text-xs font-bold text-slate-800 group-hover:text-cyan-700 transition-colors">
+                  <h2 className="text-xs font-bold text-[#0F0F0F] group-hover:text-[#042328] transition-colors">
                     {preset.title}
                   </h2>
-                  <p className="line-clamp-2 text-[11px] text-slate-500 leading-relaxed">
+                  <p className="line-clamp-2 text-[11px] text-[#5C6873] leading-relaxed">
                     {preset.prompt}
                   </p>
                 </div>
-                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                <div className="mt-2 pt-2 border-t border-[#E4E4E8] flex items-center justify-between text-[10px] text-[#5C6873]">
                   <span className="truncate max-w-[150px]">{preset.protagonist}</span>
-                  <span className="text-cyan-600 font-semibold group-hover:underline">载入 &rarr;</span>
+                  <span className="text-[#184120] font-semibold group-hover:underline">载入 &rarr;</span>
                 </div>
               </button>
             ))}

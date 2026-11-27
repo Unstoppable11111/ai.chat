@@ -12,18 +12,18 @@ export function WorkspaceLogin({ configured }: { configured: boolean }) {
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center p-4 pt-24 relative overflow-hidden bg-[#F8F8F8] text-[#0F0F0F]">
-      {/* 柔和冷灰氛围背景 */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-[#D8D8E4]/35 blur-[110px] rounded-full pointer-events-none" />
+    <div className="min-h-[85vh] flex items-center justify-center p-4 pt-24 relative overflow-hidden bg-[#F8F8F4] text-[#0F0F0F]">
+      {/* 柔和雾绿与冷灰氛围背景 */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-[#E0E7D9]/55 blur-[110px] rounded-full pointer-events-none" />
 
-      <div className="w-full max-w-md rounded-3xl bg-[#FFFFFF] border border-[#E4E4E8] p-7 sm:p-8 shadow-[0_12px_40px_-12px_rgba(38,56,68,0.1)] relative z-10 space-y-6 animate-in fade-in zoom-in-95 duration-300">
+      <div className="w-full max-w-md rounded-3xl bg-[#FFFFFF] border border-[#E4E4E8] border-t-4 border-t-[#042328] p-7 sm:p-8 shadow-[0_12px_40px_-12px_rgba(4,35,40,0.14)] relative z-10 space-y-6 animate-in fade-in zoom-in-95 duration-300">
         {/* 顶部系统标识 */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844] text-xs font-mono font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-[#263844]" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E0E7D9]/75 border border-[#184120]/20 text-[#184120] text-xs font-mono font-semibold">
+            <Sparkles className="w-3.5 h-3.5 text-[#184120]" />
             CHEN TECH STUDIO · 量化投研终端
           </div>
-          <h1 className="text-2xl font-black text-[#0F0F0F] tracking-tight">
+          <h1 className="text-2xl font-black text-[#042328] tracking-tight">
             {register ? "创建量化投研账号" : "登录投研工作台"}
           </h1>
           <p className="text-xs text-[#5C6873]">
@@ -32,7 +32,7 @@ export function WorkspaceLogin({ configured }: { configured: boolean }) {
         </div>
 
         {/* 登录 / 注册 模式快速切换分段器 */}
-        <div className="grid grid-cols-2 p-1 rounded-xl bg-[#F8F8F8] border border-[#E0E0E0] text-xs">
+        <div className="grid grid-cols-2 p-1 rounded-xl bg-[#F8F8F4] border border-[#E4E4E8] text-xs">
           <button
             type="button"
             onClick={() => {
@@ -41,8 +41,8 @@ export function WorkspaceLogin({ configured }: { configured: boolean }) {
             }}
             className={`py-2 rounded-lg font-semibold transition-all cursor-pointer ${
               !register
-                ? "bg-[#0F0F0F] text-[#FFFFFF] shadow-sm"
-                : "text-[#5C6873] hover:text-[#0F0F0F]"
+                ? "bg-[#042328] text-[#FFFFF2] shadow-sm"
+                : "text-[#5C6873] hover:text-[#042328]"
             }`}
           >
             账号登录
@@ -55,8 +55,8 @@ export function WorkspaceLogin({ configured }: { configured: boolean }) {
             }}
             className={`py-2 rounded-lg font-semibold transition-all cursor-pointer ${
               register
-                ? "bg-[#0F0F0F] text-[#FFFFFF] shadow-sm"
-                : "text-[#5C6873] hover:text-[#0F0F0F]"
+                ? "bg-[#042328] text-[#FFFFF2] shadow-sm"
+                : "text-[#5C6873] hover:text-[#042328]"
             }`}
           >
             快速注册
@@ -160,18 +160,18 @@ export function WorkspaceLogin({ configured }: { configured: boolean }) {
           <button
             type="submit"
             disabled={!configured || busy}
-            className="w-full mt-2 py-3 px-4 rounded-xl bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] font-bold text-xs shadow-[0_6px_18px_rgba(15,15,15,0.16)] border border-[#0F0F0F] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full mt-2 py-3 px-4 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] font-bold text-xs shadow-[0_8px_20px_rgba(4,35,40,0.22)] border border-[#042328] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {busy ? (
               <span>正在安全验证中...</span>
             ) : register ? (
               <>
                 <span>立即注册并登录</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#FFFFFF]" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#E1F209]" />
               </>
             ) : (
               <>
-                <LockKeyhole className="w-3.5 h-3.5 text-[#FFFFFF]" />
+                <LockKeyhole className="w-3.5 h-3.5 text-[#E1F209]" />
                 <span>安全登录工作台</span>
               </>
             )}

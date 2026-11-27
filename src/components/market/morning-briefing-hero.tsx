@@ -102,11 +102,11 @@ export function MorningBriefingHero({
     : "每个交易日 08:35 自动拉取 A 股要闻、市场情绪红绿灯与个人持仓/5日观察池纪律生成全天作战计划。";
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF] p-5 shadow-[0_1px_2px_rgba(15,15,15,0.03),0_8px_24px_-8px_rgba(38,56,68,0.06)] sm:flex-row sm:items-center sm:justify-between">
+    <section className="flex flex-col gap-4 rounded-2xl border border-[#E4E4E8] border-l-4 border-l-[#042328] bg-[#FFFFFF] p-5 shadow-[0_1px_2px_rgba(4,35,40,0.04),0_8px_24px_-8px_rgba(38,56,68,0.07)] sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#0F0F0F]">
-            <Sparkles size={15} className="text-[#263844]" />
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#042328]">
+            <Sparkles size={15} className="text-[#184120]" />
             今日盘前作战总纲与盘中纪律摘要
           </span>
           {premarket?.traffic_light && (
@@ -116,7 +116,7 @@ export function MorningBriefingHero({
             </span>
           )}
           {premarket?.report_date && (
-            <span className="text-[11px] font-mono text-[#5C6873] bg-[#F8F8F8] border border-[#E0E0E0] px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-mono text-[#263844] bg-[#F8F8F4] border border-[#E4E4E8] px-2 py-0.5 rounded-full">
               {premarket.report_date}
             </span>
           )}
@@ -136,7 +136,7 @@ export function MorningBriefingHero({
       <div className="flex shrink-0 flex-wrap gap-2">
         <button
           onClick={onOpenReportTab}
-          className="flex items-center gap-1.5 rounded-xl border border-[#E0E0E0] bg-[#FFFFFF] px-3.5 py-2 text-xs font-medium text-[#282828] hover:border-[#0F0F0F] hover:bg-[#F8F8F8] transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 rounded-xl border border-[#D8D8E4] bg-[#F2F7F9] px-3.5 py-2 text-xs font-medium text-[#263844] hover:border-[#263844] hover:bg-[#FFFFFF] transition-colors cursor-pointer"
         >
           <Calendar size={14} />
           打开每日四合一看板
@@ -144,9 +144,9 @@ export function MorningBriefingHero({
         <button
           onClick={refreshPremarket}
           disabled={pending}
-          className="flex items-center gap-1.5 rounded-xl bg-[#0F0F0F] px-3.5 py-2 text-xs font-semibold text-[#FFFFFF] border border-[#0F0F0F] hover:bg-[#282828] disabled:opacity-50 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 rounded-xl bg-[#042328] px-3.5 py-2 text-xs font-semibold text-[#FFFFF2] border border-[#042328] hover:bg-[#184120] disabled:opacity-50 transition-colors cursor-pointer"
         >
-          <RefreshCw size={14} className={pending ? "animate-spin text-[#FFFFFF]" : "text-[#FFFFFF]"} />
+          <RefreshCw size={14} className={pending ? "animate-spin text-[#E1F209]" : "text-[#E1F209]"} />
           {pending ? "生成中..." : "刷新盘前计划"}
         </button>
       </div>

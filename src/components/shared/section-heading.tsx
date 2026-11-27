@@ -22,9 +22,9 @@ export function SectionHeading({
     <Reveal className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between" distance={16}>
       <div className="max-w-2xl">
         {eyebrow ? (
-          <div className="mb-3 inline-flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#263844]" />
-            <p className="text-xs font-mono font-medium uppercase tracking-[0.22em] text-[#263844]">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#184120]/20 bg-[#E0E7D9]/65 px-3 py-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#184120]" />
+            <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-[#184120]">
               {eyebrow}
             </p>
           </div>

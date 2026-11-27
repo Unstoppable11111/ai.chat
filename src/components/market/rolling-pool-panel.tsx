@@ -447,9 +447,9 @@ export function RollingPoolPanel({ onConverted, onTriggerAi, onNotify }: Rolling
             type="button"
             onClick={handleRunScreener}
             disabled={busyAction !== null}
-            className="px-3.5 py-1.5 rounded-xl bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] border border-[#0F0F0F] text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-3.5 py-1.5 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] border border-[#042328] text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#FFFFFF]" />
+            <Sparkles className="w-3.5 h-3.5 text-[#E1F209]" />
             <span>{busyAction === "screener" ? "全市场扫描中..." : "立即执行盘后选股轮动"}</span>
           </button>
         </div>
@@ -563,7 +563,7 @@ export function RollingPoolPanel({ onConverted, onTriggerAi, onNotify }: Rolling
             <button
               type="submit"
               disabled={busyAction === "add"}
-              className="px-4 py-2 rounded-lg bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] font-bold cursor-pointer"
+              className="px-4 py-2 rounded-lg bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] font-bold cursor-pointer"
             >
               {busyAction === "add" ? "计算点位中..." : "加入观察池"}
             </button>
@@ -798,9 +798,9 @@ export function RollingPoolPanel({ onConverted, onTriggerAi, onNotify }: Rolling
             type="button"
             onClick={() => void handleSyncSignals()}
             disabled={busyAction !== null}
-            className="px-3 py-1.5 rounded-xl bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] border border-[#0F0F0F] text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0 disabled:opacity-50"
+            className="px-3 py-1.5 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] border border-[#042328] text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0 disabled:opacity-50"
           >
-            <Activity className="w-3.5 h-3.5 text-[#FFFFFF]" />
+            <Activity className="w-3.5 h-3.5 text-[#E1F209]" />
             <span>{busyAction === "sync-signals" ? "同步巡检中..." : "立即同步模拟买卖"}</span>
           </button>
         </div>
@@ -1068,7 +1068,7 @@ export function RollingPoolPanel({ onConverted, onTriggerAi, onNotify }: Rolling
               <button
                 type="submit"
                 disabled={busyAction !== null}
-                className="px-4 py-1.5 rounded-lg bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] font-bold cursor-pointer"
+                className="px-4 py-1.5 rounded-lg bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] font-bold cursor-pointer"
               >
                 确认买入入仓
               </button>

@@ -98,9 +98,9 @@ export function NavigationProgress() {
     <>
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-0 z-[80] h-[3px] overflow-hidden bg-sky-500/15"
+        className="pointer-events-none fixed inset-x-0 top-0 z-[80] h-[3px] overflow-hidden bg-[#E0E7D9]/60"
       >
-        <div className="h-full w-1/2 animate-[nav-progress_0.9s_ease-in-out_infinite] bg-gradient-to-r from-sky-500 via-violet-500 to-emerald-400" />
+        <div className="h-full w-1/2 animate-[nav-progress_0.9s_ease-in-out_infinite] bg-gradient-to-r from-[#042328] via-[#184120] to-[#33DD18]" />
       </div>
       {/* 点击后超过 250ms 仍未完成跳转时，显示明确的“正在打开”提示，避免用户误以为点击无效 */}
       {slow && (
@@ -108,8 +108,8 @@ export function NavigationProgress() {
           role="status"
           className="pointer-events-none fixed left-1/2 top-20 z-[80] -translate-x-1/2 animate-in fade-in slide-in-from-top-2 duration-200"
         >
-          <div className="flex items-center gap-2 rounded-full border border-sky-200/80 bg-white/95 px-3.5 py-1.5 text-xs font-medium text-slate-700 shadow-lg backdrop-blur-xl">
-            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+          <div className="flex items-center gap-2 rounded-full border border-[#E0E7D9] bg-[#FFFFFF]/96 px-3.5 py-1.5 text-xs font-medium text-[#042328] shadow-lg backdrop-blur-xl">
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#184120] border-t-transparent" />
             <span>正在打开页面…</span>
           </div>
         </div>

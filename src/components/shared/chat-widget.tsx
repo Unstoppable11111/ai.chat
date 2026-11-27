@@ -195,26 +195,26 @@ export function ChatWidget() {
         <div
           role="dialog"
           aria-label="JARVIS 主动对话邀请"
-          className="fixed bottom-[5.75rem] right-4 sm:bottom-[6.5rem] sm:right-6 z-40 w-[290px] sm:w-[320px] rounded-2xl border border-sky-200/80 bg-white/95 backdrop-blur-xl p-3.5 shadow-[0_18px_42px_-12px_rgba(14,165,233,0.28)] animate-in fade-in slide-in-from-bottom-3 duration-200"
+          className="fixed bottom-[5.75rem] right-4 sm:bottom-[6.5rem] sm:right-6 z-40 w-[290px] sm:w-[320px] rounded-2xl border border-[#E0E7D9] bg-[#FFFFFF]/96 backdrop-blur-xl p-3.5 shadow-[0_18px_42px_-12px_rgba(4,35,40,0.18)] animate-in fade-in slide-in-from-bottom-3 duration-200"
         >
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-1.5">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-tr from-sky-500 to-indigo-500 text-white shadow-2xs">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-tr from-[#042328] to-[#184120] text-[#E1F209] shadow-2xs">
                 <Sparkles className="h-3 w-3" />
               </span>
-              <span className="text-[11px] font-semibold text-slate-800">JARVIS 主动搭话</span>
+              <span className="text-[11px] font-semibold text-[#042328]">JARVIS 主动搭话</span>
             </div>
             <button
               type="button"
               aria-label="关闭主动提示"
               onClick={dismissProactiveBubble}
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+              className="rounded-full p-1 text-[#5C6873] hover:bg-[#E0E7D9]/45 hover:text-[#042328] transition-colors cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          <p className="text-xs leading-relaxed text-slate-600">
+          <p className="text-xs leading-relaxed text-[#282828]">
             {proactiveBubble.text}
           </p>
 
@@ -230,15 +230,15 @@ export function ChatWidget() {
                 setDraft(prompt);
                 setOpen(true);
               }}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-xs transition-all cursor-pointer"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#042328] hover:bg-[#184120] px-3 py-1.5 text-xs font-semibold text-[#FFFFF2] shadow-xs transition-all cursor-pointer"
             >
-              <MessageSquarePlus className="h-3.5 w-3.5" />
+              <MessageSquarePlus className="h-3.5 w-3.5 text-[#E1F209]" />
               <span>聊一聊</span>
             </button>
             <button
               type="button"
               onClick={dismissProactiveBubble}
-              className="rounded-xl border border-slate-200/90 bg-slate-50/80 hover:bg-slate-100 px-3 py-1.5 text-xs text-slate-600 transition-colors cursor-pointer"
+              className="rounded-xl border border-[#E4E4E8] bg-[#F8F8F4] hover:bg-[#E0E7D9]/45 px-3 py-1.5 text-xs text-[#263844] transition-colors cursor-pointer"
             >
               稍后再说
             </button>
@@ -268,18 +268,18 @@ export function ChatWidget() {
             setProactiveBubble(null);
             setOpen(true);
           }}
-          className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 flex h-14 w-14 sm:h-16 sm:w-16 items-end justify-center cursor-pointer group select-none outline-none transition-transform duration-300 hover:-translate-y-1 hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-sky-400 rounded-3xl"
+          className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 flex h-14 w-14 sm:h-16 sm:w-16 items-end justify-center cursor-pointer group select-none outline-none transition-transform duration-300 hover:-translate-y-1 hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#184120] rounded-3xl"
         >
           {/* 地面柔影：随悬停收缩，增强悬浮感 */}
           <span
             aria-hidden="true"
-            className="absolute bottom-0 left-1/2 h-2 w-9 -translate-x-1/2 rounded-full bg-slate-900/15 blur-[3px] transition-all duration-300 group-hover:w-6 group-hover:opacity-60"
+            className="absolute bottom-0 left-1/2 h-2 w-9 -translate-x-1/2 rounded-full bg-[#042328]/15 blur-[3px] transition-all duration-300 group-hover:w-6 group-hover:opacity-60"
           />
-          <RobotPet waving={hasUnreadReply || Boolean(proactiveBubble)} size={64} className="relative h-full w-full drop-shadow-[0_8px_14px_rgba(56,130,246,0.35)]" />
+          <RobotPet waving={hasUnreadReply || Boolean(proactiveBubble)} size={64} className="relative h-full w-full drop-shadow-[0_8px_14px_rgba(4,35,40,0.22)]" />
           {hasUnreadReply && (
             <span className="absolute top-0 right-0 flex h-3.5 w-3.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-500 border-2 border-white"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#33DD18] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#184120] border-2 border-[#FFFFFF]"></span>
             </span>
           )}
         </button>
@@ -287,7 +287,7 @@ export function ChatWidget() {
       {/* 弹窗打开时的全屏背景遮罩（点击即可顺滑关闭，彻底防止移动端无法退出） */}
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-[2px] animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-[#042328]/35 backdrop-blur-[2px] animate-in fade-in duration-200"
           onClick={() => {
             setOpen(false);
             setTimeout(() => trigger.current?.focus(), 0);
@@ -310,23 +310,23 @@ export function ChatWidget() {
               setTimeout(() => trigger.current?.focus(), 0);
             }
           }}
-          className="fixed inset-x-0 bottom-0 z-[60] flex h-[86dvh] max-h-[86dvh] w-full flex-col overflow-hidden rounded-t-[28px] border-t border-sky-100 bg-gradient-to-b from-sky-50/95 via-white to-white shadow-[0_-20px_60px_-20px_rgba(56,130,246,0.35)] backdrop-blur-xl animate-in slide-in-from-bottom duration-200 sm:fixed sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[640px] sm:w-[420px] sm:max-h-[calc(100dvh-5rem)] sm:rounded-[28px] sm:border sm:border-sky-100 sm:shadow-[0_30px_80px_-24px_rgba(56,130,246,0.45)]"
+          className="fixed inset-x-0 bottom-0 z-[60] flex h-[86dvh] max-h-[86dvh] w-full flex-col overflow-hidden rounded-t-[28px] border-t border-[#E0E7D9] bg-gradient-to-b from-[#F2F7F9]/85 via-[#FFFFFF] to-[#FFFFFF] shadow-[0_-20px_60px_-20px_rgba(4,35,40,0.26)] backdrop-blur-xl animate-in slide-in-from-bottom duration-200 sm:fixed sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[640px] sm:w-[420px] sm:max-h-[calc(100dvh-5rem)] sm:rounded-[28px] sm:border sm:border-[#E0E7D9] sm:shadow-[0_30px_80px_-24px_rgba(4,35,40,0.3)]"
         >
           {/* 移动端顶部的拖拽/滑动手柄（直观呈现可滑动/可收起意图） */}
-          <div className="w-10 h-1 rounded-full bg-slate-300 mx-auto mt-2 shrink-0 sm:hidden" />
+          <div className="w-10 h-1 rounded-full bg-[#C8C8C8] mx-auto mt-2 shrink-0 sm:hidden" />
 
           {/* 顶部标头：渐变光晕背景 + 桌宠头像 + 在线状态 + 关闭按钮 */}
-          <div className="relative flex items-center justify-between px-4 py-3 shrink-0 overflow-hidden">
-            <div aria-hidden="true" className="pointer-events-none absolute -top-10 -left-8 h-28 w-40 rounded-full bg-sky-300/30 blur-2xl" />
-            <div aria-hidden="true" className="pointer-events-none absolute -top-12 right-0 h-28 w-36 rounded-full bg-indigo-300/25 blur-2xl" />
+          <div className="relative flex items-center justify-between px-4 py-3 shrink-0 overflow-hidden border-b border-[#E4E4E8]/80">
+            <div aria-hidden="true" className="pointer-events-none absolute -top-10 -left-8 h-28 w-40 rounded-full bg-[#E0E7D9]/55 blur-2xl" />
+            <div aria-hidden="true" className="pointer-events-none absolute -top-12 right-0 h-28 w-36 rounded-full bg-[#F2F7F9]/80 blur-2xl" />
             <div className="relative flex items-center gap-2.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 shadow-[0_6px_16px_-6px_rgba(56,130,246,0.5)] ring-1 ring-sky-100">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FFFFFF]/95 shadow-[0_6px_16px_-6px_rgba(4,35,40,0.22)] ring-1 ring-[#E0E7D9]">
                 <RobotPet size={38} />
               </div>
               <div className="leading-tight">
-                <div className="text-sm font-bold text-slate-900">JARVIS 贾维斯</div>
-                <div className="mt-0.5 flex items-center gap-1 text-[11px] text-emerald-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="text-sm font-bold text-[#042328]">JARVIS 贾维斯</div>
+                <div className="mt-0.5 flex items-center gap-1 text-[11px] text-[#184120] font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#33DD18] animate-pulse" />
                   在线 · 随时为你解答
                 </div>
               </div>
@@ -341,7 +341,7 @@ export function ChatWidget() {
                 setOpen(false);
                 setTimeout(() => trigger.current?.focus(), 0);
               }}
-              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white/80 hover:bg-white active:scale-95 text-slate-600 hover:text-slate-900 transition-all cursor-pointer shadow-sm ring-1 ring-slate-200/70"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#FFFFFF]/90 hover:bg-[#E0E7D9]/45 active:scale-95 text-[#263844] hover:text-[#042328] transition-all cursor-pointer shadow-sm ring-1 ring-[#E4E4E8]"
             >
               <X className="h-4 w-4" />
             </button>

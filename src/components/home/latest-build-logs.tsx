@@ -25,7 +25,7 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
       <div className="container-shell max-w-5xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#D8D8E4] bg-[#F2F7F9] px-3 py-1 text-xs font-mono font-semibold text-[#263844] mb-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#184120]/20 bg-[#E0E7D9]/65 px-3 py-1 text-xs font-mono font-semibold text-[#184120] mb-3">
               <BookOpenCheck className="h-3.5 w-3.5" />
               <span>RAG KNOWLEDGE BASE // BUILD LOGS</span>
             </div>
@@ -35,7 +35,7 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
           </div>
           <HoverPrefetchLink
             href="/build-log"
-            className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl border border-[#E4E4E8] bg-[#FFFFFF] px-4 py-2 text-xs md:text-sm font-medium text-[#282828] shadow-2xs hover:border-[#0F0F0F] hover:text-[#0F0F0F] hover:-translate-y-0.5 transition-all group"
+            className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl border border-[#E4E4E8] bg-[#FFFFFF] px-4 py-2 text-xs md:text-sm font-medium text-[#282828] shadow-2xs hover:border-[#042328] hover:bg-[#042328] hover:text-[#FFFFF2] hover:-translate-y-0.5 transition-all group"
           >
             <span>查看全部白皮书</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -46,7 +46,7 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
           {/* Progress Line */}
           <motion.div
             style={{ scaleY: reduceMotion ? 1 : lineScaleY, transformOrigin: "top center" }}
-            className="absolute left-2 sm:left-2.5 md:left-[39.5px] top-3 bottom-4 w-px bg-gradient-to-b from-[#0F0F0F] via-[#C8C8C8] to-transparent will-change-transform"
+            className="absolute left-2 sm:left-2.5 md:left-[39.5px] top-3 bottom-4 w-px bg-gradient-to-b from-[#042328] via-[#184120]/60 to-transparent will-change-transform"
           />
 
           {items.map((item) => {
@@ -64,14 +64,14 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
                   whileInView={reduceMotion ? undefined : { scale: 1, opacity: 1 }}
                   viewport={{ once: true, amount: 0.4 }}
                   transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
-                  className="beacon-dot absolute -left-4 sm:-left-[22px] md:left-[39.5px] md:-translate-x-1/2 top-1 z-20 w-4 h-4 rounded-full border border-[#0F0F0F]/35 bg-[#FFFFFF] flex items-center justify-center"
+                  className="beacon-dot absolute -left-4 sm:-left-[22px] md:left-[39.5px] md:-translate-x-1/2 top-1 z-20 w-4 h-4 rounded-full border border-[#184120]/40 bg-[#FFFFFF] flex items-center justify-center"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0F0F0F] group-hover:scale-150 transition-transform" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#184120] group-hover:bg-[#33DD18] group-hover:scale-150 transition-all" />
                 </motion.div>
 
                 {/* Year/Month */}
                 <div className="relative z-10 md:w-20 shrink-0 md:pt-0.5">
-                  <div className="text-xs md:text-sm font-mono tracking-widest text-[#5C6873] group-hover:text-[#0F0F0F] transition-colors">
+                  <div className="text-xs md:text-sm font-mono tracking-widest text-[#263844] group-hover:text-[#042328] transition-colors">
                     {formattedDate}
                   </div>
                 </div>
@@ -85,11 +85,11 @@ export function LatestBuildLogs({ items }: LatestBuildLogsProps) {
                   className="log-content flex-1 pb-10 border-b border-[#E4E4E8] group-last:border-0 group-last:pb-0"
                 >
                   <HoverPrefetchLink href={`/build-log/${item.slug}`} className="block">
-                    <p className="text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase text-[#263844] mb-4 flex items-center gap-2">
-                      <span className="inline-block w-2 h-[1px] bg-[#263844]"></span>
+                    <p className="text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase text-[#184120] mb-4 flex items-center gap-2">
+                      <span className="inline-block w-2 h-[1px] bg-[#184120]"></span>
                       {item.tags[0] || 'UPDATE'}
                     </p>
-                    <h3 className="text-2xl md:text-4xl font-light tracking-tight text-[#0F0F0F] mb-6 group-hover:text-[#263844] transition-colors">
+                    <h3 className="text-2xl md:text-4xl font-light tracking-tight text-[#0F0F0F] mb-6 group-hover:text-[#184120] transition-colors">
                       {item.title}
                     </h3>
                     <p className="text-base md:text-lg text-muted-foreground/80 leading-relaxed font-light max-w-2xl line-clamp-2">

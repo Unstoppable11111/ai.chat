@@ -283,26 +283,26 @@ export default function MarketDashboardPage() {
   const actionCount = holdings.filter((h) => h.highest_severity === "ACTION").length;
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8] text-[#0F0F0F] pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-[#F8F8F4] text-[#0F0F0F] pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative">
       {toastMsg && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-[#0F0F0F] border border-[#282828] text-xs text-[#FFFFFF] shadow-[0_12px_30px_rgba(15,15,15,0.2)] backdrop-blur-md">
-          <Sparkles className="w-3.5 h-3.5 text-[#FFFFFF] shrink-0" />
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-[#042328] border border-[#184120] text-xs text-[#FFFFF2] shadow-[0_12px_30px_rgba(4,35,40,0.28)] backdrop-blur-md">
+          <Sparkles className="w-3.5 h-3.5 text-[#E1F209] shrink-0" />
           <span>{toastMsg.text}</span>
         </div>
       )}
 
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* 顶部主工作台标头（瑞士极简纯白命令条） */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-[#FFFFFF] border border-[#E4E4E8] shadow-[0_1px_2px_rgba(15,15,15,0.03),0_8px_24px_-8px_rgba(38,56,68,0.06)]">
+        {/* 顶部主工作台标头（纯白与深墨绿顶冠建筑命令条） */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#FFFFFF] via-[#FFFFFF] to-[#F2F7F9]/60 border border-[#E4E4E8] border-t-[3px] border-t-[#042328] shadow-[0_1px_2px_rgba(4,35,40,0.04),0_8px_24px_-8px_rgba(38,56,68,0.07)]">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0F0F0F] text-[#FFFFFF]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#042328] to-[#184120] text-[#E1F209] shadow-xs">
                 <Activity className="h-4.5 w-4.5" />
               </span>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#0F0F0F] flex flex-wrap items-center gap-2 font-mono">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#042328] flex flex-wrap items-center gap-2 font-mono">
                   CHEN TECH STUDIO ｜ A股波段纪律与5日轮动工作台
-                  <span className="text-[10px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-[#F2F7F9] border border-[#D8D8E4] text-[#263844]">
+                  <span className="text-[10px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-[#E0E7D9]/75 border border-[#184120]/20 text-[#184120]">
                     主板+创业板
                   </span>
                 </h1>
@@ -315,7 +315,11 @@ export default function MarketDashboardPage() {
 
           <div className="flex items-center flex-wrap gap-2">
             <div
-              className="text-xs font-mono px-3 py-1.5 rounded-xl border bg-[#F8F8F8] border-[#E0E0E0] text-[#0F0F0F] flex items-center gap-1.5"
+              className={`text-xs font-mono px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${
+                tradingStatus.isTrading
+                  ? "bg-[#E0E7D9]/65 border-[#184120]/20 text-[#184120]"
+                  : "bg-[#F2F7F9] border-[#D8D8E4] text-[#263844]"
+              }`}
               title={tradingStatus.detail}
             >
               <span
@@ -324,7 +328,7 @@ export default function MarketDashboardPage() {
                 }`}
               />
               <span className="font-bold">{tradingStatus.statusText}</span>
-              <span className="text-[10px] text-[#5C6873] hidden sm:inline">({tradingStatus.cstTimeStr})</span>
+              <span className="text-[10px] opacity-75 hidden sm:inline">({tradingStatus.cstTimeStr})</span>
             </div>
 
             <button
@@ -340,9 +344,9 @@ export default function MarketDashboardPage() {
               disabled={!tradingStatus.isTrading}
               className={`text-xs font-mono px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
                 !tradingStatus.isTrading
-                  ? "bg-[#F8F8F8] text-[#5C6873] border-[#E0E0E0] cursor-not-allowed opacity-70"
+                  ? "bg-[#F8F8F4] text-[#5C6873] border-[#E0E0E0] cursor-not-allowed opacity-70"
                   : autoRefresh
-                  ? "bg-[#F2F7F9] text-[#0F0F0F] border-[#0F0F0F]/40 font-semibold cursor-pointer"
+                  ? "bg-[#E0E7D9]/60 text-[#184120] border-[#184120]/30 font-semibold cursor-pointer"
                   : "bg-[#FFFFFF] text-[#5C6873] border-[#E0E0E0] cursor-pointer"
               }`}
             >
@@ -353,18 +357,18 @@ export default function MarketDashboardPage() {
             <button
               onClick={() => void loadAll(true)}
               disabled={isRefreshing || isLoading}
-              className="px-3 py-1.5 rounded-xl border bg-[#FFFFFF] hover:bg-[#F8F8F8] text-[#282828] border-[#E0E0E0] hover:border-[#0F0F0F] text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 rounded-xl border bg-[#FFFFFF] hover:bg-[#E0E7D9]/35 text-[#282828] border-[#E0E0E0] hover:border-[#184120]/35 text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isLoading ? "animate-spin text-[#184120]" : ""}`} />
               刷新
             </button>
 
             <button
               onClick={() => void handleTriggerAiAnalyze()}
               disabled={aiBusyCode !== null}
-              className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-[#FFFFFF] hover:bg-[#F8F8F8] text-[#282828] border border-[#E0E0E0] hover:border-[#0F0F0F] flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-[#F2F7F9] hover:bg-[#263844] text-[#263844] hover:text-[#FFFFFF] border border-[#263844]/25 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
             >
-              <Bot className="w-3.5 h-3.5 text-[#263844]" />
+              <Bot className="w-3.5 h-3.5" />
               {aiBusyCode === "ALL" ? "AI研判中..." : "AI 立即看盘"}
             </button>
 
@@ -373,9 +377,9 @@ export default function MarketDashboardPage() {
                 setEditingHolding(null);
                 setHoldingModalOpen(true);
               }}
-              className="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] border border-[#0F0F0F] flex items-center gap-1.5 cursor-pointer"
+              className="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] border border-[#042328] flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 text-[#E1F209]" />
               录入持仓
             </button>
 
@@ -387,7 +391,7 @@ export default function MarketDashboardPage() {
         <MorningBriefingHero onOpenReportTab={() => setActiveTab("daily")} showToast={showToast} />
 
         {/* 主导航 Tabs (4个纯粹实战工作区) */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#FFFFFF] border border-[#E4E4E8] w-full overflow-x-auto no-scrollbar shadow-[0_1px_2px_rgba(15,15,15,0.03),0_8px_24px_-8px_rgba(38,56,68,0.04)]">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#FFFFFF] border border-[#E4E4E8] w-full overflow-x-auto no-scrollbar shadow-[0_1px_2px_rgba(4,35,40,0.03),0_8px_24px_-8px_rgba(38,56,68,0.05)]">
           {[
             { id: "cockpit", label: "实盘看盘总览", icon: Activity },
             { id: "portfolio", label: `实盘持仓与风控 (${holdings.length})`, icon: TrendingUp },
@@ -401,17 +405,17 @@ export default function MarketDashboardPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as MainTab)}
                 className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
-                  isActive ? "text-[#FFFFFF] font-bold" : "text-[#5C6873] hover:text-[#0F0F0F] hover:bg-[#F8F8F8]"
+                  isActive ? "text-[#FFFFF2] font-bold" : "text-[#5C6873] hover:text-[#042328] hover:bg-[#E0E7D9]/45"
                 }`}
               >
                 {isActive && (
                   <motion.span
                     layoutId="market-main-tab-pill"
-                    className="absolute inset-0 rounded-xl bg-[#0F0F0F] shadow-sm border border-[#0F0F0F]"
+                    className="absolute inset-0 rounded-xl bg-[#042328] shadow-sm border border-[#042328]"
                     transition={{ type: "spring", stiffness: 360, damping: 28 }}
                   />
                 )}
-                <Icon className={`relative z-10 w-3.5 h-3.5 ${isActive ? "text-[#FFFFFF]" : "text-[#5C6873]"}`} />
+                <Icon className={`relative z-10 w-3.5 h-3.5 ${isActive ? "text-[#E1F209]" : "text-[#263844]"}`} />
                 <span className="relative z-10">{tab.label}</span>
               </button>
             );
@@ -471,7 +475,7 @@ export default function MarketDashboardPage() {
                           setEditingHolding(null);
                           setHoldingModalOpen(true);
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-[#0F0F0F] text-[#FFFFFF] font-bold text-xs cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] font-bold text-xs cursor-pointer"
                       >
                         + 手动录入持仓
                       </button>
@@ -552,10 +556,10 @@ export default function MarketDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("pool")}
-                    className="p-2.5 rounded-xl bg-[#F8F8F8] hover:bg-[#F2F7F9] border border-[#E4E4E8] hover:border-[#C8C8C8] text-left cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#F8F8F4] hover:bg-[#E0E7D9]/45 border border-[#E4E4E8] hover:border-[#184120]/30 text-left cursor-pointer transition-colors"
                   >
-                    <div className="font-bold text-[#0F0F0F] flex items-center gap-1">
-                      <Radar className="w-3.5 h-3.5 text-[#263844]" />
+                    <div className="font-bold text-[#042328] flex items-center gap-1">
+                      <Radar className="w-3.5 h-3.5 text-[#184120]" />
                       5日观察池
                     </div>
                     <div className="text-[10px] text-[#5C6873] mt-0.5">查看买点A/B触发状态</div>
@@ -563,9 +567,9 @@ export default function MarketDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("daily")}
-                    className="p-2.5 rounded-xl bg-[#F8F8F8] hover:bg-[#F2F7F9] border border-[#E4E4E8] hover:border-[#C8C8C8] text-left cursor-pointer"
+                    className="p-2.5 rounded-xl bg-[#F2F7F9]/75 hover:bg-[#F2F7F9] border border-[#D8D8E4] hover:border-[#263844]/40 text-left cursor-pointer transition-colors"
                   >
-                    <div className="font-bold text-[#0F0F0F] flex items-center gap-1">
+                    <div className="font-bold text-[#042328] flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-[#263844]" />
                       每日看板
                     </div>
@@ -729,9 +733,9 @@ export default function MarketDashboardPage() {
                     setEditingHolding(null);
                     setHoldingModalOpen(true);
                   }}
-                  className="px-4 py-2 rounded-xl bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 text-[#E1F209]" />
                   <span>录入新持仓</span>
                 </button>
               </div>

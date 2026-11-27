@@ -74,7 +74,7 @@ export function CommandMenu() {
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-[70] flex items-start justify-center bg-white/55 px-4 pt-24 backdrop-blur-sm"
+          className="fixed inset-0 z-[70] flex items-start justify-center bg-[#042328]/35 px-4 pt-24 backdrop-blur-sm"
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={reduceMotion ? undefined : { opacity: 1 }}
           exit={reduceMotion ? undefined : { opacity: 0 }}
@@ -85,35 +85,35 @@ export function CommandMenu() {
             role="dialog"
             aria-modal="true"
             aria-label="搜索页面与文章"
-            className="glass-panel w-full max-w-2xl overflow-hidden rounded-[28px]"
+            className="glass-panel w-full max-w-2xl overflow-hidden rounded-[28px] border border-[#E0E7D9] bg-[#FFFFFF]/98 shadow-[0_28px_72px_-16px_rgba(4,35,40,0.22)]"
             initial={reduceMotion ? false : { opacity: 0, y: 20 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: 12 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center gap-3 border-b border-slate-900/8 px-5 py-4">
-              <Search className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-3 border-b border-[#E4E4E8] px-5 py-4">
+              <Search className="h-4 w-4 text-[#184120]" />
               <input
                 aria-label="查找页面"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="搜索页面与文章…"
-                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                className="w-full bg-transparent text-sm text-[#042328] outline-none placeholder:text-[#5C6873]"
               />
-              <span className="rounded-full border border-slate-900/8 px-2 py-1 text-xs text-muted-foreground">
+              <span className="rounded-full border border-[#D8D8E4] bg-[#F2F7F9] px-2 py-1 text-xs text-[#263844] font-mono">
                 ESC
               </span>
             </div>
 
             <div className="max-h-[60dvh] overflow-y-auto p-3">
-              {results.query===query&&results.error&&<p role="status" className="p-4 text-sm">{results.error}</p>}
-              {!items.length && !results.error && <p role="status" className="p-4 text-sm">{query.trim().length>=2&&results.query!==query?"正在搜索…":"没有匹配的内容"}</p>}
+              {results.query===query&&results.error&&<p role="status" className="p-4 text-sm text-[#D71018]">{results.error}</p>}
+              {!items.length && !results.error && <p role="status" className="p-4 text-sm text-[#5C6873]">{query.trim().length>=2&&results.query!==query?"正在搜索…":"没有匹配的内容"}</p>}
               {items.map((item) => (
                 <button
                   type="button"
                   key={item.href}
-                  className="flex w-full items-center justify-between rounded-[18px] px-4 py-3 text-left hover:bg-slate-900/[0.04]"
+                  className="flex w-full items-center justify-between rounded-[18px] px-4 py-3 text-left hover:bg-[#E0E7D9]/45 group transition-colors"
                   onClick={() => {
                     router.push(item.href);
                     setOpen(false);
@@ -121,10 +121,10 @@ export function CommandMenu() {
                   }}
                 >
                   <div>
-                    <p className="text-sm font-medium text-foreground">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.href}</p>
+                    <p className="text-sm font-medium text-[#042328]">{item.label}</p>
+                    <p className="text-xs text-[#5C6873]">{item.href}</p>
                   </div>
-                  <Command className="h-4 w-4 text-muted-foreground" />
+                  <Command className="h-4 w-4 text-[#5C6873] group-hover:text-[#184120]" />
                 </button>
               ))}
             </div>

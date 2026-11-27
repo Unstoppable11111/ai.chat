@@ -166,10 +166,10 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F0F0F]/40 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="w-full max-w-2xl rounded-2xl bg-[#FFFFFF] border border-[#E4E4E8] text-[#0F0F0F] shadow-[0_24px_70px_rgba(15,15,15,0.16)] overflow-hidden my-6">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E4E8] bg-[#FFFFFF] text-[#0F0F0F]">
+      <div className="w-full max-w-2xl rounded-2xl bg-[#FFFFFF] border border-[#E4E4E8] text-[#0F0F0F] shadow-[0_24px_70px_rgba(4,35,40,0.22)] overflow-hidden my-6">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#184120]/30 bg-gradient-to-r from-[#042328] to-[#263844] text-[#FFFFF2]">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-[#263844]" />
+            <ShieldCheck className="w-5 h-5 text-[#E1F209]" />
             <h3 className="text-base font-bold">
               {isEdit ? `编辑持仓纪律 · ${name} (${code})` : "录入实盘持仓与波段纪律"}
             </h3>
@@ -177,7 +177,7 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#5C6873] hover:text-[#0F0F0F] hover:bg-[#F8F8F8] cursor-pointer"
+            className="p-1.5 rounded-lg text-[#E0E7D9] hover:text-[#FFFFFF] hover:bg-white/10 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -339,7 +339,7 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                   onClick={() => handleModeSwitch("swing_normal")}
                   className={`px-3 py-1 rounded-lg border text-xs cursor-pointer transition ${
                     positionMode === "swing_normal"
-                      ? "bg-[#0F0F0F] border-[#0F0F0F] text-[#FFFFFF] font-bold"
+                      ? "bg-[#042328] border-[#042328] text-[#FFFFF2] font-bold"
                       : "bg-[#FFFFFF] border-[#E0E0E0] text-[#5C6873]"
                   }`}
                 >
@@ -350,7 +350,7 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
                   onClick={() => handleModeSwitch("deep_drawdown_recovery")}
                   className={`px-3 py-1 rounded-lg border text-xs cursor-pointer transition ${
                     positionMode === "deep_drawdown_recovery"
-                      ? "bg-[#0F0F0F] border-[#0F0F0F] text-[#FFFFFF] font-bold"
+                      ? "bg-[#042328] border-[#042328] text-[#FFFFF2] font-bold"
                       : "bg-[#FFFFFF] border-[#E0E0E0] text-[#5C6873]"
                   }`}
                 >
@@ -479,7 +479,7 @@ export function HoldingEditModal({ open, initial, onClose, onSaved, onNotify }: 
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-lg bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] font-bold cursor-pointer disabled:opacity-50"
+              className="px-5 py-2 rounded-lg bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] font-bold cursor-pointer disabled:opacity-50"
             >
               {submitting ? "保存中..." : isEdit ? "保存修改" : "确认录入"}
             </button>

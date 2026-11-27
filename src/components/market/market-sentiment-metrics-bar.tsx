@@ -136,20 +136,20 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
   const trafficStyle =
     trafficLight.light === "RED"
       ? {
-          wrap: "bg-[#F8F8F8] border-[#E4E4E8] border-l-[3px] border-l-[#D71018] text-[#0F0F0F]",
+          wrap: "bg-[#D71018]/[0.05] border-[#D71018]/20 border-l-4 border-l-[#D71018] text-[#0F0F0F]",
           dot: "bg-[#D71018]",
-          badge: "bg-[#D71018]/[0.06] text-[#D71018] border-[#D71018]/25",
+          badge: "bg-[#D71018]/[0.08] text-[#D71018] border-[#D71018]/25",
         }
       : trafficLight.light === "YELLOW"
       ? {
-          wrap: "bg-[#F8F8F8] border-[#E4E4E8] border-l-[3px] border-l-amber-500 text-[#0F0F0F]",
+          wrap: "bg-[#FFFFF2] border-[#E0E7D9] border-l-4 border-l-amber-500 text-[#0F0F0F]",
           dot: "bg-amber-500",
           badge: "bg-amber-50 text-amber-800 border-amber-200",
         }
       : {
-          wrap: "bg-[#F8F8F8] border-[#E4E4E8] border-l-[3px] border-l-[#184120] text-[#0F0F0F]",
+          wrap: "bg-[#E0E7D9]/45 border-[#184120]/20 border-l-4 border-l-[#184120] text-[#042328]",
           dot: "bg-[#33DD18]",
-          badge: "bg-[#E0E7D9]/55 text-[#184120] border-[#184120]/20",
+          badge: "bg-[#FFFFFF] text-[#184120] border-[#184120]/20",
         };
 
   const aiSummary = metrics?.ai_summary;
@@ -215,7 +215,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
       {/* 第一行：短线必看 4 大基础盘口要素 (连板梯队 / 涨跌停 / 封板率与赚钱效应 / 昨日同期与5日10日量比) */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         {/* 指标 1: 实时涨停与连板梯队 */}
-        <div className="p-3.5 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#E4E4E8] hover:border-[#184120]/30 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#D71018]" />
@@ -263,7 +263,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
         </div>
 
         {/* 指标 2: 空头跌停与深跌亏钱效应 */}
-        <div className="p-3.5 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#F2F7F9]/60 border border-[#D8D8E4]/80 hover:border-[#184120]/30 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#184120]" />
@@ -309,7 +309,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
         </div>
 
         {/* 指标 3: 实时封板率与炸板率 */}
-        <div className="p-3.5 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#F8F8F4] border border-[#E4E4E8] hover:border-[#263844]/30 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-[#263844]" />
@@ -351,7 +351,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
         </div>
 
         {/* 指标 4: 昨日同期 HH:MM + 5日/10日量比 + 近10日量能柱状图 */}
-        <div className="p-3.5 rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] hover:border-[#C8C8C8] transition-all flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#F2F7F9]/60 border border-[#D8D8E4]/80 hover:border-[#263844]/30 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#263844] font-semibold flex items-center gap-1.5">
               <Activity className="w-3.5 h-3.5 text-[#263844]" />
@@ -431,7 +431,7 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
                     key={pt.date}
                     title={`${pt.date}: ${pt.volume_yi_shou}亿手${pt.is_projected ? " (全天折算)" : ""}`}
                     className={`flex-1 rounded-t-xs transition-all ${
-                      pt.is_projected ? "bg-[#0F0F0F]" : "bg-[#D8D8E4] hover:bg-[#263844]"
+                      pt.is_projected ? "bg-[#042328] border-t-2 border-t-[#33DD18]" : "bg-[#263844]/30 hover:bg-[#184120]"
                     }`}
                     style={{ height: `${h}%` }}
                   />
@@ -614,21 +614,21 @@ export function MarketSentimentMetricsBar({ initialMetrics }: MarketSentimentMet
 
       {/* 第三行：AI 动态全景量化研判与操作纪律 (基于实测数据动态生成，绝不写死) */}
       {aiSummary && (
-        <div className="rounded-2xl bg-[#F8F8F8] border border-[#E4E4E8] p-4 space-y-3">
+        <div className="rounded-2xl bg-[#F8F8F4] border border-[#E4E4E8] p-4 space-y-3">
           <div className="flex items-center justify-between border-b border-[#E4E4E8] pb-2">
             <div className="flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#0F0F0F] text-[#FFFFFF]">
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#042328] text-[#E1F209]">
                 <Bot className="w-3.5 h-3.5" />
               </span>
-              <span className="text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5">
+              <span className="text-xs font-bold text-[#042328] flex items-center gap-1.5">
                 AI 盘口研判与量化纪律总结
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F2F7F9] text-[#263844] border border-[#D8D8E4] font-mono">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E0E7D9]/65 text-[#184120] border border-[#184120]/20 font-mono">
                   全自动多维推导
                 </span>
               </span>
             </div>
             <span className="text-[10.5px] text-[#5C6873] flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-[#263844]" />
+              <Sparkles className="w-3 h-3 text-[#184120]" />
               动态交叉验证 · 拒绝假数据
             </span>
           </div>

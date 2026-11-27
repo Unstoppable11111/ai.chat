@@ -71,7 +71,7 @@ export function ChatExperience({
           const el = scroller.current;
           if (el) autoScroll.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
         }}
-        className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/70 backdrop-blur-sm p-4 space-y-5"
+        className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF]/90 backdrop-blur-sm p-4 space-y-5"
         role="log"
         aria-label="对话消息"
         aria-live="polite"
@@ -85,11 +85,11 @@ export function ChatExperience({
             className="space-y-4 py-4 sm:py-6"
           >
             <div className="text-center space-y-1.5">
-              <div className="animate-float-slow inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 text-cyan-600 border border-cyan-500/30 mb-1 shadow-2xs">
+              <div className="animate-float-slow inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E0E7D9]/80 text-[#184120] border border-[#184120]/20 mb-1 shadow-2xs">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <h2 className="text-base font-bold text-slate-900">你好，我是 JARVIS</h2>
-              <p className="text-xs text-muted-foreground">今天想研究什么？可以点击下方快捷问题或直接输入：</p>
+              <h2 className="text-base font-bold text-[#042328]">你好，我是 JARVIS</h2>
+              <p className="text-xs text-[#5C6873]">今天想研究什么？可以点击下方快捷问题或直接输入：</p>
             </div>
             <div className="grid gap-2 sm:grid-cols-3 pt-2">
               {[
@@ -105,7 +105,7 @@ export function ChatExperience({
                   transition={{ duration: 0.35, delay: 0.08 * idx, ease: [0.22, 1, 0.36, 1] }}
                   whileHover={{ y: -2 }}
                   onClick={() => setInput(text)}
-                  className="shimmer-beam rounded-xl border border-slate-200/90 bg-white/85 hover:bg-white hover:border-cyan-500/40 hover:shadow-sm p-3 text-left text-xs font-medium text-slate-700 hover:text-cyan-700 transition-all cursor-pointer"
+                  className="shimmer-beam rounded-xl border border-[#E4E4E8] bg-[#F8F8F4] hover:bg-[#FFFFFF] hover:border-[#184120]/35 hover:shadow-sm p-3 text-left text-xs font-medium text-[#282828] hover:text-[#042328] transition-all cursor-pointer"
                 >
                   {text}
                 </motion.button>
@@ -128,11 +128,11 @@ export function ChatExperience({
             >
               {/* 头像 */}
               {isUser ? (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow-xs mt-0.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#042328] text-[#E1F209] shadow-xs mt-0.5">
                   <User className="h-4 w-4" />
                 </div>
               ) : (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-600 border border-cyan-500/30 shadow-xs mt-0.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E0E7D9]/80 text-[#184120] border border-[#184120]/20 shadow-xs mt-0.5">
                   <Bot className="h-4 w-4" />
                 </div>
               )}
@@ -140,16 +140,16 @@ export function ChatExperience({
               {/* 消息气泡内容 */}
               {isUser ? (
                 <div className="flex flex-col items-end max-w-[85%] sm:max-w-[75%]">
-                  <div className="rounded-2xl rounded-tr-xs bg-gradient-to-br from-cyan-600 via-cyan-500 to-blue-600 px-4 py-2.5 text-sm text-white shadow-sm break-words whitespace-pre-wrap leading-relaxed">
+                  <div className="rounded-2xl rounded-tr-xs bg-gradient-to-br from-[#042328] to-[#263844] px-4 py-2.5 text-sm text-[#FFFFFF] shadow-sm break-words whitespace-pre-wrap leading-relaxed">
                     {message.content}
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-start min-w-0 max-w-[92%] sm:max-w-[85%]">
-                  <div className="rounded-2xl rounded-tl-xs bg-white/95 dark:bg-zinc-800/95 border border-slate-200/80 dark:border-zinc-700/80 p-4 text-sm text-slate-800 dark:text-slate-100 shadow-sm leading-relaxed w-full">
-                    <div className="flex items-center gap-2 mb-2 text-[11px] font-mono text-muted-foreground border-b border-slate-100 dark:border-zinc-700/60 pb-1.5">
-                      <span className="font-semibold text-cyan-600 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-cyan-500" />
+                  <div className="rounded-2xl rounded-tl-xs bg-[#FFFFFF] border border-[#E4E4E8] p-4 text-sm text-[#282828] shadow-sm leading-relaxed w-full">
+                    <div className="flex items-center gap-2 mb-2 text-[11px] font-mono text-[#5C6873] border-b border-[#E4E4E8] pb-1.5">
+                      <span className="font-semibold text-[#184120] flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-[#184120]" />
                         JARVIS
                       </span>
                       <span>·</span>
@@ -189,8 +189,8 @@ export function ChatExperience({
                               ? `正在思考中（${sec}s）…`
                               : "正在思考中…";
                           return (
-                            <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
-                              <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" />
+                            <div className="flex items-center gap-2 text-xs font-mono text-[#5C6873]">
+                              <span className="h-2 w-2 rounded-full bg-[#33DD18] animate-pulse" />
                               <span>{phaseText}</span>
                             </div>
                           );
@@ -201,9 +201,9 @@ export function ChatExperience({
                     </div>
 
                     {message.sources && message.sources.length > 0 && (
-                      <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-700/80">
-                        <p className="mb-2 text-[11px] font-mono text-slate-500 flex items-center gap-1">
-                          <Bookmark className="w-3 h-3 text-cyan-600" />
+                      <div className="mt-3.5 pt-2.5 border-t border-[#E4E4E8]">
+                        <p className="mb-2 text-[11px] font-mono text-[#5C6873] flex items-center gap-1">
+                          <Bookmark className="w-3 h-3 text-[#184120]" />
                           参考引证资料
                         </p>
                         <div className="grid gap-1.5 sm:grid-cols-2">
@@ -214,10 +214,10 @@ export function ChatExperience({
                               target="_blank"
                               rel="noopener noreferrer"
                               title={source.excerpt}
-                              className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-cyan-50/60 border border-slate-200/60 hover:border-cyan-500/30 text-xs text-slate-700 hover:text-cyan-700 transition-all truncate"
+                              className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#F2F7F9] hover:bg-[#E0E7D9]/45 border border-[#D8D8E4] hover:border-[#184120]/30 text-xs text-[#263844] hover:text-[#042328] transition-all truncate"
                             >
                               <span className="truncate">{source.title} · {source.heading}</span>
-                              <ExternalLink className="w-3 h-3 shrink-0 text-slate-400" />
+                              <ExternalLink className="w-3 h-3 shrink-0 text-[#5C6873]" />
                             </a>
                           ))}
                         </div>
@@ -225,8 +225,8 @@ export function ChatExperience({
                     )}
 
                     {!chat.loading && message.content && !message.error && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-zinc-700/60 flex items-center justify-between text-xs">
-                        <span className="text-[10px] font-mono text-slate-400">JARVIS INTELLIGENCE</span>
+                      <div className="mt-2.5 pt-2 border-t border-[#E4E4E8] flex items-center justify-between text-xs">
+                        <span className="text-[10px] font-mono text-[#5C6873]">JARVIS INTELLIGENCE</span>
                         <button
                           type="button"
                           onClick={() => {
@@ -236,9 +236,9 @@ export function ChatExperience({
                               content: message.content
                             });
                           }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-700 text-[11px] font-medium border border-cyan-500/20 transition-all cursor-pointer shadow-2xs"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#E0E7D9]/60 hover:bg-[#E0E7D9] text-[#184120] text-[11px] font-medium border border-[#184120]/20 transition-all cursor-pointer shadow-2xs"
                         >
-                          <BookOpen className="w-3 h-3 text-cyan-600" />
+                          <BookOpen className="w-3 h-3 text-[#184120]" />
                           <span>沉淀为白皮书</span>
                         </button>
                       </div>
@@ -289,19 +289,19 @@ export function ChatExperience({
                   </>
                 ) : (
                   <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#33DD18] animate-pulse" />
                     <span>今日免费: {chat.quota.remaining}/{chat.quota.total}</span>
-                    <span className="text-[10px] text-muted-foreground hidden sm:inline">0点重置</span>
+                    <span className="text-[10px] text-[#5C6873] hidden sm:inline">0点重置</span>
                   </>
                 )}
               </button>
             ) : (
-              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-mono">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E0E7D9]/70 text-[#184120] border border-[#184120]/20 text-xs font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#184120]" />
                 <span>站长 chen · 无限畅享</span>
               </div>
             )}
-            <a href="/privacy" className="text-xs text-muted-foreground hover:text-slate-700 underline hidden sm:inline">
+            <a href="/privacy" className="text-xs text-[#5C6873] hover:text-[#042328] underline hidden sm:inline">
               隐私
             </a>
           </div>
@@ -313,7 +313,7 @@ export function ChatExperience({
             event.preventDefault();
             submit();
           }}
-          className="relative flex flex-col rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl shadow-md transition-all focus-within:border-cyan-500/70 focus-within:ring-4 focus-within:ring-cyan-500/10 p-2 sm:p-2.5"
+          className="relative flex flex-col rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF]/96 backdrop-blur-xl shadow-md transition-all focus-within:border-[#184120]/60 focus-within:ring-4 focus-within:ring-[#E0E7D9]/60 p-2 sm:p-2.5"
         >
           <textarea
             aria-label="输入问题"
@@ -337,11 +337,11 @@ export function ChatExperience({
                 submit();
               }
             }}
-            className="w-full max-h-44 min-h-[76px] resize-none bg-transparent px-2 py-1.5 text-sm sm:text-base placeholder:text-slate-400 focus:outline-none leading-relaxed"
+            className="w-full max-h-44 min-h-[76px] resize-none bg-transparent px-2 py-1.5 text-sm sm:text-base placeholder:text-[#5C6873]/70 focus:outline-none leading-relaxed"
           />
 
-          <div className="flex items-center justify-between pt-1.5 px-1 border-t border-slate-100/80">
-            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+          <div className="flex items-center justify-between pt-1.5 px-1 border-t border-[#E4E4E8]/80">
+            <span className="text-[11px] text-[#5C6873] hidden sm:inline">
               Enter 发送，Shift + Enter 换行
             </span>
 
@@ -352,7 +352,7 @@ export function ChatExperience({
                   aria-label="停止生成"
                   title="停止生成"
                   onClick={chat.stop}
-                  className="flex h-8 items-center gap-1.5 px-3 rounded-xl bg-slate-900 hover:bg-rose-600 text-white text-xs font-medium transition-colors cursor-pointer shadow-xs"
+                  className="flex h-8 items-center gap-1.5 px-3 rounded-xl bg-[#263844] hover:bg-[#D71018] text-[#FFFFFF] text-xs font-medium transition-colors cursor-pointer shadow-xs"
                 >
                   <Square className="h-3.5 w-3.5" />
                   <span>停止</span>
@@ -363,9 +363,9 @@ export function ChatExperience({
                   aria-label="登录后提问"
                   title="今日3次额度已用尽，点击登录账号"
                   onClick={() => openAuthModal("login")}
-                  className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-medium transition-all shadow-xs cursor-pointer"
+                  className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] text-xs font-medium transition-all shadow-xs cursor-pointer"
                 >
-                  <LockKeyhole className="h-3.5 w-3.5" />
+                  <LockKeyhole className="h-3.5 w-3.5 text-[#E1F209]" />
                   <span>登录后提问</span>
                 </button>
               ) : (
@@ -374,10 +374,10 @@ export function ChatExperience({
                   aria-label="发送消息"
                   title={input.trim() ? "发送消息" : defaultPrompt ? "直接发送默认提示词" : "发送消息"}
                   disabled={!chat.ready || !effectivePrompt}
-                  className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-medium transition-all shadow-xs disabled:opacity-40 disabled:hover:from-cyan-600 disabled:hover:to-blue-600 cursor-pointer"
+                  className="flex h-8 items-center gap-1.5 px-3.5 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] text-xs font-medium transition-all shadow-xs disabled:opacity-40 disabled:hover:bg-[#042328] cursor-pointer"
                 >
                   <span>发送</span>
-                  <Send className="h-3 w-3" />
+                  <Send className="h-3 w-3 text-[#E1F209]" />
                 </button>
               )}
             </div>
@@ -398,25 +398,25 @@ export function ChatExperience({
           role="dialog"
           aria-modal="true"
           aria-label="模型状态提示"
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/45 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-[#042328]/45 backdrop-blur-xs p-4 animate-in fade-in duration-150"
         >
-          <div className="w-full max-w-sm rounded-2xl border border-slate-200/90 bg-white/98 p-5 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="w-full max-w-sm rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF]/98 p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div
                   className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
                     chat.issue.code === "UPSTREAM_STALLED"
-                      ? "bg-amber-500/15 text-amber-600"
-                      : "bg-rose-500/15 text-rose-600"
+                      ? "bg-[#FFFFF2] text-[#263844] border border-[#E0E7D9]"
+                      : "bg-[#D71018]/[0.08] text-[#D71018]"
                   }`}
                 >
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-sm font-bold text-[#0F0F0F]">
                     {chat.issue.code === "UPSTREAM_STALLED" ? "思考时间较长，是否继续等待？" : "模型调用出现异常"}
                   </h3>
-                  <p className="text-[11px] font-mono text-slate-400">
+                  <p className="text-[11px] font-mono text-[#5C6873]">
                     MODEL: {chat.issue.model} · {chat.issue.code}
                   </p>
                 </div>
@@ -425,13 +425,13 @@ export function ChatExperience({
                 type="button"
                 aria-label="关闭提示"
                 onClick={chat.dismissIssue}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+                className="rounded-full p-1 text-[#5C6873] hover:bg-[#F2F7F9] hover:text-[#042328] cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <p className="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+            <p className="mt-3 text-xs leading-relaxed text-[#282828]">
               {chat.issue.message}
             </p>
 
@@ -441,7 +441,7 @@ export function ChatExperience({
                   <button
                     type="button"
                     onClick={chat.dismissIssue}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-cyan-500 hover:to-blue-500 transition-all cursor-pointer"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#042328] px-3.5 py-2 text-xs font-semibold text-[#FFFFF2] shadow-sm hover:bg-[#184120] transition-all cursor-pointer"
                   >
                     <span>继续等待</span>
                   </button>
@@ -450,7 +450,7 @@ export function ChatExperience({
                       <button
                         type="button"
                         onClick={() => void chat.switchModelAndRetry("lumen")}
-                        className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
+                        className="flex items-center justify-center gap-1 rounded-xl border border-[#E4E4E8] bg-[#FFFFFF] px-3 py-2 text-xs font-medium text-[#282828] hover:bg-[#F2F7F9] cursor-pointer"
                       >
                         <ArrowRightLeft className="h-3.5 w-3.5" />
                         <span>切换 Lumen 重试</span>
@@ -459,7 +459,7 @@ export function ChatExperience({
                     <button
                       type="button"
                       onClick={chat.stop}
-                      className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 cursor-pointer"
+                      className="rounded-xl border border-[#D71018]/25 bg-[#D71018]/[0.06] px-3 py-2 text-xs font-medium text-[#D71018] hover:bg-[#D71018]/12 cursor-pointer"
                     >
                       停止生成
                     </button>
@@ -471,9 +471,9 @@ export function ChatExperience({
                     <button
                       type="button"
                       onClick={() => void chat.switchModelAndRetry("lumen")}
-                      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:from-cyan-500 hover:to-blue-500 transition-all cursor-pointer"
+                      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#042328] px-3.5 py-2 text-xs font-semibold text-[#FFFFF2] shadow-sm hover:bg-[#184120] transition-all cursor-pointer"
                     >
-                      <ArrowRightLeft className="h-3.5 w-3.5" />
+                      <ArrowRightLeft className="h-3.5 w-3.5 text-[#E1F209]" />
                       <span>切换至 Lumen 流光并立即重试</span>
                     </button>
                   )}

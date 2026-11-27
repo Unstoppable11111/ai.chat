@@ -67,10 +67,11 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // 2. 颜色体系：瑞士冷银、纯白高光与微亮绿核心
-    const cyanHex = 0xd8d8e4; // 银灰
-    const emeraldHex = 0x33dd18; // 亮绿微光
-    const brightHex = 0xffffff; // 纯白晶格
+    // 2. 颜色体系：雾绿银外环、亮绿感应环与酸黄绿微核
+    const cyanHex = 0xe0e7d9; // 雾绿银
+    const emeraldHex = 0x33dd18; // 亮绿脉冲
+    const brightHex = 0xfffff2; // 暖白晶格
+    const voltHex = 0xe1f209; // 酸黄绿中心核
 
     const group = new THREE.Group();
     scene.add(group);
@@ -122,19 +123,19 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
     // 6. 核心能量质心脉冲球 (Radiant Center Energy Sphere)
     const centerGeo = new THREE.SphereGeometry(0.18, 16, 16);
     const centerMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
+      color: voltHex,
       transparent: true,
       opacity: 0.95,
     });
     const centerMesh = new THREE.Mesh(centerGeo, centerMat);
     group.add(centerMesh);
 
-    // 7. 64 颗极光青与翠绿星云微粒 (Swirling Aurora Star Dust)
+    // 7. 64 颗雾绿与亮绿星云微粒 (Swirling Aurora Star Dust)
     const particleCount = 64;
     const posArr = new Float32Array(particleCount * 3);
     const colorArr = new Float32Array(particleCount * 3);
 
-    const c1 = new THREE.Color(0xd8d8e4);
+    const c1 = new THREE.Color(0xe0e7d9);
     const c2 = new THREE.Color(0x33dd18);
 
     for (let i = 0; i < particleCount; i++) {
@@ -249,24 +250,24 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
 
   if (!webglSupported) {
     return (
-      <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#0F0F0F] via-[#1A242B] to-[#263844] border border-[#263844] shadow-[0_8px_20px_rgba(15,15,15,0.14)] select-none">
+      <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#042328] via-[#0E262B] to-[#263844] border border-[#184120]/60 shadow-[0_8px_20px_rgba(4,35,40,0.2)] select-none">
         {/* 2.5D 纯 CSS / SVG 量子引力核（WebGL 降级安全渲染） */}
         <div className="relative flex items-center justify-center w-24 h-24">
-          <div className="absolute inset-0 rounded-full border border-dashed border-[#D8D8E4]/55 animate-[spin_12s_linear_infinite]" />
+          <div className="absolute inset-0 rounded-full border border-dashed border-[#E0E7D9]/55 animate-[spin_12s_linear_infinite]" />
           <div
             className="absolute inset-2 rounded-full border-2 border-[#33DD18]/50 animate-[spin_7s_linear_infinite_reverse]"
             style={{ transform: "rotateX(55deg) rotateY(25deg)" }}
           />
-          <div className="absolute inset-4 rounded-full border border-[#FFFFFF]/35 animate-ping opacity-55" />
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#FFFFFF] via-[#D8D8E4] to-[#263844] shadow-[0_0_14px_rgba(255,255,255,0.45)] animate-pulse flex items-center justify-center rotate-45">
+          <div className="absolute inset-4 rounded-full border border-[#FFFFF2]/35 animate-ping opacity-55" />
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E1F209] via-[#E0E7D9] to-[#184120] shadow-[0_0_14px_rgba(225,242,9,0.4)] animate-pulse flex items-center justify-center rotate-45">
             <div className="w-2.5 h-2.5 rounded-full bg-[#33DD18] shadow-[0_0_6px_#33DD18]" />
           </div>
-          <div className="absolute -top-1 left-3 w-1.5 h-1.5 rounded-full bg-[#FFFFFF] animate-ping" />
+          <div className="absolute -top-1 left-3 w-1.5 h-1.5 rounded-full bg-[#E1F209] animate-ping" />
           <div className="absolute bottom-1 right-2 w-1 h-1 rounded-full bg-[#33DD18] animate-ping" style={{ animationDelay: "600ms" }} />
         </div>
 
         {/* 状态指示与标签 */}
-        <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-[#D8D8E4] font-mono tracking-wider">
+        <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-[#E0E7D9] font-mono tracking-wider">
           <span className="w-1.5 h-1.5 rounded-full bg-[#33DD18] animate-ping" />
           AURORA GRAVITY CORE · 2.5D 量子雷达
         </div>
@@ -275,9 +276,9 @@ export function QuantumRadar3D({ score = 50, marketState = "震荡蓄势" }: Qua
   }
 
   return (
-    <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#0F0F0F] via-[#1A242B] to-[#263844] border border-[#263844] shadow-[0_8px_20px_rgba(15,15,15,0.14)]">
+    <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#042328] via-[#0E262B] to-[#263844] border border-[#184120]/60 shadow-[0_8px_20px_rgba(4,35,40,0.2)]">
       <div ref={containerRef} className="w-full h-full cursor-crosshair pointer-events-auto" />
-      <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-[#D8D8E4] font-mono tracking-wider">
+      <div className="absolute bottom-1.5 left-2.5 flex items-center gap-1.5 pointer-events-none text-[9px] text-[#E0E7D9] font-mono tracking-wider">
         <span className="w-1.5 h-1.5 rounded-full bg-[#33DD18] animate-ping" />
         AURORA GRAVITY CORE · 3D 量子雷达
       </div>

@@ -47,25 +47,25 @@ export function PipelineStepper({
   isRunning,
 }: PipelineStepperProps) {
   return (
-    <div className="rounded-3xl border border-slate-900/10 bg-white/80 p-5 shadow-xs ">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+    <div className="rounded-3xl border border-[#E4E4E8] bg-[#FFFFFF]/95 p-5 shadow-xs">
+      <div className="flex items-center justify-between pb-3 border-b border-[#E4E4E8]">
         <div className="flex items-center gap-2">
           {isRunning && (
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#33DD18] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#184120]"></span>
             </span>
           )}
           <div>
-            <h2 className="text-sm font-bold text-slate-900">工业化流水线节点</h2>
-            <p className="text-[11px] text-muted-foreground">五大标准生产环节自动化接力</p>
+            <h2 className="text-sm font-bold text-[#042328]">工业化流水线节点</h2>
+            <p className="text-[11px] text-[#5C6873]">五大标准生产环节自动化接力</p>
           </div>
         </div>
         {steps.some((s) => s.status === "error") && (
           <button
             type="button"
             onClick={onRetry}
-            className="flex items-center gap-1 rounded-xl bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-100 transition-colors"
+            className="flex items-center gap-1 rounded-xl bg-[#D71018]/[0.07] px-2.5 py-1 text-xs font-medium text-[#D71018] hover:bg-[#D71018]/12 transition-colors"
           >
             <RotateCcw className="h-3 w-3" />
             <span>重试</span>
@@ -75,9 +75,9 @@ export function PipelineStepper({
 
       <div className="relative mt-4 space-y-4">
         {/* 连接竖线与动态进度填充 */}
-        <div className="absolute left-[17px] top-3 bottom-3 w-0.5 bg-slate-100 -z-0 overflow-hidden rounded-full">
+        <div className="absolute left-[17px] top-3 bottom-3 w-0.5 bg-[#E4E4E8] -z-0 overflow-hidden rounded-full">
           <motion.div
-            className="w-full bg-gradient-to-b from-emerald-500 via-cyan-500 to-blue-500 origin-top"
+            className="w-full bg-gradient-to-b from-[#042328] via-[#184120] to-[#33DD18] origin-top"
             initial={{ height: "0%" }}
             animate={{
               height: `${Math.min(
@@ -105,20 +105,20 @@ export function PipelineStepper({
               {/* 状态图标胶囊 */}
               <div className="shrink-0 pt-0.5">
                 {step.status === "completed" ? (
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-xs">
-                    <CheckCircle2 className="h-5 w-5" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#184120] text-[#FFFFF2] shadow-xs">
+                    <CheckCircle2 className="h-5 w-5 text-[#33DD18]" />
                   </div>
                 ) : step.status === "running" ? (
-                  <div className="relative flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-500/20">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-2xl bg-cyan-400 opacity-30"></span>
+                  <div className="relative flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#042328] to-[#263844] text-[#E1F209] shadow-md">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-2xl bg-[#33DD18] opacity-25"></span>
                     <Loader2 className="h-5 w-5 animate-spin" />
                   </div>
                 ) : step.status === "error" ? (
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-rose-500 text-white shadow-xs">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#D71018] text-[#FFFFFF] shadow-xs">
                     <AlertCircle className="h-5 w-5" />
                   </div>
                 ) : (
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 text-slate-400">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E4E4E8] bg-[#F8F8F4] text-[#5C6873]">
                     <Icon className="h-4 w-4" />
                   </div>
                 )}
@@ -130,12 +130,12 @@ export function PipelineStepper({
                   <p
                     className={`text-xs font-bold transition-colors ${
                       step.status === "running"
-                        ? "text-cyan-700 font-extrabold"
+                        ? "text-[#042328] font-extrabold"
                         : step.status === "completed"
-                        ? "text-slate-900"
+                        ? "text-[#184120]"
                         : step.status === "error"
-                        ? "text-rose-600"
-                        : "text-slate-500"
+                        ? "text-[#D71018]"
+                        : "text-[#5C6873]"
                     }`}
                   >
                     {step.name}
@@ -143,12 +143,12 @@ export function PipelineStepper({
                   <span
                     className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
                       step.status === "completed"
-                        ? "bg-emerald-50 text-emerald-700 font-semibold"
+                        ? "bg-[#E0E7D9]/75 text-[#184120] font-semibold"
                         : step.status === "running"
-                        ? "bg-cyan-50 text-cyan-700 animate-pulse font-semibold"
+                        ? "bg-[#F2F7F9] text-[#263844] border border-[#263844]/20 animate-pulse font-semibold"
                         : step.status === "error"
-                        ? "bg-rose-50 text-rose-700 font-semibold"
-                        : "text-slate-400"
+                        ? "bg-[#D71018]/[0.07] text-[#D71018] font-semibold"
+                        : "text-[#5C6873]"
                     }`}
                   >
                     {step.status === "completed"
@@ -160,13 +160,13 @@ export function PipelineStepper({
                       : "WAIT"}
                   </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                <p className="text-[11px] text-[#5C6873] mt-0.5 line-clamp-1">
                   {step.description}
                 </p>
 
                 {/* 运行中的实时详细进度反馈 */}
                 {step.detail && step.status === "running" && (
-                  <div className="mt-1.5 rounded-xl border border-cyan-500/20 bg-cyan-50/60 px-2.5 py-1 text-[11px] text-cyan-800 animate-in fade-in duration-200">
+                  <div className="mt-1.5 rounded-xl border border-[#263844]/20 bg-[#F2F7F9] px-2.5 py-1 text-[11px] text-[#263844] animate-in fade-in duration-200">
                     <p className="truncate font-mono">{step.detail}</p>
                   </div>
                 )}

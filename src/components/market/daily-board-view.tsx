@@ -312,12 +312,12 @@ export function DailyBoardView({ onNotify, refreshSignal = 0 }: DailyBoardViewPr
               onClick={() => setSubTab(item.id as BoardSubTab)}
               className={`px-3 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between cursor-pointer transition ${
                 active
-                  ? "bg-[#0F0F0F] border-[#0F0F0F] text-[#FFFFFF] shadow-sm"
-                  : "bg-[#FFFFFF] border-[#E4E4E8] text-[#5C6873] hover:text-[#0F0F0F] hover:bg-[#F8F8F8]"
+                  ? "bg-[#042328] border-[#042328] text-[#FFFFF2] shadow-sm"
+                  : "bg-[#FFFFFF] border-[#E4E4E8] text-[#5C6873] hover:text-[#042328] hover:bg-[#E0E7D9]/45"
               }`}
             >
               <span className="flex items-center gap-1.5 truncate">
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-[#FFFFFF]" : "text-[#263844]"}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-[#E1F209]" : "text-[#263844]"}`} />
                 <span className="truncate">{item.label}</span>
               </span>
               <span
@@ -575,9 +575,9 @@ export function DailyBoardView({ onNotify, refreshSignal = 0 }: DailyBoardViewPr
             <button
               type="submit"
               disabled={runningJob === "manual-ai"}
-              className="px-4 py-2 rounded-xl bg-[#0F0F0F] hover:bg-[#282828] text-[#FFFFFF] text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+              className="px-4 py-2 rounded-xl bg-[#042328] hover:bg-[#184120] text-[#FFFFF2] text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
             >
-              <Bot className="w-4 h-4 text-[#FFFFFF]" />
+              <Bot className="w-4 h-4 text-[#E1F209]" />
               <span>{runningJob === "manual-ai" ? "AI 研判中..." : "召唤 AI 立即看盘"}</span>
             </button>
           </form>

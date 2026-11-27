@@ -44,30 +44,30 @@ export function ThinkingSelector({
         className={cn(
           "flex items-center gap-1.5 text-xs font-mono font-medium px-3 py-1.5 rounded-full border transition-all cursor-pointer select-none shadow-2xs outline-none",
           isOpen
-            ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs"
+            ? "bg-[#042328] text-[#FFFFF2] border-[#042328] shadow-xs"
             : current.id === "off"
-            ? "bg-white/90 dark:bg-zinc-800/90 text-slate-600 dark:text-slate-300 border-slate-900/10 dark:border-white/10 hover:bg-slate-100"
-            : "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20 hover:bg-purple-500/20 font-semibold"
+            ? "bg-[#FFFFFF]/95 text-[#5C6873] border-[#E4E4E8] hover:bg-[#F2F7F9] hover:text-[#263844]"
+            : "bg-[#F2F7F9] text-[#263844] border-[#263844]/25 hover:bg-[#E0E7D9]/55 hover:text-[#042328] font-semibold"
         )}
         title="设置模型的思考推导深度 (Thinking Level)"
       >
-        <Cpu className={cn("h-3.5 w-3.5 shrink-0", current.id !== "off" ? "text-purple-600 dark:text-purple-400" : "text-muted-foreground")} />
+        <Cpu className={cn("h-3.5 w-3.5 shrink-0", isOpen ? "text-[#E1F209]" : current.id !== "off" ? "text-[#184120]" : "text-[#5C6873]")} />
         <span className="tracking-tight">{current.name}</span>
         <ChevronDown
           className={cn(
-            "h-3 w-3 text-muted-foreground transition-transform duration-200 shrink-0",
-            isOpen && "rotate-180 text-foreground"
+            "h-3 w-3 text-[#5C6873] transition-transform duration-200 shrink-0",
+            isOpen && "rotate-180 text-[#FFFFF2]"
           )}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-full mb-2 left-0 z-50 w-64 rounded-2xl border border-slate-200/90 dark:border-zinc-700/90 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-1.5 shadow-xl transition-all animate-in fade-in zoom-in-95 duration-150">
-          <div className="px-2.5 py-1.5 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+        <div className="absolute bottom-full mb-2 left-0 z-50 w-64 rounded-2xl border border-[#E4E4E8] bg-[#FFFFFF]/96 backdrop-blur-xl p-1.5 shadow-xl transition-all animate-in fade-in zoom-in-95 duration-150">
+          <div className="px-2.5 py-1.5 border-b border-[#E4E4E8] flex items-center justify-between">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#5C6873]">
               THINKING LEVEL // 思考档位
             </span>
-            <span className="text-[10px] font-mono text-purple-600 dark:text-purple-400">原生支持</span>
+            <span className="text-[10px] font-mono text-[#184120] font-semibold">原生支持</span>
           </div>
 
           <div className="mt-1 space-y-1">
@@ -85,15 +85,15 @@ export function ThinkingSelector({
                   className={cn(
                     "w-full text-left p-2 rounded-xl transition-all flex items-center justify-between cursor-pointer",
                     isSelected
-                      ? "bg-purple-500/15 text-purple-900 dark:text-purple-200 font-medium"
-                      : "hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 text-slate-600 dark:text-slate-300"
+                      ? "bg-[#E0E7D9]/65 text-[#042328] font-medium"
+                      : "hover:bg-[#F2F7F9] text-[#282828]"
                   )}
                 >
                   <div>
                     <div className="text-xs font-semibold">{level.name}</div>
-                    <div className="text-[10px] text-muted-foreground">{level.desc}</div>
+                    <div className="text-[10px] text-[#5C6873]">{level.desc}</div>
                   </div>
-                  {isSelected && <Check className="h-3.5 w-3.5 text-purple-600 shrink-0" />}
+                  {isSelected && <Check className="h-3.5 w-3.5 text-[#184120] shrink-0" />}
                 </button>
               );
             })}
